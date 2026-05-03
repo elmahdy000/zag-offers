@@ -1,0 +1,181 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  CUSTOMER
+  MERCHANT
+  ADMIN
+  STAFF
+}
+
+enum StoreStatus {
+  PENDING
+  APPROVED
+  REJECTED
+  SUSPENDED
+}
+
+enum OfferStatus {
+  DRAFT
+  PENDING
+  APPROVED
+  REJECTED
+  ACTIVE
+  EXPIRED
+  PAUSED
+}
+
+enum CouponStatus {
+  GENERATED
+  USED
+  EXPIRED
+}
+
+model User {
+  id       String  @id @default(uuid())
+  phone    String? @unique
+  email    String? @unique
+  password String?
+  name     String
+  role     Role    @default(CUSTOMER)
+
+  googleId   String? @unique
+  facebookId String? @unique
+  avatar     String?
+  area       String? // منطقة السكن للترشيحات
+  fcmToken   String?
+
+  stores    Store[]
+  coupons   Coupon[]
+  reviews   Review[]
+  favorites Favorite[]
+  createdAt DateTime   @default(now())
+  updatedAt DateTime   @updatedAt
+
+  @@index([role])
+}
+
+model Category {
+  id     String  @id @default(uuid())
+  name   String  @unique
+  stores Store[]
+}
+
+model Store {
+  id         String      @id @default(uuid())
+  name       String
+  logo       String?
+  coverImage String?
+  address    String
+  area       String? // e.g. El Qawmeya
+  lat        Float?
+  lng        Float?
+  phone      String
+  whatsapp   String?
+  status     StoreStatus @default(PENDING)
+
+  categoryId String
+  category   Category @relation(fields: [categoryId], references: [id])
+
+  ownerId String
+  owner   User   @relation(fields: [ownerId], references: [id])
+
+  offers  Offer[]
+  reviews Review[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([area])
+  @@index([status])
+  @@index([categoryId])
+  @@index([ownerId])
+}
+
+model Offer {
+  id          String      @id @default(uuid())
+  title       String
+  description String
+  images      String[]
+  discount    String // e.g. "20%" or "BOGO"
+  terms       String?
+  startDate   DateTime
+  endDate     DateTime
+  usageLimit  Int?
+  status      OfferStatus @default(PENDING)
+  isNotified  Boolean     @default(false)
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  coupons   Coupon[]
+  reviews   Review[]
+  favorites Favorite[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([status])
+  @@index([storeId])
+  @@index([createdAt])
+}
+
+model Favorite {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  offerId   String
+  offer     Offer    @relation(fields: [offerId], references: [id])
+  createdAt DateTime @default(now())
+
+  @@unique([userId, offerId])
+  @@index([userId])
+  @@index([offerId])
+}
+
+model Coupon {
+  id        String       @id @default(uuid())
+  code      String       @unique
+  expiresAt DateTime
+  status    CouponStatus @default(GENERATED)
+
+  offerId String
+  offer   Offer  @relation(fields: [offerId], references: [id])
+
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id])
+
+  redeemedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  @@index([status])
+  @@index([customerId])
+  @@index([offerId])
+}
+
+model Review {
+  id      String  @id @default(uuid())
+  rating  Int
+  comment String?
+
+  storeId String
+  store   Store  @relation(fields: [storeId], references: [id])
+
+  offerId String?
+  offer   Offer?  @relation(fields: [offerId], references: [id])
+
+  customerId String
+  customer   User   @relation(fields: [customerId], references: [id])
+
+  createdAt DateTime @default(now())
+
+  @@index([storeId])
+  @@index([customerId])
+  @@index([rating])
+  @@index([createdAt])
+}

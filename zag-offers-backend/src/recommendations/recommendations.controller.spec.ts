@@ -1,0 +1,29 @@
+import { Test, TestingModule } from '@nestjs/testing';
+import { RecommendationsController } from './recommendations.controller';
+import { RecommendationsService } from './recommendations.service';
+
+describe('RecommendationsController', () => {
+  let controller: RecommendationsController;
+
+  const mockRecommendationsService = {};
+
+  beforeEach(async () => {
+    const module: TestingModule = await Test.createTestingModule({
+      controllers: [RecommendationsController],
+      providers: [
+        {
+          provide: RecommendationsService,
+          useValue: mockRecommendationsService,
+        },
+      ],
+    }).compile();
+
+    controller = module.get<RecommendationsController>(
+      RecommendationsController,
+    );
+  });
+
+  it('should be defined', () => {
+    expect(controller).toBeDefined();
+  });
+});

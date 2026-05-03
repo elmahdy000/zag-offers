@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Global Analytics - Admin Dashboard</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&amp;family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+          darkMode: "class",
+          theme: {
+            extend: {
+              "colors": {
+                      "tertiary-container": "#00b149",
+                      "on-primary-fixed-variant": "#7a3000",
+                      "on-background": "#f8ddd2",
+                      "surface-container-highest": "#41312a",
+                      "error": "#ffb4ab",
+                      "background": "#1d100a",
+                      "surface-container-high": "#362720",
+                      "on-tertiary": "#003912",
+                      "on-surface-variant": "#e2bfb0",
+                      "secondary-fixed-dim": "#c8c6c5",
+                      "on-surface": "#f8ddd2",
+                      "tertiary": "#3ce36a",
+                      "surface-bright": "#46362e",
+                      "outline-variant": "#5a4136",
+                      "on-secondary-fixed-variant": "#474746",
+                      "error-container": "#93000a",
+                      "surface-tint": "#ffb693",
+                      "primary-fixed": "#ffdbcc",
+                      "surface-container-low": "#261812",
+                      "surface-dim": "#1d100a",
+                      "on-tertiary-fixed-variant": "#00531e",
+                      "on-primary": "#561f00",
+                      "primary": "#ffb693",
+                      "on-primary-fixed": "#351000",
+                      "primary-container": "#ff6b00",
+                      "on-secondary": "#313030",
+                      "outline": "#a98a7d",
+                      "inverse-on-surface": "#3d2d26",
+                      "on-error": "#690005",
+                      "surface": "#1d100a",
+                      "secondary-container": "#474746",
+                      "on-secondary-container": "#b7b5b4",
+                      "surface-variant": "#41312a",
+                      "on-tertiary-fixed": "#002108",
+                      "on-tertiary-container": "#003a13",
+                      "tertiary-fixed": "#69ff87",
+                      "on-secondary-fixed": "#1c1b1b",
+                      "inverse-primary": "#a04100",
+                      "surface-container-lowest": "#170b06",
+                      "secondary-fixed": "#e5e2e1",
+                      "on-primary-container": "#572000",
+                      "surface-container": "#2b1c16",
+                      "secondary": "#c8c6c5",
+                      "on-error-container": "#ffdad6",
+                      "inverse-surface": "#f8ddd2",
+                      "tertiary-fixed-dim": "#3ce36a",
+                      "primary-fixed-dim": "#ffb693"
+              },
+              "borderRadius": {
+                      "DEFAULT": "0.25rem",
+                      "lg": "0.5rem",
+                      "xl": "0.75rem",
+                      "full": "9999px"
+              },
+              "spacing": {
+                      "margin-desktop": "32px",
+                      "base": "8px",
+                      "margin-mobile": "16px",
+                      "stack-sm": "4px",
+                      "stack-md": "12px",
+                      "stack-lg": "24px",
+                      "gutter": "16px"
+              },
+              "fontFamily": {
+                      "body-lg": ["Almarai"],
+                      "price-display": ["Cairo"],
+                      "h1": ["Cairo"],
+                      "h3": ["Cairo"],
+                      "h2": ["Cairo"],
+                      "body-md": ["Almarai"],
+                      "label-sm": ["Almarai"]
+              },
+              "fontSize": {
+                      "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                      "price-display": ["28px", {"lineHeight": "1", "fontWeight": "800"}],
+                      "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                      "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                      "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                      "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                      "label-sm": ["13px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}]
+              }
+            }
+          }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-[#1A1A1A]/80 backdrop-blur-xl fixed top-0 w-full z-40 border-b border-[#333333] shadow-none flex flex-row-reverse justify-between items-center px-6 h-16 transition-all duration-200">
+<div class="flex items-center gap-4 flex-row-reverse">
+<button class="text-on-background hover:bg-[#262626] p-2 rounded-full transition-all active:scale-95 duration-200">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">menu</span>
+</button>
+<h1 class="font-sans text-right font-bold text-lg text-on-background">لوحة التحكم</h1>
+</div>
+<div class="flex items-center gap-4 flex-row-reverse">
+<button class="text-on-background hover:bg-[#262626] p-2 rounded-full transition-all active:scale-95 duration-200 relative">
+<span class="material-symbols-outlined" style="font-variation-settings: 'FILL' 0;">notifications</span>
+<span class="absolute top-1 right-1 w-2 h-2 bg-primary-container rounded-full"></span>
+</button>
+<div class="hidden md:flex items-center gap-2 bg-primary-container/10 px-3 py-1 rounded-full border border-primary-container/30">
+<span class="material-symbols-outlined text-primary-container text-sm" style="font-variation-settings: 'FILL' 1;">shield_person</span>
+<span class="font-label-sm text-primary-container">مشرف النظام</span>
+</div>
+</div>
+</header>
+<!-- Main Layout -->
+<div class="flex h-screen pt-16">
+<!-- NavigationDrawer (Web) -->
+<aside class="hidden md:block bg-[#0D0D0D] h-screen w-72 fixed right-0 top-16 border-l border-[#333333] shadow-2xl shadow-black/60 z-30">
+<div class="rtl flex flex-col h-full py-6">
+<!-- Profile Header -->
+<div class="flex flex-row-reverse items-center gap-4 px-6 mb-8">
+<img alt="صورة المسؤول" class="w-12 h-12 rounded-full border-2 border-[#333333] object-cover" data-alt="A professional headshot of a system administrator, clean-cut, neutral expression, set against a dark premium UI background. The lighting is soft but distinct, matching a high-end, energetic yet sophisticated tech environment. Vibrant orange accents hint at the brand identity." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCpa6zYay8DWMDeT0f5GOCVQK3gcpiBpLGNLwvCSQ894S34YRqLIfxJXDk1x0FQuqPU51qkXXxGUaOMhZyE50ku0MAm0uwqkil5cgN3R7nZfbCjKrY5UbuWwnmLKxt9IwvGiTgrba18lCntW0m4qoWBee__2BDupET8iAiuNXobQzyShag-RCvK-sMfUtFqu9Jq-fdVH3uHq_N8cCqUQZbAahCK9nQDxK1rgsBvkBq08wlWViPnvsA0FmX1vjpDZV_l8akSg916rjw"/>
+<div class="text-right">
+<h2 class="text-[#FF6B00] font-bold text-xl">مشرف النظام</h2>
+<p class="text-gray-400 font-label-sm mt-1">admin@zagoffers.com</p>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 flex flex-col gap-2 px-4">
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined ml-3 text-gray-500 group-hover:text-gray-300 transition-colors" style="font-variation-settings: 'FILL' 0;">fact_check</span>
+<span class="font-sans text-right text-sm font-medium">قائمة الموافقة</span>
+</a>
+<a class="flex flex-row-reverse items-center bg-[#FF6B00]/10 text-[#FF6B00] border-r-4 border-[#FF6B00] px-4 py-3 ml-2 rounded-l-lg transition-colors group" href="#">
+<span class="material-symbols-outlined ml-3 text-[#FF6B00]" style="font-variation-settings: 'FILL' 1;">analytics</span>
+<span class="font-sans text-right text-sm font-medium">التحليلات</span>
+</a>
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined ml-3 text-gray-500 group-hover:text-gray-300 transition-colors" style="font-variation-settings: 'FILL' 0;">gavel</span>
+<span class="font-sans text-right text-sm font-medium">إدارة المحتوى</span>
+</a>
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors rounded-lg group" href="#">
+<span class="material-symbols-outlined ml-3 text-gray-500 group-hover:text-gray-300 transition-colors" style="font-variation-settings: 'FILL' 0;">settings</span>
+<span class="font-sans text-right text-sm font-medium">الإعدادات العامة</span>
+</a>
+</nav>
+</div>
+</aside>
+<!-- Main Content Area -->
+<main class="flex-1 w-full md:pr-72 overflow-y-auto pb-24 md:pb-8 p-4 md:p-margin-desktop">
+<div class="max-w-7xl mx-auto space-y-stack-lg">
+<!-- Page Header -->
+<div class="flex flex-col md:flex-row-reverse justify-between items-start md:items-center gap-4 mb-8">
+<div>
+<h2 class="font-h1 text-on-surface">Global Analytics</h2>
+<p class="font-body-md text-on-surface-variant mt-2">نظرة عامة استراتيجية لأداء المنصة ومعدلات الاستخدام</p>
+</div>
+<div class="flex gap-3">
+<button class="bg-surface-container-high border border-outline-variant text-on-surface px-4 py-2 rounded-lg font-label-sm flex items-center gap-2 hover:bg-surface-container-highest transition-colors">
+<span class="material-symbols-outlined text-sm">calendar_month</span>
+                            هذا الشهر
+                        </button>
+<button class="bg-primary-container text-white px-4 py-2 rounded-lg font-label-sm hover:bg-primary transition-colors shadow-lg shadow-primary-container/20">
+                            تصدير التقرير
+                        </button>
+</div>
+</div>
+<!-- Metrics Bento Grid -->
+<div class="grid grid-cols-1 md:grid-cols-3 gap-gutter">
+<!-- Total Revenue Card -->
+<div class="bg-surface-container p-6 rounded-xl border border-outline-variant relative overflow-hidden group hover:border-primary-container/50 transition-colors">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-full -mr-10 -mt-10 blur-xl group-hover:bg-primary-container/10 transition-all"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="bg-surface-container-high p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary-container">account_balance_wallet</span>
+</div>
+<span class="flex items-center gap-1 text-tertiary-container font-label-sm bg-tertiary-container/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                +12.5%
+                            </span>
+</div>
+<h3 class="font-body-md text-on-surface-variant mb-1 relative z-10">إجمالي الإيرادات</h3>
+<p class="font-price-display text-on-surface relative z-10">452,890 <span class="text-sm text-on-surface-variant">ج.م</span></p>
+</div>
+<!-- Active Users Card -->
+<div class="bg-surface-container p-6 rounded-xl border border-outline-variant relative overflow-hidden group hover:border-primary-container/50 transition-colors">
+<div class="absolute top-0 right-0 w-32 h-32 bg-primary-container/5 rounded-full -mr-10 -mt-10 blur-xl group-hover:bg-primary-container/10 transition-all"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="bg-surface-container-high p-2 rounded-lg">
+<span class="material-symbols-outlined text-primary-container">group</span>
+</div>
+<span class="flex items-center gap-1 text-tertiary-container font-label-sm bg-tertiary-container/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                +8.2%
+                            </span>
+</div>
+<h3 class="font-body-md text-on-surface-variant mb-1 relative z-10">المستخدمين النشطين</h3>
+<p class="font-price-display text-on-surface relative z-10">24,500</p>
+</div>
+<!-- User Churn Card (Critical) -->
+<div class="bg-surface-container p-6 rounded-xl border border-error/30 relative overflow-hidden">
+<div class="absolute top-0 right-0 w-32 h-32 bg-error/5 rounded-full -mr-10 -mt-10 blur-xl"></div>
+<div class="flex justify-between items-start mb-4 relative z-10">
+<div class="bg-error/10 p-2 rounded-lg">
+<span class="material-symbols-outlined text-error">person_remove</span>
+</div>
+<span class="flex items-center gap-1 text-error font-label-sm bg-error/10 px-2 py-1 rounded-full">
+<span class="material-symbols-outlined text-xs">trending_up</span>
+                                -2.4%
+                            </span>
+</div>
+<h3 class="font-body-md text-on-surface-variant mb-1 relative z-10">معدل التخلي (Churn)</h3>
+<p class="font-price-display text-on-surface relative z-10">4.8%</p>
+<div class="mt-4 w-full bg-surface-container-highest rounded-full h-1.5">
+<div class="bg-error h-1.5 rounded-full" style="width: 25%"></div>
+</div>
+</div>
+</div>
+<!-- Main Visualization Section -->
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter mt-stack-lg">
+<!-- Growth Chart Area -->
+<div class="lg:col-span-2 bg-surface-container rounded-xl border border-outline-variant p-6">
+<div class="flex justify-between items-center mb-6">
+<h3 class="font-h3 text-on-surface">معدل نمو المنصة</h3>
+<div class="flex gap-2">
+<span class="flex items-center gap-2 font-label-sm text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-primary-container"></span>
+                                    مستخدمين جدد
+                                </span>
+<span class="flex items-center gap-2 font-label-sm text-on-surface-variant">
+<span class="w-3 h-3 rounded-full bg-surface-container-highest border border-outline-variant"></span>
+                                    عائدين
+                                </span>
+</div>
+</div>
+<!-- Decorative Abstract Chart -->
+<div class="h-64 w-full relative flex items-end justify-between gap-2 border-b border-l border-outline-variant pb-4 pl-4 rtl:pr-4 rtl:pl-0 rtl:border-l-0 rtl:border-r">
+<!-- Bars -->
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[30%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[40%] group-hover:bg-primary-container transition-colors"></div>
+</div>
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[45%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[50%] group-hover:bg-primary-container transition-colors"></div>
+</div>
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[35%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[60%] group-hover:bg-primary-container transition-colors"></div>
+</div>
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[60%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[70%] group-hover:bg-primary-container transition-colors"></div>
+</div>
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[80%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[85%] group-hover:bg-primary-container transition-colors"></div>
+</div>
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[65%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[75%] group-hover:bg-primary-container transition-colors"></div>
+</div>
+<div class="w-full bg-surface-container-highest rounded-t-sm h-[90%] relative group">
+<div class="absolute bottom-0 w-full bg-primary-container/80 rounded-t-sm h-[95%] shadow-[0_0_15px_rgba(255,107,0,0.4)] group-hover:bg-primary-container transition-colors"></div>
+</div>
+</div>
+</div>
+<!-- Zagazig Heatmap -->
+<div class="bg-surface-container rounded-xl border border-outline-variant p-6 flex flex-col">
+<div class="flex justify-between items-center mb-4">
+<h3 class="font-h3 text-on-surface">كثافة الاستخدام (الزقازيق)</h3>
+<span class="material-symbols-outlined text-on-surface-variant">location_on</span>
+</div>
+<p class="font-body-md text-on-surface-variant mb-4 text-sm">توزيع استرداد الكوبونات حسب المنطقة الجغرافية.</p>
+<div class="flex-1 rounded-lg overflow-hidden relative border border-outline-variant min-h-[200px]">
+<img alt="خريطة حرارية للزقازيق" class="w-full h-full object-cover opacity-60 mix-blend-luminosity" data-alt="A dark, high-contrast stylized map visualization of Zagazig city from a top-down perspective. The map uses deep charcoal and black tones for landmasses and streets, aligning with a premium dark UI aesthetic. Bright, energetic orange heat-map glowing spots highlight specific urban zones, indicating high activity areas. The overall mood is analytical, modern, and data-driven." data-location="Zagazig" src="https://lh3.googleusercontent.com/aida-public/AB6AXuAnT3PJvRaIE-IGdi-M7r7ctSiBhPbCIFJUZ5HENwQzo9Wrv4s_vDlR9xohlDQ-3a-xlZhfm9iVgWJU9XQU6HNChbJ1OJqRLUqcIaqrF5fuhX7HN2WjCOqQccFM3jTGcyGvj9LhPFiRHxr_fJJVgnMVRAXSHsomNay-jqK64H-53Nohlxm4cR3_NRDb_UZEde-bonDWQiJ1uwufBR2N4nktJ4ClS-TJvNBuvyI-ym2KPv-GQXReqDYCBQO9Cpqx1CKfKpPLIzKSYsA"/>
+<!-- Heatmap Overlays -->
+<div class="absolute top-[30%] right-[40%] w-16 h-16 bg-primary-container/40 rounded-full blur-xl"></div>
+<div class="absolute top-[35%] right-[42%] w-4 h-4 bg-primary-container rounded-full shadow-[0_0_15px_#FF6B00]"></div>
+<div class="absolute bottom-[20%] right-[60%] w-12 h-12 bg-primary-container/30 rounded-full blur-lg"></div>
+<div class="absolute bottom-[23%] right-[62%] w-3 h-3 bg-primary-container/80 rounded-full"></div>
+<div class="absolute top-[60%] right-[20%] w-24 h-24 bg-tertiary-container/20 rounded-full blur-xl"></div>
+<div class="absolute top-[65%] right-[25%] w-2 h-2 bg-tertiary-container rounded-full"></div>
+</div>
+<div class="flex justify-between items-center mt-4 pt-4 border-t border-outline-variant">
+<span class="font-label-sm text-on-surface-variant">الأعلى نشاطاً: منطقة القومية</span>
+<span class="font-h3 text-primary-container font-bold">1,204</span>
+</div>
+</div>
+</div>
+</div>
+</main>
+</div>
+</body></html>

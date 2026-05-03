@@ -1,0 +1,9 @@
+node_modules
+# Keep environment variables out of version control
+.env
+
+# Firebase Service Account — لا ترفعه على Git أبداً!
+firebase-service-account.json
+*.service-account.json
+
+/generated/prisma

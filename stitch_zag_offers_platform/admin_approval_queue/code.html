@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Approval Queue - Zag Offers</title>
+<!-- Google Fonts -->
+<link href="https://fonts.googleapis.com" rel="preconnect"/>
+<link crossorigin="" href="https://fonts.gstatic.com" rel="preconnect"/>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@300;400;700;800&amp;family=Cairo:wght@400;600;700;800&amp;display=swap" rel="stylesheet"/>
+<!-- Material Symbols -->
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<style>
+        .material-symbols-outlined {
+            font-family: 'Material Symbols Outlined';
+            font-weight: normal;
+            font-style: normal;
+            font-size: 24px;
+            line-height: 1;
+            letter-spacing: normal;
+            text-transform: none;
+            display: inline-block;
+            white-space: nowrap;
+            word-wrap: normal;
+            direction: ltr;
+            -webkit-font-feature-settings: 'liga';
+            -webkit-font-smoothing: antialiased;
+        }
+    </style>
+<!-- Tailwind CSS -->
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<!-- Theme Configuration -->
+<script id="tailwind-config">
+      tailwind.config = {
+        darkMode: "class",
+        theme: {
+          extend: {
+            "colors": {
+                    "tertiary-container": "#00b149",
+                    "on-primary-fixed-variant": "#7a3000",
+                    "on-background": "#f8ddd2",
+                    "surface-container-highest": "#41312a",
+                    "error": "#ffb4ab",
+                    "background": "#1d100a",
+                    "surface-container-high": "#362720",
+                    "on-tertiary": "#003912",
+                    "on-surface-variant": "#e2bfb0",
+                    "secondary-fixed-dim": "#c8c6c5",
+                    "on-surface": "#f8ddd2",
+                    "tertiary": "#3ce36a",
+                    "surface-bright": "#46362e",
+                    "outline-variant": "#5a4136",
+                    "on-secondary-fixed-variant": "#474746",
+                    "error-container": "#93000a",
+                    "surface-tint": "#ffb693",
+                    "primary-fixed": "#ffdbcc",
+                    "surface-container-low": "#261812",
+                    "surface-dim": "#1d100a",
+                    "on-tertiary-fixed-variant": "#00531e",
+                    "on-primary": "#561f00",
+                    "primary": "#ffb693",
+                    "on-primary-fixed": "#351000",
+                    "primary-container": "#ff6b00",
+                    "on-secondary": "#313030",
+                    "outline": "#a98a7d",
+                    "inverse-on-surface": "#3d2d26",
+                    "on-error": "#690005",
+                    "surface": "#1d100a",
+                    "secondary-container": "#474746",
+                    "on-secondary-container": "#b7b5b4",
+                    "surface-variant": "#41312a",
+                    "on-tertiary-fixed": "#002108",
+                    "on-tertiary-container": "#003a13",
+                    "tertiary-fixed": "#69ff87",
+                    "on-secondary-fixed": "#1c1b1b",
+                    "inverse-primary": "#a04100",
+                    "surface-container-lowest": "#170b06",
+                    "secondary-fixed": "#e5e2e1",
+                    "on-primary-container": "#572000",
+                    "surface-container": "#2b1c16",
+                    "secondary": "#c8c6c5",
+                    "on-error-container": "#ffdad6",
+                    "inverse-surface": "#f8ddd2",
+                    "tertiary-fixed-dim": "#3ce36a",
+                    "primary-fixed-dim": "#ffb693"
+            },
+            "borderRadius": {
+                    "DEFAULT": "0.25rem",
+                    "lg": "0.5rem",
+                    "xl": "0.75rem",
+                    "full": "9999px"
+            },
+            "spacing": {
+                    "margin-desktop": "32px",
+                    "base": "8px",
+                    "margin-mobile": "16px",
+                    "stack-sm": "4px",
+                    "stack-md": "12px",
+                    "stack-lg": "24px",
+                    "gutter": "16px"
+            },
+            "fontFamily": {
+                    "body-lg": [
+                            "Almarai"
+                    ],
+                    "price-display": [
+                            "Cairo"
+                    ],
+                    "h1": [
+                            "Cairo"
+                    ],
+                    "h3": [
+                            "Cairo"
+                    ],
+                    "h2": [
+                            "Cairo"
+                    ],
+                    "body-md": [
+                            "Almarai"
+                    ],
+                    "label-sm": [
+                            "Almarai"
+                    ]
+            },
+            "fontSize": {
+                    "body-lg": [
+                            "18px",
+                            {
+                                    "lineHeight": "1.6",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "price-display": [
+                            "28px",
+                            {
+                                    "lineHeight": "1",
+                                    "fontWeight": "800"
+                            }
+                    ],
+                    "h1": [
+                            "32px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "h3": [
+                            "20px",
+                            {
+                                    "lineHeight": "1.4",
+                                    "fontWeight": "600"
+                            }
+                    ],
+                    "h2": [
+                            "24px",
+                            {
+                                    "lineHeight": "1.3",
+                                    "fontWeight": "700"
+                            }
+                    ],
+                    "body-md": [
+                            "16px",
+                            {
+                                    "lineHeight": "1.5",
+                                    "fontWeight": "400"
+                            }
+                    ],
+                    "label-sm": [
+                            "13px",
+                            {
+                                    "lineHeight": "1.2",
+                                    "letterSpacing": "0.02em",
+                                    "fontWeight": "700"
+                            }
+                    ]
+            }
+          }
+        }
+      }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background font-body-md antialiased overflow-x-hidden">
+<!-- TopAppBar -->
+<header class="bg-[#1A1A1A]/80 backdrop-blur-xl fixed top-0 w-full z-40 border-b border-[#333333] shadow-none flex flex-row-reverse justify-between items-center px-6 h-16 w-full">
+<button class="text-[#FF6B00] hover:bg-[#262626] transition-all active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="text-[#FF6B00] font-black text-2xl tracking-tighter">لوحة التحكم</h1>
+<button class="text-[#FF6B00] hover:bg-[#262626] transition-all active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center relative">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+<span class="absolute top-1 right-2 w-2 h-2 bg-error rounded-full"></span>
+</button>
+</header>
+<!-- NavigationDrawer -->
+<aside class="hidden md:flex h-screen w-72 fixed right-0 top-0 border-l border-[#333333] shadow-2xl shadow-black/60 bg-[#0D0D0D] rtl flex flex-col h-full py-6 z-50 pt-20">
+<!-- Profile Header -->
+<div class="flex items-center gap-4 px-6 mb-8 mt-4">
+<img alt="صورة المسؤول" class="w-12 h-12 rounded-full border-2 border-primary-container object-cover" data-alt="A professional headshot of an administrator in a dark, high-end studio setting. The lighting is dramatic, highlighting the subject's face against a deep black background, conveying authority and sophistication within a premium dark-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuDqRgmdwR-Y3FR6eQrxOsw2Hi2qAcois2354wV0g7D7J1rDAeV20jfH34W1T09DGFRPVLls4Nbji7djN0Pd6nrQA2SHOfGtI-vN4mAO2qVZtm7Gf4r7kQ4cwYwQ1kivAhGKq2-en0amNG1UswuH3YSYBMfFiN149d9z-LH__GEiAxvlgFDHopCVxP14YI7IRznQ5kJMFZax381m4xgstVhc2JQJoCJIKAqqnLgh5RuJWr5zoa2psZ9InWpF7MUYJ-Cl4xIWRj5KSBE"/>
+<div class="flex flex-col">
+<span class="font-h3 text-h3 text-primary-container">مشرف النظام</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">admin@zagoffers.com</span>
+</div>
+</div>
+<!-- Navigation Links -->
+<nav class="flex-1 space-y-1">
+<!-- Active Item: قائمة الموافقة -->
+<a class="flex flex-row-reverse items-center bg-[#FF6B00]/10 text-[#FF6B00] border-r-4 border-[#FF6B00] px-4 py-3 ml-2 rounded-l-lg hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity font-sans text-right text-sm font-medium" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="fact_check">fact_check</span>
+<span>قائمة الموافقة</span>
+</a>
+<!-- Inactive Items -->
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity font-sans text-right text-sm font-medium" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="analytics">analytics</span>
+<span>التحليلات</span>
+</a>
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity font-sans text-right text-sm font-medium" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="gavel">gavel</span>
+<span>إدارة المحتوى</span>
+</a>
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity font-sans text-right text-sm font-medium" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="settings">settings</span>
+<span>الإعدادات العامة</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="md:mr-72 pt-24 px-margin-mobile md:px-margin-desktop pb-24 min-h-screen">
+<!-- Page Header -->
+<div class="flex justify-between items-end mb-stack-lg border-b border-surface-variant pb-stack-md">
+<div>
+<h2 class="font-h1 text-h1 text-primary-fixed-dim mb-stack-sm">قائمة الموافقة</h2>
+<p class="font-body-md text-body-md text-on-surface-variant">مراجعة العروض الجديدة المعلقة واعتمادها للمنصة.</p>
+</div>
+<div class="bg-surface-container-high px-4 py-2 rounded-full border border-outline-variant flex items-center gap-2">
+<span class="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
+<span class="font-label-sm text-label-sm text-on-surface">3 عروض قيد الانتظار</span>
+</div>
+</div>
+<!-- Offers Grid (Bento Style) -->
+<div class="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-gutter">
+<!-- Offer Card 1 -->
+<article class="bg-surface-container rounded-xl border border-surface-variant overflow-hidden flex flex-col group relative">
+<div class="relative h-48 w-full overflow-hidden">
+<img alt="Gourmet Burger Offer" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A high-resolution, appetizing shot of a gourmet double cheeseburger dripping with sauce, placed on a dark slate board. The lighting is cinematic and warm, emphasizing the textures of the food against a deep charcoal background, perfectly matching a premium, energetic dark-mode UI style." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBEp0xhySLAE0KxwX7UYR1KYddM-SCdI80WMQe2JmxSz3yv6VMfNfcCQe783feSb9ta3OpbM22AsaoL9u6V173cWnVAggUMOVxZdDUzDoi9z_O0wjfc04dkp9J-_qGoIHYLzWradOTxadCzRj2VJJb-mnUSbhLxTXHKKz_A9D7oDbkWSMISGSn6dLZFCvTrKPRbVoBBNPOb6O-Rh6fBCArJMiwxEZN9S1iGO5DSH3q2XYKcKfESx1CjaV4AzRExDrLxxH2C3c6T6q8"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<!-- Pending Badge -->
+<div class="absolute top-4 right-4 bg-amber-500/20 backdrop-blur-md border border-amber-500/50 text-amber-400 font-label-sm text-label-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-lg">
+<span class="material-symbols-outlined text-[16px]" data-icon="pending">pending</span>
+<span>قيد الانتظار</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex items-center gap-3 mb-4 border-b border-surface-variant pb-4">
+<img alt="Restaurant Logo" class="w-10 h-10 rounded-full border border-outline" data-alt="A stylized, neon-lit logo of a modern burger joint, glowing intensely against a pitch-black textured wall. The vivid orange and warm tones reflect a high-energy brand identity suited for an exclusive dark-themed marketplace." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCx9lvelxLNRvHVT3EeoIdTVxeeT0K1LlAWRZI1ZNqLSytlxhrfPx5eaQF6nU_enaCXTaFMiMLM90ySDmOyW5ksocOJ8RdQFzynps9BgcZKgIW0HroIKM-9U0E5v3EtOuvBYDAkT1Y3ICBAQBr7xLB-WFeREsYSEyvyxbHJVZqMKQb82j8lIL9DW8NUzX0SWf6AMIwHoU-B8trIMTc2TKa1cL_WM9PuMUmlkiX5KU7f0pbkyURpYEI1mDAtJ1iD0HrEII-8woJAIK4"/>
+<div>
+<h4 class="font-label-sm text-label-sm text-on-surface-variant">The Burger Joint</h4>
+<p class="font-label-sm text-[11px] text-primary-container/80">تاريخ التقديم: منذ ساعتين</p>
+</div>
+</div>
+<h3 class="font-h2 text-h2 text-on-surface mb-2">خصم 50% على وجبة الدبل الفاخرة</h3>
+<div class="flex justify-between items-center mb-6 mt-auto">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant line-through">120 ريال</span>
+<span class="font-price-display text-price-display text-primary-container">60 ريال</span>
+</div>
+<div class="bg-surface-variant px-3 py-2 rounded-lg text-center">
+<span class="block font-label-sm text-[11px] text-on-surface-variant">الكمية</span>
+<span class="font-h3 text-h3 text-on-surface">150</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex gap-3 mt-4 pt-4 border-t border-surface-variant">
+<button class="flex-1 bg-tertiary-container hover:bg-tertiary transition-colors text-on-tertiary-container font-h3 text-[16px] py-3 rounded-lg flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                            موافقة
+                        </button>
+<button class="flex-1 border border-error text-error hover:bg-error/10 transition-colors font-h3 text-[16px] py-3 rounded-lg flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="cancel">cancel</span>
+                            رفض
+                        </button>
+</div>
+</div>
+</article>
+<!-- Offer Card 2 -->
+<article class="bg-surface-container rounded-xl border border-surface-variant overflow-hidden flex flex-col group relative">
+<div class="relative h-48 w-full overflow-hidden">
+<img alt="Spa Offer" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" data-alt="A tranquil, high-end spa room featuring dark wooden elements, warm ambient candle lighting, and crisp white towels. The scene is shot with a low-key lighting setup to emphasize relaxation and luxury within a deep, premium dark-mode aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBpm64SBh4ZoOr34iQnKc6IWlBv5Z-WFXox5GmRnp1H834nTwlVJ0L-bziGnjJ4czfudcxRRjyiVoENtVFYDu8CX7C5uiHTiYGGaBvH8JtVsCcptphNS-Z8f6jcFv4O0xChvxdxCWr26vlCUfJvZnhvcVMYVRFMyQymgjBCEosAF9NieR46oHQZ_4yRjelnhacbhy21Tcd7GzpdaeI5a-vkw0DP3AEUuaiJI5NgMBNTRN6l87Ke1TJ0xAJPOsWzAycFG7n8nF-Ad4c"/>
+<div class="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent"></div>
+<!-- Pending Badge -->
+<div class="absolute top-4 right-4 bg-amber-500/20 backdrop-blur-md border border-amber-500/50 text-amber-400 font-label-sm text-label-sm px-3 py-1 rounded-full flex items-center gap-1 shadow-lg">
+<span class="material-symbols-outlined text-[16px]" data-icon="pending">pending</span>
+<span>قيد الانتظار</span>
+</div>
+</div>
+<div class="p-6 flex-1 flex flex-col">
+<div class="flex items-center gap-3 mb-4 border-b border-surface-variant pb-4">
+<img alt="Spa Logo" class="w-10 h-10 rounded-full border border-outline" data-alt="A minimalist logo for a luxury spa, featuring a delicate lotus flower rendered in subtle gold lines against a deep charcoal background. The design is elegant and sophisticated, fitting perfectly into a high-contrast dark UI theme." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBURrEVXQNaoSmgyd1D8j1epF9-BJrbZSun-km5cnR_1YxZOXCZ1qYMAnQtGWfuIo3fM52E2WCzQOK2ugDjkKbmAy0KH2yE60kJKRD84Bjj5UvajYWfpNboA7mVE0R9M2X45D8r1hKVHfpEtrapEpkD1UQ40tXysmfzmb99AspLgYjcjHkHvdg3DFKWf1EPVJCJzv0R3v0Q_kuB35fjDQ4KJ47qIUFlQY1258Fk2e-Hl-rSHA_kqLwxqdLH2vTsyH9S-qTp6xLsMlI"/>
+<div>
+<h4 class="font-label-sm text-label-sm text-on-surface-variant">لاونج الاسترخاء</h4>
+<p class="font-label-sm text-[11px] text-primary-container/80">تاريخ التقديم: منذ 5 ساعات</p>
+</div>
+</div>
+<h3 class="font-h2 text-h2 text-on-surface mb-2">باقة المساج الملكي - 60 دقيقة</h3>
+<div class="flex justify-between items-center mb-6 mt-auto">
+<div class="flex flex-col">
+<span class="font-label-sm text-label-sm text-on-surface-variant line-through">400 ريال</span>
+<span class="font-price-display text-price-display text-primary-container">250 ريال</span>
+</div>
+<div class="bg-surface-variant px-3 py-2 rounded-lg text-center">
+<span class="block font-label-sm text-[11px] text-on-surface-variant">الكمية</span>
+<span class="font-h3 text-h3 text-on-surface">50</span>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex gap-3 mt-4 pt-4 border-t border-surface-variant">
+<button class="flex-1 bg-tertiary-container hover:bg-tertiary transition-colors text-on-tertiary-container font-h3 text-[16px] py-3 rounded-lg flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="check_circle">check_circle</span>
+                            موافقة
+                        </button>
+<button class="flex-1 border border-error text-error hover:bg-error/10 transition-colors font-h3 text-[16px] py-3 rounded-lg flex items-center justify-center gap-2">
+<span class="material-symbols-outlined" data-icon="cancel">cancel</span>
+                            رفض
+                        </button>
+</div>
+</div>
+</article>
+</div>
+</main>
+</body></html>

@@ -1,0 +1,301 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Control Center - Category Management</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Almarai:wght@400;700;800&amp;family=Cairo:wght@600;700;800&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "tertiary-container": "#00b149",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "on-background": "#f8ddd2",
+                        "surface-container-highest": "#41312a",
+                        "error": "#ffb4ab",
+                        "background": "#1d100a",
+                        "surface-container-high": "#362720",
+                        "on-tertiary": "#003912",
+                        "on-surface-variant": "#e2bfb0",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "on-surface": "#f8ddd2",
+                        "tertiary": "#3ce36a",
+                        "surface-bright": "#46362e",
+                        "outline-variant": "#5a4136",
+                        "on-secondary-fixed-variant": "#474746",
+                        "error-container": "#93000a",
+                        "surface-tint": "#ffb693",
+                        "primary-fixed": "#ffdbcc",
+                        "surface-container-low": "#261812",
+                        "surface-dim": "#1d100a",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "on-primary": "#561f00",
+                        "primary": "#ffb693",
+                        "on-primary-fixed": "#351000",
+                        "primary-container": "#ff6b00",
+                        "on-secondary": "#313030",
+                        "outline": "#a98a7d",
+                        "inverse-on-surface": "#3d2d26",
+                        "on-error": "#690005",
+                        "surface": "#1d100a",
+                        "secondary-container": "#474746",
+                        "on-secondary-container": "#b7b5b4",
+                        "surface-variant": "#41312a",
+                        "on-tertiary-fixed": "#002108",
+                        "on-tertiary-container": "#003a13",
+                        "tertiary-fixed": "#69ff87",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "inverse-primary": "#a04100",
+                        "surface-container-lowest": "#170b06",
+                        "secondary-fixed": "#e5e2e1",
+                        "on-primary-container": "#572000",
+                        "surface-container": "#2b1c16",
+                        "secondary": "#c8c6c5",
+                        "on-error-container": "#ffdad6",
+                        "inverse-surface": "#f8ddd2",
+                        "tertiary-fixed-dim": "#3ce36a",
+                        "primary-fixed-dim": "#ffb693"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "margin-desktop": "32px",
+                        "base": "8px",
+                        "margin-mobile": "16px",
+                        "stack-sm": "4px",
+                        "stack-md": "12px",
+                        "stack-lg": "24px",
+                        "gutter": "16px"
+                    },
+                    "fontFamily": {
+                        "body-lg": ["Almarai"],
+                        "price-display": ["Cairo"],
+                        "h1": ["Cairo"],
+                        "h3": ["Cairo"],
+                        "h2": ["Cairo"],
+                        "body-md": ["Almarai"],
+                        "label-sm": ["Almarai"]
+                    },
+                    "fontSize": {
+                        "body-lg": ["18px", {"lineHeight": "1.6", "fontWeight": "400"}],
+                        "price-display": ["28px", {"lineHeight": "1", "fontWeight": "800"}],
+                        "h1": ["32px", {"lineHeight": "1.2", "fontWeight": "700"}],
+                        "h3": ["20px", {"lineHeight": "1.4", "fontWeight": "600"}],
+                        "h2": ["24px", {"lineHeight": "1.3", "fontWeight": "700"}],
+                        "body-md": ["16px", {"lineHeight": "1.5", "fontWeight": "400"}],
+                        "label-sm": ["13px", {"lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700"}]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+        .material-symbols-outlined {
+            font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 24;
+        }
+    </style>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-surface-dim text-on-surface font-body-md min-h-screen flex antialiased rtl">
+<!-- TopAppBar -->
+<header class="fixed top-0 w-full z-40 border-b border-[#333333] bg-[#1A1A1A]/80 backdrop-blur-xl shadow-none">
+<div class="flex flex-row-reverse justify-between items-center px-6 h-16 w-full">
+<div class="flex items-center gap-4">
+<button class="text-gray-400 hover:text-[#FF6B00] hover:bg-[#262626] transition-all p-2 rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="menu">menu</span>
+</button>
+<h1 class="font-sans text-right font-bold text-lg text-[#FF6B00]">لوحة التحكم</h1>
+</div>
+<div class="flex items-center gap-4">
+<span class="bg-primary-container/20 text-primary-container px-3 py-1 rounded-full text-label-sm font-label-sm flex items-center gap-2">
+<span class="material-symbols-outlined text-[16px]" data-icon="admin_panel_settings" style="font-variation-settings: 'FILL' 1;">admin_panel_settings</span>
+                    مدير النظام
+                </span>
+<button class="text-gray-400 hover:text-[#FF6B00] hover:bg-[#262626] transition-all p-2 rounded-full active:scale-95 duration-200">
+<span class="material-symbols-outlined" data-icon="notifications">notifications</span>
+</button>
+</div>
+</div>
+</header>
+<!-- NavigationDrawer -->
+<aside class="h-screen w-72 fixed right-0 top-0 border-l border-[#333333] shadow-2xl shadow-black/60 bg-[#0D0D0D] hidden md:flex rtl flex-col py-6 z-50">
+<div class="px-6 mb-8 mt-16 flex items-center gap-4 right_align">
+<div class="w-12 h-12 rounded-full bg-surface-variant overflow-hidden shrink-0 border-2 border-[#FF6B00]">
+<img alt="صورة المسؤول" class="w-full h-full object-cover" data-alt="A professional headshot of a system administrator in a dark studio setting. The lighting is dramatic and moody, emphasizing a sense of authority and technical expertise. Deep charcoal background with subtle warm highlights, aligning with a premium, high-tech interface aesthetic." src="https://lh3.googleusercontent.com/aida-public/AB6AXuCtFEm2Zai1X3FtSQZbBaolGq7mOSR8ab4PaRZSN4ogGZ5OXf2lOrWg27s_-jydnQzOpKoIz7-lUebxeNgRL216QQ5kwl7tx62xO1g90hBwSVZz-8tI9_lksJyoc9rnJ9i-G3I-R3Qyh3D0gDkHTXgc5Qw9JEoNYXvqwxiaCgd9z2PiTHaejrqnlPuszg9o_0QEb7stR7sl-LsvMVGfqIpO1AP484fmLIMpH3xALI5sNanbW92EkdlRhp0Cu56_LrgWPbtwYx94kCY"/>
+</div>
+<div>
+<h2 class="font-sans text-right font-bold text-xl text-[#FF6B00]">مشرف النظام</h2>
+<p class="text-gray-400 font-sans text-right text-sm font-medium">admin@zagoffers.com</p>
+</div>
+</div>
+<nav class="flex-1 space-y-2 mt-4 overflow-y-auto">
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="fact_check">fact_check</span>
+<span class="font-sans text-right text-sm font-medium">قائمة الموافقة</span>
+</a>
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="analytics">analytics</span>
+<span class="font-sans text-right text-sm font-medium">التحليلات</span>
+</a>
+<a class="flex flex-row-reverse items-center bg-[#FF6B00]/10 text-[#FF6B00] border-r-4 border-[#FF6B00] px-4 py-3 ml-2 rounded-l-lg hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="gavel" style="font-variation-settings: 'FILL' 1;">gavel</span>
+<span class="font-sans text-right text-sm font-medium">إدارة المحتوى</span>
+</a>
+<a class="flex flex-row-reverse items-center text-gray-400 px-4 py-3 hover:text-gray-100 hover:bg-[#1A1A1A] transition-colors active:opacity-80 transition-opacity" href="#">
+<span class="material-symbols-outlined ml-3" data-icon="settings">settings</span>
+<span class="font-sans text-right text-sm font-medium">الإعدادات العامة</span>
+</a>
+</nav>
+</aside>
+<!-- Main Content Canvas -->
+<main class="flex-1 w-full md:pr-72 pt-20 pb-24 md:pb-8 px-margin-mobile md:px-margin-desktop">
+<div class="max-w-6xl mx-auto space-y-stack-lg">
+<!-- Header Section -->
+<div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+<div>
+<h2 class="text-h1 font-h1 text-on-surface">إدارة الفئات</h2>
+<p class="text-on-surface-variant font-body-md mt-1">قم بتنظيم وترتيب فئات العروض وتحديد العروض المميزة.</p>
+</div>
+<button class="bg-primary-container text-white px-6 py-3 rounded-lg font-h3 text-h3 flex items-center gap-2 hover:bg-[#e66000] transition-colors active:scale-95">
+<span class="material-symbols-outlined" data-icon="add">add</span>
+                    إضافة فئة جديدة
+                </button>
+</div>
+<div class="grid grid-cols-1 lg:grid-cols-3 gap-gutter">
+<!-- Category Ordering (Drag & Drop UI) -->
+<section class="lg:col-span-2 bg-[#1A1A1A] rounded-xl border border-[#333333] p-6 shadow-2xl shadow-black/20">
+<div class="flex justify-between items-center mb-6 border-b border-[#333333] pb-4">
+<h3 class="text-h2 font-h2 text-primary-container flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="format_list_numbered_rtl">format_list_numbered_rtl</span>
+                            ترتيب الفئات
+                        </h3>
+<span class="text-label-sm font-label-sm text-on-surface-variant">اسحب وأفلت للترتيب</span>
+</div>
+<div class="space-y-stack-md">
+<!-- Category Item 1 -->
+<div class="group flex items-center justify-between p-4 bg-[#262626] rounded-lg border border-[#333333] hover:border-primary-container/50 transition-colors cursor-move">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container cursor-grab active:cursor-grabbing" data-icon="drag_indicator">drag_indicator</span>
+<div class="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center border border-[#333333]">
+<span class="material-symbols-outlined text-primary" data-icon="restaurant">restaurant</span>
+</div>
+<div>
+<h4 class="text-h3 font-h3 text-on-surface">المطاعم والمقاهي</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant">450 عرض نشط</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-[#1A1A1A]">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-[#1A1A1A]">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Category Item 2 -->
+<div class="group flex items-center justify-between p-4 bg-[#262626] rounded-lg border border-[#333333] hover:border-primary-container/50 transition-colors cursor-move">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container cursor-grab active:cursor-grabbing" data-icon="drag_indicator">drag_indicator</span>
+<div class="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center border border-[#333333]">
+<span class="material-symbols-outlined text-primary" data-icon="fitness_center">fitness_center</span>
+</div>
+<div>
+<h4 class="text-h3 font-h3 text-on-surface">الصحة واللياقة</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant">120 عرض نشط</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-[#1A1A1A]">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-[#1A1A1A]">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+<!-- Category Item 3 -->
+<div class="group flex items-center justify-between p-4 bg-[#262626] rounded-lg border border-[#333333] hover:border-primary-container/50 transition-colors cursor-move">
+<div class="flex items-center gap-4">
+<span class="material-symbols-outlined text-on-surface-variant group-hover:text-primary-container cursor-grab active:cursor-grabbing" data-icon="drag_indicator">drag_indicator</span>
+<div class="w-10 h-10 rounded-full bg-[#1A1A1A] flex items-center justify-center border border-[#333333]">
+<span class="material-symbols-outlined text-primary" data-icon="shopping_bag">shopping_bag</span>
+</div>
+<div>
+<h4 class="text-h3 font-h3 text-on-surface">التسوق والأزياء</h4>
+<p class="text-label-sm font-label-sm text-on-surface-variant">340 عرض نشط</p>
+</div>
+</div>
+<div class="flex items-center gap-2">
+<button class="p-2 text-on-surface-variant hover:text-primary transition-colors rounded-full hover:bg-[#1A1A1A]">
+<span class="material-symbols-outlined text-[20px]" data-icon="edit">edit</span>
+</button>
+<button class="p-2 text-on-surface-variant hover:text-error transition-colors rounded-full hover:bg-[#1A1A1A]">
+<span class="material-symbols-outlined text-[20px]" data-icon="delete">delete</span>
+</button>
+</div>
+</div>
+</div>
+</section>
+<!-- Featured Offers Selection -->
+<section class="bg-[#1A1A1A] rounded-xl border border-[#333333] p-6 shadow-2xl shadow-black/20 flex flex-col h-full">
+<div class="flex justify-between items-center mb-6 border-b border-[#333333] pb-4">
+<h3 class="text-h2 font-h2 text-primary-container flex items-center gap-2">
+<span class="material-symbols-outlined" data-icon="star" style="font-variation-settings: 'FILL' 1;">star</span>
+                            العروض المميزة
+                        </h3>
+</div>
+<div class="space-y-stack-md flex-1">
+<p class="text-body-md font-body-md text-on-surface-variant mb-4">حدد العروض التي ستظهر في شريط التمرير الرئيسي للمستخدمين.</p>
+<!-- Search/Filter Input -->
+<div class="relative mb-4">
+<span class="material-symbols-outlined absolute right-3 top-1/2 -translate-y-1/2 text-on-surface-variant" data-icon="search">search</span>
+<input class="w-full bg-[#262626] border border-[#333333] rounded-lg py-2 pr-10 pl-4 text-on-surface focus:border-primary-container focus:ring-1 focus:ring-primary-container transition-all" placeholder="ابحث عن عرض لإضافته..." type="text"/>
+</div>
+<!-- Selected Featured List -->
+<div class="space-y-3">
+<div class="flex items-center gap-3 p-3 bg-[#0D0D0D] rounded-lg border border-primary-container/30 relative overflow-hidden">
+<div class="absolute inset-0 bg-primary-container/5 pointer-events-none"></div>
+<img alt="صورة العرض" class="w-12 h-12 rounded object-cover" data-alt="A juicy, premium gourmet burger with melting cheese and fresh vegetables, beautifully lit against a dark background, evoking a sense of high-end culinary experience. The image is rich in contrast, fitting perfectly within a dark-mode luxury marketplace UI." src="https://lh3.googleusercontent.com/aida-public/AB6AXuAG1Gg72-DxMK36zoNdVUSsHUv4pMs0j1CVdM8GGomMce_zpSUYnoQ7ODG5nRVJshhbeGhKzv_csci04MxsV9XvZj3DBsQndTDJaiROzP3B4npOkCD_grvO9Z1DtBcb5OspEY4Txoe4i3nFL5eiLWGTCqU2ml-QdJNg2_uKEnx8BUXKgGkRe2KtQyxHwFC_fQHsPV2z8OsNq5G990cd9IBH7SKxk1dFSXmjkdsjUkx-rqcC7QJLrIuW28PGYID5NTIg3x1hHgRI3Es"/>
+<div class="flex-1">
+<h5 class="text-label-sm font-label-sm text-on-surface truncate w-32">خصم 50% برجر بوتيك</h5>
+<span class="text-[10px] text-tertiary">نشط</span>
+</div>
+<button class="text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+<div class="flex items-center gap-3 p-3 bg-[#0D0D0D] rounded-lg border border-[#333333]">
+<img alt="صورة العرض" class="w-12 h-12 rounded object-cover" data-alt="A modern, high-end gym interior featuring sleek equipment illuminated by moody, dramatic lighting. The atmosphere is energetic yet sophisticated, emphasizing premium fitness facilities. Deep shadows and sharp metallic highlights align with a contemporary dark-themed lifestyle platform." src="https://lh3.googleusercontent.com/aida-public/AB6AXuClJdGMflZAEJyHCu7Ek5D3yEUpBE03SHWseebukPnHWOj5aN3sfxP6X0gsvpXO1dHB2EOGs3-jZFapjUVNqdn-85qFXS9o2i2m6FA9PfmqHvCaBO_sBvOPMVwh67RKgGKXigMkfciY_464ZEdkDmhaUmMz8AroGLslRTJl6s-L4Ty3n1DHRJvVgFXQhFsXUAXndR90MGqz_lmoWbj9iJLXsC28LJXgpQGUprW8cLhdrAUcMQDEuFK9PVrbwVvngDI4EDE8IUFhWII"/>
+<div class="flex-1">
+<h5 class="text-label-sm font-label-sm text-on-surface truncate w-32">اشتراك سنوي فتنس</h5>
+<span class="text-[10px] text-tertiary">نشط</span>
+</div>
+<button class="text-on-surface-variant hover:text-error">
+<span class="material-symbols-outlined" data-icon="close">close</span>
+</button>
+</div>
+</div>
+</div>
+<button class="mt-6 w-full py-3 bg-transparent border border-primary-container text-primary-container rounded-lg font-h3 text-h3 hover:bg-primary-container hover:text-white transition-colors">
+                        حفظ التغييرات
+                    </button>
+</section>
+</div>
+</div>
+</main>
+</body></html>

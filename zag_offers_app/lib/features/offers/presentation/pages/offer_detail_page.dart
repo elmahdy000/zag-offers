@@ -1,0 +1,843 @@
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/intl.dart';
+import 'package:qr_flutter/qr_flutter.dart';
+import 'package:share_plus/share_plus.dart';
+
+import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/category_utils.dart';
+import '../../../../injection_container.dart';
+import '../../../auth/data/datasources/auth_local_data_source.dart';
+import '../../../coupons/presentation/bloc/coupons_bloc.dart';
+import '../../../coupons/presentation/bloc/coupons_event.dart';
+import '../../../coupons/presentation/bloc/coupons_state.dart';
+import '../../../reviews/presentation/bloc/reviews_bloc.dart';
+import '../../domain/entities/offer_entity.dart';
+import '../widgets/favorite_button.dart';
+import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import 'store_detail_page.dart';
+
+class OfferDetailPage extends StatefulWidget {
+  final OfferEntity offer;
+
+  const OfferDetailPage({super.key, required this.offer});
+
+  @override
+  State<OfferDetailPage> createState() => _OfferDetailPageState();
+}
+
+class _OfferDetailPageState extends State<OfferDetailPage> {
+  TextTheme get textTheme => Theme.of(context).textTheme;
+  late final Future<bool> _canGenerateCouponFuture;
+  int _selectedImageIndex = 0;
+
+  List<String> get _allImages {
+    final images = widget.offer.images ?? [];
+    if (images.isEmpty && widget.offer.image != null) {
+      return [widget.offer.image!];
+    }
+    return images;
+  }
+
+  @override
+  void initState() {
+    super.initState();
+    _canGenerateCouponFuture = _canGenerateCoupon();
+  }
+
+  Future<bool> _canGenerateCoupon() async {
+    final role = await sl<AuthLocalDataSource>().getUserRole();
+    return role == 'CUSTOMER';
+  }
+
+  void _shareOffer() {
+    final discountText = widget.offer.discount.isNotEmpty
+        ? widget.offer.discount
+        : '${widget.offer.discountPercentage.toInt()}%';
+    SharePlus.instance.share(
+      ShareParams(
+        text:
+            'شاهد هذا العرض من ${widget.offer.store.name}\n'
+            '${widget.offer.title}\n'
+            'الخصم: $discountText',
+      ),
+    );
+  }
+
+  Future<void> _copyCouponCode(
+    BuildContext context,
+    String code,
+  ) async {
+    final messenger = ScaffoldMessenger.of(context);
+    await Clipboard.setData(ClipboardData(text: code));
+    if (!mounted) return;
+    messenger.showSnackBar(
+      const SnackBar(
+        content: Text('تم نسخ الكود'),
+        backgroundColor: Colors.green,
+      ),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final usageCount = (widget.offer.id.hashCode % 150) + 40;
+
+    return MultiBlocProvider(
+      providers: [
+        BlocProvider(create: (_) => sl<CouponsBloc>()),
+        BlocProvider.value(
+          value: sl<ReviewsBloc>()..add(FetchStoreReviews(widget.offer.store.id)),
+        ),
+      ],
+      child: MultiBlocListener(
+        listeners: [
+          BlocListener<CouponsBloc, CouponsState>(listener: _onCouponStateChange),
+          BlocListener<ReviewsBloc, ReviewsState>(
+            listener: (context, state) {
+              if (state is ReviewActionSuccess) {
+                context
+                    .read<ReviewsBloc>()
+                    .add(FetchStoreReviews(widget.offer.store.id));
+                ScaffoldMessenger.of(context).showSnackBar(
+                  const SnackBar(
+                    content: Text('تمت إضافة تقييمك بنجاح'),
+                    backgroundColor: Colors.green,
+                  ),
+                );
+              }
+              if (state is ReviewsError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+            },
+          ),
+          BlocListener<FavoritesBloc, FavoritesState>(
+            listener: (context, state) {
+              if (state is FavoritesError) {
+                ScaffoldMessenger.of(context).showSnackBar(
+                  SnackBar(
+                    content: Text(state.message),
+                    backgroundColor: AppColors.error,
+                  ),
+                );
+              }
+            },
+          ),
+        ],
+        child: Scaffold(
+          backgroundColor: Colors.white,
+          body: Stack(
+            children: [
+              CustomScrollView(
+                physics: const BouncingScrollPhysics(),
+                slivers: [
+                  _buildSliverAppBar(),
+                  _buildContentSection(usageCount),
+                ],
+              ),
+              _buildStickyActionArea(usageCount),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  void _onCouponStateChange(BuildContext context, CouponsState state) {
+    if (state is CouponsError) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          content: Text(state.message),
+          backgroundColor: AppColors.error,
+        ),
+      );
+    }
+    if (state is CouponGeneratedSuccess) {
+      final usageCount = (widget.offer.id.hashCode % 150) + 40;
+      _showCouponDialog(context, state.coupon.code, usageCount);
+    }
+  }
+
+  Widget _buildSliverAppBar() {
+    return SliverAppBar(
+      expandedHeight: 350,
+      pinned: true,
+      stretch: true,
+      backgroundColor: AppColors.primary,
+      leading: _buildCircleIconButton(
+        icon: Icons.arrow_back_ios_new_rounded,
+        onPressed: () => Navigator.pop(context),
+      ),
+      actions: [
+        FavoriteButton(offerId: widget.offer.id),
+        const SizedBox(width: 8),
+        _buildCircleIconButton(
+          icon: Icons.share_rounded,
+          onPressed: _shareOffer,
+        ),
+        const SizedBox(width: 8),
+      ],
+      flexibleSpace: FlexibleSpaceBar(
+        stretchModes: const [StretchMode.zoomBackground],
+        background: _buildAppBarBackground(),
+      ),
+    );
+  }
+
+  Widget _buildCircleIconButton({
+    required IconData icon,
+    required VoidCallback onPressed,
+  }) {
+    return Container(
+      margin: const EdgeInsets.all(8),
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        shape: BoxShape.circle,
+      ),
+      child: IconButton(
+        icon: Icon(icon, size: 18, color: AppColors.textPrimary),
+        onPressed: onPressed,
+      ),
+    );
+  }
+
+  Widget _buildAppBarBackground() {
+    final images = _allImages;
+    final hasImages = images.isNotEmpty;
+
+    return Stack(
+      fit: StackFit.expand,
+      children: [
+        hasImages
+            ? Image.network(
+                images[_selectedImageIndex],
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: AppColors.primary,
+                  child: Icon(
+                    CategoryUtils.getIcon(widget.offer.store.category),
+                    size: 100,
+                    color: Colors.white24,
+                  ),
+                ),
+              )
+            : Container(
+                color: AppColors.primary,
+                child: Icon(
+                  CategoryUtils.getIcon(widget.offer.store.category),
+                  size: 100,
+                  color: Colors.white24,
+                ),
+              ),
+        const DecoratedBox(
+          decoration: BoxDecoration(color: Colors.black26),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildContentSection(int usageCount) {
+    return SliverToBoxAdapter(
+      child: Transform.translate(
+        offset: const Offset(0, -30),
+        child: Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
+          padding: const EdgeInsets.fromLTRB(24, 32, 24, 140),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              if (_allImages.length > 1) _buildThumbnailsRow(),
+              if (_allImages.length > 1) const SizedBox(height: 24),
+              _buildStatsRow(usageCount),
+              const SizedBox(height: 24),
+              _buildTitleSection(),
+              const SizedBox(height: 20),
+              _buildStoreCard(),
+              const SizedBox(height: 32),
+              _buildDescriptionSection(),
+              const SizedBox(height: 24),
+              _buildExpirySection(),
+              const SizedBox(height: 32),
+              _buildReviewsSection(),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildStatsRow(int usageCount) {
+    return Row(
+      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+      children: [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.primary,
+            borderRadius: BorderRadius.circular(12),
+          ),
+          child: Text(
+            'خصم ${widget.offer.discountPercentage.toInt()}%',
+            style: textTheme.labelLarge?.copyWith(
+              color: Colors.white,
+              fontWeight: FontWeight.w900,
+            ),
+          ),
+        ),
+        Row(
+          children: [
+            const Icon(Icons.flash_on_rounded, color: Colors.orange, size: 18),
+            const SizedBox(width: 4),
+            Text(
+              '$usageCount مستفيد من العرض',
+              style: textTheme.labelMedium?.copyWith(
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTitleSection() {
+    return Text(
+      widget.offer.title,
+      style: textTheme.headlineLarge?.copyWith(
+        fontWeight: FontWeight.w900,
+        height: 1.3,
+      ),
+    );
+  }
+
+  Widget _buildStoreCard() {
+    return GestureDetector(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => StoreDetailPage(store: widget.offer.store),
+        ),
+      ),
+      child: Container(
+        padding: const EdgeInsets.all(16),
+        decoration: BoxDecoration(
+          color: Colors.grey[50],
+          borderRadius: BorderRadius.circular(20),
+          border: Border.all(color: Colors.grey[200]!),
+        ),
+        child: Row(
+          children: [
+            Container(
+              width: 50,
+              height: 50,
+              decoration: const BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                CategoryUtils.getIcon(widget.offer.store.category),
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    widget.offer.store.name,
+                    style: textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  Text(
+                    widget.offer.store.area,
+                    style: textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                  ),
+                ],
+              ),
+            ),
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
+              size: 16,
+              color: Colors.grey,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDescriptionSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          'عن هذا العرض',
+          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+        ),
+        const SizedBox(height: 12),
+        Text(
+          widget.offer.description ??
+              'استمتع بخصم مميز لفترة محدودة في ${widget.offer.store.name}.',
+          style: textTheme.bodyMedium?.copyWith(color: Colors.grey[700], height: 1.7),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildExpirySection() {
+    return Container(
+      padding: const EdgeInsets.all(16),
+      decoration: BoxDecoration(
+        color: Colors.red[50],
+        borderRadius: BorderRadius.circular(16),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.timer_outlined, color: Colors.red[700], size: 20),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Text(
+              'صالح حتى: ${DateFormat('yyyy-MM-dd').format(widget.offer.expiryDate)}',
+              style: textTheme.labelLarge?.copyWith(
+                color: Colors.red[700],
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildStickyActionArea(int usageCount) {
+    return Positioned(
+      bottom: 20,
+      left: 20,
+      right: 20,
+      child: FutureBuilder<bool>(
+        future: _canGenerateCouponFuture,
+        builder: (context, snapshot) {
+          final canGenerate = snapshot.data ?? false;
+          return BlocBuilder<CouponsBloc, CouponsState>(
+            builder: (context, state) {
+              return Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Container(
+                    height: 64,
+                    decoration: BoxDecoration(
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.3),
+                          blurRadius: 20,
+                          offset: const Offset(0, 10),
+                        ),
+                      ],
+                    ),
+                    child: ElevatedButton(
+                      onPressed: (state is CouponsLoading || !canGenerate)
+                          ? null
+                          : () => context.read<CouponsBloc>().add(
+                                GenerateCouponRequested(widget.offer.id),
+                              ),
+                      style: ElevatedButton.styleFrom(
+                        backgroundColor:
+                            canGenerate ? AppColors.primary : Colors.grey,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        elevation: 0,
+                      ),
+                      child: state is CouponsLoading
+                          ? const CircularProgressIndicator(color: Colors.white)
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                const Icon(
+                                  Icons.confirmation_num_rounded,
+                                  color: Colors.white,
+                                ),
+                                const SizedBox(width: 12),
+                                Text(
+                                  canGenerate
+                                      ? 'احصل على العرض الآن'
+                                      : 'متاح للعملاء فقط',
+                                  style: textTheme.titleLarge?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
+                    ),
+                  ),
+                  if (!canGenerate) ...[
+                    const SizedBox(height: 8),
+                    Text(
+                      'سجّل بحساب عميل للحصول على كوبون هذا العرض',
+                      textAlign: TextAlign.center,
+                      style: textTheme.bodySmall?.copyWith(
+                        color: Colors.black54,
+                        fontWeight: FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ],
+              );
+            },
+          );
+        },
+      ),
+    );
+  }
+
+  void _showCouponDialog(BuildContext context, String code, int usageCount) {
+    showDialog(
+      context: context,
+      builder: (dialogContext) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
+        content: SizedBox(
+          width: MediaQuery.of(dialogContext).size.width * 0.8,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(
+                    Icons.people_alt_rounded,
+                    size: 10,
+                    color: Colors.orange,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '$usageCount مستفيد من العرض',
+                    style: const TextStyle(
+                      fontSize: 11,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.black87,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 12),
+              const Icon(
+                Icons.check_circle_rounded,
+                color: Colors.green,
+                size: 64,
+              ),
+              const SizedBox(height: 16),
+              const Text(
+                'تم الحصول على العرض بنجاح',
+                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                textAlign: TextAlign.center,
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'يرجى إبراز الكود للتاجر للاستفادة من الخصم',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: Colors.grey),
+              ),
+              const SizedBox(height: 24),
+              QrImageView(
+                data: code,
+                version: QrVersions.auto,
+                size: 160,
+                eyeStyle: const QrEyeStyle(
+                  eyeShape: QrEyeShape.circle,
+                  color: AppColors.primary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              Container(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  code,
+                  style: const TextStyle(
+                    fontSize: 22,
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.primary,
+                    letterSpacing: 2,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => _copyCouponCode(dialogContext, code),
+            child: const Text(
+              'نسخ الكود',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: const Text(
+              'إغلاق',
+              style: TextStyle(fontWeight: FontWeight.bold),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildThumbnailsRow() {
+    final images = _allImages;
+    return SizedBox(
+      height: 60,
+      child: ListView.builder(
+        scrollDirection: Axis.horizontal,
+        itemCount: images.length,
+        itemBuilder: (context, index) {
+          final isSelected = _selectedImageIndex == index;
+          return GestureDetector(
+            onTap: () => setState(() => _selectedImageIndex = index),
+            child: Container(
+              width: 60,
+              margin: const EdgeInsets.only(left: 12),
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(12),
+                border: Border.all(
+                  color: isSelected ? AppColors.primary : Colors.grey[200]!,
+                  width: 2,
+                ),
+              ),
+              clipBehavior: Clip.antiAlias,
+              child: Image.network(
+                images[index],
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Container(
+                  color: Colors.grey[100],
+                  child: const Icon(
+                    Icons.image_not_supported_rounded,
+                    color: Colors.grey,
+                    size: 20,
+                  ),
+                ),
+              ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildReviewsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'آراء العملاء',
+              style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+            ),
+            TextButton(
+              onPressed: _showAddReviewBottomSheet,
+              child: Text(
+                'أضف تقييمك',
+                style: textTheme.labelLarge?.copyWith(
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        BlocBuilder<ReviewsBloc, ReviewsState>(
+          builder: (context, state) {
+            if (state is ReviewsLoading) {
+              return const Center(child: CircularProgressIndicator());
+            }
+            if (state is ReviewsLoaded) {
+              if (state.reviews.isEmpty) {
+                return Center(
+                  child: Text(
+                    'لا توجد تقييمات بعد. كن أول من يقيّم',
+                    style: textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                  ),
+                );
+              }
+              return ListView.separated(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: state.reviews.length,
+                separatorBuilder: (context, index) =>
+                    const SizedBox(height: 16),
+                itemBuilder: (context, index) {
+                  final review = state.reviews[index];
+                  return Container(
+                    padding: const EdgeInsets.all(12),
+                    decoration: BoxDecoration(
+                      color: Colors.grey[50],
+                      borderRadius: BorderRadius.circular(12),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Expanded(
+                              child: Text(
+                                review.customerName,
+                                style: textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                            Row(
+                              children: List.generate(
+                                5,
+                                (i) => Icon(
+                                  Icons.star_rounded,
+                                  size: 14,
+                                  color: i < review.rating
+                                      ? Colors.amber
+                                      : Colors.grey[300],
+                                ),
+                              ),
+                            ),
+                          ],
+                        ),
+                        if (review.comment != null &&
+                            review.comment!.trim().isNotEmpty) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            review.comment!,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: Colors.grey[700],
+                            ),
+                          ),
+                        ],
+                      ],
+                    ),
+                  );
+                },
+              );
+            }
+            return const SizedBox();
+          },
+        ),
+      ],
+    );
+  }
+
+  void _showAddReviewBottomSheet() {
+    int selectedRating = 5;
+    final commentController = TextEditingController();
+
+    showModalBottomSheet(
+      context: context,
+      isScrollControlled: true,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (bottomSheetContext) => StatefulBuilder(
+        builder: (context, setModalState) => Padding(
+          padding: EdgeInsets.fromLTRB(
+            24,
+            24,
+            24,
+            MediaQuery.of(context).viewInsets.bottom + 24,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Text(
+                'ما رأيك في هذا العرض؟',
+                style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+              ),
+              const SizedBox(height: 16),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  5,
+                  (i) => IconButton(
+                    onPressed: () => setModalState(() => selectedRating = i + 1),
+                    icon: Icon(
+                      Icons.star_rounded,
+                      size: 32,
+                      color:
+                          i < selectedRating ? Colors.amber : Colors.grey[300],
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 16),
+              TextField(
+                controller: commentController,
+                decoration: InputDecoration(
+                  hintText: 'اكتب تجربتك هنا (اختياري)',
+                  filled: true,
+                  fillColor: Colors.grey[100],
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(16),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+                maxLines: 3,
+              ),
+              const SizedBox(height: 24),
+              SizedBox(
+                width: double.infinity,
+                height: 54,
+                child: ElevatedButton(
+                  onPressed: () {
+                    context.read<ReviewsBloc>().add(
+                          AddReviewRequested(
+                            offerId: widget.offer.id,
+                            storeId: widget.offer.store.id,
+                            rating: selectedRating,
+                            comment: commentController.text.trim().isEmpty
+                                ? null
+                                : commentController.text.trim(),
+                          ),
+                        );
+                    Navigator.pop(bottomSheetContext);
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                  ),
+                  child: const Text(
+                    'إرسال التقييم',
+                    style: TextStyle(
+                      color: Colors.white,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+}

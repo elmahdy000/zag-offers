@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+
+<html class="dark" dir="rtl" lang="ar"><head>
+<meta charset="utf-8"/>
+<meta content="width=device-width, initial-scale=1.0" name="viewport"/>
+<title>Store Detail - Zag Offers</title>
+<script src="https://cdn.tailwindcss.com?plugins=forms,container-queries"></script>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&amp;family=Almarai:wght@400;700&amp;display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:wght,FILL@100..700,0..1&amp;display=swap" rel="stylesheet"/>
+<script id="tailwind-config">
+        tailwind.config = {
+            darkMode: "class",
+            theme: {
+                extend: {
+                    "colors": {
+                        "primary": "#ffb693",
+                        "background": "#1d100a",
+                        "inverse-surface": "#f8ddd2",
+                        "error-container": "#93000a",
+                        "on-surface": "#f8ddd2",
+                        "on-primary": "#561f00",
+                        "surface-bright": "#46362e",
+                        "tertiary-fixed": "#69ff87",
+                        "on-secondary-fixed": "#1c1b1b",
+                        "inverse-on-surface": "#3d2d26",
+                        "on-tertiary-fixed-variant": "#00531e",
+                        "tertiary-container": "#00b149",
+                        "on-secondary": "#313030",
+                        "on-secondary-container": "#b7b5b4",
+                        "on-primary-fixed-variant": "#7a3000",
+                        "on-tertiary-container": "#003a13",
+                        "inverse-primary": "#a04100",
+                        "surface": "#1d100a",
+                        "surface-dim": "#1d100a",
+                        "secondary-container": "#474746",
+                        "surface-container-lowest": "#170b06",
+                        "surface-container-high": "#362720",
+                        "on-tertiary-fixed": "#002108",
+                        "surface-tint": "#ffb693",
+                        "primary-fixed": "#ffdbcc",
+                        "on-primary-container": "#572000",
+                        "primary-fixed-dim": "#ffb693",
+                        "on-surface-variant": "#e2bfb0",
+                        "on-background": "#f8ddd2",
+                        "surface-container-highest": "#41312a",
+                        "on-tertiary": "#003912",
+                        "secondary-fixed": "#e5e2e1",
+                        "outline": "#a98a7d",
+                        "surface-container": "#2b1c16",
+                        "tertiary": "#3ce36a",
+                        "on-error": "#690005",
+                        "secondary": "#c8c6c5",
+                        "error": "#ffb4ab",
+                        "on-error-container": "#ffdad6",
+                        "secondary-fixed-dim": "#c8c6c5",
+                        "tertiary-fixed-dim": "#3ce36a",
+                        "primary-container": "#ff6b00",
+                        "surface-variant": "#41312a",
+                        "surface-container-low": "#261812",
+                        "on-primary-fixed": "#351000",
+                        "outline-variant": "#5a4136",
+                        "on-secondary-fixed-variant": "#474746"
+                    },
+                    "borderRadius": {
+                        "DEFAULT": "0.25rem",
+                        "lg": "0.5rem",
+                        "xl": "0.75rem",
+                        "full": "9999px"
+                    },
+                    "spacing": {
+                        "gutter": "16px",
+                        "base": "8px",
+                        "stack-sm": "4px",
+                        "margin-mobile": "16px",
+                        "margin-desktop": "32px",
+                        "stack-md": "12px",
+                        "stack-lg": "24px"
+                    },
+                    "fontFamily": {
+                        "h1": ["Cairo"],
+                        "h2": ["Cairo"],
+                        "body-md": ["Almarai"],
+                        "body-lg": ["Almarai"],
+                        "h3": ["Cairo"],
+                        "label-sm": ["Almarai"],
+                        "price-display": ["Cairo"]
+                    },
+                    "fontSize": {
+                        "h1": ["32px", { "lineHeight": "1.2", "fontWeight": "700" }],
+                        "h2": ["24px", { "lineHeight": "1.3", "fontWeight": "700" }],
+                        "body-md": ["16px", { "lineHeight": "1.5", "fontWeight": "400" }],
+                        "body-lg": ["18px", { "lineHeight": "1.6", "fontWeight": "400" }],
+                        "h3": ["20px", { "lineHeight": "1.4", "fontWeight": "600" }],
+                        "label-sm": ["13px", { "lineHeight": "1.2", "letterSpacing": "0.02em", "fontWeight": "700" }],
+                        "price-display": ["28px", { "lineHeight": "1", "fontWeight": "800" }]
+                    }
+                }
+            }
+        }
+    </script>
+<style>
+    body {
+      min-height: max(884px, 100dvh);
+    }
+  </style>
+  </head>
+<body class="bg-background text-on-background antialiased pb-24 md:pb-0 font-body-md">
+<!-- TopAppBar (Web & Mobile) -->
+<header class="bg-zinc-900/70 backdrop-blur-xl docked full-width top-0 sticky z-50 border-b border-zinc-800 shadow-sm flex flex-row-reverse justify-between items-center px-4 h-16 w-full">
+<div class="flex items-center space-x-reverse space-x-4">
+<button class="text-zinc-400 hover:bg-zinc-800/50 transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">arrow_forward</span>
+</button>
+<h1 class="text-xl font-black text-orange-500 italic">Zag Offers</h1>
+</div>
+<div class="flex items-center space-x-reverse space-x-4">
+<button class="text-zinc-400 hover:bg-zinc-800/50 transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">share</span>
+</button>
+<button class="text-zinc-400 hover:bg-zinc-800/50 transition-colors active:scale-95 duration-200 p-2 rounded-full flex items-center justify-center">
+<span class="material-symbols-outlined">favorite_border</span>
+</button>
+</div>
+</header>
+<main class="max-w-7xl mx-auto">
+<!-- Store Header Section -->
+<section class="relative">
+<!-- Cover Image -->
+<div class="w-full h-48 md:h-64 lg:h-80 relative overflow-hidden">
+<img alt="Restaurant interior" class="w-full h-full object-cover object-center" data-alt="A vibrant, high-quality photograph of a modern, upscale restaurant interior. The scene is warmly lit with ambient, golden-hour lighting filtering through large windows, highlighting rich wooden textures and plush seating. The overall mood is inviting and sophisticated, perfectly suited for a premium local business listing in a high-energy discount marketplace. The color palette emphasizes deep earth tones contrasting with sleek, modern dark surfaces." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBa62t-8mvj-gJyc62WSTEbFnEISXk0AeAzK1KNVko6cmp8jbgvHYKkSPH6_sYqwqLyfekabiv7V6SyhpZc6dH6Dne47PZZlzc3hEWXSjAjr8Pz8kh8bxz5nQJXI6HGqXtm1OyJTxVW2lD4qBd5sqExXWX2ZxVzULNhe0dtN6FukcTvr4L7z1A8iKOQbxc7a8Vm4S-zf1Q_j8ZDZ4H57RLF0m9Lrl3f1kVtBxrx68uWhaxDW_vd3EMs9MX-F3cd4xUzuLtRdQNtyQI"/>
+<!-- Gradient Overlay -->
+<div class="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent"></div>
+</div>
+<!-- Store Info Container (Overlapping Cover) -->
+<div class="relative px-gutter -mt-16 sm:-mt-20 z-10 flex flex-col items-center md:flex-row md:items-end md:justify-between">
+<div class="flex flex-col items-center md:flex-row md:items-end space-y-4 space-y-reverse md:space-y-0 md:space-x-reverse md:space-x-6">
+<!-- Circular Logo -->
+<div class="w-32 h-32 rounded-full border-4 border-background overflow-hidden bg-surface-container-highest shadow-lg shrink-0">
+<img alt="Restaurant Logo" class="w-full h-full object-cover" data-alt="A close-up, high-resolution shot of a perfectly plated, gourmet burger with vibrant fresh ingredients, meant to represent a premium food brand's logo. The lighting is sharp and dynamic, casting subtle shadows that create a sense of physical depth. The background is a sophisticated deep charcoal, allowing the vibrant colors of the food to pop energetically." src="https://lh3.googleusercontent.com/aida-public/AB6AXuBqdjUv-xmFInlujB8TgYGSOUlJPjggloov6MkSYO4126pPIVVkCGiSOhyPSGCJpfH4DJCdKqVdCPXDbimmtoYMX1TAl4FFnL1Wk114Uf3XqFgZHVEZoLnauZUadSFiKQKG3FjeGl65NvMt7A0XXlbZcjBwPQVP73S4C5HqOxmzs5-xTHIlMH0ybqE9HbJjt_okdYmpN2EI9EACuJ3AoWKvTSrl1-XLeItlcF-p4rdL7JJloDBfxdfZY8vnMFibhO0AOiAuU0bKKhM"/>
+</div>
+<!-- Store Details -->
+<div class="text-center md:text-right pb-2">
+<h1 class="font-h1 text-h1 text-on-background mb-stack-sm">مطعم برجريتو</h1>
+<div class="flex items-center justify-center md:justify-start space-x-reverse space-x-2 text-on-surface-variant">
+<span class="material-symbols-outlined text-primary-container" style="font-variation-settings: 'FILL' 1;">star</span>
+<span class="font-label-sm text-label-sm">4.8 (120+ تقييم)</span>
+<span class="px-2 text-outline-variant">•</span>
+<span class="font-label-sm text-label-sm">برجر • أمريكي</span>
+</div>
+</div>
+</div>
+<!-- Action Buttons -->
+<div class="flex space-x-reverse space-x-4 mt-6 md:mt-0 pb-2">
+<button class="flex items-center justify-center w-12 h-12 rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors shadow-sm">
+<span class="material-symbols-outlined text-tertiary">call</span>
+</button>
+<button class="flex items-center justify-center w-12 h-12 rounded-full bg-surface-container-high hover:bg-surface-container-highest transition-colors shadow-sm">
+<span class="material-symbols-outlined text-tertiary-container">chat</span>
+</button>
+</div>
+</div>
+<!-- Description / Meta Info -->
+<div class="px-gutter mt-stack-lg text-on-surface-variant font-body-md text-body-md max-w-3xl">
+<p>أفضل برجر مشوي على اللهب في المدينة. نستخدم لحم بقري طازج 100% يومياً. استمتع بأقوى العروض الحصرية معنا.</p>
+<div class="flex flex-wrap gap-4 mt-stack-md">
+<div class="flex items-center space-x-reverse space-x-2 bg-surface-container rounded-lg px-3 py-2">
+<span class="material-symbols-outlined text-primary text-[18px]">location_on</span>
+<span class="font-label-sm text-label-sm">شارع التحلية، الرياض</span>
+</div>
+<div class="flex items-center space-x-reverse space-x-2 bg-surface-container rounded-lg px-3 py-2">
+<span class="material-symbols-outlined text-tertiary text-[18px]">schedule</span>
+<span class="font-label-sm text-label-sm text-tertiary">مفتوح الآن (حتى 2 ص)</span>
+</div>
+</div>
+</div>
+</section>
+<!-- Active Offers Section -->
+<section class="px-gutter mt-stack-lg lg:mt-12 mb-stack-lg">
+<h2 class="font-h2 text-h2 text-on-background mb-stack-md flex items-center">
+<span class="material-symbols-outlined text-primary-container ml-2" style="font-variation-settings: 'FILL' 1;">local_offer</span>
+                عروضنا الحالية
+            </h2>
+<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+<!-- Offer Card 1 -->
+<article class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/30 flex flex-col relative group">
+<!-- Discount Badge -->
+<div class="absolute top-4 right-4 z-10 bg-primary-container text-white font-label-sm text-label-sm px-3 py-1 rounded-full shadow-lg">
+                        خصم 30%
+                    </div>
+<div class="w-full h-40 relative">
+<img alt="Burger Meal" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="A mouth-watering, dynamic shot of a gourmet double cheeseburger alongside crispy golden fries, intended for a promotional offer card. The lighting is cinematic, utilizing a sleek dark mode aesthetic with deep shadows to make the vibrant orange and red tones of the burger components pop aggressively. The composition suggests premium utility and high energy." src="https://lh3.googleusercontent.com/aida-public/AB6AXuD0ACG-FOdfJf4xofvMsnphl8mc9RV_-WeOa6nE4fMpsRKgmiOiRMPBrwK3WG_tnD_XHwh0RUTYHbNNPtBJPxyCBXPy6tpyiSL7AEhUIVjA28mVz48iQaW9Cb3HGv07zfSF4B8tFN-eSdVVS_Tp_yNAcBvDLnM1FmncL_f7Tp86VwdUEaw-zgmr251_LlIFn19FtNHntXnRqEsHlWnLKBn-yRI1KlpTWG59P9Q8jWg1f_SBFbVr8zxebT1YGWkn7aGd7KMUSkDsjQQ"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-h3 text-h3 text-on-background">وجبة دبل برجر</h3>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm mb-4 line-clamp-2">استمتع بوجبة دبل برجر لحم مع البطاطس المقلية ومشروب غازي من اختيارك.</p>
+<div class="mt-auto">
+<div class="flex items-center space-x-reverse space-x-2 mb-4">
+<span class="font-price-display text-price-display text-primary-container">45</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ر.س</span>
+<span class="text-sm text-on-surface-variant line-through mr-2">65 ر.س</span>
+</div>
+<button class="w-full bg-primary-container hover:bg-orange-600 text-white font-h3 text-base py-3 rounded-lg flex items-center justify-center space-x-reverse space-x-2 transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+<span>توليد كوبون</span>
+</button>
+</div>
+</div>
+</article>
+<!-- Offer Card 2 -->
+<article class="bg-surface-container-low rounded-xl overflow-hidden border border-outline-variant/30 flex flex-col relative group">
+<!-- Discount Badge -->
+<div class="absolute top-4 right-4 z-10 bg-primary-container text-white font-label-sm text-label-sm px-3 py-1 rounded-full shadow-lg">
+                        خصم 50%
+                    </div>
+<div class="w-full h-40 relative">
+<img alt="Chicken Burger Meal" class="w-full h-full object-cover transition-transform duration-300 group-hover:scale-105" data-alt="A high-contrast, premium photograph of a crispy chicken sandwich on a rustic dark wooden board, designed for a digital discount marketplace. The lighting is sophisticated and moody, creating a dark surface base layer that highlights the vibrant, kinetic accents of the food's textures. The overall visual style bridges the gap between high-energy discount and premium lifestyle." src="https://lh3.googleusercontent.com/aida-public/AB6AXuA9H2WgybsRsfBl_8t7WiXBaxi0_N57fA-UEi-1jomQv7CXY2vUJO6-l3Vi-13nAtgRWZl8ukEQL64TYGgEYCDPLXJatCo2y-nCMRkaZw9meNM6awUn5-9kpMTviJtbGOXEuN9hTeBd8MKYfRC4Al1PVG6JZRsFInQtkrWGUTXd8twLPjkZQxizvVntuGbpiyQhKNtDcoK25QM3nxZnOBxSnNuEVR8kd1etWJOts2ZNchH8zVyupNPaiK1aNrkvqdpiOq5N1maZWiU"/>
+</div>
+<div class="p-4 flex-1 flex flex-col">
+<div class="flex justify-between items-start mb-2">
+<h3 class="font-h3 text-h3 text-on-background">وجبة كريسبي تشيكن</h3>
+</div>
+<p class="text-on-surface-variant font-body-md text-sm mb-4 line-clamp-2">ساندوتش دجاج مقرمش مع صلصة سرية، بطاطس، ومشروب.</p>
+<div class="mt-auto">
+<div class="flex items-center space-x-reverse space-x-2 mb-4">
+<span class="font-price-display text-price-display text-primary-container">25</span>
+<span class="font-label-sm text-label-sm text-on-surface-variant">ر.س</span>
+<span class="text-sm text-on-surface-variant line-through mr-2">50 ر.س</span>
+</div>
+<button class="w-full bg-primary-container hover:bg-orange-600 text-white font-h3 text-base py-3 rounded-lg flex items-center justify-center space-x-reverse space-x-2 transition-colors active:scale-[0.98]">
+<span class="material-symbols-outlined text-[20px]">qr_code_scanner</span>
+<span>توليد كوبون</span>
+</button>
+</div>
+</div>
+</article>
+</div>
+</section>
+</main>
+<!-- BottomNavBar (Mobile Only) -->
+<!-- Note: Following semantic shell mandate, standard practice for a detail view is often to hide standard nav, 
+         but user prompt specifically requested "Sticky BottomNavBar". So we render it. -->
+<nav class="md:hidden fixed bottom-0 w-full z-50 border-t border-zinc-800 bg-zinc-900/70 backdrop-blur-xl shadow-[0_-4px_12px_rgba(0,0,0,0.5)] flex flex-row-reverse justify-around items-center h-20 px-6 pb-safe">
+<!-- Home (Inactive here as we are on a detail page, but following standard layout) -->
+<a class="flex flex-col items-center justify-center text-zinc-500 hover:text-zinc-300 haptic-feedback-snappy transform active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1">home</span>
+<span class="font-sans font-medium text-[11px]">الرئيسية</span>
+</a>
+<!-- Coupons (Active context if we consider this an exploration of offers, though arguably detail view) -->
+<a class="flex flex-col items-center justify-center text-orange-500 bg-orange-500/10 rounded-xl px-3 py-1 haptic-feedback-snappy transform active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1" style="font-variation-settings: 'FILL' 1;">confirmation_number</span>
+<span class="font-sans font-medium text-[11px]">كوبوناتي</span>
+</a>
+<!-- Profile -->
+<a class="flex flex-col items-center justify-center text-zinc-500 hover:text-zinc-300 haptic-feedback-snappy transform active:scale-90" href="#">
+<span class="material-symbols-outlined mb-1">person</span>
+<span class="font-sans font-medium text-[11px]">الحساب</span>
+</a>
+</nav>
+</body></html>

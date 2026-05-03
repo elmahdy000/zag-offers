@@ -1,0 +1,76 @@
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  UseGuards,
+  Request,
+} from '@nestjs/common';
+import { CouponsService } from './coupons.service';
+import { GenerateCouponDto } from './dto/generate-coupon.dto';
+import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { RolesGuard } from '../auth/roles.guard';
+import { Roles } from '../auth/roles.decorator';
+import { Role } from '@prisma/client';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+  ApiBody,
+} from '@nestjs/swagger';
+
+@ApiTags('coupons (نظام الكوبونات)')
+@Controller('coupons')
+export class CouponsController {
+  constructor(private readonly couponsService: CouponsService) {}
+
+  @Post('generate')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CUSTOMER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'استخراج كوبون جديد لعرض معين' })
+  @ApiResponse({ status: 201, description: 'تم استخراج الكوبون بنجاح' })
+  generate(
+    @Body() generateCouponDto: GenerateCouponDto,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.couponsService.generate(generateCouponDto.offerId, req.user.id);
+  }
+
+  @Post('redeem')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT, Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'تفعيل الكوبون (للتاجر فقط)' })
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        code: { type: 'string', example: 'ZAG-X7Y2Z' },
+        storeId: { type: 'string', example: 'uuid-of-store' },
+      },
+    },
+  })
+  @ApiResponse({ status: 200, description: 'تم تفعيل الكوبون بنجاح' })
+  @ApiResponse({
+    status: 400,
+    description: 'الكوبون منتهي أو مستخدم أو لا يخص هذا المحل',
+  })
+  redeem(
+    @Request() req: { user: { id: string } },
+    @Body('code') code: string,
+    @Body('storeId') storeId?: string,
+  ) {
+    return this.couponsService.redeem(code, storeId || null, req.user.id);
+  }
+
+  @Get('my')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CUSTOMER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'عرض الكوبونات الخاصة بي (للعميل)' })
+  findAll(@Request() req: { user: { id: string } }) {
+    return this.couponsService.findAll(req.user.id);
+  }
+}
