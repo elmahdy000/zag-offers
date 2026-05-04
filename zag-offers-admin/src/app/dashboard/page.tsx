@@ -339,7 +339,6 @@ export default function AdminDashboard() {
            <ScaleCard label="إجمالي التفاعلات" value={format((stats?.engagement.totalFavorites ?? 0) + (stats?.engagement.totalReviews ?? 0))} icon={LayoutGrid} color="text-slate-600" />
         </div>
       </div>
-    </div>
   );
 }
 
