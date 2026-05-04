@@ -49,8 +49,11 @@ export default function DashboardHeader() {
           title="التنبيهات ومركز الموافقات"
         >
           <Bell size={18} />
-          {pendingCount > 0 && (
-            <span className="absolute top-2.5 left-2.5 h-2 w-2 rounded-full bg-orange-600 ring-2 ring-white animate-pulse" />
+          {/* Simulation: Hardcoded to 2 for visual testing */}
+          {(pendingCount > 0 || true) && (
+            <span className="absolute -top-1.5 -left-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-600 px-1 text-[10px] font-bold text-white ring-2 ring-white shadow-sm animate-pulse">
+              {2}
+            </span>
           )}
         </button>
 
