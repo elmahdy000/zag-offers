@@ -74,85 +74,56 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-slate-950 p-6 relative overflow-hidden dir-rtl font-cairo">
-      {/* Precision Industrial Background */}
-      <div className="absolute inset-0 z-0">
-        <div className="absolute inset-0 bg-[radial-gradient(circle_at_50%_50%,#1e293b,0%,#020617_100%)]" />
-        <div className="absolute inset-0 opacity-[0.03] bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')]" />
-        <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-orange-500/50 to-transparent" />
-        
-        {/* Animated Glows */}
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.2, 1],
-            opacity: [0.3, 0.5, 0.3] 
-          }}
-          transition={{ duration: 8, repeat: Infinity, ease: "easeInOut" }}
-          className="absolute -top-48 -right-48 w-96 h-96 bg-orange-600 rounded-full blur-[128px]" 
-        />
-        <motion.div 
-          animate={{ 
-            scale: [1, 1.5, 1],
-            opacity: [0.2, 0.4, 0.2] 
-          }}
-          transition={{ duration: 12, repeat: Infinity, ease: "easeInOut", delay: 2 }}
-          className="absolute -bottom-48 -left-48 w-96 h-96 bg-blue-600 rounded-full blur-[128px]" 
-        />
+    <div className="min-h-screen flex items-center justify-center bg-[#F8FAFC] p-6 relative overflow-hidden dir-rtl font-cairo">
+      {/* Decorative Background Elements */}
+      <div className="absolute inset-0 z-0 overflow-hidden">
+        <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] rounded-full bg-orange-100/50 blur-[120px]" />
+        <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] rounded-full bg-blue-100/50 blur-[120px]" />
       </div>
 
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        transition={{ duration: 0.8, ease: [0.16, 1, 0.3, 1] }}
-        className="max-w-md w-full relative z-10"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+        className="max-w-[440px] w-full relative z-10"
       >
-        <div className="bg-slate-900/40 backdrop-blur-3xl p-10 rounded-[2.5rem] shadow-[0_0_80px_-15px_rgba(0,0,0,0.5)] border border-white/5 relative overflow-hidden group">
-          {/* Internal card highlight */}
-          <div className="absolute inset-0 bg-gradient-to-br from-white/5 to-transparent pointer-events-none" />
-          
-          <div className="text-center mb-10 relative">
+        <div className="bg-white p-10 lg:p-12 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.04)] border border-slate-200 relative overflow-hidden">
+          {/* Logo Section */}
+          <div className="text-center mb-10">
             <motion.div 
-              initial={{ rotate: -10, scale: 0 }}
-              animate={{ rotate: 0, scale: 1 }}
-              transition={{ type: 'spring', damping: 15, stiffness: 200, delay: 0.2 }}
-              className="w-20 h-20 bg-orange-600 text-white rounded-3xl flex items-center justify-center mx-auto mb-6 shadow-[0_20px_50px_-10px_rgba(234,88,12,0.4)] relative"
+              initial={{ scale: 0.8 }}
+              animate={{ scale: 1 }}
+              transition={{ type: 'spring', damping: 15, stiffness: 200 }}
+              className="w-20 h-20 bg-orange-600 text-white rounded-2xl flex items-center justify-center mx-auto mb-6 shadow-xl shadow-orange-200 ring-4 ring-orange-50"
             >
               <ShieldCheck size={40} strokeWidth={1.5} />
-              <div className="absolute inset-0 rounded-3xl bg-white/20 animate-pulse" />
             </motion.div>
-            <h1 className="text-4xl font-black text-white tracking-tight font-outfit uppercase">ZAG Admin</h1>
-            <div className="flex items-center justify-center gap-2 mt-3">
-              <div className="h-px w-8 bg-slate-700" />
-              <p className="text-slate-400 font-bold text-sm tracking-wide">نظام إدارة العروض</p>
-              <div className="h-px w-8 bg-slate-700" />
-            </div>
+            <h1 className="text-3xl font-black text-slate-900 tracking-tight">ZAG <span className="text-orange-600">OFFERS</span></h1>
+            <p className="text-sm font-bold text-slate-400 mt-2 uppercase tracking-widest">لوحة التحكم المركزية</p>
           </div>
 
           {(validationError || error) && (
             <motion.div 
-              initial={{ opacity: 0, height: 0 }}
-              animate={{ opacity: 1, height: 'auto' }}
-              className={`flex items-start gap-3 p-4 rounded-2xl mb-8 text-sm font-bold border ${
+              initial={{ opacity: 0, x: -10 }}
+              animate={{ opacity: 1, x: 0 }}
+              className={`flex items-start gap-3 p-4 rounded-xl mb-8 text-xs font-bold border ${
                 validationError 
-                  ? 'bg-amber-500/10 text-amber-200 border-amber-500/20' 
-                  : 'bg-rose-500/10 text-rose-200 border-rose-500/20'
+                  ? 'bg-amber-50 text-amber-700 border-amber-100' 
+                  : 'bg-rose-50 text-rose-700 border-rose-100'
               }`}
             >
-              <div className="mt-0.5">
-                {(error?.includes('اتصال') || error?.includes('إنترنت')) ? <WifiOff size={18} /> : <AlertCircle size={18} />}
-              </div>
+              <AlertCircle size={18} className="shrink-0" />
               <p>{validationError || error}</p>
             </motion.div>
           )}
 
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2 group/field">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1 transition-colors group-focus-within/field:text-orange-500">
-                رقم الموبايل
-              </label>
+            {/* Phone Input */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">رقم الموبايل</label>
               <div className="relative">
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/field:text-orange-500 transition-colors">
-                  <Smartphone size={20} strokeWidth={1.5} />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Smartphone size={18} />
                 </div>
                 <input
                   type="tel"
@@ -161,21 +132,19 @@ export default function AdminLoginPage() {
                     setPhone(e.target.value);
                     setValidationError(null);
                   }}
-                  className="w-full bg-slate-950/50 border border-slate-800 h-16 pr-12 pl-4 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all font-bold text-white placeholder:text-slate-700 font-outfit"
+                  className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-12 pl-4 text-sm font-bold text-slate-900 focus:border-orange-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-300"
                   placeholder="01xxxxxxxxx"
-                  autoComplete="tel"
                   required
                 />
               </div>
             </div>
 
-            <div className="space-y-2 group/field">
-              <label className="text-[10px] font-black text-slate-500 uppercase tracking-[0.2em] px-1 transition-colors group-focus-within/field:text-orange-500">
-                كلمة السر
-              </label>
+            {/* Password Input */}
+            <div className="space-y-2">
+              <label className="text-[10px] font-bold text-slate-500 uppercase tracking-widest px-1">كلمة السر</label>
               <div className="relative">
-                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-500 group-focus-within/field:text-orange-500 transition-colors">
-                  <Lock size={20} strokeWidth={1.5} />
+                <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400">
+                  <Lock size={18} />
                 </div>
                 <input
                   type="password"
@@ -184,46 +153,40 @@ export default function AdminLoginPage() {
                     setPassword(e.target.value);
                     setValidationError(null);
                   }}
-                  className="w-full bg-slate-950/50 border border-slate-800 h-16 pr-12 pl-4 rounded-2xl outline-none focus:border-orange-500/50 focus:ring-4 focus:ring-orange-500/5 transition-all font-bold text-white placeholder:text-slate-700 font-outfit"
+                  className="h-14 w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-12 pl-4 text-sm font-bold text-slate-900 focus:border-orange-500 focus:bg-white focus:outline-none transition-all placeholder:text-slate-300"
                   placeholder="••••••••"
-                  autoComplete="current-password"
                   required
                 />
               </div>
             </div>
 
-            <motion.button
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.98 }}
+            <button
               type="submit"
               disabled={loading}
-              className="w-full bg-orange-600 text-white h-16 rounded-2xl font-black text-lg hover:bg-orange-500 transition-all shadow-[0_20px_40px_-12px_rgba(234,88,12,0.3)] flex items-center justify-center gap-3 mt-4 disabled:opacity-50"
+              className="w-full h-14 rounded-xl bg-slate-900 text-white font-bold text-base shadow-lg shadow-slate-200 hover:bg-orange-600 transition-all flex items-center justify-center gap-3 mt-4 disabled:opacity-50"
             >
               {loading ? (
-                <>
-                  <Loader2 className="animate-spin" size={24} />
-                  <span>جاري التحقق...</span>
-                </>
+                <Loader2 className="animate-spin" size={24} />
               ) : (
                 <>
-                  <span>تسجيل الدخول</span>
-                  <div className="w-8 h-8 rounded-xl bg-white/20 flex items-center justify-center">
-                    <ShieldCheck size={18} />
-                  </div>
+                  <span>دخول آمن</span>
+                  <ShieldCheck size={20} />
                 </>
               )}
-            </motion.button>
+            </button>
           </form>
 
-          <div className="mt-12 text-center border-t border-slate-800/50 pt-8">
-            <p className="text-[9px] text-slate-600 font-black uppercase tracking-[0.3em]">
-              © 2026 ZAG Offers • Control Center v2.0
+          {/* Footer Info */}
+          <div className="mt-12 text-center border-t border-slate-100 pt-8">
+            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-[0.2em]">
+              ZAG OFFERS • SECURE ADMIN PORTAL
             </p>
           </div>
         </div>
         
-        {/* Subtle decorative edge */}
-        <div className="absolute -inset-[1px] bg-gradient-to-br from-white/20 via-transparent to-transparent rounded-[2.5rem] pointer-events-none -z-10" />
+        <p className="text-center mt-8 text-[11px] font-bold text-slate-400">
+          نسيت كلمة السر؟ اتصل بالدعم الفني للمنصة
+        </p>
       </motion.div>
     </div>
   );
