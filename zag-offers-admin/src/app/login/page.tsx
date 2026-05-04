@@ -157,15 +157,15 @@ export default function AdminLoginPage() {
               <div className="grid grid-cols-2 gap-4">
                 <button 
                   type="button"
-                  onClick={() => { setPhone('01234567890'); setPassword('123456'); }}
+                  onClick={() => { setPhone('01000000000'); setPassword('password123'); }}
                   className="text-[11px] text-left hover:bg-white p-2 rounded-lg transition-all border border-transparent hover:border-slate-200"
                 >
                   <p className="text-slate-400 font-bold mb-1 uppercase">Admin Access</p>
-                  <p className="text-slate-900 font-black">01234567890</p>
+                  <p className="text-slate-900 font-black">01000000000</p>
                 </button>
                 <div className="text-[11px] p-2">
                   <p className="text-slate-400 font-bold mb-1 uppercase">Password</p>
-                  <p className="text-slate-900 font-black">123456</p>
+                  <p className="text-slate-900 font-black">password123</p>
                 </div>
               </div>
             </div>
