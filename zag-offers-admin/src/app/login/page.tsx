@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { ShieldCheck, Lock, Smartphone, AlertCircle, WifiOff, Loader2 } from 'lucide-react';
+import { ShieldCheck, Lock, Smartphone, AlertCircle, WifiOff, Loader2, Eye, EyeOff } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -16,6 +16,7 @@ export default function AdminLoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [validationError, setValidationError] = useState<string | null>(null);
@@ -120,16 +121,23 @@ export default function AdminLoginPage() {
                 <Lock size={20} />
               </div>
               <input
-                type="password"
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => {
                   setPassword(e.target.value);
                   setValidationError(null);
                 }}
-                className="w-full h-14 pl-12 pr-4 rounded-xl border border-slate-200 bg-white text-base font-semibold text-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 focus:outline-none transition-all placeholder:text-slate-300"
+                className="w-full h-14 pl-12 pr-12 rounded-xl border border-slate-200 bg-white text-base font-semibold text-slate-900 focus:border-orange-500 focus:ring-4 focus:ring-orange-500/5 focus:outline-none transition-all placeholder:text-slate-300"
                 placeholder="Password"
                 required
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors p-1"
+              >
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+              </button>
             </div>
 
             <button
@@ -139,6 +147,28 @@ export default function AdminLoginPage() {
             >
               {loading ? <Loader2 className="animate-spin" size={24} /> : 'Login Now'}
             </button>
+
+            {/* Quick Credentials for Testing */}
+            <div className="bg-slate-50 rounded-xl p-4 border border-slate-100 mt-6">
+              <div className="flex items-center gap-2 mb-2">
+                <ShieldCheck size={16} className="text-orange-600" />
+                <span className="text-[10px] font-black uppercase tracking-widest text-slate-500">Quick Access Credentials</span>
+              </div>
+              <div className="grid grid-cols-2 gap-4">
+                <button 
+                  type="button"
+                  onClick={() => { setPhone('01234567890'); setPassword('123456'); }}
+                  className="text-[11px] text-left hover:bg-white p-2 rounded-lg transition-all border border-transparent hover:border-slate-200"
+                >
+                  <p className="text-slate-400 font-bold mb-1 uppercase">Admin Access</p>
+                  <p className="text-slate-900 font-black">01234567890</p>
+                </button>
+                <div className="text-[11px] p-2">
+                  <p className="text-slate-400 font-bold mb-1 uppercase">Password</p>
+                  <p className="text-slate-900 font-black">123456</p>
+                </div>
+              </div>
+            </div>
 
             <div className="text-center pt-2">
               <button type="button" className="text-sm font-bold text-orange-600 hover:underline">
