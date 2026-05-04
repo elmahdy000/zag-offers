@@ -15,7 +15,11 @@ import {
   Clock,
   ExternalLink,
   TrendingUp,
-  Users
+  Users,
+  Plus,
+  Image as ImageIcon,
+  Upload,
+  Calendar as CalendarIcon
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -62,8 +66,11 @@ export default function OffersManagementPage() {
   const [page, setPage] = useState(1);
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
   const [isEditing, setIsEditing] = useState(false);
+  const [isCreating, setIsCreating] = useState(false);
   const [deleteModal, setDeleteModal] = useState<{ id: string; title: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+  const [uploading, setUploading] = useState(false);
+  const [tempImages, setTempImages] = useState<string[]>([]);
 
   const formatDate = (dateString: string) => {
     if (!dateString) return '---';
@@ -106,6 +113,48 @@ export default function OffersManagementPage() {
     enabled: !!selectedOfferId,
   });
 
+  const { data: storesData } = useQuery({
+    queryKey: ['all-stores-list'],
+    queryFn: async () => {
+      const response = await adminApi().get('/admin/stores', { params: { limit: 100 } });
+      return response.data.items as { id: string; name: string }[];
+    },
+    enabled: isCreating || isEditing,
+  });
+
+  const createOfferMutation = useMutation({
+    mutationFn: async (payload: any) => adminApi().post('/offers', payload),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['all-offers'] });
+      setIsCreating(false);
+      setTempImages([]);
+      showToast('تم إنشاء العرض بنجاح بنجاح');
+    },
+    onError: (err: any) => {
+      showToast(err.response?.data?.message || 'فشل إنشاء العرض', 'error');
+    }
+  });
+
+  const uploadImages = async (files: FileList) => {
+    setUploading(true);
+    try {
+      const uploadedUrls: string[] = [];
+      for (let i = 0; i < files.length; i++) {
+        const formData = new FormData();
+        formData.append('file', files[i]);
+        const res = await adminApi().post('/upload', formData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        uploadedUrls.push(res.data.url);
+      }
+      setTempImages(prev => [...prev, ...uploadedUrls]);
+    } catch (error) {
+      showToast('فشل رفع الصور', 'error');
+    } finally {
+      setUploading(false);
+    }
+  };
+
   const updateOfferMutation = useMutation({
     mutationFn: async (payload: any) => adminApi().patch(`/admin/offers/${payload.id}`, payload.data),
     onSuccess: () => {
@@ -137,11 +186,19 @@ export default function OffersManagementPage() {
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
-      <PageHeader 
-        title="إدارة العروض" 
-        description="متابعة وتنظيم كافة العروض الترويجية والخصومات المتاحة حالياً في المنصة" 
-        icon={Tag}
-      />
+      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+        <PageHeader 
+          title="إدارة العروض" 
+          description="متابعة وتنظيم كافة العروض الترويجية والخصومات المتاحة حالياً في المنصة" 
+          icon={Tag}
+        />
+        <button 
+          onClick={() => { setIsCreating(true); setTempImages([]); }}
+          className="h-12 px-6 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg shadow-slate-900/10 shrink-0"
+        >
+          <Plus size={20} /> إضافة عرض جديد
+        </button>
+      </div>
 
       {/* Filters */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
@@ -256,6 +313,101 @@ export default function OffersManagementPage() {
                   )}
                 </div>
               )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      <AnimatePresence>
+        {isCreating && (
+          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="max-h-[95vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl">
+              <div className="flex items-center justify-between mb-8">
+                <div>
+                  <h2 className="text-xl font-bold text-slate-900">إضافة عرض جديد</h2>
+                  <p className="text-xs font-medium text-slate-400 mt-1">قم بإدخال بيانات العرض واختيار المتجر التابع له</p>
+                </div>
+                <button onClick={() => setIsCreating(false)} className="rounded-xl bg-slate-50 p-2 text-slate-400 hover:text-slate-900 transition-colors">
+                  <X size={20} />
+                </button>
+              </div>
+
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                const fd = new FormData(e.currentTarget);
+                const data = Object.fromEntries(fd.entries());
+                createOfferMutation.mutate({
+                  ...data,
+                  images: tempImages,
+                  status: 'APPROVED' // Admin-created offers are auto-approved
+                });
+              }} className="space-y-6">
+                <div className="grid gap-6 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">اسم العرض</label>
+                    <input name="title" placeholder="مثلاً: خصم 50% على كل الملابس" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">قيمة الخصم</label>
+                    <input name="discount" placeholder="مثلاً: 50% أو خصم 100 ج" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">اختر المتجر</label>
+                    <select name="storeId" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required>
+                      <option value="">اختر متجر من القائمة...</option>
+                      {storesData?.map(s => <option key={s.id} value={s.id}>{s.name}</option>)}
+                    </select>
+                  </div>
+                  <div className="sm:col-span-2 space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">وصف العرض</label>
+                    <textarea name="description" rows={3} placeholder="تفاصيل العرض والشروط إن وجدت..." className="w-full rounded-xl border border-slate-200 bg-slate-50/50 p-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ البدء</label>
+                    <div className="relative">
+                      <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input type="date" name="startDate" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 pl-10 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                    </div>
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانتهاء</label>
+                    <div className="relative">
+                      <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                      <input type="date" name="endDate" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 pl-10 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                    </div>
+                  </div>
+                </div>
+
+                <div className="space-y-4">
+                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">صور العرض</label>
+                  <div className="grid grid-cols-4 gap-4">
+                    {tempImages.map((img, i) => (
+                      <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                        <img src={img} className="h-full w-full object-cover" />
+                        <button type="button" onClick={() => setTempImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><X size={14} /></button>
+                      </div>
+                    ))}
+                    {tempImages.length < 4 && (
+                      <label className="aspect-square rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-orange-600 hover:border-orange-300">
+                        {uploading ? <Loader2 className="animate-spin" size={24} /> : (
+                          <>
+                            <Upload size={24} />
+                            <span className="text-[10px] font-bold">رفع صورة</span>
+                            <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => e.target.files && uploadImages(e.target.files)} />
+                          </>
+                        )}
+                      </label>
+                    )}
+                  </div>
+                </div>
+
+                <div className="flex gap-4 pt-6 border-t border-slate-100">
+                  <button type="submit" disabled={createOfferMutation.isPending || uploading} className="flex-1 h-12 rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-orange-600 transition-all shadow-lg disabled:opacity-50">
+                    {createOfferMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'تأكيد ونشر العرض'}
+                  </button>
+                  <button type="button" onClick={() => setIsCreating(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+                </div>
+              </form>
             </motion.div>
           </div>
         )}

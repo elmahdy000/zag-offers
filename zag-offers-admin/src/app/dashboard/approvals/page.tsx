@@ -26,6 +26,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -92,6 +93,7 @@ function DetailCard({ label, value, icon: Icon }: { label: string; value: string
 }
 
 export default function ApprovalsPage() {
+  const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [activeTab, setActiveTab] = useState<TabType>('stores');
@@ -338,7 +340,11 @@ export default function ApprovalsPage() {
                 filteredHistory.length === 0 ? (
                   <tr><td colSpan={5} className="py-24 text-center text-slate-400 font-bold">لا توجد عمليات موافقة حديثة</td></tr>
                 ) : filteredHistory.map((item) => (
-                  <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
+                  <tr 
+                    key={item.id} 
+                    className="hover:bg-slate-50/50 transition-all group cursor-pointer"
+                    onClick={() => router.push(item.type === 'store' ? `/dashboard/merchants/${item.id}` : `/dashboard/offers/${item.id}`)}
+                  >
                     <td className="px-6 py-5">
                       <div className="flex items-center gap-4">
                         <div className={`h-11 w-11 rounded-xl flex items-center justify-center border shadow-sm group-hover:bg-white transition-colors ${item.type === 'store' ? 'bg-orange-50 text-orange-600 border-orange-100' : 'bg-blue-50 text-blue-600 border-blue-100'}`}>
@@ -351,11 +357,11 @@ export default function ApprovalsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-xs font-bold text-slate-700">
-                      {item.type === 'store' ? (item as any).owner.name : (item as any).store.name}
+                      {item.type === 'store' ? (item as any).owner?.name : (item as any).store?.name}
                     </td>
                     <td className="px-6 py-5">
                       <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
-                        {item.type === 'store' ? (item as any).category.name : ((item as any).store.category?.name || 'عام')}
+                        {item.type === 'store' ? (item as any).category?.name : ((item as any).store?.category?.name || 'عام')}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-[11px] font-bold text-emerald-600">{formatDate(item.updatedAt)}</td>
