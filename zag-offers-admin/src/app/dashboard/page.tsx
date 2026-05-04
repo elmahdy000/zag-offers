@@ -152,27 +152,7 @@ export default function AdminDashboard() {
   }
 
   return (
-    <div className="flex flex-col min-h-screen bg-[#F8FAFC]">
-      {/* TopBar */}
-      <div className="sticky top-0 z-30 flex h-16 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur-md lg:px-10">
-        <div className="relative flex-1 max-w-md">
-          <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="البحث عن عروض أو متاجر..."
-            className="h-[44px] w-full rounded-xl border border-slate-200 bg-slate-50/50 pr-11 pl-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all"
-          />
-        </div>
-        <div className="flex items-center gap-3 mr-4">
-          <button className="relative flex h-[44px] w-[44px] items-center justify-center rounded-xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 transition-all shadow-sm">
-            <Bell size={20} />
-            <span className="absolute top-3 left-3 h-2 w-2 rounded-full bg-orange-600 ring-2 ring-white" />
-          </button>
-        </div>
-      </div>
-
-      <div className="p-6 lg:p-10 space-y-10 pb-20">
+    <div className="p-6 lg:p-10 space-y-10 pb-20">
         {/* Page Header */}
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
           <div>

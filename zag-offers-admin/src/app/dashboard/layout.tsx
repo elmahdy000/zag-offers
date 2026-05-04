@@ -1,4 +1,5 @@
 import AdminSidebar from '@/components/AdminSidebar';
+import DashboardHeader from '@/components/DashboardHeader';
 
 export default function AdminLayout({
   children,
@@ -11,9 +12,12 @@ export default function AdminLayout({
       <AdminSidebar />
       
       {/* Main Content Area */}
-      <main className="flex-1 min-h-screen lg:mr-[300px] w-full bg-[#F8FAFC]">
-        {children}
-      </main>
+      <div className="flex-1 min-h-screen lg:mr-[300px] w-full flex flex-col">
+        <DashboardHeader />
+        <main className="flex-1 p-0">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
