@@ -3,6 +3,7 @@ import { useState, useEffect } from 'react';
 import { ShieldCheck, Lock, Smartphone, AlertCircle, WifiOff, Loader2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
+import Link from 'next/link';
 import axios from 'axios';
 import { getCookie } from '@/lib/api';
 
