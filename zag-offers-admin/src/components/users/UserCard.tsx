@@ -62,7 +62,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) =>
           {user.name}
         </h3>
         <p className="mt-1.5 text-xs font-bold text-slate-500 font-outfit">{user.phone}</p>
-        
+
         <div className="mt-5 space-y-2">
           {user.email && (
             <div className="flex items-center gap-2.5 text-xs font-medium text-slate-500">
@@ -79,14 +79,14 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) =>
 
       <div className="mt-6 flex items-center justify-between border-t border-slate-50 pt-4">
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); onEdit(user); }}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm border border-slate-100"
             title="تعديل"
           >
             <Pencil size={16} />
           </button>
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); onDelete(user); }}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all shadow-sm border border-rose-100"
             title="حذف"
@@ -94,8 +94,8 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) =>
             <Trash2 size={16} />
           </button>
         </div>
-        
-        <Link 
+
+        <Link
           href={`/dashboard/users/${user.id}`}
           onClick={(e) => e.stopPropagation()}
           className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-sm border border-orange-100"

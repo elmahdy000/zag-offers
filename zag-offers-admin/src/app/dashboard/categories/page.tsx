@@ -57,7 +57,7 @@ export default function CategoriesPage() {
   });
 
   const updateMutation = useMutation({
-    mutationFn: ({ id, name }: { id: string; name: string }) => 
+    mutationFn: ({ id, name }: { id: string; name: string }) =>
       adminApi().patch(`/admin/categories/${id}`, { name }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
@@ -81,7 +81,7 @@ export default function CategoriesPage() {
     }
   });
 
-  const filteredCategories = Array.isArray(categories) 
+  const filteredCategories = Array.isArray(categories)
     ? categories.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
     : [];
 
@@ -117,12 +117,12 @@ export default function CategoriesPage() {
     <div className="p-6 lg:p-10 space-y-8">
 
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
-        <PageHeader 
-          title="إدارة التصنيفات" 
-          description="إضافة وتعديل تصنيفات المتاجر لتسهيل عملية التصفح والبحث للعملاء" 
+        <PageHeader
+          title="إدارة التصنيفات"
+          description="إضافة وتعديل تصنيفات المتاجر لتسهيل عملية التصفح والبحث للعملاء"
           icon={ListFilter}
         />
-        <button 
+        <button
           onClick={() => openModal()}
           className="h-12 px-6 rounded-xl bg-orange-600 text-white font-bold text-sm shadow-lg shadow-orange-900/10 hover:bg-orange-700 transition-all flex items-center justify-center gap-2"
         >
@@ -153,7 +153,7 @@ export default function CategoriesPage() {
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {filteredCategories.map((category) => (
-            <motion.div 
+            <motion.div
               key={category.id}
               layout
               initial={{ opacity: 0, scale: 0.9 }}
@@ -171,14 +171,14 @@ export default function CategoriesPage() {
                   <button onClick={() => openModal(category)} className="h-8 w-8 rounded-lg bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all flex items-center justify-center">
                     <Pencil size={14} />
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       if ((category._count?.stores || 0) > 0) {
                         showToast(`لا يمكن حذف "${category.name}" لوجود ${category._count?.stores} متجر مرتبط به`, 'error');
                       } else {
                         setDeleteModal(category);
                       }
-                    }} 
+                    }}
                     className="h-8 w-8 rounded-lg bg-rose-50 text-rose-400 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center"
                   >
                     <Trash2 size={14} />
@@ -214,8 +214,8 @@ export default function CategoriesPage() {
                 </div>
 
                 <div className="flex gap-4 pt-4">
-                  <button 
-                    type="submit" 
+                  <button
+                    type="submit"
                     disabled={createMutation.isPending || updateMutation.isPending}
                     className="flex-1 h-12 rounded-xl bg-slate-900 text-white text-sm font-bold shadow-lg shadow-slate-200 hover:bg-orange-600 transition-all flex items-center justify-center"
                   >
@@ -238,8 +238,8 @@ export default function CategoriesPage() {
               <h3 className="text-xl font-bold text-slate-900">حذف التصنيف؟</h3>
               <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">هل أنت متأكد من حذف تصنيف "{deleteModal.name}"؟ قد يؤثر ذلك على المتاجر المرتبطة به.</p>
               <div className="mt-8 flex gap-4">
-                <button 
-                  onClick={() => deleteMutation.mutate(deleteModal.id)} 
+                <button
+                  onClick={() => deleteMutation.mutate(deleteModal.id)}
                   disabled={deleteMutation.isPending}
                   className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10"
                 >

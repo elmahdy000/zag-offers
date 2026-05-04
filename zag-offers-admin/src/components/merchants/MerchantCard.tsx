@@ -53,7 +53,7 @@ export function MerchantCard({ merchant, onView, onEdit, index }: MerchantCardPr
           {merchant.name}
         </h3>
         <p className="mt-1 text-xs font-medium text-slate-400">{merchant.category?.name || 'تصنيف غير محدد'}</p>
-        
+
         <div className="mt-4 flex items-center gap-2 text-slate-500">
           <span className="text-xs font-medium truncate">
             {merchant.area || 'كل الشرقية'}
@@ -66,14 +66,14 @@ export function MerchantCard({ merchant, onView, onEdit, index }: MerchantCardPr
           {merchant.owner.name}
         </p>
         <div className="flex gap-2">
-          <button 
+          <button
             onClick={(e) => { e.stopPropagation(); onEdit(merchant.id); }}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm"
             title="تعديل سريع"
           >
             <Pencil size={16} />
           </button>
-          <div 
+          <div
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm"
           >
             <Eye size={16} />
