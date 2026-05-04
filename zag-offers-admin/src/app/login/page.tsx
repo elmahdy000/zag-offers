@@ -97,29 +97,39 @@ export default function AdminLoginPage() {
               </div>
             )}
 
-            <input
-              type="tel"
-              value={phone}
-              onChange={(e) => {
-                setPhone(e.target.value);
-                setValidationError(null);
-              }}
-              className="w-full h-14 px-4 rounded-lg border border-slate-200 bg-white text-base font-medium text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder:text-slate-400"
-              placeholder="رقم الموبايل"
-              required
-            />
+            <div className="relative group/field">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/field:text-orange-600 transition-colors">
+                <Smartphone size={20} />
+              </div>
+              <input
+                type="tel"
+                value={phone}
+                onChange={(e) => {
+                  setPhone(e.target.value);
+                  setValidationError(null);
+                }}
+                className="w-full h-14 pr-12 pl-4 rounded-lg border border-slate-200 bg-white text-base font-medium text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder:text-slate-300"
+                placeholder="رقم الموبايل"
+                required
+              />
+            </div>
 
-            <input
-              type="password"
-              value={password}
-              onChange={(e) => {
-                setPassword(e.target.value);
-                setValidationError(null);
-              }}
-              className="w-full h-14 px-4 rounded-lg border border-slate-200 bg-white text-base font-medium text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder:text-slate-400"
-              placeholder="كلمة السر"
-              required
-            />
+            <div className="relative group/field">
+              <div className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within/field:text-orange-600 transition-colors">
+                <Lock size={20} />
+              </div>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => {
+                  setPassword(e.target.value);
+                  setValidationError(null);
+                }}
+                className="w-full h-14 pr-12 pl-4 rounded-lg border border-slate-200 bg-white text-base font-medium text-slate-900 focus:border-orange-500 focus:ring-1 focus:ring-orange-500 focus:outline-none transition-all placeholder:text-slate-300"
+                placeholder="كلمة السر"
+                required
+              />
+            </div>
 
             <button
               type="submit"
