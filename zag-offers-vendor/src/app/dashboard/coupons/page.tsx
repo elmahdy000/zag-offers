@@ -49,7 +49,7 @@ export default function CouponsLogPage() {
   );
 
   return (
-    <div className="p-8 dir-rtl animate-in max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
         <div>

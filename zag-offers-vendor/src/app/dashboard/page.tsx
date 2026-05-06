@@ -113,7 +113,7 @@ export default function MerchantDashboard() {
   ];
 
   return (
-    <div className="p-8 dir-rtl animate-in max-w-7xl mx-auto relative min-h-screen">
+    <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative min-h-screen">
       <AnimatePresence>
         {notification && (
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}

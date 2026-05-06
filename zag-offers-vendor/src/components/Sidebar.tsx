@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, CheckCheck } from 'lucide-react';
+import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, CheckCheck, ChevronLeft, TrendingUp } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCookie, deleteCookie } from '@/lib/api';
+import { motion, AnimatePresence } from 'framer-motion';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
@@ -51,98 +52,73 @@ function NotificationPanel({
 
   const panel = (
     <>
-      {/* Full-screen backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
-        style={{ zIndex: 9998 }}
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px] z-[9998]"
         onClick={onClose}
       />
-      {/* Notification panel */}
-      <div
+      <motion.div
+        initial={{ opacity: 0, scale: 0.95, y: -20 }}
+        animate={{ opacity: 1, scale: 1, y: 0 }}
+        exit={{ opacity: 0, scale: 0.95, y: -20 }}
         dir="rtl"
-        style={{
-          position: 'fixed',
-          zIndex: 9999,
-          top: '1rem',
-          right: '1rem',
-          left: '1rem',
-          maxHeight: 'calc(100vh - 2rem)',
-          display: 'flex',
-          flexDirection: 'column',
-          background: '#161618',
-          border: '1px solid rgba(255,255,255,0.05)',
-          borderRadius: '1.5rem',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
-          overflow: 'hidden',
-        }}
-        className="sm:!right-[17.5rem] sm:!left-auto sm:!w-[20rem] sm:!top-16"
+        className="fixed z-[9999] top-4 right-4 left-4 max-h-[calc(100vh-2rem)] sm:right-auto sm:left-4 sm:top-20 sm:w-[24rem] flex flex-col bg-bg border border-white/5 rounded-[2rem] shadow-2xl overflow-hidden"
       >
-        {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0 bg-white/[0.02]">
+        <div className="flex items-center justify-between px-6 py-5 border-b border-white/5 bg-white/[0.02] shrink-0">
           <div className="flex items-center gap-2">
-            <Bell size={14} className="text-primary" />
-            <span className="font-black text-text text-[13px]">الإشعارات</span>
+            <Bell size={16} className="text-primary" />
+            <span className="font-black text-text text-[14px]">الإشعارات</span>
             {unread > 0 && (
-              <span className="bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
-                {unread}
+              <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-lg">
+                {unread} جديد
               </span>
             )}
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-3">
             {unread > 0 && (
               <button
                 onClick={onMarkAllRead}
-                className="flex items-center gap-1 text-[10px] text-primary font-black hover:opacity-80 transition-opacity"
+                className="text-[11px] text-primary font-black hover:opacity-80 transition-opacity"
               >
-                <CheckCheck size={12} />
                 قراءة الكل
               </button>
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-white/5 transition-all"
+              className="p-2 rounded-xl text-text-dim hover:text-text hover:bg-white/5 transition-all"
             >
-              <X size={14} />
+              <X size={16} />
             </button>
           </div>
         </div>
 
-        {/* Scrollable list */}
-        <div className="overflow-y-auto flex-1">
+        <div className="overflow-y-auto flex-1 scrollbar-none">
           {notifications.length === 0 ? (
-            <div className="py-12 text-center">
-              <Bell size={32} className="text-white/5 mx-auto mb-3" />
-              <p className="text-text-dim text-[11px] font-bold">لا توجد إشعارات حالياً</p>
+            <div className="py-16 text-center opacity-30">
+              <Bell size={40} className="mx-auto mb-4" />
+              <p className="text-xs font-black">لا توجد إشعارات حالياً</p>
             </div>
           ) : (
-            notifications.slice(0, 30).map((n) => (
+            notifications.slice(0, 20).map((n) => (
               <button
                 key={n.id}
                 onClick={() => onNotifClick(n)}
-                className={`w-full text-right px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors flex items-start gap-3 ${
+                className={`w-full text-right px-6 py-5 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors flex items-start gap-4 ${
                   n.isRead ? 'opacity-40' : 'bg-primary/5'
                 }`}
               >
-                <span
-                  className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
-                    n.isRead ? 'bg-transparent' : 'bg-primary'
-                  }`}
-                />
+                <div className={`mt-2 w-2 h-2 rounded-full shrink-0 ${n.isRead ? 'bg-transparent' : 'bg-primary'}`} />
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-black text-text">{n.title}</p>
-                  <p className="text-[11px] text-text-dim mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-                  <p className="text-[9px] text-text-dimmer mt-1.5 font-bold uppercase tracking-wider">
-                    {new Date(n.createdAt).toLocaleString('ar-EG', {
-                      month: 'short', day: 'numeric',
-                      hour: '2-digit', minute: '2-digit',
-                    })}
+                  <p className="text-[13px] font-black text-text">{n.title}</p>
+                  <p className="text-[11px] text-text-dim mt-1 leading-relaxed line-clamp-2">{n.body}</p>
+                  <p className="text-[9px] text-text-dimmer mt-2 font-black uppercase tracking-wider">
+                    {new Date(n.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                   </p>
                 </div>
               </button>
             ))
           )}
         </div>
-      </div>
+      </motion.div>
     </>
   );
 
@@ -151,7 +127,7 @@ function NotificationPanel({
 }
 
 /* ── Main Sidebar ── */
-export default function Sidebar() {
+export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const pathname = usePathname();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showBell, setShowBell] = useState(false);
@@ -208,6 +184,7 @@ export default function Sidebar() {
       } catch { /* silent */ }
     }
     setShowBell(false);
+    onClose?.();
     window.location.href = getNotifRoute(n);
   };
 
@@ -238,68 +215,106 @@ export default function Sidebar() {
 
   return (
     <>
-      {mounted && showBell && (
-        <NotificationPanel
-          notifications={notifications}
-          onClose={() => setShowBell(false)}
-          onMarkAllRead={markAllRead}
-          onNotifClick={handleNotifClick}
-        />
-      )}
+      <AnimatePresence>
+        {mounted && showBell && (
+          <NotificationPanel
+            notifications={notifications}
+            onClose={() => setShowBell(false)}
+            onMarkAllRead={markAllRead}
+            onNotifClick={handleNotifClick}
+          />
+        )}
+      </AnimatePresence>
 
-      <aside className="w-[240px] glass h-[calc(100vh-2rem)] fixed right-4 top-4 rounded-[2.5rem] flex flex-col z-50 inner-shadow">
-        {/* Logo + Bell */}
-        <div className="p-6 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 inner-shadow">
-              <Tag className="text-primary" size={18} />
+      <aside className="w-[280px] lg:w-[260px] h-full lg:h-[calc(100vh-2rem)] lg:m-4 flex flex-col z-[70]">
+        <div className="glass h-full flex flex-col rounded-none lg:rounded-[2.5rem] border-l lg:border border-white/5 bg-bg/95 lg:bg-white/[0.02] overflow-hidden inner-shadow">
+          
+          {/* Header */}
+          <div className="p-8 pb-6 flex items-center justify-between">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/40 group cursor-pointer transition-all hover:scale-110 active:scale-95">
+                <span className="text-white font-black text-xl italic tracking-tighter">Z</span>
+              </div>
+              <div className="flex flex-col">
+                <span className="text-white font-black text-sm tracking-tight leading-none mb-1">زاچ أوفرز</span>
+                <span className="text-primary font-bold text-[10px] uppercase tracking-widest opacity-80">لوحة التاجر</span>
+              </div>
             </div>
-            <div className="flex flex-col">
-              <span className="font-black text-[15px] text-text leading-none tracking-tight">ZAG VENDOR</span>
-              <span className="text-[8px] text-primary font-black uppercase tracking-[0.2em] mt-1">Merchant Hub</span>
-            </div>
+            {onClose && (
+              <button onClick={onClose} className="lg:hidden w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-dim hover:text-white transition-all border border-white/5">
+                 <X size={20} />
+              </button>
+            )}
           </div>
 
-          <button
-            onClick={() => setShowBell((v) => !v)}
-            className="relative p-2 rounded-lg text-text-dim hover:text-text hover:bg-white/5 transition-all"
-            aria-label="الإشعارات"
-          >
-            <Bell size={16} />
-            {unreadCount > 0 && (
-              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(255,107,0,0.5)]" />
-            )}
-          </button>
-        </div>
+          {/* Navigation */}
+          <nav className="flex-1 px-4 py-6 flex flex-col gap-2 overflow-y-auto scrollbar-none">
+            <div className="px-4 mb-4">
+               <span className="text-[10px] font-black text-text-dimmer uppercase tracking-[0.3em]">القائمة الرئيسية</span>
+            </div>
+            
+            {menuItems.map((item) => {
+              const isActive = pathname === item.href;
+              return (
+                <Link 
+                  key={item.href}
+                  href={item.href}
+                  onClick={() => onClose?.()}
+                  className={`
+                    group flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-300 relative overflow-hidden
+                    ${isActive 
+                      ? 'bg-primary text-white shadow-lg shadow-primary/20' 
+                      : 'text-text-dim hover:text-text hover:bg-white/5'}
+                  `}
+                >
+                  <item.icon size={20} className={isActive ? 'text-white' : 'group-hover:text-primary transition-colors'} />
+                  <span className={`text-[13px] tracking-tight ${isActive ? 'font-black' : 'font-bold'}`}>{item.name}</span>
+                  {isActive && (
+                    <motion.div 
+                      layoutId="active-pill"
+                      className="absolute left-4 w-1.5 h-1.5 bg-white rounded-full"
+                    />
+                  )}
+                </Link>
+              );
+            })}
+          </nav>
 
-        {/* Nav */}
-        <nav className="flex-1 px-3 space-y-1.5 mt-4 overflow-y-auto">
-          {menuItems.map((item) => {
-            const isActive = pathname === item.href;
-            return (
-              <Link
-                key={item.href}
-                href={item.href}
-                className={`sidebar-item ${isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'text-text-dim hover:bg-white/5 hover:text-text'}`}
-              >
-                <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
-                <span className={isActive ? 'font-black' : 'font-bold'}>{item.name}</span>
-              </Link>
-            );
-          })}
-        </nav>
+          {/* User Profile Section */}
+          <div className="p-4 mt-auto">
+            <div className="bg-white/5 lg:bg-transparent rounded-3xl p-2 lg:p-0">
+               <button 
+                 onClick={() => setShowBell(!showBell)}
+                 className="w-full flex items-center justify-between p-4 mb-2 rounded-2xl hover:bg-white/5 transition-all text-text-dim group"
+               >
+                  <div className="flex items-center gap-4">
+                     <div className="relative">
+                        <Bell size={20} className="group-hover:text-primary transition-colors" />
+                        {unreadCount > 0 && (
+                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-bg" />
+                        )}
+                     </div>
+                     <span className="text-[13px] font-black tracking-tight">التنبيهات</span>
+                  </div>
+                  <div className="flex items-center gap-2">
+                     {unreadCount > 0 && <span className="text-[10px] font-black text-primary">{unreadCount}</span>}
+                     <ChevronLeft size={16} className="opacity-30" />
+                  </div>
+               </button>
 
-        {/* Logout */}
-        <div className="p-4 border-t border-white/5">
-          <button
-            onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-4 py-3 text-text-dim hover:text-red-400 hover:bg-red-400/5 rounded-xl transition-all font-black text-[11px] uppercase tracking-wider"
-          >
-            <LogOut size={16} />
-            تسجيل الخروج
-          </button>
+               <div className="h-px bg-white/5 mx-4 mb-2" />
+
+               <button 
+                 onClick={handleLogout}
+                 className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-red-500/10 transition-all text-red-500/60 hover:text-red-500 group"
+               >
+                  <div className="flex items-center gap-4">
+                     <LogOut size={20} />
+                     <span className="text-[13px] font-black tracking-tight">تسجيل الخروج</span>
+                  </div>
+               </button>
+            </div>
+          </div>
         </div>
       </aside>
     </>

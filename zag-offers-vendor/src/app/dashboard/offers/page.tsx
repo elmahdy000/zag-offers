@@ -164,7 +164,7 @@ export default function OffersListPage() {
   filters.slice(1).forEach(s => { counts[s] = offers.filter(o => o.status === s).length; });
 
   return (
-    <div className="p-8 dir-rtl animate-in max-w-7xl mx-auto">
+    <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto">
       {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
         <div>
