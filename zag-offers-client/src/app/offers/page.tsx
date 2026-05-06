@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
 import { Search, Flame } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -16,7 +16,7 @@ const CAT_ICONS: Record<string, string> = {
   'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒', 'default': '🏷️',
 };
 
-export default function OffersListingPage() {
+function OffersPageContent() {
   const searchParams  = useSearchParams();
   const initialCat    = searchParams.get('categoryId') || '';
 
@@ -206,5 +206,17 @@ export default function OffersListingPage() {
         </div>
       )}
     </div>
+  );
+}
+
+export default function OffersListingPage() {
+  return (
+    <Suspense fallback={
+      <div className="max-w-7xl mx-auto px-4 py-20 text-center text-[#9A9A9A] font-bold">
+        جاري تهيئة العروض...
+      </div>
+    }>
+      <OffersPageContent />
+    </Suspense>
   );
 }

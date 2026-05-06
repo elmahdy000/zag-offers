@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Flame, Sparkles } from 'lucide-react';
 import Link from 'next/link';
@@ -30,7 +30,7 @@ const CAT_ICONS: Record<string, string> = {
   'دورات': '📚', 'خدمات سيارات': '🚗', 'default': '🏷️',
 };
 
-export default function HomePage() {
+function HomePageContent() {
   const searchParams = useSearchParams();
   const catIdParam = searchParams.get('categoryId');
 
@@ -247,5 +247,17 @@ export default function HomePage() {
         )}
       </section>
     </div>
+  );
+}
+
+export default function HomePage() {
+  return (
+    <Suspense fallback={
+      <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">
+        جاري تحميل زاج أوفرز...
+      </div>
+    }>
+      <HomePageContent />
+    </Suspense>
   );
 }
