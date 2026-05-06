@@ -3,7 +3,14 @@ import './globals.css';
 
 export const metadata: Metadata = {
   title: 'ZAG Offers - Vendor',
-  description: 'Vendor dashboard for ZAG Offers',
+  description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
+  manifest: '/manifest.json',
+  themeColor: '#ff7e1a',
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: 'default',
+    title: 'Zag Vendor',
+  },
 };
 
 export default function RootLayout({
