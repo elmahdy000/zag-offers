@@ -25,7 +25,7 @@ import {
   ArrowRight
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -143,7 +143,7 @@ export default function OfferDetailPage() {
                <div className="flex flex-col md:flex-row gap-8">
                   {offer.images && offer.images.length > 0 ? (
                     <div className="w-full md:w-64 h-48 rounded-2xl overflow-hidden border border-slate-100 shrink-0">
-                       <img src={offer.images[0]} alt="offer" className="h-full w-full object-cover" />
+                       <img src={resolveImageUrl(offer.images[0])} alt="offer" className="h-full w-full object-cover" />
                     </div>
                   ) : (
                     <div className="w-full md:w-64 h-48 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center text-slate-200 shrink-0">
@@ -228,7 +228,7 @@ export default function OfferDetailPage() {
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">المتجر المقدم للعرض</h3>
                <div className="flex items-center gap-4 mb-6">
                   <div className="h-14 w-14 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                     {offer.store.logo ? <img src={offer.store.logo} alt="store" className="h-full w-full object-cover" /> : <Store size={24} className="text-slate-200" />}
+                     {offer.store.logo ? <img src={resolveImageUrl(offer.store.logo)} alt="store" className="h-full w-full object-cover" /> : <Store size={24} className="text-slate-200" />}
                   </div>
                   <div className="min-w-0">
                      <p className="text-sm font-bold text-slate-900 truncate leading-none mb-1">{offer.store.name}</p>
