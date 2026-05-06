@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Tool } from 'lucide-react';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { API_URL } from '@/lib/constants';
