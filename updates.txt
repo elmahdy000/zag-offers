@@ -1,0 +1,10 @@
+# تحديث العميل
+cd /var/www/zag-offers/zag-offers-client && git pull && npm run build && pm2 restart zag-client
+
+# تحديث التاجر
+cd /var/www/zag-offers/zag-offers-vendor && git pull && npm run build && pm2 restart zag-vendor
+
+# تحديث الأدمن
+cd /var/www/zag-offers/zag-offers-admin && git pull && npm run build && pm2 restart zag-admin
+
+cd /var/www/zag-offers/zag-offers-backend && git pull && npm run build && pm2 restart zag-backend

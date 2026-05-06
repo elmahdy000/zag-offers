@@ -95,10 +95,14 @@ export default function EditOfferPage() {
         imageUrls = await Promise.all(uploadPromises);
       }
 
+      const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
+        ? `${formData.discount.trim()}%` 
+        : formData.discount.trim();
+
       await vendorApi().patch(`/offers/${id}`, {
         title: formData.title.trim(),
         description: formData.description.trim() || formData.title.trim(),
-        discount: formData.discount.includes('%') ? formData.discount : `${formData.discount}%`,
+        discount: formattedDiscount,
         endDate: new Date(formData.expiryDate).toISOString(),
         images: imageUrls,
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
@@ -119,7 +123,10 @@ export default function EditOfferPage() {
 
   if (loading) return <DashboardSkeleton />;
 
-  const discountedPrice = (Number(formData.originalPrice) * (1 - parseFloat(formData.discount) / 100)).toFixed(0);
+  const isNumericDiscount = /^\d+(\.\d+)?%?$/.test(formData.discount);
+  const discountValue = parseFloat(formData.discount) || 0;
+  const discountedPrice = (Number(formData.originalPrice) * (1 - discountValue / 100)).toFixed(0);
+  const showDiscountedPrice = Boolean(formData.originalPrice) && isNumericDiscount && discountValue > 0;
 
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative">
@@ -312,7 +319,9 @@ export default function EditOfferPage() {
                        )}
                        <div className="flex items-center gap-2">
                           <span className="text-2xl font-black text-text">
-                            {(formData.originalPrice && formData.discount) ? `EGP ${discountedPrice}` : '0.00'}
+                            {showDiscountedPrice 
+                              ? `EGP ${!isNaN(Number(discountedPrice)) ? discountedPrice : '0.00'}` 
+                              : (formData.discount ? formData.discount : '0.00')}
                           </span>
                        </div>
                     </div>
