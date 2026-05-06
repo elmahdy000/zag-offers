@@ -1,4 +1,13 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
+import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/widgets/dashboard_skeleton.dart';
+import 'package:zag_offers_vendor_app/features/offers/presentation/pages/add_edit_offer_page.dart';
+import 'package:zag_offers_vendor_app/features/main/presentation/layout/main_layout.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -12,180 +21,155 @@ class DashboardPage extends StatelessWidget {
       return null;
     });
 
-    return RefreshIndicator(
-      color: AppColors.primary,
-      onRefresh: () async {
-        context.read<DashboardBloc>().add(GetDashboardStatsRequested());
-      },
-      child: BlocBuilder<DashboardBloc, DashboardState>(
-        builder: (context, state) {
-          return SafeArea(
-            child: CustomScrollView(
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      body: RefreshIndicator(
+        color: AppColors.primary,
+        onRefresh: () async {
+          context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+        },
+        child: BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Container(
-                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.only(
-                        bottomLeft: Radius.circular(32),
-                        bottomRight: Radius.circular(32),
+                // Header - Industrial Glass Style
+                SliverAppBar(
+                  expandedHeight: 220,
+                  floating: false,
+                  pinned: true,
+                  backgroundColor: AppColors.background,
+                  elevation: 0,
+                  flexibleSpace: FlexibleSpaceBar(
+                    background: Container(
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                          colors: [
+                            AppColors.primary.withValues(alpha: 0.8),
+                            AppColors.primaryDark,
+                          ],
+                        ),
                       ),
-                    ),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Column(
+                      child: Stack(
+                        children: [
+                          Positioned(
+                            right: -50,
+                            top: -50,
+                            child: CircleAvatar(
+                              radius: 120,
+                              backgroundColor: Colors.white.withValues(alpha: 0.05),
+                            ),
+                          ),
+                          Padding(
+                            padding: const EdgeInsets.fromLTRB(24, 60, 24, 0),
+                            child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(
-                                  'مرحباً بك،',
-                                  style: GoogleFonts.cairo(
-                                    color: Colors.white70,
-                                    fontSize: 14,
-                                  ),
-                                ),
-                                Text(
-                                  user?.name ?? 'تاجرنا المميز',
-                                  style: GoogleFonts.cairo(
-                                    color: Colors.white,
-                                    fontSize: 22,
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
-                            ),
-                            Stack(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: Colors.white.withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(14),
-                                  ),
-                                  child: const Icon(
-                                    Icons.notifications_none_rounded,
-                                    color: Colors.white,
-                                    size: 26,
-                                  ),
-                                ),
-                                Positioned(
-                                  right: 8,
-                                  top: 8,
-                                  child: Container(
-                                    width: 8,
-                                    height: 8,
-                                    decoration: const BoxDecoration(
-                                      color: AppColors.accent,
-                                      shape: BoxShape.circle,
+                                Row(
+                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  children: [
+                                    Column(
+                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      children: [
+                                        Text(
+                                          'نظرة عامة',
+                                          style: GoogleFonts.cairo(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                            fontWeight: FontWeight.w600,
+                                            letterSpacing: 0.5,
+                                          ),
+                                        ),
+                                        Text(
+                                          user?.name ?? 'تاجرنا المميز',
+                                          style: GoogleFonts.cairo(
+                                            color: Colors.white,
+                                            fontSize: 20,
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                        ),
+                                      ],
                                     ),
-                                  ),
+                                    _buildIconButton(Icons.notifications_none_rounded),
+                                  ],
+                                ),
+                                const SizedBox(height: 24),
+                                // Floating Stats Header
+                                Row(
+                                  children: [
+                                    Expanded(
+                                      child: _buildHeaderStat(
+                                        'عروض نشطة',
+                                        state is DashboardLoaded ? state.stats.activeOffers.toString() : '...',
+                                        Icons.local_fire_department_rounded,
+                                      ),
+                                    ),
+                                    _buildVerticalDivider(),
+                                    Expanded(
+                                      child: _buildHeaderStat(
+                                        'طلبات اليوم',
+                                        state is DashboardLoaded ? state.stats.claimsToday.toString() : '...',
+                                        Icons.confirmation_num_outlined,
+                                      ),
+                                    ),
+                                    _buildVerticalDivider(),
+                                    Expanded(
+                                      child: _buildHeaderStat(
+                                        'مسح اليوم',
+                                        state is DashboardLoaded ? state.stats.scansToday.toString() : '...',
+                                        Icons.qr_code_scanner_rounded,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 32),
-                        // Quick Stats Row
-                        Row(
-                          children: [
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'عروض نشطة',
-                                value: state is DashboardLoaded
-                                    ? state.stats.activeOffers.toString()
-                                    : '...',
-                                icon: Icons.local_fire_department_rounded,
-                                color: AppColors.accent,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'طلبات اليوم',
-                                value: state is DashboardLoaded
-                                    ? state.stats.claimsToday.toString()
-                                    : '...',
-                                icon: Icons.confirmation_num_outlined,
-                                color: AppColors.primaryLight,
-                              ),
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: _buildStatCard(
-                                title: 'مسح اليوم',
-                                value: state is DashboardLoaded
-                                    ? state.stats.scansToday.toString()
-                                    : '...',
-                                icon: Icons.qr_code_scanner_rounded,
-                                color: AppColors.success,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
                     ),
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+                const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
-                // Quick Actions
+                // Action Grid - Professional Style
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
-                          'إجراءات سريعة',
-                          style: GoogleFonts.cairo(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
+                        _buildSectionHeader('الإجراءات السريعة'),
                         const SizedBox(height: 16),
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            _buildActionItem(
-                              Icons.add_circle_outline,
+                            _buildCompactAction(
+                              Icons.add_rounded,
                               'إضافة عرض',
                               AppColors.primary,
-                              onTap: () {
-                                Navigator.push(
-                                  context,
-                                  MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
-                                );
-                              },
+                              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditOfferPage())),
                             ),
-                            _buildActionItem(
-                              Icons.analytics_outlined,
+                            _buildCompactAction(
+                              Icons.analytics_rounded,
                               'التحليلات',
-                              AppColors.secondary,
-                              onTap: () {
-                                (context.findAncestorStateOfType<MainLayoutState>())?.setIndex(2);
-                              },
+                              AppColors.accent,
+                              () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
                             ),
-                            _buildActionItem(
-                              Icons.reviews_outlined,
+                            _buildCompactAction(
+                              Icons.star_rounded,
                               'التقييمات',
-                              Colors.purple,
-                              onTap: () {},
+                              Colors.amber,
+                              () {},
                             ),
-                            _buildActionItem(
-                              Icons.settings_outlined,
+                            _buildCompactAction(
+                              Icons.settings_rounded,
                               'الإعدادات',
-                              AppColors.textSecondary,
-                              onTap: () {
-                                (context.findAncestorStateOfType<MainLayoutState>())?.setIndex(3);
-                              },
+                              AppColors.textTertiary,
+                              () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(3),
                             ),
                           ],
                         ),
@@ -196,29 +180,20 @@ class DashboardPage extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-                // Recent Activity Header
+                // Activity List
                 SliverToBoxAdapter(
                   child: Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text(
-                          'أحدث النشاطات',
-                          style: GoogleFonts.cairo(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
-                        ),
+                        _buildSectionHeader('أحدث النشاطات'),
                         TextButton(
-                          onPressed: () {
-                            (context.findAncestorStateOfType<MainLayoutState>())?.setIndex(2);
-                          },
+                          onPressed: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
                           child: Text(
                             'عرض الكل',
                             style: GoogleFonts.cairo(
-                              fontSize: 14,
+                              fontSize: 12,
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
                             ),
@@ -229,258 +204,206 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 8)),
-
                 if (state is DashboardLoading)
-                  const SliverToBoxAdapter(
-                    child: Padding(
-                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
-                      child: DashboardSkeleton(),
-                    ),
-                  )
-                else if (state is DashboardError)
-                  SliverToBoxAdapter(
-                    child: Padding(
-                      padding: const EdgeInsets.all(32),
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Icon(Icons.cloud_off_rounded, size: 64, color: Colors.grey[400]),
-                          const SizedBox(height: 16),
-                          Text(
-                            'تعذر جلب البيانات',
-                            style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold),
-                          ),
-                          Text(
-                            state.message,
-                            style: GoogleFonts.cairo(color: Colors.grey[600]),
-                            textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 24),
-                          ElevatedButton(
-                            onPressed: () => context.read<DashboardBloc>().add(GetDashboardStatsRequested()),
-                            style: ElevatedButton.styleFrom(
-                              backgroundColor: AppColors.primary,
-                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                            child: const Text('إعادة المحاولة'),
-                          ),
-                        ],
-                      ),
-                    ),
-                  )
-                else if (state is DashboardLoaded && state.stats.recentCoupons.isEmpty)
-                  SliverToBoxAdapter(
-                    child: Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(48.0),
-                        child: Column(
-                          children: [
-                            Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[300]),
-                            const SizedBox(height: 16),
-                            Text(
-                              'لا توجد نشاطات بعد',
-                              style: GoogleFonts.cairo(
-                                color: AppColors.textSecondary,
-                                fontSize: 16,
-                                fontWeight: FontWeight.w500,
-                              ),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  )
+                  const SliverToBoxAdapter(child: DashboardSkeleton())
                 else if (state is DashboardLoaded)
-                  SliverList(
-                    delegate: SliverChildBuilderDelegate(
-                      (context, index) {
-                        final coupon = state.stats.recentCoupons[index];
-                        final isUsed = coupon.status == 'USED';
-
-                        return Padding(
-                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
-                          child: Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: AppColors.card,
-                              borderRadius: BorderRadius.circular(20),
-                              border: Border.all(color: AppColors.border),
-                            ),
-                            child: Row(
-                              children: [
-                                Container(
-                                  padding: const EdgeInsets.all(10),
-                                  decoration: BoxDecoration(
-                                    color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
-                                    borderRadius: BorderRadius.circular(12),
-                                  ),
-                                  child: Icon(
-                                    isUsed ? Icons.check_circle_outline : Icons.confirmation_num_outlined,
-                                    color: isUsed ? AppColors.success : AppColors.primary,
-                                    size: 24,
-                                  ),
-                                ),
-                                const SizedBox(width: 16),
-                                Expanded(
-                                  child: Column(
-                                    crossAxisAlignment: CrossAxisAlignment.start,
-                                    children: [
-                                      Text(
-                                        coupon.offerTitle,
-                                        style: GoogleFonts.cairo(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 15,
-                                          height: 1.2,
-                                        ),
-                                        maxLines: 1,
-                                        overflow: TextOverflow.ellipsis,
-                                      ),
-                                      const SizedBox(height: 4),
-                                      Text(
-                                        'بواسطة: ${coupon.customerName}',
-                                        style: GoogleFonts.cairo(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 12,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                                Column(
-                                  crossAxisAlignment: CrossAxisAlignment.end,
-                                  children: [
-                                    Container(
-                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                                      decoration: BoxDecoration(
-                                        color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
-                                        borderRadius: BorderRadius.circular(6),
-                                      ),
-                                      child: Text(
-                                        isUsed ? 'تم المسح' : 'تم الطلب',
-                                        style: GoogleFonts.cairo(
-                                          color: isUsed ? AppColors.success : AppColors.primary,
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 10,
-                                        ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 4),
-                                    Text(
-                                      TimeUtils.getRelativeTime(isUsed ? (coupon.redeemedAt ?? coupon.createdAt) : coupon.createdAt),
-                                      style: GoogleFonts.cairo(
-                                        color: AppColors.textSecondary,
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ],
-                            ),
+                  state.stats.recentCoupons.isEmpty
+                      ? _buildEmptyState()
+                      : SliverList(
+                          delegate: SliverChildBuilderDelegate(
+                            (context, index) => _buildActivityTile(state.stats.recentCoupons[index]),
+                            childCount: state.stats.recentCoupons.length,
                           ),
-                        );
-                      },
-                      childCount: state.stats.recentCoupons.length,
-                    ),
-                  ),
+                        ),
+
                 const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
-            ),
-          );
-        },
+            );
+          },
+        ),
       ),
     );
   }
 
-  Widget _buildStatCard({
-    required String title,
-    required String value,
-    required IconData icon,
-    required Color color,
-  }) {
+  Widget _buildIconButton(IconData icon) {
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.all(10),
       decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.15),
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.2)),
+        color: Colors.white.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
       ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            children: [
-              Icon(icon, color: color, size: 28),
-              Container(
-                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                decoration: BoxDecoration(
-                  color: color.withValues(alpha: 0.2),
-                  borderRadius: BorderRadius.circular(8),
-                ),
-                child: Text(
-                  '+12%',
-                  style: GoogleFonts.cairo(
-                    color: Colors.white,
-                    fontSize: 10,
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ),
-            ],
+      child: Icon(icon, color: Colors.white, size: 22),
+    );
+  }
+
+  Widget _buildHeaderStat(String label, String value, IconData icon) {
+    return Column(
+      children: [
+        Icon(icon, color: Colors.white, size: 20),
+        const SizedBox(height: 8),
+        Text(
+          value,
+          style: GoogleFonts.cairo(
+            color: Colors.white,
+            fontSize: 18,
+            fontWeight: FontWeight.w900,
+            height: 1,
           ),
-          const SizedBox(height: 16),
-          Text(
-            value,
-            style: GoogleFonts.cairo(
-              color: Colors.white,
-              fontSize: 28,
-              fontWeight: FontWeight.bold,
-              height: 1,
-            ),
+        ),
+        Text(
+          label,
+          style: GoogleFonts.cairo(
+            color: Colors.white70,
+            fontSize: 10,
+            fontWeight: FontWeight.w500,
           ),
-          const SizedBox(height: 4),
-          Text(
-            title,
-            style: GoogleFonts.cairo(color: Colors.white70, fontSize: 13),
-          ),
-        ],
+        ),
+      ],
+    );
+  }
+
+  Widget _buildVerticalDivider() {
+    return Container(
+      height: 30,
+      width: 1,
+      color: Colors.white.withValues(alpha: 0.1),
+    );
+  }
+
+  Widget _buildSectionHeader(String title) {
+    return Text(
+      title,
+      style: GoogleFonts.cairo(
+        fontSize: 15,
+        fontWeight: FontWeight.w900,
+        color: AppColors.textPrimary,
+        letterSpacing: 0.5,
       ),
     );
   }
 
-  Widget _buildActionItem(IconData icon, String label, Color color, {VoidCallback? onTap}) {
+  Widget _buildCompactAction(IconData icon, String label, Color color, VoidCallback onTap) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
       child: Column(
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            width: 56,
+            height: 56,
             decoration: BoxDecoration(
               color: AppColors.card,
-              shape: BoxShape.circle,
-              boxShadow: [
-                BoxShadow(
-                  color: color.withValues(alpha: 0.2),
-                  blurRadius: 12,
-                  offset: const Offset(0, 4),
-                ),
-              ],
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
             ),
-            child: Icon(icon, color: color, size: 28),
+            child: Icon(icon, color: color, size: 26),
           ),
           const SizedBox(height: 8),
           Text(
             label,
             style: GoogleFonts.cairo(
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
-              color: AppColors.textPrimary,
+              fontSize: 11,
+              fontWeight: FontWeight.bold,
+              color: AppColors.textSecondary,
             ),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildActivityTile(dynamic coupon) {
+    final bool isUsed = coupon.status == 'USED';
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 6),
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(
+                isUsed ? Icons.check_rounded : Icons.local_activity_rounded,
+                color: isUsed ? AppColors.success : AppColors.primary,
+                size: 20,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    coupon.offerTitle,
+                    style: GoogleFonts.cairo(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 13,
+                      color: AppColors.textPrimary,
+                    ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                  ),
+                  Text(
+                    'العميل: ${coupon.customerName}',
+                    style: GoogleFonts.cairo(
+                      color: AppColors.textSecondary,
+                      fontSize: 10,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            Column(
+              crossAxisAlignment: CrossAxisAlignment.end,
+              children: [
+                Text(
+                  isUsed ? 'تم المسح' : 'طلب جديد',
+                  style: GoogleFonts.cairo(
+                    color: isUsed ? AppColors.success : AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 9,
+                  ),
+                ),
+                Text(
+                  TimeUtils.getRelativeTime(isUsed ? (coupon.redeemedAt ?? coupon.createdAt) : coupon.createdAt),
+                  style: GoogleFonts.cairo(
+                    color: AppColors.textTertiary,
+                    fontSize: 9,
+                  ),
+                ),
+              ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState() {
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.inbox_rounded, size: 48, color: AppColors.border),
+            const SizedBox(height: 16),
+            Text(
+              'لا توجد نشاطات حالياً',
+              style: GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 14),
+            ),
+          ],
+        ),
       ),
     );
   }

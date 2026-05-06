@@ -53,7 +53,7 @@ function NotificationPanel({
     <>
       {/* Full-screen backdrop */}
       <div
-        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        className="fixed inset-0 bg-black/40 backdrop-blur-[2px]"
         style={{ zIndex: 9998 }}
         onClick={onClose}
       />
@@ -69,22 +69,21 @@ function NotificationPanel({
           maxHeight: 'calc(100vh - 2rem)',
           display: 'flex',
           flexDirection: 'column',
-          background: '#1a1a1a',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: '1.25rem',
-          boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+          background: '#161618',
+          border: '1px solid rgba(255,255,255,0.05)',
+          borderRadius: '1.5rem',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.5)',
           overflow: 'hidden',
         }}
-        // On larger screens, constrain width and position near sidebar bell
-        className="sm:!right-[18rem] sm:!left-auto sm:!w-[22rem] sm:!top-16"
+        className="sm:!right-[17.5rem] sm:!left-auto sm:!w-[20rem] sm:!top-16"
       >
         {/* Header */}
-        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0">
+        <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0 bg-white/[0.02]">
           <div className="flex items-center gap-2">
-            <Bell size={15} className="text-primary" />
-            <span className="font-black text-white text-sm">الإشعارات</span>
+            <Bell size={14} className="text-primary" />
+            <span className="font-black text-text text-[13px]">الإشعارات</span>
             {unread > 0 && (
-              <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">
+              <span className="bg-primary text-white text-[9px] font-black px-1.5 py-0.5 rounded-md">
                 {unread}
               </span>
             )}
@@ -93,7 +92,7 @@ function NotificationPanel({
             {unread > 0 && (
               <button
                 onClick={onMarkAllRead}
-                className="flex items-center gap-1 text-[11px] text-primary font-bold hover:underline"
+                className="flex items-center gap-1 text-[10px] text-primary font-black hover:opacity-80 transition-opacity"
               >
                 <CheckCheck size={12} />
                 قراءة الكل
@@ -101,9 +100,9 @@ function NotificationPanel({
             )}
             <button
               onClick={onClose}
-              className="p-1.5 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-all"
+              className="p-1.5 rounded-lg text-text-dim hover:text-text hover:bg-white/5 transition-all"
             >
-              <X size={15} />
+              <X size={14} />
             </button>
           </div>
         </div>
@@ -111,28 +110,28 @@ function NotificationPanel({
         {/* Scrollable list */}
         <div className="overflow-y-auto flex-1">
           {notifications.length === 0 ? (
-            <div className="py-16 text-center">
-              <Bell size={36} className="text-white/10 mx-auto mb-3" />
-              <p className="text-white/30 text-sm font-bold">لا توجد إشعارات</p>
+            <div className="py-12 text-center">
+              <Bell size={32} className="text-white/5 mx-auto mb-3" />
+              <p className="text-text-dim text-[11px] font-bold">لا توجد إشعارات حالياً</p>
             </div>
           ) : (
             notifications.slice(0, 30).map((n) => (
               <button
                 key={n.id}
                 onClick={() => onNotifClick(n)}
-                className={`w-full text-right px-5 py-4 border-b border-white/[0.04] hover:bg-white/5 transition-colors flex items-start gap-3 ${
-                  n.isRead ? 'opacity-60' : 'bg-primary/5'
+                className={`w-full text-right px-5 py-4 border-b border-white/[0.03] hover:bg-white/[0.02] transition-colors flex items-start gap-3 ${
+                  n.isRead ? 'opacity-40' : 'bg-primary/5'
                 }`}
               >
                 <span
-                  className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 transition-all ${
+                  className={`mt-1.5 w-1.5 h-1.5 rounded-full flex-shrink-0 transition-all ${
                     n.isRead ? 'bg-transparent' : 'bg-primary'
                   }`}
                 />
                 <div className="flex-1 min-w-0">
-                  <p className="text-xs font-black text-white">{n.title}</p>
-                  <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-                  <p className="text-[10px] text-white/20 mt-1.5">
+                  <p className="text-[12px] font-black text-text">{n.title}</p>
+                  <p className="text-[11px] text-text-dim mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
+                  <p className="text-[9px] text-text-dimmer mt-1.5 font-bold uppercase tracking-wider">
                     {new Date(n.createdAt).toLocaleString('ar-EG', {
                       month: 'short', day: 'numeric',
                       hour: '2-digit', minute: '2-digit',
@@ -147,7 +146,6 @@ function NotificationPanel({
     </>
   );
 
-  // Use portal to render directly in document.body — escapes ALL overflow/z-index contexts
   if (typeof document === 'undefined') return null;
   return createPortal(panel, document.body);
 }
@@ -240,7 +238,6 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Portal-based notification panel — rendered in document.body */}
       {mounted && showBell && (
         <NotificationPanel
           notifications={notifications}
@@ -250,35 +247,33 @@ export default function Sidebar() {
         />
       )}
 
-      <aside className="w-64 glass h-[calc(100vh-2rem)] fixed right-4 top-4 rounded-[2rem] flex flex-col z-50">
+      <aside className="w-[240px] glass h-[calc(100vh-2rem)] fixed right-4 top-4 rounded-[2.5rem] flex flex-col z-50 inner-shadow">
         {/* Logo + Bell */}
-        <div className="p-8 flex items-center justify-between gap-3">
+        <div className="p-6 flex items-center justify-between gap-2">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
-              <Tag className="text-primary" size={22} />
+            <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20 inner-shadow">
+              <Tag className="text-primary" size={18} />
             </div>
             <div className="flex flex-col">
-              <span className="font-black text-lg text-white leading-none">ZAG VENDOR</span>
-              <span className="text-[10px] text-primary font-bold uppercase tracking-widest mt-1">Merchant Hub</span>
+              <span className="font-black text-[15px] text-text leading-none tracking-tight">ZAG VENDOR</span>
+              <span className="text-[8px] text-primary font-black uppercase tracking-[0.2em] mt-1">Merchant Hub</span>
             </div>
           </div>
 
           <button
             onClick={() => setShowBell((v) => !v)}
-            className="relative p-2 rounded-xl text-text-dim hover:text-white hover:bg-white/5 transition-all"
+            className="relative p-2 rounded-lg text-text-dim hover:text-text hover:bg-white/5 transition-all"
             aria-label="الإشعارات"
           >
-            <Bell size={18} />
+            <Bell size={16} />
             {unreadCount > 0 && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-primary text-white text-[10px] font-black rounded-full flex items-center justify-center px-0.5">
-                {unreadCount > 9 ? '9+' : unreadCount}
-              </span>
+              <span className="absolute top-1.5 right-1.5 w-1.5 h-1.5 bg-primary rounded-full shadow-[0_0_8px_rgba(255,107,0,0.5)]" />
             )}
           </button>
         </div>
 
         {/* Nav */}
-        <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
+        <nav className="flex-1 px-3 space-y-1.5 mt-4 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -287,9 +282,9 @@ export default function Sidebar() {
                 href={item.href}
                 className={`sidebar-item ${isActive
                   ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                  : 'text-text-dim hover:bg-white/5 hover:text-white'}`}
+                  : 'text-text-dim hover:bg-white/5 hover:text-text'}`}
               >
-                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                <item.icon size={18} strokeWidth={isActive ? 2.5 : 2} />
                 <span className={isActive ? 'font-black' : 'font-bold'}>{item.name}</span>
               </Link>
             );
@@ -297,12 +292,12 @@ export default function Sidebar() {
         </nav>
 
         {/* Logout */}
-        <div className="p-6 border-t border-white/5">
+        <div className="p-4 border-t border-white/5">
           <button
             onClick={handleLogout}
-            className="w-full flex items-center gap-3 px-5 py-4 text-text-dim hover:text-red-500 hover:bg-red-500/10 rounded-2xl transition-all font-black text-xs uppercase tracking-widest"
+            className="w-full flex items-center gap-3 px-4 py-3 text-text-dim hover:text-red-400 hover:bg-red-400/5 rounded-xl transition-all font-black text-[11px] uppercase tracking-wider"
           >
-            <LogOut size={18} />
+            <LogOut size={16} />
             تسجيل الخروج
           </button>
         </div>

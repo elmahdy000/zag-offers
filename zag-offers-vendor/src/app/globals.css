@@ -3,21 +3,30 @@
 
 @theme {
   --font-cairo: "Cairo", sans-serif;
+  
   --color-primary:      #FF6B00;
   --color-primary-lt:   #FF8C35;
   --color-primary-dk:   #D95A00;
   --color-primary-glow: rgba(255, 107, 0, 0.25);
-  --color-green:        #00C853;
-  --color-green-dk:     #00A844;
-  --color-bg:           #1A1A1A;
-  --color-bg2:          #242424;
-  --color-surface:      #1E1E1E;
-  --color-card:         #252525;
-  --color-card-hover:   #2E2E2E;
-  --color-border:       rgba(255, 255, 255, 0.07);
+  
+  --color-secondary:    #00C853;
+  --color-secondary-dk: #00A844;
+  
+  --color-bg:           #0A0A0B;
+  --color-bg2:          #111112;
+  --color-surface:      #161618;
+  --color-card:         #1C1C1E;
+  --color-card-hover:   #232326;
+  
+  --color-border:       rgba(255, 255, 255, 0.05);
   --color-border-hover: rgba(255, 107, 0, 0.35);
-  --color-text:         #F0F0F0;
-  --color-text-dim:     #9A9A9A;
+  
+  --color-text:         #F5F5F7;
+  --color-text-dim:     #86868B;
+  --color-text-dimmer:  #424245;
+
+  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --shadow-glow: 0 0 20px rgba(255, 107, 0, 0.15);
 }
 
 :root {
@@ -32,28 +41,39 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Glassmorphism ── */
+/* ── Precision Glass ── */
 .glass {
-  background: rgba(37, 37, 37, 0.85);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
+  background: rgba(22, 22, 24, 0.8);
+  backdrop-filter: blur(20px);
+  -webkit-backdrop-filter: blur(20px);
   border: 1px solid var(--color-border);
+  box-shadow: var(--shadow-glass);
+}
+
+.glass-light {
+  background: rgba(255, 255, 255, 0.02);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
 .sidebar-item {
-  @apply flex items-center gap-3 px-4 py-3 rounded-2xl transition-all duration-300 font-bold text-sm;
+  @apply flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 font-bold text-[13px];
 }
 
 /* ── Custom Scrollbar ── */
-::-webkit-scrollbar { width: 6px; }
-::-webkit-scrollbar-track { background: var(--color-bg); }
-::-webkit-scrollbar-thumb { background: var(--color-primary); border-radius: 10px; }
+::-webkit-scrollbar { width: 4px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--color-primary-dk); border-radius: 10px; }
 
-@keyframes fadeIn {
-  from { opacity: 0; transform: translateY(10px); }
+@keyframes slideUp {
+  from { opacity: 0; transform: translateY(12px); }
   to { opacity: 1; transform: translateY(0); }
 }
 
 .animate-in {
-  animation: fadeIn 0.4s ease-out forwards;
+  animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+.inner-shadow {
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
 }

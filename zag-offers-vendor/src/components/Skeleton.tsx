@@ -2,27 +2,33 @@ import React from 'react';
 
 const Skeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={`animate-pulse bg-gray-200 rounded-xl ${className}`}></div>
+    <div className={`animate-pulse bg-white/[0.03] border border-white/[0.03] rounded-2xl ${className}`}></div>
   );
 };
 
 export const DashboardSkeleton = () => {
   return (
-    <div className="p-10 space-y-8 animate-in fade-in duration-500">
-      <div className="flex justify-between items-center">
-        <Skeleton className="h-10 w-48" />
-        <Skeleton className="h-10 w-32" />
+    <div className="p-8 space-y-10 animate-in max-w-7xl mx-auto">
+      <div className="flex justify-between items-end">
+        <div className="space-y-3">
+          <Skeleton className="h-10 w-64" />
+          <Skeleton className="h-4 w-40" />
+        </div>
+        <Skeleton className="h-12 w-40" />
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
         {[1, 2, 3, 4].map((i) => (
-          <Skeleton key={i} className="h-32 w-full" />
+          <Skeleton key={i} className="h-36 w-full rounded-[2.5rem]" />
         ))}
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-        <Skeleton className="h-[400px] w-full" />
-        <Skeleton className="h-[400px] w-full" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <Skeleton className="lg:col-span-2 h-[500px] w-full rounded-[2.5rem]" />
+        <div className="space-y-8">
+          <Skeleton className="h-[300px] w-full rounded-[2.5rem]" />
+          <Skeleton className="h-[150px] w-full rounded-[2.5rem]" />
+        </div>
       </div>
     </div>
   );

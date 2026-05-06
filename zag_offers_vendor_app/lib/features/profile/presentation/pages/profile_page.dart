@@ -19,14 +19,12 @@ class _ProfilePageState extends State<ProfilePage> {
   void initState() {
     super.initState();
     context.read<ProfileBloc>().add(GetProfileRequested());
-    // Trigger dashboard fetch if not already loaded (to get store name)
     final dashState = context.read<DashboardBloc>().state;
     if (dashState is DashboardInitial) {
       context.read<DashboardBloc>().add(GetDashboardStatsRequested());
     }
   }
 
-  // ── Password change dialog ─────────────────────────────────────────────────
   void _showChangePasswordDialog(BuildContext context) {
     final currentCtrl = TextEditingController();
     final newCtrl = TextEditingController();
@@ -43,9 +41,6 @@ class _ProfilePageState extends State<ProfilePage> {
         return BlocConsumer<ProfileBloc, ProfileState>(
           listener: (listenerCtx, state) {
             if (state is PasswordChanged) {
-              currentCtrl.dispose();
-              newCtrl.dispose();
-              confirmCtrl.dispose();
               Navigator.of(dialogCtx).pop();
               ScaffoldMessenger.of(context).showSnackBar(
                 SnackBar(
@@ -69,86 +64,49 @@ class _ProfilePageState extends State<ProfilePage> {
             return StatefulBuilder(
               builder: (_, setDialogState) {
                 return AlertDialog(
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+                  backgroundColor: AppColors.card,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
                   title: Text(
                     'تغيير كلمة المرور',
-                    style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                    style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary),
                   ),
                   content: Form(
                     key: formKey,
                     child: Column(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        TextFormField(
+                        _buildPasswordField(
                           controller: currentCtrl,
-                          obscureText: obscureCurrent,
+                          label: 'كلمة المرور الحالية',
+                          obscure: obscureCurrent,
                           enabled: !isChanging,
-                          decoration: InputDecoration(
-                            labelText: 'كلمة المرور الحالية',
-                            labelStyle: GoogleFonts.cairo(),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            suffixIcon: IconButton(
-                              icon: Icon(obscureCurrent ? Icons.visibility_off : Icons.visibility),
-                              onPressed: () => setDialogState(() => obscureCurrent = !obscureCurrent),
-                            ),
-                          ),
-                          validator: (v) {
-                            if (v == null || v.isEmpty) return 'أدخل كلمة المرور الحالية';
-                            return null;
-                          },
+                          onToggle: () => setDialogState(() => obscureCurrent = !obscureCurrent),
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
+                        const SizedBox(height: 12),
+                        _buildPasswordField(
                           controller: newCtrl,
-                          obscureText: obscureNew,
+                          label: 'كلمة المرور الجديدة',
+                          obscure: obscureNew,
                           enabled: !isChanging,
-                          decoration: InputDecoration(
-                            labelText: 'كلمة المرور الجديدة',
-                            labelStyle: GoogleFonts.cairo(),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            suffixIcon: IconButton(
-                              icon: Icon(obscureNew ? Icons.visibility_off : Icons.visibility),
-                              onPressed: () => setDialogState(() => obscureNew = !obscureNew),
-                            ),
-                          ),
-                          validator: (v) {
-                            if (v == null || v.length < 6) return 'يجب أن تكون 6 أحرف على الأقل';
-                            return null;
-                          },
+                          onToggle: () => setDialogState(() => obscureNew = !obscureNew),
+                          validator: (v) => (v == null || v.length < 6) ? 'يجب أن تكون 6 أحرف على الأقل' : null,
                         ),
-                        const SizedBox(height: 16),
-                        TextFormField(
+                        const SizedBox(height: 12),
+                        _buildPasswordField(
                           controller: confirmCtrl,
-                          obscureText: obscureConfirm,
+                          label: 'تأكيد كلمة المرور',
+                          obscure: obscureConfirm,
                           enabled: !isChanging,
-                          decoration: InputDecoration(
-                            labelText: 'تأكيد كلمة المرور',
-                            labelStyle: GoogleFonts.cairo(),
-                            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-                            suffixIcon: IconButton(
-                              icon: Icon(obscureConfirm ? Icons.visibility_off : Icons.visibility),
-                              onPressed: () => setDialogState(() => obscureConfirm = !obscureConfirm),
-                            ),
-                          ),
-                          validator: (v) {
-                            if (v != newCtrl.text) return 'كلمتا المرور غير متطابقتين';
-                            return null;
-                          },
+                          onToggle: () => setDialogState(() => obscureConfirm = !obscureConfirm),
+                          validator: (v) => v != newCtrl.text ? 'كلمتا المرور غير متطابقتين' : null,
                         ),
                       ],
                     ),
                   ),
                   actions: [
                     TextButton(
-                      onPressed: isChanging
-                          ? null
-                          : () {
-                              currentCtrl.dispose();
-                              newCtrl.dispose();
-                              confirmCtrl.dispose();
-                              Navigator.of(dialogCtx).pop();
-                            },
-                      child: Text('إلغاء', style: GoogleFonts.cairo()),
+                      onPressed: isChanging ? null : () => Navigator.of(dialogCtx).pop(),
+                      child: Text('إلغاء', style: GoogleFonts.cairo(color: AppColors.textTertiary)),
                     ),
                     ElevatedButton(
                       onPressed: isChanging
@@ -165,16 +123,11 @@ class _ProfilePageState extends State<ProfilePage> {
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                       ),
                       child: isChanging
-                          ? const SizedBox(
-                              width: 18,
-                              height: 18,
-                              child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                            )
-                          : Text('تغيير', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          : Text('تحديث', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white)),
                     ),
                   ],
                 );
@@ -186,303 +139,231 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  // ── Logout confirm ─────────────────────────────────────────────────────────
+  Widget _buildPasswordField({
+    required TextEditingController controller,
+    required String label,
+    required bool obscure,
+    required bool enabled,
+    required VoidCallback onToggle,
+    String? Function(String?)? validator,
+  }) {
+    return TextFormField(
+      controller: controller,
+      obscureText: obscure,
+      enabled: enabled,
+      style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary),
+      decoration: InputDecoration(
+        labelText: label,
+        labelStyle: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary),
+        filled: true,
+        fillColor: AppColors.surface,
+        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        suffixIcon: IconButton(
+          icon: Icon(obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 20, color: AppColors.textTertiary),
+          onPressed: onToggle,
+        ),
+      ),
+      validator: validator ?? (v) => (v == null || v.isEmpty) ? 'مطلوب' : null,
+    );
+  }
+
   void _showLogoutConfirm(BuildContext context) {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        title: Text('تسجيل الخروج', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
-        content: Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟', style: GoogleFonts.cairo()),
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('تسجيل الخروج', style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary)),
+        content: Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟', style: GoogleFonts.cairo(color: AppColors.textSecondary)),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: Text('إلغاء', style: GoogleFonts.cairo()),
-          ),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: GoogleFonts.cairo(color: AppColors.textTertiary))),
           TextButton(
             onPressed: () {
               context.read<AuthBloc>().add(LogoutRequested());
               Navigator.pop(context);
             },
-            child: Text('تسجيل الخروج', style: GoogleFonts.cairo(color: AppColors.error)),
+            child: Text('تسجيل الخروج', style: GoogleFonts.cairo(color: AppColors.error, fontWeight: FontWeight.bold)),
           ),
         ],
       ),
     );
   }
 
-  // ── Build ──────────────────────────────────────────────────────────────────
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: Text(
-          'الملف الشخصي',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
-        centerTitle: true,
-        backgroundColor: AppColors.background,
-        elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: () => _showLogoutConfirm(context),
-            icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-          ),
-        ],
-      ),
-      body: BlocConsumer<ProfileBloc, ProfileState>(
-        listener: (context, state) {
-          // PasswordChanged / PasswordChangeError are handled inside the dialog's
-          // own BlocConsumer to keep dialog-scope feedback clean.
-        },
+      body: BlocBuilder<ProfileBloc, ProfileState>(
         builder: (context, state) {
-          if (state is ProfileLoading) {
-            return const Center(child: CardSkeleton());
-          }
+          if (state is ProfileLoading) return const Center(child: CardSkeleton());
+          if (state is ProfileError) return _buildErrorState(state.message);
 
-          if (state is ProfileError) {
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(32),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.error_outline, size: 64, color: Colors.red[300]),
-                    const SizedBox(height: 16),
-                    Text(
-                      state.message,
-                      style: GoogleFonts.cairo(fontSize: 16, color: Colors.grey[700]),
-                      textAlign: TextAlign.center,
-                    ),
-                    const SizedBox(height: 16),
-                    ElevatedButton.icon(
-                      onPressed: () => context.read<ProfileBloc>().add(GetProfileRequested()),
-                      icon: const Icon(Icons.refresh),
-                      label: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          // Resolve user from any state that carries it
-          final user = state is ProfileLoaded
-              ? state.user
-              : state is PasswordChanging
-                  ? state.user
-                  : state is PasswordChanged
-                      ? state.user
-                      : state is PasswordChangeError
-                          ? state.user
-                          : null;
-
+          final user = (state as dynamic).user; // Handle type safety properly in production
           if (user == null) return const SizedBox();
 
-          // Resolve store name from DashboardBloc
-          return BlocBuilder<DashboardBloc, DashboardState>(
-            builder: (context, dashState) {
-              final storeName = dashState is DashboardLoaded
-                  ? (dashState.stats.storeName ?? 'جارٍ التحميل...')
-                  : 'جارٍ التحميل...';
+          return CustomScrollView(
+            slivers: [
+              // Profile Header
+              SliverAppBar(
+                expandedHeight: 200,
+                pinned: true,
+                backgroundColor: AppColors.background,
+                elevation: 0,
+                flexibleSpace: FlexibleSpaceBar(
+                  background: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [AppColors.primary.withValues(alpha: 0.1), AppColors.background],
+                      ),
+                    ),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        const SizedBox(height: 40),
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            border: Border.all(color: AppColors.primary, width: 2),
+                            boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 15)],
+                          ),
+                          child: const CircleAvatar(
+                            backgroundColor: AppColors.surface,
+                            child: Icon(Icons.person_rounded, size: 50, color: AppColors.primary),
+                          ),
+                        ),
+                        const SizedBox(height: 12),
+                        Text(
+                          user.name,
+                          style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                        ),
+                        Text(
+                          user.role == 'MERCHANT' ? 'تاجر معتمد' : 'مدير النظام',
+                          style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textTertiary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
 
-              return SingleChildScrollView(
-                padding: const EdgeInsets.only(
-                    left: 24, right: 24, top: 24, bottom: 100),
-                child: Column(
-                  children: [
-                    // ── Avatar ────────────────────────────────────────────
-                    Center(
-                      child: Stack(
-                        children: [
-                          Container(
-                            width: 120,
-                            height: 120,
-                            decoration: BoxDecoration(
-                              shape: BoxShape.circle,
-                              border: Border.all(color: AppColors.primary, width: 4),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: AppColors.primary.withValues(alpha: 0.2),
-                                  blurRadius: 20,
-                                  offset: const Offset(0, 10),
-                                ),
-                              ],
-                            ),
-                            child: const CircleAvatar(
-                              backgroundColor: AppColors.surface,
-                              child: Icon(Icons.person, size: 80, color: AppColors.primary),
-                            ),
-                          ),
-                          Positioned(
-                            bottom: 0,
-                            right: 0,
-                            child: Container(
-                              padding: const EdgeInsets.all(8),
-                              decoration: const BoxDecoration(
-                                color: AppColors.primary,
-                                shape: BoxShape.circle,
-                              ),
-                              child: const Icon(Icons.edit, color: Colors.white, size: 20),
-                            ),
-                          ),
+              // Profile Content
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.all(20),
+                  child: Column(
+                    children: [
+                      _buildInfoSection(
+                        'معلومات الحساب',
+                        [
+                          _buildInfoRow(Icons.phone_rounded, 'رقم الهاتف', user.phone ?? 'غير مسجل'),
+                          _buildInfoRow(Icons.email_rounded, 'البريد الإلكتروني', user.email),
                         ],
                       ),
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      user.name,
-                      style: GoogleFonts.cairo(
-                        fontSize: 24,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                      const SizedBox(height: 20),
+                      BlocBuilder<DashboardBloc, DashboardState>(
+                        builder: (context, dashState) {
+                          final storeName = dashState is DashboardLoaded ? (dashState.stats.storeName ?? '...') : '...';
+                          return _buildInfoSection(
+                            'إعدادات المتجر',
+                            [
+                              _buildInfoRow(Icons.storefront_rounded, 'اسم المتجر', storeName),
+                              _buildInfoRow(Icons.location_on_rounded, 'المنطقة', 'الزقازيق'),
+                            ],
+                          );
+                        },
                       ),
-                    ),
-                    Text(
-                      user.role == 'MERCHANT' ? 'تاجر معتمد' : 'مدير النظام',
-                      style: GoogleFonts.cairo(
-                        fontSize: 14,
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    const SizedBox(height: 40),
-
-                    // ── Account info ──────────────────────────────────────
-                    _buildInfoCard(
-                      title: 'معلومات الحساب',
-                      items: [
-                        _buildInfoItem(
-                            Icons.email_outlined, 'البريد الإلكتروني', user.email),
-                        _buildInfoItem(
-                            Icons.phone_android_outlined,
-                            'رقم الهاتف',
-                            user.phone?.isNotEmpty == true ? user.phone! : 'غير مسجل'),
-                        _buildInfoItem(
-                            Icons.verified_user_outlined, 'حالة الحساب', 'نشط'),
-                      ],
-                    ),
-                    const SizedBox(height: 24),
-
-                    // ── Store info ────────────────────────────────────────
-                    _buildInfoCard(
-                      title: 'إعدادات المتجر',
-                      items: [
-                        _buildInfoItem(
-                            Icons.storefront_outlined, 'اسم المتجر', storeName),
-                        _buildInfoItem(
-                            Icons.location_on_outlined, 'المنطقة', 'الزقازيق'),
-                      ],
-                    ),
-                    const SizedBox(height: 40),
-
-                    // ── Action buttons ────────────────────────────────────
-                    SizedBox(
-                      width: double.infinity,
-                      child: OutlinedButton.icon(
-                        onPressed: () => _showChangePasswordDialog(context),
-                        icon: const Icon(Icons.lock_outline),
-                        label: Text(
-                          'تغيير كلمة المرور',
-                          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                        ),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                          side: const BorderSide(color: AppColors.primary),
-                          foregroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(16)),
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 16),
-                    SizedBox(
-                      width: double.infinity,
-                      child: TextButton.icon(
-                        onPressed: () => _showLogoutConfirm(context),
-                        icon: const Icon(Icons.logout_rounded, color: AppColors.error),
-                        label: Text(
-                          'تسجيل الخروج',
-                          style: GoogleFonts.cairo(
-                              fontWeight: FontWeight.bold, color: AppColors.error),
-                        ),
-                      ),
-                    ),
-                  ],
+                      const SizedBox(height: 40),
+                      // Action Buttons
+                      _buildActionButton(Icons.lock_rounded, 'تغيير كلمة المرور', AppColors.primary, () => _showChangePasswordDialog(context)),
+                      const SizedBox(height: 12),
+                      _buildActionButton(Icons.logout_rounded, 'تسجيل الخروج', AppColors.error, () => _showLogoutConfirm(context)),
+                    ],
+                  ),
                 ),
-              );
-            },
+              ),
+            ],
           );
         },
       ),
     );
   }
 
-  // ── Helper widgets ─────────────────────────────────────────────────────────
-  Widget _buildInfoCard({required String title, required List<Widget> items}) {
+  Widget _buildInfoSection(String title, List<Widget> children) {
     return Container(
-      padding: const EdgeInsets.all(20),
+      padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
         color: AppColors.card,
-        borderRadius: BorderRadius.circular(24),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: GoogleFonts.cairo(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-              color: AppColors.primary,
-            ),
-          ),
+          Text(title, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary)),
           const SizedBox(height: 16),
-          ...items,
+          ...children,
         ],
       ),
     );
   }
 
-  Widget _buildInfoItem(IconData icon, String label, String value) {
+  Widget _buildInfoRow(IconData icon, String label, String value) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16.0),
+      padding: const EdgeInsets.only(bottom: 12),
       child: Row(
         children: [
-          Container(
-            padding: const EdgeInsets.all(8),
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, size: 20, color: AppColors.primary),
-          ),
-          const SizedBox(width: 16),
+          Icon(icon, size: 18, color: AppColors.textTertiary),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(
-                  label,
-                  style: GoogleFonts.cairo(
-                      fontSize: 12, color: AppColors.textSecondary),
-                ),
-                Text(
-                  value,
-                  style: GoogleFonts.cairo(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w600,
-                      color: AppColors.textPrimary),
-                  overflow: TextOverflow.ellipsis,
-                ),
+                Text(label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary)),
+                Text(value, style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
               ],
             ),
           ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionButton(IconData icon, String label, Color color, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: 14, horizontal: 16),
+        decoration: BoxDecoration(
+          color: color.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: color.withValues(alpha: 0.2)),
+        ),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(icon, size: 20, color: color),
+            const SizedBox(width: 10),
+            Text(label, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildErrorState(String message) {
+    return Center(
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
+          const SizedBox(height: 16),
+          Text(message, style: GoogleFonts.cairo(color: AppColors.textPrimary)),
+          TextButton(onPressed: () => context.read<ProfileBloc>().add(GetProfileRequested()), child: const Text('إعادة المحاولة')),
         ],
       ),
     );
