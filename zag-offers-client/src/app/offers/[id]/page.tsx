@@ -3,10 +3,42 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight } from 'lucide-react';
+import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { API_URL, BASE_URL } from '@/lib/constants';
 
+/* ─── Toast ─────────────────────────────────────────── */
+type ToastType = 'success' | 'error' | 'info';
+interface Toast { id: number; msg: string; type: ToastType; }
+
+function ToastContainer({ toasts }: { toasts: Toast[] }) {
+  const icons = { success: <CheckCircle2 size={18} />, error: <XCircle size={18} />, info: <AlertCircle size={18} /> };
+  const colors = {
+    success: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300',
+    error:   'bg-red-500/20 border-red-500/40 text-red-300',
+    info:    'bg-[#FF6B00]/20 border-[#FF6B00]/40 text-[#FF6B00]',
+  };
+  return (
+    <div className="fixed top-6 left-1/2 -translate-x-1/2 z-[999] flex flex-col gap-3 w-full max-w-sm px-4">
+      <AnimatePresence>
+        {toasts.map(t => (
+          <motion.div
+            key={t.id}
+            initial={{ opacity: 0, y: -20, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: -10, scale: 0.95 }}
+            className={`flex items-center gap-3 px-4 py-3 rounded-2xl border backdrop-blur-xl font-bold text-sm shadow-2xl ${colors[t.type]}`}
+          >
+            {icons[t.type]}
+            <span>{t.msg}</span>
+          </motion.div>
+        ))}
+      </AnimatePresence>
+    </div>
+  );
+}
+
+/* ─── Page ───────────────────────────────────────────── */
 export default function OfferDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
@@ -15,6 +47,14 @@ export default function OfferDetailsPage() {
   const [showCoupon, setShowCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('ZAG-XXXXXX');
   const [isFav, setIsFav] = useState(false);
+  const [copied, setCopied] = useState(false);
+  const [toasts, setToasts] = useState<Toast[]>([]);
+
+  const showToast = (msg: string, type: ToastType = 'info') => {
+    const t = { id: Date.now(), msg, type };
+    setToasts(prev => [...prev, t]);
+    setTimeout(() => setToasts(prev => prev.filter(x => x.id !== t.id)), 3500);
+  };
 
   useEffect(() => {
     const fetchOffer = async () => {
@@ -25,8 +65,7 @@ export default function OfferDetailsPage() {
           setOffer(data);
           const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
           setIsFav(favs.some((f: any) => f.id === data.id));
-        }
-        else router.replace('/');
+        } else router.replace('/');
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     };
@@ -35,49 +74,47 @@ export default function OfferDetailsPage() {
 
   const toggleFav = () => {
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-    let updated;
-    if (isFav) {
-      updated = favs.filter((f: any) => f.id !== offer.id);
-    } else {
-      updated = [...favs, offer];
-    }
+    const updated = isFav ? favs.filter((f: any) => f.id !== offer.id) : [...favs, offer];
     localStorage.setItem('favorites', JSON.stringify(updated));
     setIsFav(!isFav);
+    showToast(isFav ? 'تم إزالة العرض من المفضلة' : 'تم إضافة العرض للمفضلة ❤️', isFav ? 'info' : 'success');
   };
 
   const handleGetCoupon = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
-      alert("يرجى تسجيل الدخول أولاً للحصول على الكوبون");
-      router.push('/login');
+      showToast('يرجى تسجيل الدخول أولاً للحصول على الكوبون', 'info');
+      setTimeout(() => router.push('/login'), 1500);
       return;
     }
-
     try {
       setLoading(true);
       const res = await fetch(`${API_URL}/coupons/generate`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`
-        },
+        headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
         body: JSON.stringify({ offerId: id })
       });
-
       if (res.ok) {
         const data = await res.json();
         setCouponCode(data.code);
         setShowCoupon(true);
+        showToast('تم إنشاء الكوبون بنجاح! 🎉', 'success');
       } else {
         const err = await res.json();
-        alert(err.message || "فشل في الحصول على الكوبون");
+        showToast(err.message || 'فشل في الحصول على الكوبون', 'error');
       }
-    } catch (e) {
-      console.error(e);
-      alert("حدث خطأ أثناء الاتصال بالسيرفر");
+    } catch {
+      showToast('حدث خطأ أثناء الاتصال بالسيرفر', 'error');
     } finally {
       setLoading(false);
     }
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(couponCode);
+    setCopied(true);
+    showToast('تم نسخ كود الخصم! 📋', 'success');
+    setTimeout(() => setCopied(false), 2000);
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل العرض...</div>;
@@ -88,6 +125,8 @@ export default function OfferDetailsPage() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
+      <ToastContainer toasts={toasts} />
+
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs font-bold text-white/30 mb-8 overflow-hidden whitespace-nowrap">
         <Link href="/" className="hover:text-white transition-colors">الرئيسية</Link>
@@ -121,7 +160,12 @@ export default function OfferDetailsPage() {
                     <MapPin size={16} className="text-[#FF6B00]" />
                     <span className="text-xs font-bold">{offer.store?.area}</span>
                   </div>
-                  <button className="mr-auto p-2 text-white/40 hover:text-white transition-colors"><Share2 size={20} /></button>
+                  <button
+                    onClick={() => { navigator.share?.({ title: offer.title, url: window.location.href }); }}
+                    className="mr-auto p-2 text-white/40 hover:text-white transition-colors"
+                  >
+                    <Share2 size={20} />
+                  </button>
                   <button 
                     onClick={toggleFav}
                     className={`p-2 transition-all ${isFav ? 'text-red-500' : 'text-white/40 hover:text-red-500'}`}
@@ -179,10 +223,16 @@ export default function OfferDetailsPage() {
                   initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
                   className="space-y-4"
                 >
-                  <div className="bg-black/20 border-2 border-dashed border-white/40 rounded-2xl p-4 text-center">
-                    <span className="text-xs font-black text-white/60 mb-2 block tracking-widest uppercase">كود الخصم</span>
+                  <button
+                    onClick={handleCopy}
+                    className="w-full bg-black/20 border-2 border-dashed border-white/40 rounded-2xl p-4 text-center hover:bg-black/30 transition-all group"
+                  >
+                    <span className="text-xs font-black text-white/60 mb-2 block tracking-widest uppercase">كود الخصم — اضغط للنسخ</span>
                     <span className="text-2xl font-black text-white tracking-[4px]">{couponCode}</span>
-                  </div>
+                    <div className="flex items-center justify-center gap-2 mt-2 text-white/60 text-xs font-bold">
+                      {copied ? <><CheckCircle2 size={14} className="text-emerald-400" /> تم النسخ!</> : <><Copy size={14} /> نسخ الكود</>}
+                    </div>
+                  </button>
                   <p className="text-[10px] text-center text-white/80 font-bold leading-relaxed">
                     أظهر هذا الكود للكاشير عند الدفع للحصول على الخصم فوراً.
                   </p>
