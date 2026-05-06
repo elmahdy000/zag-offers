@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { API_URL } from '@/lib/constants';
@@ -71,10 +71,23 @@ function OffersPageContent() {
       list = [...list].sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
     } else if (sort === 'discount') {
       list = [...list].sort((a, b) => (parseInt(b.discount) || 0) - (parseInt(a.discount) || 0));
+    } else {
+      list = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
 
     return list;
   }, [offers, search, activeCat, area, sort]);
+
+  // Grouping logic
+  const grouped = useMemo(() => {
+    const groups: Record<string, any[]> = {};
+    filtered.forEach(o => {
+      const catName = o.store?.category?.name || 'عروض أخرى';
+      if (!groups[catName]) groups[catName] = [];
+      groups[catName].push(o);
+    });
+    return groups;
+  }, [filtered]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
@@ -114,7 +127,7 @@ function OffersPageContent() {
           />
         </div>
 
-        {/* Category Ribbon (Premium Horizontal Scroll) */}
+        {/* Category Ribbon */}
         <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
           <button
             onClick={() => setActiveCat('')}
@@ -144,7 +157,6 @@ function OffersPageContent() {
 
         {/* Filters Grid */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {/* Area select */}
           <select
             className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
                        pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
@@ -156,7 +168,6 @@ function OffersPageContent() {
             {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
           </select>
 
-          {/* Sort select */}
           <select
             className="flex-1 min-w-[160px] bg-[#1E1E1E] border border-white/[0.07] rounded-xl
                        pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
@@ -173,9 +184,9 @@ function OffersPageContent() {
 
       {/* ─── Results Bar ─────────────────────────────────── */}
       {!loading && (
-        <div className="flex items-center justify-between mb-5">
+        <div className="flex items-center justify-between mb-8">
           <p className="text-sm font-semibold text-[#9A9A9A]">
-            عرض <span className="text-[#F0F0F0] font-bold">{filtered.length}</span> نتيجة
+            وجدنا <span className="text-[#F0F0F0] font-bold">{filtered.length}</span> عرض متاح
           </p>
           {(search || activeCat || area) && (
             <button
@@ -188,7 +199,7 @@ function OffersPageContent() {
         </div>
       )}
 
-      {/* ─── Grid ────────────────────────────────────────── */}
+      {/* ─── Grouped Content ─────────────────────────────── */}
       {loading ? (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
           {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
@@ -200,29 +211,32 @@ function OffersPageContent() {
           <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">
             جرّب تغيير كلمة البحث أو تحديد فلاتر مختلفة
           </p>
-          <button
-            onClick={() => { setSearch(''); setActiveCat(''); setArea(''); }}
-            className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full hover:opacity-90 transition-opacity"
-          >
-            🔄 إعادة ضبط الفلاتر
-          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-          <AnimatePresence mode="popLayout">
-            {filtered.map((offer, i) => (
-              <motion.div
-                key={offer.id}
-                layout
-                initial={{ opacity: 0, y: 10 }}
-                animate={{ opacity: 1, y: 0 }}
-                exit={{ opacity: 0 }}
-                transition={{ delay: Math.min(i * 0.03, 0.25) }}
-              >
-                <OfferCard offer={offer} />
-              </motion.div>
-            ))}
-          </AnimatePresence>
+        /* Render Grouped by Category */
+        <div className="space-y-16">
+          {Object.entries(grouped).map(([categoryName, categoryOffers]) => (
+            <div key={categoryName} className="animate-in">
+              {/* Category Header */}
+              <div className="flex items-center gap-4 mb-6">
+                <div className="w-9 h-9 bg-[#FF6B00]/5 border border-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+                  {CAT_ICONS[categoryName] || <Layers size={18} />}
+                </div>
+                <h2 className="text-xl font-black text-[#F0F0F0]">{categoryName}</h2>
+                <div className="h-px flex-1 bg-white/[0.05]" />
+                <span className="text-[10px] font-black text-[#9A9A9A] uppercase tracking-widest bg-white/[0.03] px-3 py-1 rounded-full border border-white/[0.05]">
+                  {categoryOffers.length} عرض
+                </span>
+              </div>
+
+              {/* Offers Grid for this category */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+                {categoryOffers.map((offer) => (
+                  <OfferCard key={offer.id} offer={offer} />
+                ))}
+              </div>
+            </div>
+          ))}
         </div>
       )}
     </div>
