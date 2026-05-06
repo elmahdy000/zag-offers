@@ -2,100 +2,200 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Tag, MapPin, Heart, ArrowLeft, Sparkles } from 'lucide-react';
+import { MapPin, Heart } from 'lucide-react';
 import Link from 'next/link';
-import { API_URL, BASE_URL } from '@/lib/constants';
+import { BASE_URL } from '@/lib/constants';
 
 interface OfferCardProps {
   offer: any;
 }
 
 const CAT_ICONS: Record<string, string> = {
-  'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
-  'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒', 'default': '🏷️'
+  'مطاعم':         '🍔',
+  'كافيهات':       '☕',
+  'ملابس':         '👗',
+  'جيم':           '💪',
+  'تجميل':         '💅',
+  'عيادات':        '🏥',
+  'سوبرماركت':    '🛒',
+  'دورات':         '📚',
+  'خدمات سيارات': '🚗',
+  'خدمات محلية':  '🔧',
+  'default':       '🏷️',
+};
+
+const CAT_GRADIENTS: Record<string, string> = {
+  'مطاعم':         'from-[#2a1000] to-[#1a0800]',
+  'كافيهات':       'from-[#1a0d00] to-[#0d0600]',
+  'جيم':           'from-[#001a0a] to-[#000d05]',
+  'ملابس':         'from-[#1a001a] to-[#0d000d]',
+  'تجميل':         'from-[#180018] to-[#0e000e]',
+  'دورات':         'from-[#001a1a] to-[#000d0d]',
+  'default':       'from-[#1a1a2e] to-[#16213e]',
 };
 
 export function OfferCard({ offer }: OfferCardProps) {
   const [isFav, setIsFav] = useState(false);
-  const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const logoUrl = offer.store?.logo ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${BASE_URL}/${offer.store.logo}`) : null;
+
+  const daysLeft = Math.ceil(
+    (new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
+  );
+
+  const logoUrl = offer.store?.logo
+    ? offer.store.logo.startsWith('http')
+      ? offer.store.logo
+      : `${BASE_URL}/${offer.store.logo}`
+    : null;
+
+  const catName = offer.store?.category?.name || '';
+  const catIcon = CAT_ICONS[catName] || CAT_ICONS.default;
+  const catGrad = CAT_GRADIENTS[catName] || CAT_GRADIENTS.default;
+
+  const expiryColor =
+    daysLeft <= 0 ? 'text-red-400' : daysLeft <= 3 ? 'text-orange-400' : 'text-[#9A9A9A]';
+  const expiryText =
+    daysLeft <= 0  ? '⚠️ انتهى'
+    : daysLeft === 1 ? '⚡ آخر يوم!'
+    : daysLeft <= 3  ? `⏰ ${daysLeft} أيام`
+    : `📅 ${daysLeft} يوم`;
 
   useEffect(() => {
-    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-    setIsFav(favs.some((f: any) => f.id === offer.id));
+    try {
+      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      setIsFav(favs.some((f: any) => f.id === offer.id));
+    } catch {}
   }, [offer.id]);
 
   const toggleFav = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-    let updated;
-    if (isFav) {
-      updated = favs.filter((f: any) => f.id !== offer.id);
-    } else {
-      updated = [...favs, offer];
-    }
-    localStorage.setItem('favorites', JSON.stringify(updated));
-    setIsFav(!isFav);
+    try {
+      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const updated = isFav
+        ? favs.filter((f: any) => f.id !== offer.id)
+        : [...favs, offer];
+      localStorage.setItem('favorites', JSON.stringify(updated));
+      setIsFav(!isFav);
+    } catch {}
   };
 
   return (
-    <motion.div 
-      whileHover={{ y: -5 }}
-      className="group relative bg-[#1A1A1A] border border-white/5 rounded-2xl overflow-hidden hover:border-[#FF6B00]/40 transition-all shadow-xl h-full flex flex-col"
+    <motion.div
+      whileHover={{ y: -5, transition: { duration: 0.2 } }}
+      className="group relative bg-[#252525] border border-white/[0.07] rounded-2xl overflow-hidden
+                 hover:border-[#FF6B00]/40 hover:shadow-[0_16px_40px_rgba(0,0,0,0.5)]
+                 transition-all duration-200 flex flex-col h-full"
     >
-      <div className="h-24 bg-gradient-to-br from-zinc-800 to-zinc-900 relative">
-        <div className="absolute top-3 right-3 px-3 py-1 bg-[#FF6B00] text-white text-sm font-black rounded-lg shadow-lg z-10">
+      {/* ─── Header ─────────────────────────────────── */}
+      <div className={`relative h-40 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+
+        {/* dot pattern */}
+        <div
+          className="absolute inset-0 opacity-[0.04]"
+          style={{
+            backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+            backgroundSize: '32px 32px',
+          }}
+        />
+
+        {/* Featured */}
+        {offer.featured && (
+          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-gradient-to-r from-yellow-400 to-orange-400
+                          text-[#1a1a1a] text-[11px] font-black rounded-full shadow-lg">
+            ⭐ مميز
+          </div>
+        )}
+
+        {/* Discount */}
+        <div className="absolute top-3 right-3 z-10 px-3 py-1.5
+                        bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
+                        text-white text-base font-black rounded-xl
+                        shadow-[0_4px_16px_rgba(255,107,0,0.5)]">
           {offer.discount}
         </div>
-        <button 
+
+        {/* Fav */}
+        <button
           onClick={toggleFav}
-          className={`absolute top-3 left-3 p-2 rounded-lg backdrop-blur-md border z-20 transition-all ${isFav ? 'bg-red-500/20 border-red-500/50 text-red-500' : 'bg-black/20 border-white/10 text-white/40 hover:text-white'}`}
+          className={`absolute bottom-3 left-3 z-10 p-2 rounded-xl backdrop-blur-sm border transition-all
+            ${isFav
+              ? 'bg-red-500/20 border-red-500/50 text-red-400'
+              : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
         >
-          <Heart size={14} fill={isFav ? "currentColor" : "none"} />
+          <Heart size={14} fill={isFav ? 'currentColor' : 'none'} />
         </button>
+
+        {/* Store Logo */}
+        <div className="absolute -bottom-5 right-4 z-20
+                        w-12 h-12 rounded-xl border-2 border-[#252525]
+                        bg-[#1E1E1E] overflow-hidden shadow-xl
+                        flex items-center justify-center flex-shrink-0">
+          {logoUrl
+            ? <img src={logoUrl} alt={offer.store?.name} className="w-full h-full object-cover" />
+            : <span className="text-xl">{catIcon}</span>
+          }
+        </div>
       </div>
 
-      <div className="p-4 pt-10 relative flex-1 flex flex-col">
-        <div className="absolute -top-8 right-4 w-14 h-14 bg-[#141414] rounded-xl border-2 border-[#1A1A1A] flex items-center justify-center overflow-hidden shadow-xl">
-          {logoUrl ? <img src={logoUrl} alt="" className="w-full h-full object-cover" /> : <Tag className="text-white/20" />}
-        </div>
+      {/* ─── Body ────────────────────────────────────── */}
+      <div className="flex flex-col flex-1 px-4 pt-8 pb-4 gap-2">
 
-        <div className="flex items-center gap-2 mb-2">
-          <span className="text-[10px] font-black text-[#FF6B00] uppercase tracking-wider">
-            {CAT_ICONS[offer.store?.category?.name || ''] || CAT_ICONS.default} {offer.store?.category?.name}
+        {/* Category */}
+        {catName && (
+          <span className="text-[11px] font-black text-[#FF6B00] uppercase tracking-wider">
+            {catIcon} {catName}
           </span>
-          <span className="w-1 h-1 rounded-full bg-white/10" />
-          <span className={`text-[10px] font-bold ${daysLeft <= 3 ? 'text-red-400' : 'text-white/40'}`}>
-            {daysLeft <= 0 ? 'انتهى' : `باقي ${daysLeft} يوم`}
-          </span>
-        </div>
+        )}
 
-        <h3 className="text-sm font-bold text-white mb-3 line-clamp-2 leading-snug group-hover:text-[#FF6B00] transition-colors min-h-[40px]">
+        {/* Title */}
+        <h3 className="text-sm font-bold text-[#F0F0F0] leading-snug line-clamp-2
+                       group-hover:text-[#FF6B00] transition-colors min-h-[40px]">
           {offer.title}
         </h3>
 
-        <div className="mt-auto pt-3 border-t border-white/5 flex items-center justify-between">
-          <div className="flex items-center gap-1.5 text-white/50">
-            <MapPin size={12} className="text-[#FF6B00]" />
-            <span className="text-[11px] font-bold truncate max-w-[80px]">{offer.store?.area}</span>
+        {/* Store */}
+        <p className="text-[12px] text-[#9A9A9A] font-semibold flex items-center gap-1.5">
+          <span className="text-[10px]">🏪</span>
+          {offer.store?.name}
+        </p>
+
+        {/* Meta */}
+        <div className="mt-auto pt-3 border-t border-white/[0.07] flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1 text-[#9A9A9A]">
+            <MapPin size={12} className="text-[#FF6B00] flex-shrink-0" />
+            <span className="text-[11px] font-bold truncate max-w-[90px]">
+              {offer.store?.area || '—'}
+            </span>
           </div>
-          <Link href={`/offers/${offer.id}`} className="text-[11px] font-bold text-[#FF6B00] flex items-center gap-1 hover:gap-2 transition-all">
-            تفاصيل <ArrowLeft size={12} />
-          </Link>
+          <span className={`text-[11px] font-bold ${expiryColor}`}>{expiryText}</span>
         </div>
+
+        {/* CTA */}
+        <Link
+          href={`/offers/${offer.id}`}
+          className="mt-2 w-full py-2.5 text-center text-[13px] font-bold text-[#FF6B00]
+                     bg-[#FF6B00]/10 border border-[#FF6B00]/25 rounded-xl
+                     hover:bg-[#FF6B00] hover:text-white hover:border-[#FF6B00]
+                     hover:shadow-[0_4px_14px_rgba(255,107,0,0.4)]
+                     transition-all duration-200 block"
+        >
+          🎟️ احصل على الكوبون
+        </Link>
       </div>
     </motion.div>
   );
 }
 
+/* ─── Skeleton ──────────────────────────────────── */
 export const SkeletonCard = () => (
-  <div className="bg-white/5 rounded-2xl border border-white/5 overflow-hidden animate-pulse">
-    <div className="h-28 bg-white/5" />
-    <div className="p-4 space-y-3">
-      <div className="h-3 w-1/3 bg-white/5 rounded" />
-      <div className="h-4 w-full bg-white/5 rounded" />
-      <div className="h-3 w-2/3 bg-white/5 rounded" />
+  <div className="bg-[#252525] border border-white/[0.07] rounded-2xl overflow-hidden">
+    <div className="h-40 skeleton-shimmer" />
+    <div className="px-4 pt-8 pb-4 space-y-3">
+      <div className="h-2.5 w-1/3 skeleton-shimmer rounded-full" />
+      <div className="h-4 w-full skeleton-shimmer rounded-full" />
+      <div className="h-4 w-3/4 skeleton-shimmer rounded-full" />
+      <div className="h-3 w-1/2 skeleton-shimmer rounded-full" />
+      <div className="h-10 w-full skeleton-shimmer rounded-xl mt-2" />
     </div>
   </div>
 );

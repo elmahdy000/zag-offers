@@ -2,11 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, MapPin, Tag, Sparkles, Flame, Clock, ArrowLeft, Heart } from 'lucide-react';
+import { Search, Flame, Sparkles } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
-
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 
 interface Offer {
@@ -21,33 +20,37 @@ interface Offer {
     logo: string;
     area: string;
     categoryId?: string;
-    category?: { name: string };
+    category?: { id: string; name: string };
   };
 }
 
 const CAT_ICONS: Record<string, string> = {
   'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
-  'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒', 'default': '🏷️'
+  'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒',
+  'دورات': '📚', 'خدمات سيارات': '🚗', 'default': '🏷️',
 };
 
 export default function HomePage() {
   const searchParams = useSearchParams();
   const catIdParam = searchParams.get('categoryId');
 
-  const [offers, setOffers] = useState<Offer[]>([]);
+  const [offers,     setOffers]     = useState<Offer[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
-  const [loading, setLoading] = useState(true);
-  const [search, setSearch] = useState('');
-  const [activeCat, setActiveCat] = useState(catIdParam || '');
+  const [loading,    setLoading]    = useState(true);
+  const [search,     setSearch]     = useState('');
+  const [activeCat,  setActiveCat]  = useState(catIdParam || '');
 
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
       const [offRes, catRes] = await Promise.all([
-        fetch(`${API_URL}/offers?limit=50`),
-        fetch(`${API_URL}/stores/categories`)
+        fetch(`${API_URL}/offers?limit=100`),
+        fetch(`${API_URL}/stores/categories`),
       ]);
-      if (offRes.ok) setOffers((await offRes.json()).items || []);
+      if (offRes.ok) {
+        const data = await offRes.json();
+        setOffers(Array.isArray(data) ? data : (data.items || []));
+      }
       if (catRes.ok) setCategories(await catRes.json());
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
@@ -58,72 +61,120 @@ export default function HomePage() {
 
   const filteredOffers = useMemo(() => {
     return offers.filter(o => {
-      const matchSearch = o.title.toLowerCase().includes(search.toLowerCase()) || o.store.name.toLowerCase().includes(search.toLowerCase());
-      const matchCat = activeCat ? o.store.categoryId === activeCat : true;
+      const q = search.toLowerCase();
+      const matchSearch = !q
+        || o.title.toLowerCase().includes(q)
+        || o.store.name.toLowerCase().includes(q);
+      const matchCat = activeCat
+        ? (o.store.category?.id === activeCat || o.store.categoryId === activeCat)
+        : true;
       return matchSearch && matchCat;
     });
   }, [offers, search, activeCat]);
 
   return (
-    <div className="pb-20">
-      {/* Hero Section */}
-      <section className="relative pt-10 pb-20 px-4 overflow-hidden">
-        <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
-        
-        <div className="max-w-4xl mx-auto text-center space-y-8">
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="space-y-4"
-          >
-            <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full text-[#FF6B00] text-xs font-black uppercase tracking-widest">
-              <Sparkles size={14} /> جديد في الزقازيق
-            </div>
-            <h1 className="text-4xl sm:text-6xl font-black leading-tight">
-              اكتشف عالم <span className="text-transparent bg-clip-text bg-gradient-to-r from-[#FF6B00] to-[#FF8C00]">الخصومات</span> في مدينتك
-            </h1>
-            <p className="text-white/50 text-base sm:text-xl font-medium max-w-2xl mx-auto leading-relaxed">
-              وفّر أكثر من 50% مع كوبونات حصرية من أفضل المطاعم، الكافيهات، المحلات والخدمات في مدينة الزقازيق.
-            </p>
-          </motion.div>
+    <div className="pb-20" dir="rtl">
 
-          <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+      {/* ─── Hero ─────────────────────────────────────────── */}
+      <section className="relative pt-12 pb-16 px-4 overflow-hidden text-center">
+        {/* glow bg */}
+        <div className="absolute inset-x-0 top-0 h-[420px] -z-10
+                        bg-[radial-gradient(ellipse_700px_300px_at_50%_-60px,rgba(255,107,0,0.18),transparent)]" />
+
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          className="max-w-3xl mx-auto space-y-5"
+        >
+          {/* badge */}
+          <div className="inline-flex items-center gap-2 px-4 py-1.5
+                          bg-[#FF6B00]/10 border border-[#FF6B00]/25
+                          rounded-full text-[#FF6B00] text-xs font-black tracking-widest">
+            <span className="live-dot" />
+            عروض حية في الزقازيق
+          </div>
+
+          {/* heading */}
+          <h1 className="text-4xl sm:text-5xl font-black leading-tight">
+            اكتشف أفضل{' '}
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] to-[#FF8C35]">
+              العروض والخصومات
+            </span>
+            <br className="hidden sm:block" /> في مدينتك
+          </h1>
+
+          <p className="text-[#9A9A9A] text-base sm:text-lg font-medium max-w-xl mx-auto leading-relaxed">
+            وفّر أكثر مع كوبونات حصرية من أفضل المطاعم، الكافيهات، المحلات والخدمات في الزقازيق
+          </p>
+
+          {/* search bar */}
+          <motion.div
+            initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="flex flex-col sm:flex-row items-center gap-3 p-2 bg-[#1A1A1A] border border-white/10 rounded-2xl sm:rounded-full shadow-2xl"
+            transition={{ delay: 0.12 }}
+            className="flex items-center gap-2 max-w-xl mx-auto
+                       bg-[#252525] border border-white/[0.07] rounded-2xl
+                       p-2 shadow-[0_8px_32px_rgba(0,0,0,0.45)]
+                       focus-within:border-[#FF6B00] focus-within:shadow-[0_0_24px_rgba(255,107,0,0.2)]
+                       transition-all duration-200"
           >
-            <div className="flex-1 w-full flex items-center gap-3 px-4 py-2 sm:py-0 border-b sm:border-b-0 sm:border-l border-white/5">
-              <Search className="text-white/20" size={20} />
-              <input 
-                type="text" 
-                placeholder="ابحث عن عرض، محل، أو قسم..."
-                className="w-full bg-transparent border-none outline-none text-white text-sm font-bold placeholder:text-white/20"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-            </div>
-            <button className="w-full sm:w-auto px-10 py-4 bg-[#FF6B00] text-white font-black rounded-xl sm:rounded-full shadow-lg shadow-orange-900/40 hover:scale-[1.02] transition-all">
-              بحث سريع
+            <Search className="text-[#9A9A9A] mx-2 flex-shrink-0" size={18} />
+            <input
+              type="text"
+              placeholder="ابحث عن عرض، محل، أو قسم..."
+              className="flex-1 bg-transparent border-none outline-none text-[#F0F0F0]
+                         text-sm font-bold placeholder:text-[#9A9A9A] min-w-0"
+              value={search}
+              onChange={e => setSearch(e.target.value)}
+            />
+            <button
+              className="flex-shrink-0 px-5 py-3 bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
+                         text-white text-sm font-black rounded-xl
+                         shadow-[0_4px_14px_rgba(255,107,0,0.35)]
+                         hover:shadow-[0_6px_20px_rgba(255,107,0,0.45)]
+                         hover:scale-[1.02] active:scale-95 transition-all"
+            >
+              🔍 بحث
             </button>
           </motion.div>
-        </div>
+
+          {/* quick stats */}
+          <div className="flex justify-center gap-8 pt-2 flex-wrap">
+            {[
+              { value: offers.length  || '…', label: 'عرض نشط' },
+              { value: [...new Set(offers.map(o => o.store?.id))].length || '…', label: 'متجر معتمد' },
+              { value: categories.length || '…', label: 'فئة متنوعة' },
+            ].map((s, i) => (
+              <div key={i} className="text-center">
+                <div className="text-2xl font-black text-[#FF6B00]">{s.value}</div>
+                <div className="text-xs text-[#9A9A9A] mt-0.5">{s.label}</div>
+              </div>
+            ))}
+          </div>
+        </motion.div>
       </section>
 
-      {/* Categories Bar */}
-      <section className="px-4 mb-12">
-        <div className="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar pb-4">
-          <button 
-            className={`px-6 py-3 rounded-2xl font-bold text-sm whitespace-nowrap transition-all ${activeCat === '' ? 'bg-[#FF6B00] text-white shadow-lg' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
+      {/* ─── Categories Bar ────────────────────────────────── */}
+      <section className="px-4 mb-10">
+        <div className="max-w-7xl mx-auto flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-2">
+          <button
             onClick={() => setActiveCat('')}
+            className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all
+              ${activeCat === ''
+                ? 'bg-[#FF6B00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)]'
+                : 'bg-[#252525] border border-white/[0.07] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
           >
             🌟 الكل
           </button>
+
           {categories.map(c => (
-            <button 
+            <button
               key={c.id}
-              className={`px-6 py-3 rounded-2xl font-bold text-sm whitespace-nowrap transition-all ${activeCat === c.id ? 'bg-[#FF6B00] text-white shadow-lg' : 'bg-white/5 text-white/50 hover:bg-white/10'}`}
               onClick={() => setActiveCat(c.id)}
+              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all
+                ${activeCat === c.id
+                  ? 'bg-[#FF6B00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)]'
+                  : 'bg-[#252525] border border-white/[0.07] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
             >
               {CAT_ICONS[c.name] || '🏷️'} {c.name}
             </button>
@@ -131,25 +182,63 @@ export default function HomePage() {
         </div>
       </section>
 
-      {/* Offers Grid */}
+      {/* ─── Offers Grid ───────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4">
-        <div className="flex items-center justify-between mb-8">
+        {/* section header */}
+        <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-3">
-            <div className="p-2 bg-orange-500/10 rounded-lg text-[#FF6B00]"><Flame size={20} /></div>
-            <h2 className="text-2xl font-black">أحدث العروض الحصرية</h2>
+            <div className="w-9 h-9 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+              <Flame size={18} />
+            </div>
+            <div>
+              <h2 className="text-xl font-black">أحدث العروض الحصرية</h2>
+              {!loading && (
+                <p className="text-xs text-[#9A9A9A] font-semibold mt-0.5">
+                  {filteredOffers.length} عرض متاح
+                </p>
+              )}
+            </div>
           </div>
-          <Link href="/offers" className="text-sm font-bold text-[#FF6B00] hover:underline">عرض الكل</Link>
+          <Link
+            href="/offers"
+            className="text-sm font-bold text-[#FF6B00] hover:underline flex items-center gap-1"
+          >
+            عرض الكل ←
+          </Link>
         </div>
 
+        {/* grid */}
         {loading ? (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4">
-            {[1,2,3,4,5,6,7,8,9,10].map(i => <SkeletonCard key={i} />)}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filteredOffers.length === 0 ? (
+          <div className="flex flex-col items-center justify-content py-24 gap-4 text-center">
+            <div className="w-20 h-20 bg-[#252525] rounded-full flex items-center justify-center text-4xl">🔍</div>
+            <h3 className="text-lg font-bold text-[#F0F0F0]">لا توجد عروض مطابقة</h3>
+            <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">
+              جرّب تغيير كلمة البحث أو اختر فئة مختلفة
+            </p>
+            <button
+              onClick={() => { setSearch(''); setActiveCat(''); }}
+              className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full
+                         hover:opacity-90 transition-opacity"
+            >
+              🔄 إعادة ضبط الفلاتر
+            </button>
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-4 sm:gap-6">
-            <AnimatePresence>
-              {filteredOffers.map(offer => (
-                <motion.div key={offer.id} layout initial={{ opacity: 0 }} animate={{ opacity: 1 }}>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+            <AnimatePresence mode="popLayout">
+              {filteredOffers.map((offer, i) => (
+                <motion.div
+                  key={offer.id}
+                  layout
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0 }}
+                  transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                >
                   <OfferCard offer={offer} />
                 </motion.div>
               ))}
