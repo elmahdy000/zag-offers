@@ -61,11 +61,17 @@ export default function NewOfferPage() {
         endDate: new Date(formData.expiryDate).toISOString(),
         storeId,
         images: imageUrls,
+        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
       });
 
       router.push('/dashboard/offers');
     } catch (error: any) {
-      setSubmitError(error.response?.data?.message || 'حصل خطأ أثناء إرسال العرض. حاول تاني.');
+      console.error('Submit Error:', error);
+      const msg = error.response?.data?.message;
+      setSubmitError(
+        Array.isArray(msg) ? msg.join(' | ') : 
+        msg || 'حدث خطأ في الخادم. تأكد من أن جميع الحقول صحيحة.'
+      );
     } finally {
       setSubmitting(false);
     }

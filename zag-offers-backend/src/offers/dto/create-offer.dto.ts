@@ -79,4 +79,13 @@ export class CreateOfferDto {
   @IsOptional()
   @IsString()
   storeId?: string;
+
+  @ApiProperty({
+    description: 'السعر الأصلي',
+    example: 100,
+    required: false,
+  })
+  @IsOptional()
+  @IsInt()
+  originalPrice?: number;
 }

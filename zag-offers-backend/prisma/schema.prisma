@@ -106,6 +106,7 @@ model Offer {
   description String
   images      String[]
   discount    String // e.g. "20%" or "BOGO"
+  originalPrice Float?
   terms       String?
   startDate   DateTime
   endDate     DateTime
