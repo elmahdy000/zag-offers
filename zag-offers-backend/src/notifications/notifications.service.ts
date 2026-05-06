@@ -148,15 +148,22 @@ export class NotificationsService implements OnModuleInit {
       data: { fcmToken: token },
     });
 
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, area: true },
+    });
+
     if (!this.isFirebaseReady) return;
 
     try {
       // Unsubscribe old token if the device token changed
       if (existing?.fcmToken && existing.fcmToken !== token) {
         try {
-          await admin
-            .messaging()
-            .unsubscribeFromTopic([existing.fcmToken], 'all_users');
+          // Fallback unsubscribe from all possible legacy topics
+          await admin.messaging().unsubscribeFromTopic([existing.fcmToken], 'all_users').catch(() => {});
+          await admin.messaging().unsubscribeFromTopic([existing.fcmToken], 'all_customers').catch(() => {});
+          await admin.messaging().unsubscribeFromTopic([existing.fcmToken], 'all_merchants').catch(() => {});
+          
           if (existing.area) {
             await admin
               .messaging()
@@ -170,12 +177,9 @@ export class NotificationsService implements OnModuleInit {
         }
       }
 
-      await admin.messaging().subscribeToTopic([token], 'all_users');
-
-      const user = await this.prisma.user.findUnique({
-        where: { id: userId },
-        select: { area: true },
-      });
+      // Subscribe to role-specific topic
+      const roleTopic = user?.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
+      await admin.messaging().subscribeToTopic([token], roleTopic);
 
       if (user?.area) {
         const areaTopic = `area_${user.area.replace(/\s+/g, '_')}`;
@@ -191,16 +195,15 @@ export class NotificationsService implements OnModuleInit {
   async removeFcmToken(userId: string): Promise<void> {
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { fcmToken: true, area: true },
+      select: { fcmToken: true, area: true, role: true },
     });
 
     if (!user?.fcmToken) return;
 
     if (this.isFirebaseReady) {
       try {
-        await admin
-          .messaging()
-          .unsubscribeFromTopic([user.fcmToken], 'all_users');
+        const roleTopic = user.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
+        await admin.messaging().unsubscribeFromTopic([user.fcmToken], roleTopic);
 
         if (user.area) {
           await admin
@@ -227,19 +230,20 @@ export class NotificationsService implements OnModuleInit {
     data?: Record<string, string>,
     imageUrl?: string,
   ): Promise<void> {
-    // Save to DB for all users
+    // Save to DB for all customers (instead of all users)
     try {
-      const allUsers = await this.prisma.user.findMany({
+      const targetUsers = await this.prisma.user.findMany({
+        where: { role: 'CUSTOMER' },
         select: { id: true },
       });
       await this.saveNotificationsForUsers(
-        allUsers.map((u) => u.id),
+        targetUsers.map((u) => u.id),
         { title, body, data, imageUrl },
         data?.type,
       );
     } catch (e) {
       this.logger.error(
-        'Failed fetching users for broadcast: ' + (e as Error).message,
+        'Failed fetching customers for broadcast: ' + (e as Error).message,
       );
     }
 
@@ -253,7 +257,7 @@ export class NotificationsService implements OnModuleInit {
           body,
           ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
         },
-        topic: 'all_users',
+        topic: 'all_customers',
         data: {
           ...(data || {}),
           ...(sanitizedImageUrl
