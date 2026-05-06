@@ -1,8 +1,9 @@
 'use client';
 import { useState } from 'react';
-import { Scan, CheckCircle2, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Scan, CheckCircle2, AlertCircle, ArrowLeft, Camera, Keyboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, getVendorStoreId } from '@/lib/api';
+import QRScanner from '@/components/QRScanner';
 
 interface RedeemResult {
   offer?: { title?: string; discount?: string };
@@ -14,6 +15,17 @@ export default function ScanPage() {
   const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
   const [result, setResult] = useState<RedeemResult | null>(null);
   const [errorMsg, setErrorMsg] = useState('');
+  const [showScanner, setShowScanner] = useState(false);
+
+  const handleScan = (decodedText: string) => {
+    setShowScanner(false);
+    setCode(decodedText.toUpperCase());
+    // Auto-trigger validation after scan
+    setTimeout(() => {
+       const submitBtn = document.getElementById('submit-btn');
+       submitBtn?.click();
+    }, 100);
+  };
 
   const handleValidate = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -84,12 +96,31 @@ export default function ScanPage() {
 
             <button
               type="submit"
+              id="submit-btn"
               disabled={status === 'loading' || !code.trim()}
               className="w-full bg-orange-600 py-5 rounded-2xl font-black text-xl hover:bg-orange-700 transition-all shadow-lg shadow-orange-900/40 disabled:opacity-50"
             >
               {status === 'loading' ? 'جاري التحقق...' : 'تأكيد الخصم'}
             </button>
+
+            <button
+              type="button"
+              onClick={() => setShowScanner(!showScanner)}
+              className="w-full glass py-5 rounded-2xl font-black text-sm text-white/80 hover:text-white flex items-center justify-center gap-3 border border-white/5 hover:border-orange-500/30 transition-all"
+            >
+              {showScanner ? <Keyboard size={20} /> : <Camera size={20} />}
+              {showScanner ? 'إدخال يدوي' : 'فتح الكاميرا للمسح'}
+            </button>
           </form>
+
+          <AnimatePresence>
+            {showScanner && (
+              <QRScanner 
+                onScan={handleScan}
+                onClose={() => setShowScanner(false)}
+              />
+            )}
+          </AnimatePresence>
 
           <AnimatePresence>
             {status === 'success' && (

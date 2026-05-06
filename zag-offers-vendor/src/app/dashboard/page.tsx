@@ -91,8 +91,13 @@ export default function MerchantDashboard() {
     setRedeeming(true);
     setMessage(null);
 
+    let finalCode = couponCode.toUpperCase().trim();
+    if (finalCode && !finalCode.startsWith('ZAG-') && finalCode.length === 6) {
+      finalCode = `ZAG-${finalCode}`;
+    }
+
     try {
-      await vendorApi().post('/coupons/redeem', { code: couponCode, storeId });
+      await vendorApi().post('/coupons/redeem', { code: finalCode, storeId });
       setMessage({ type: 'success', text: '🎉 تم تفعيل الكوبون بنجاح!' });
       setCouponCode('');
       const res = await vendorApi().get<DashboardStats>('/stores/my-dashboard');
