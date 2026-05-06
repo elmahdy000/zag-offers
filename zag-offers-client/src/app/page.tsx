@@ -44,6 +44,7 @@ function HomePageContent() {
 
   const [offers,     setOffers]     = useState<Offer[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+  const [stores,     setStores]     = useState<any[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [search,     setSearch]     = useState('');
   const [activeCat,  setActiveCat]  = useState(catIdParam || '');
@@ -51,15 +52,20 @@ function HomePageContent() {
   const fetchData = useCallback(async () => {
     setLoading(true);
     try {
-      const [offRes, catRes] = await Promise.all([
+      const [offRes, catRes, storeRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=100`),
         fetch(`${API_URL}/stores/categories`),
+        fetch(`${API_URL}/stores?limit=12`),
       ]);
       if (offRes.ok) {
         const data = await offRes.json();
         setOffers(Array.isArray(data) ? data : (data.items || []));
       }
       if (catRes.ok) setCategories(await catRes.json());
+      if (storeRes.ok) {
+        const data = await storeRes.json();
+        setStores(Array.isArray(data) ? data : (data.items || []));
+      }
     } catch (e) { console.error(e); }
     finally { setLoading(false); }
   }, []);
@@ -163,14 +169,14 @@ function HomePageContent() {
       </section>
 
       {/* ─── Categories Bar ────────────────────────────────── */}
-      <section className="px-4 mb-10">
-        <div className="max-w-7xl mx-auto flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-2">
+      <section className="px-4 mb-12 sticky top-16 z-30 bg-[#1a1a1a]/80 backdrop-blur-md py-4">
+        <div className="max-w-7xl mx-auto flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-1">
           <button
             onClick={() => setActiveCat('')}
-            className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all
+            className={`flex-shrink-0 px-6 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all border
               ${activeCat === ''
-                ? 'bg-[#FF6B00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)]'
-                : 'bg-[#252525] border border-white/[0.07] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
+                ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)]'
+                : 'bg-[#252525] border-white/[0.05] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
           >
             🌟 الكل
           </button>
@@ -181,10 +187,10 @@ function HomePageContent() {
               <button
                 key={c.id}
                 onClick={() => setActiveCat(c.id)}
-                className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2
+                className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all flex items-center gap-2 border
                   ${activeCat === c.id
-                    ? 'bg-[#FF6B00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)] border-transparent'
-                    : 'bg-[#252525] border border-white/[0.07] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
+                    ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)]'
+                    : 'bg-[#252525] border-white/[0.05] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
               >
                 {Icon} {c.name}
               </button>
@@ -192,6 +198,55 @@ function HomePageContent() {
           })}
         </div>
       </section>
+
+      {/* ─── Featured Stores ────────────────────────────────── */}
+      {!activeCat && !search && stores.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 mb-16">
+          <div className="flex items-center justify-between mb-8">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-2xl flex items-center justify-center text-[#FF6B00]">
+                <Sparkles size={20} />
+              </div>
+              <h2 className="text-2xl font-black">أبرز الشركاء</h2>
+            </div>
+            <Link href="/stores" className="text-sm font-bold text-[#FF6B00] hover:underline">
+              اكتشف المزيد ←
+            </Link>
+          </div>
+
+          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {stores.map((s) => (
+              <Link key={s.id} href={`/stores/${s.id}`} className="flex-shrink-0 group">
+                <motion.div 
+                  whileHover={{ y: -8 }}
+                  className="w-32 sm:w-40 flex flex-col items-center text-center gap-3"
+                >
+                  <div className="relative w-20 h-20 sm:w-24 sm:h-24 bg-[#252525] border border-white/[0.07] rounded-3xl 
+                                  flex items-center justify-center overflow-hidden shadow-lg
+                                  group-hover:border-[#FF6B00]/50 transition-all">
+                    {s.logo ? (
+                      <img 
+                        src={s.logo.startsWith('http') ? s.logo : `${API_URL.replace('/api', '')}/${s.logo}`} 
+                        alt={s.name} 
+                        className="w-full h-full object-cover"
+                      />
+                    ) : (
+                      <ShoppingCart className="text-[#9A9A9A]/30" size={32} />
+                    )}
+                    <div className="absolute inset-0 bg-[#FF6B00]/0 group-hover:bg-[#FF6B00]/5 transition-all" />
+                  </div>
+                  <div className="space-y-1">
+                    <h3 className="text-xs sm:text-sm font-black text-[#F0F0F0] group-hover:text-[#FF6B00] transition-colors truncate w-full px-2">
+                      {s.name}
+                    </h3>
+                    <p className="text-[10px] text-[#9A9A9A] font-bold">{s.area}</p>
+                  </div>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ─── Offers Grid ───────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4">

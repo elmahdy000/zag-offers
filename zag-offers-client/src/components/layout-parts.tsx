@@ -149,6 +149,12 @@ export function Navbar() {
           <NavLink href="/categories" label="الأقسام" />
           <NavLink href="/stores"     label="المحلات" />
           <NavLink href="/offers"     label="أقوى العروض" />
+          <Link 
+            href="https://vendor.zagoffers.online" 
+            className="text-xs font-black text-[#FF6B00]/70 hover:text-[#FF6B00] transition-colors border border-[#FF6B00]/20 px-3 py-1 rounded-full"
+          >
+            لوحة التاجر
+          </Link>
         </div>
 
         {/* Actions */}
@@ -360,7 +366,13 @@ export function Footer() {
         <div>
           <h4 className="text-[#F0F0F0] font-bold mb-5">لأصحاب المحلات</h4>
           <ul className="space-y-3 text-[#9A9A9A] text-sm font-semibold">
-            {['سجل محلك الآن', 'دليل التجار', 'باقات الاشتراك', 'شروط الخدمة'].map(t => (
+            <li>
+              <Link href="https://vendor.zagoffers.online/register" className="hover:text-[#FF6B00] transition-colors">سجل محلك الآن</Link>
+            </li>
+            <li>
+              <Link href="https://vendor.zagoffers.online" className="hover:text-[#FF6B00] transition-colors">دخول لوحة التاجر</Link>
+            </li>
+            {['دليل التجار', 'باقات الاشتراك', 'شروط الخدمة'].map(t => (
               <li key={t} className="hover:text-[#FF6B00] cursor-pointer transition-colors">{t}</li>
             ))}
           </ul>

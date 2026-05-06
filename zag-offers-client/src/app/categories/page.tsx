@@ -2,14 +2,20 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Tag, ArrowLeft } from 'lucide-react';
-import Link from 'next/link';
+import { Tag, ArrowLeft, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Tool } from 'lucide-react';
 
-import { API_URL } from '@/lib/constants';
-
-const CAT_ICONS: Record<string, string> = {
-  'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
-  'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒', 'default': '🏷️'
+const CAT_ICONS: Record<string, React.ReactNode> = {
+  'مطاعم':         <Utensils size={40} />,
+  'كافيهات':       <Coffee size={40} />,
+  'ملابس':         <Shirt size={40} />,
+  'جيم':           <Dumbbell size={40} />,
+  'تجميل':         <Sparkles size={40} />,
+  'عيادات':        <Hospital size={40} />,
+  'سوبرماركت':    <ShoppingCart size={40} />,
+  'دورات':         <BookOpen size={40} />,
+  'خدمات سيارات': <Car size={40} />,
+  'خدمات محلية':  <Tool size={40} />,
+  'default':       <Tag size={40} />,
 };
 
 export default function CategoriesPage() {
@@ -43,15 +49,15 @@ export default function CategoriesPage() {
           {categories.map((cat) => (
             <Link key={cat.id} href={`/?categoryId=${cat.id}`}>
               <motion.div 
-                whileHover={{ scale: 1.05 }}
-                className="glass p-8 rounded-[32px] text-center space-y-4 hover:border-[#FF6B00]/50 transition-all cursor-pointer group"
+                whileHover={{ y: -8 }}
+                className="bg-[#252525] border border-white/[0.07] p-8 rounded-[32px] text-center space-y-5 hover:border-[#FF6B00]/50 transition-all cursor-pointer group"
               >
-                <div className="text-5xl group-hover:scale-110 transition-transform duration-300">
-                  {CAT_ICONS[cat.name] || '🏷️'}
+                <div className="text-[#FF6B00] group-hover:scale-110 transition-transform duration-300 flex justify-center">
+                  {CAT_ICONS[cat.name] || CAT_ICONS.default}
                 </div>
-                <h3 className="font-black text-lg">{cat.name}</h3>
-                <div className="inline-flex items-center gap-1 text-[10px] font-black text-[#FF6B00] bg-[#FF6B00]/10 px-3 py-1 rounded-full">
-                  استكشف <ArrowLeft size={10} />
+                <h3 className="font-black text-lg text-[#F0F0F0]">{cat.name}</h3>
+                <div className="inline-flex items-center gap-2 text-[11px] font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-1.5 rounded-full group-hover:bg-[#FF6B00] group-hover:text-white transition-colors">
+                  تصفح العروض <ArrowLeft size={12} />
                 </div>
               </motion.div>
             </Link>
