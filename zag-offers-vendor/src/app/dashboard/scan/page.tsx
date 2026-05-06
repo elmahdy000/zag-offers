@@ -20,19 +20,21 @@ export default function ScanPage() {
     if (!code.trim()) return;
 
     const storeId = getVendorStoreId();
-    if (!storeId) {
-      setStatus('error');
-      setErrorMsg('لم يتم ربط متجر بحسابك. تواصل مع الإدارة.');
-      return;
-    }
+    // We allow proceeding even without storeId because the backend can infer it from the merchantId in JWT
+    // or verify ownership of the coupon's store.
 
     setStatus('loading');
     setResult(null);
     setErrorMsg('');
 
+    let finalCode = code.toUpperCase().trim();
+    if (finalCode && !finalCode.startsWith('ZAG-') && finalCode.length === 6) {
+      finalCode = `ZAG-${finalCode}`;
+    }
+
     try {
       const res = await vendorApi().post<RedeemResult>('/coupons/redeem', {
-        code: code.toUpperCase().trim(),
+        code: finalCode,
         storeId,
       });
       setResult(res.data);

@@ -1,8 +1,9 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { vendorApi, getVendorStoreId } from '@/lib/api';
 
 import BottomNav from '@/components/BottomNav';
 
@@ -12,6 +13,19 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
+  
+  useEffect(() => {
+    const storeId = getVendorStoreId();
+    if (!storeId) {
+      vendorApi().get('/stores/my-dashboard')
+        .then((res: any) => {
+          if (res.data?.storeId) {
+            localStorage.setItem('vendor_store_id', res.data.storeId);
+          }
+        })
+        .catch(() => {});
+    }
+  }, []);
 
   return (
     <div className="flex bg-bg min-h-screen relative overflow-x-hidden">
