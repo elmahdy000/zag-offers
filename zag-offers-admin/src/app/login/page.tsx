@@ -149,15 +149,7 @@ export default function AdminLoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center pt-6 border-t border-white/5">
-          <button 
-            type="button"
-            onClick={() => { setPhone('01000000000'); setPassword('password123'); }}
-            className="text-white/20 text-[10px] font-black uppercase tracking-widest hover:text-[#FF6B00] transition-colors"
-          >
-            استخدام حساب الأدمن التجريبي
-          </button>
-        </div>
+
       </motion.div>
     </div>
   );

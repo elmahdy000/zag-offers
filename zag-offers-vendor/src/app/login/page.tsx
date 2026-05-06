@@ -134,15 +134,7 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center">
-          <button 
-            type="button"
-            className="text-xs font-bold text-white/20 hover:text-[#FF6B00] transition-colors"
-            onClick={() => { setPhone('01234567890'); setPassword('password123'); }}
-          >
-            استخدام حساب تجريبي للشركاء
-          </button>
-        </div>
+
       </motion.div>
     </div>
   );

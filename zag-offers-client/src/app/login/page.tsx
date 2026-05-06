@@ -126,13 +126,6 @@ export default function LoginPage() {
           <p className="text-sm font-bold text-white/30">
             ليس لديك حساب؟ <Link href="/register" className="text-[#FF6B00] hover:underline">أنشئ حساباً جديداً</Link>
           </p>
-          <button 
-            type="button"
-            className="text-xs font-bold text-white/20 hover:text-white/40"
-            onClick={() => { setPhone('01000000000'); setPassword('password123'); }}
-          >
-            استخدام حساب تجريبي
-          </button>
         </div>
       </motion.div>
     </div>
