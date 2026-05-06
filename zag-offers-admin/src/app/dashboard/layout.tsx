@@ -1,6 +1,7 @@
 import AdminSidebar from '@/components/AdminSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import ErrorBoundary from '@/components/ErrorBoundary';
+import BottomNav from '@/components/BottomNav';
 
 export default function AdminLayout({
   children,
@@ -16,9 +17,10 @@ export default function AdminLayout({
         {/* Main Content Area */}
         <div className="flex-1 min-h-screen lg:mr-[300px] w-full flex flex-col">
           <DashboardHeader />
-          <main className="flex-1 p-0">
+          <main className="flex-1 p-0 pb-32 lg:pb-0">
             {children}
           </main>
+          <BottomNav />
         </div>
       </div>
     </ErrorBoundary>

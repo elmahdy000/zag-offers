@@ -4,6 +4,8 @@ import Sidebar from '@/components/Sidebar';
 import { Menu, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import BottomNav from '@/components/BottomNav';
+
 export default function DashboardLayout({
   children,
 }: {
@@ -53,10 +55,12 @@ export default function DashboardLayout({
           </button>
         </header>
 
-        {/* Dynamic Padding for Desktop */}
-        <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden">
+        {/* Dynamic Padding for Desktop & Mobile Bottom Nav */}
+        <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden pb-32 lg:pb-0">
           {children}
         </main>
+
+        <BottomNav />
       </div>
     </div>
   );

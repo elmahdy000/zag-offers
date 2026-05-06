@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
+import BottomNav from "@/components/bottom-nav";
 
 export const metadata: Metadata = {
   title: "Zag Offers | أفضل عروض الزقازيق",
@@ -24,10 +25,11 @@ export default function RootLayout({
       <body className="antialiased">
         <NotificationProvider>
           <Navbar />
-          <main className="min-h-screen pt-20">
+          <main className="min-h-screen pt-20 pb-32 md:pb-0">
             {children}
           </main>
           <Footer />
+          <BottomNav />
         </NotificationProvider>
       </body>
     </html>
