@@ -27,7 +27,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useState } from 'react';
 import Link from 'next/link';
 
@@ -172,7 +172,7 @@ export default function MerchantDetailPage() {
             <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
                <div className="flex flex-col sm:flex-row gap-8 items-start">
                   <div className="h-32 w-32 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                     {store.logo ? <img src={store.logo} alt="logo" className="h-full w-full object-cover" /> : <Store size={48} className="text-slate-200" />}
+                     {store.logo ? <img src={resolveImageUrl(store.logo)} alt="logo" className="h-full w-full object-cover" /> : <Store size={48} className="text-slate-200" />}
                   </div>
                   <div className="flex-1 space-y-4">
                      <div className="flex items-center gap-3">
@@ -253,7 +253,7 @@ export default function MerchantDetailPage() {
                <h3 className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-6">بيانات المالك</h3>
                <div className="flex items-center gap-4 mb-6">
                   <div className="h-12 w-12 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 overflow-hidden">
-                     {store.owner.avatar ? <img src={store.owner.avatar} alt="owner" className="h-full w-full object-cover" /> : <UserIcon size={24} />}
+                     {store.owner.avatar ? <img src={resolveImageUrl(store.owner.avatar)} alt="owner" className="h-full w-full object-cover" /> : <UserIcon size={24} />}
                   </div>
                   <div>
                      <p className="text-sm font-bold text-slate-900 leading-none mb-1">{store.owner.name}</p>

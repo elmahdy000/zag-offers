@@ -23,7 +23,7 @@ import {
   CheckCircle2,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -396,7 +396,7 @@ export default function ApprovalsPage() {
                 <div className="space-y-8">
                   <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100">
                     <div className="h-24 w-24 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
-                      {storeDetails?.logo ? <img src={storeDetails.logo} alt="logo" className="h-full w-full object-cover" /> : <Store size={40} className="text-slate-200" />}
+                      {storeDetails?.logo ? <img src={resolveImageUrl(storeDetails.logo)} alt="logo" className="h-full w-full object-cover" /> : <Store size={40} className="text-slate-200" />}
                     </div>
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-slate-900 leading-tight">{storeDetails?.name}</h3>
@@ -453,7 +453,7 @@ export default function ApprovalsPage() {
                 <div className="space-y-8">
                   <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100">
                     <div className="h-24 w-24 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
-                      {offerDetails?.images?.[0] ? <img src={offerDetails.images[0]} alt="offer" className="h-full w-full object-cover" /> : <Tag size={40} className="text-slate-200" />}
+                      {offerDetails?.images?.[0] ? <img src={resolveImageUrl(offerDetails.images[0])} alt="offer" className="h-full w-full object-cover" /> : <Tag size={40} className="text-slate-200" />}
                     </div>
                     <div className="flex-1">
                       <h3 className="text-2xl font-bold text-slate-900 leading-tight">{offerDetails?.title}</h3>

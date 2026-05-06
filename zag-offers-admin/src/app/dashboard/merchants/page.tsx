@@ -27,7 +27,7 @@ import {
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -276,7 +276,7 @@ export default function MerchantsPage() {
                 <div className="space-y-8">
                   <div className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 border border-slate-100">
                     <div className="h-20 w-20 overflow-hidden rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
-                      {merchantDetails?.logo ? <img src={merchantDetails.logo} alt="logo" className="h-full w-full object-cover" /> : <Store size={36} className="text-slate-200" />}
+                      {merchantDetails?.logo ? <img src={resolveImageUrl(merchantDetails.logo)} alt="logo" className="h-full w-full object-cover" /> : <Store size={36} className="text-slate-200" />}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-900 leading-tight">{merchantDetails?.name}</h3>

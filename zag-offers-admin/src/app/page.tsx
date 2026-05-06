@@ -3,6 +3,7 @@
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { resolveImageUrl } from '@/lib/api';
 
 // --- Types & Constants ---
 const API = 'https://api.zagoffers.online/api';
@@ -38,9 +39,7 @@ const OfferCard = ({ offer, onClick }: { offer: Offer; onClick: () => void }) =>
   const isExpired = daysLeft <= 0;
   const icon = CAT_ICONS[offer.store?.category?.name || ''] || CAT_ICONS.default;
 
-  const logoUrl = offer.store?.logo 
-    ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${UPLOADS}/${offer.store.logo}`)
-    : null;
+  const icon = CAT_ICONS[offer.store?.category?.name || ''] || CAT_ICONS.default;
 
   return (
     <div className="offer-card-mini" onClick={onClick}>
@@ -58,7 +57,7 @@ const OfferCard = ({ offer, onClick }: { offer: Offer; onClick: () => void }) =>
         </div>
         <h3 className="card-title">{offer.title}</h3>
         <div className="card-store">
-          {logoUrl ? <img src={logoUrl} alt="" className="store-mini-logo" /> : <span className="store-icon">🏪</span>}
+          {offer.store?.logo ? <img src={resolveImageUrl(offer.store.logo)} alt="" className="store-mini-logo" /> : <span className="store-icon">🏪</span>}
           <span className="store-name">{offer.store?.name}</span>
         </div>
         <div className="card-area">📍 {offer.store?.area}</div>

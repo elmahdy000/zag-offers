@@ -26,7 +26,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 
 interface GlobalStats {
   users: { totalUsers: number; totalMerchants: number };
@@ -348,7 +348,7 @@ export default function AdminDashboard() {
                   return (
                     <div key={store.id} className="flex items-center gap-3">
                       <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                        {store.logo ? <img src={store.logo} alt="logo" className="h-full w-full object-cover" /> : <Store size={18} className="text-slate-300" />}
+                        {store.logo ? <img src={resolveImageUrl(store.logo)} alt="logo" className="h-full w-full object-cover" /> : <Store size={18} className="text-slate-300" />}
                       </div>
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-slate-900 truncate">{store.name}</p>

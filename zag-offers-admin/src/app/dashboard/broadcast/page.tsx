@@ -160,7 +160,7 @@ export default function BroadcastPage() {
                     <Loader2 className="animate-spin text-orange-600" size={24} />
                   ) : imageUrl ? (
                     <>
-                      <img src={imageUrl} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={resolveImageUrl(imageUrl)} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                         <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الصورة</span>
                       </div>
@@ -269,7 +269,7 @@ export default function BroadcastPage() {
                         </div>
                         {imageUrl && (
                           <div className="mt-3 rounded-2xl overflow-hidden border border-slate-100 shadow-inner">
-                            <img src={imageUrl} alt="Preview" className="w-full h-24 object-cover" />
+                            <img src={resolveImageUrl(imageUrl)} alt="Preview" className="w-full h-24 object-cover" />
                           </div>
                         )}
                      </motion.div>

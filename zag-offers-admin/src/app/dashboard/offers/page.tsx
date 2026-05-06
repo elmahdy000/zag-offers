@@ -24,7 +24,7 @@ import {
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -277,7 +277,7 @@ export default function OffersManagementPage() {
                 <div className="space-y-8">
                   <div className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 border border-slate-100">
                     <div className="h-20 w-20 overflow-hidden rounded-xl bg-white border border-slate-200 shadow-sm flex items-center justify-center shrink-0">
-                      {offerDetails?.images?.[0] ? <img src={offerDetails.images[0]} alt="offer" className="h-full w-full object-cover" /> : <Tag size={36} className="text-slate-200" />}
+                      {offerDetails?.images?.[0] ? <img src={resolveImageUrl(offerDetails.images[0])} alt="offer" className="h-full w-full object-cover" /> : <Tag size={36} className="text-slate-200" />}
                     </div>
                     <div>
                       <h3 className="text-xl font-bold text-slate-900 leading-tight">{offerDetails?.title}</h3>
@@ -388,7 +388,7 @@ export default function OffersManagementPage() {
                   <div className="grid grid-cols-4 gap-4">
                     {tempImages.map((img, i) => (
                       <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                        <img src={img} className="h-full w-full object-cover" />
+                        <img src={resolveImageUrl(img)} className="h-full w-full object-cover" />
                         <button type="button" onClick={() => setTempImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><X size={14} /></button>
                       </div>
                     ))}

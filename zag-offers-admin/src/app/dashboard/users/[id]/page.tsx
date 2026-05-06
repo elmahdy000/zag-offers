@@ -23,7 +23,7 @@ import {
   AlertTriangle
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useState } from 'react';
 import Link from 'next/link';
 import { useToast } from '@/components/shared/Toast';
