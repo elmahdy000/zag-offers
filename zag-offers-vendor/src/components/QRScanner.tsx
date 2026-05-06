@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { X, Camera, RefreshCcw, AlertTriangle, Info } from 'lucide-react';
+import { X, Camera, RefreshCcw, AlertTriangle, Video, Settings } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface QRScannerProps {
@@ -11,78 +11,93 @@ interface QRScannerProps {
 
 export default function QRScanner({ onScan, onClose }: QRScannerProps) {
   const [error, setError] = useState<string | null>(null);
-  const [debug, setDebug] = useState<string>("Initializing...");
-  const html5QrCodeScanner = useRef<Html5Qrcode | null>(null);
+  const [debug, setDebug] = useState<string>("جاري تهيئة الكاميرا...");
+  const [cameras, setCameras] = useState<any[]>([]);
+  const [activeCam, setActiveCam] = useState<string | null>(null);
+  const html5QrCode = useRef<Html5Qrcode | null>(null);
 
   useEffect(() => {
-    const startScanner = async () => {
+    const initScanner = async () => {
       try {
-        setDebug("Checking permissions...");
-        const scanner = new Html5Qrcode("qr-reader");
-        html5QrCodeScanner.current = scanner;
-
-        const config = {
-          fps: 10,
-          qrbox: { width: 250, height: 250 },
-          aspectRatio: 1.0,
-        };
-
-        setDebug("Requesting back camera...");
-        try {
-          // Attempt 1: Back camera
-          await scanner.start(
-            { facingMode: "environment" },
-            config,
-            (decodedText) => {
-              scanner.stop().then(() => onScan(decodedText)).catch(e => console.error(e));
-            },
-            () => {}
-          );
-          setDebug("Back camera active.");
-        } catch (e1) {
-          console.warn("Back camera failed, trying any camera...", e1);
-          setDebug("Back camera failed, trying any...");
-          // Attempt 2: Any available camera
-          await scanner.start(
-            { facingMode: "user" }, // or just {}
-            config,
-            (decodedText) => {
-              scanner.stop().then(() => onScan(decodedText)).catch(e => console.error(e));
-            },
-            () => {}
-          );
-          setDebug("User camera active.");
+        // 1. Check for HTTPS
+        if (typeof window !== 'undefined' && window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
+          setError("عذراً، الكاميرا تتطلب اتصالاً آمناً (HTTPS). لا يمكن فتح الكاميرا عبر IP أو رابط غير مشفر.");
+          setDebug("HTTPS Required");
+          return;
         }
+
+        // 2. Get Cameras
+        const devices = await Html5Qrcode.getCameras();
+        if (!devices || devices.length === 0) {
+          setError("لم يتم العثور على أي كاميرا متصلة بهذا الجهاز.");
+          return;
+        }
+        setCameras(devices);
+
+        // 3. Select default (back camera usually has 'back' or is the last one)
+        const backCam = devices.find(d => d.label.toLowerCase().includes('back')) || devices[devices.length - 1];
+        setActiveCam(backCam.id);
+        
+        await startCamera(backCam.id);
       } catch (err: any) {
-        console.error("Scanner Error:", err);
-        setDebug(`Error: ${err?.message || err}`);
-        if (err?.toString().includes("NotAllowedError")) {
-          setError("برجاء إعطاء صلاحية الوصول للكاميرا من إعدادات المتصفح.");
-        } else if (window.location.protocol !== 'https:' && window.location.hostname !== 'localhost') {
-          setError("المتصفح يمنع الكاميرا في المواقع غير المشفرة (HTTPS).");
-        } else {
-          setError("تعذر تشغيل الكاميرا. تأكد أنها غير مستخدمة في تطبيق آخر.");
-        }
+        console.error("Scanner Init Error:", err);
+        setError("فشل في الوصول للكاميرا. تأكد من إعطاء الصلاحية للموقع.");
+        setDebug(err?.message || "Permission Denied");
       }
     };
 
-    const timer = setTimeout(startScanner, 800);
+    const startCamera = async (cameraId: string) => {
+      try {
+        if (html5QrCode.current && html5QrCode.current.isScanning) {
+          await html5QrCode.current.stop();
+        }
+
+        const scanner = new Html5Qrcode("qr-reader");
+        html5QrCode.current = scanner;
+
+        setDebug(`جاري تشغيل: ${cameras.find(c => c.id === cameraId)?.label || 'الكاميرا'}`);
+
+        await scanner.start(
+          cameraId,
+          { fps: 15, qrbox: { width: 250, height: 250 } },
+          (decodedText) => {
+            scanner.stop().then(() => onScan(decodedText));
+          },
+          () => {}
+        );
+        setDebug("الكاميرا تعمل الآن");
+      } catch (err: any) {
+        console.error("Start Camera Error:", err);
+        setError("فشل في تشغيل هذه الكاميرا المحددة.");
+      }
+    };
+
+    const timer = setTimeout(initScanner, 1000);
 
     return () => {
       clearTimeout(timer);
-      if (html5QrCodeScanner.current && html5QrCodeScanner.current.isScanning) {
-        html5QrCodeScanner.current.stop().catch(e => console.error(e));
+      if (html5QrCode.current && html5QrCode.current.isScanning) {
+        html5QrCode.current.stop().catch(e => console.error(e));
       }
     };
-  }, [onScan]);
+  }, []);
+
+  const switchCamera = async (id: string) => {
+    setActiveCam(id);
+    if (html5QrCode.current) {
+      try {
+        if (html5QrCode.current.isScanning) await html5QrCode.current.stop();
+        const scanner = new Html5Qrcode("qr-reader");
+        html5QrCode.current = scanner;
+        await scanner.start(id, { fps: 15, qrbox: { width: 250, height: 250 } }, (text) => {
+          scanner.stop().then(() => onScan(text));
+        }, () => {});
+      } catch (e) { setError("تعذر التبديل لهذه الكاميرا"); }
+    }
+  };
 
   return (
-    <motion.div 
-      initial={{ opacity: 0 }}
-      animate={{ opacity: 1 }}
-      exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-2xl flex flex-col items-center justify-center p-6"
-    >
+    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6">
       <div className="w-full max-w-md relative">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
@@ -91,7 +106,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
              </div>
              <div>
                <h2 className="text-white font-black text-lg">ماسح الكود</h2>
-               <p className="text-white/40 text-[10px] font-black uppercase tracking-widest">{debug}</p>
+               <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-none mt-1">{debug}</p>
              </div>
           </div>
           <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:text-white">
@@ -108,6 +123,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                    <div className="absolute -top-1 -right-1 w-10 h-10 border-t-4 border-r-4 border-primary rounded-tr-2xl" />
                    <div className="absolute -bottom-1 -left-1 w-10 h-10 border-b-4 border-l-4 border-primary rounded-bl-2xl" />
                    <div className="absolute -bottom-1 -right-1 w-10 h-10 border-b-4 border-r-4 border-primary rounded-br-2xl" />
+                   <motion.div animate={{ top: ['10%', '90%'] }} transition={{ duration: 2, repeat: Infinity }} className="absolute left-4 right-4 h-0.5 bg-primary/50 shadow-[0_0_15px_rgba(255,126,26,0.5)]" />
                 </div>
              </div>
            )}
@@ -117,11 +133,24 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
           <div className="mt-8 p-6 bg-red-500/10 border border-red-500/20 rounded-3xl flex flex-col items-center text-center gap-3">
             <AlertTriangle className="text-red-500" size={32} />
             <p className="text-red-500 text-xs font-black leading-relaxed">{error}</p>
-            <p className="text-[9px] text-white/30 font-mono">{debug}</p>
           </div>
         )}
 
-        <div className="mt-12 text-center space-y-5">
+        {cameras.length > 1 && (
+          <div className="mt-8 flex flex-wrap justify-center gap-2">
+            {cameras.map((cam, idx) => (
+              <button 
+                key={cam.id} 
+                onClick={() => switchCamera(cam.id)}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${activeCam === cam.id ? 'bg-primary text-white border-primary' : 'bg-white/5 text-text-dim border-white/5'}`}
+              >
+                كاميرا {idx + 1}
+              </button>
+            ))}
+          </div>
+        )}
+
+        <div className="mt-12 text-center">
            <button onClick={() => window.location.reload()} className="flex items-center gap-2 mx-auto text-[11px] font-black text-primary hover:underline">
               <RefreshCcw size={14} /> إعادة المحاولة
            </button>
@@ -129,9 +158,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       </div>
 
       <style jsx global>{`
-        #qr-reader video {
-          width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 2.5rem !important;
-        }
+        #qr-reader video { width: 100% !important; height: 100% !important; object-fit: cover !important; border-radius: 2.5rem !important; }
       `}</style>
     </motion.div>
   );
