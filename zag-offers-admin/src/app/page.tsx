@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo } from 'react';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 
 // --- Types & Constants ---
 const API = 'https://api.zagoffers.online/api';
@@ -69,6 +70,7 @@ const OfferCard = ({ offer, onClick }: { offer: Offer; onClick: () => void }) =>
 // --- Main Page ---
 
 export default function HomePage() {
+  const router = useRouter();
   const [offers, setOffers] = useState<Offer[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
@@ -270,7 +272,7 @@ export default function HomePage() {
             <button 
               className="btn-auth primary" 
               style={{ width: '100%', padding: '12px', marginTop: '10px' }}
-              onClick={() => alert("يرجى تسجيل الدخول للحصول على الكود")}
+              onClick={() => router.push('/login')}
             >
               🎟️ الحصول على الكوبون
             </button>
