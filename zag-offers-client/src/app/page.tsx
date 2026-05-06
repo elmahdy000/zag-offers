@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Flame, Sparkles, Utensils, Coffee, Shirt, Dumbbell, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
+import { Search, Flame, Sparkles, Utensils, Coffee, Shirt, Dumbbell, Hospital, ShoppingCart, BookOpen, Car, Wrench, Store } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
@@ -231,7 +231,7 @@ function HomePageContent() {
                         className="w-full h-full object-cover"
                       />
                     ) : (
-                      <ShoppingCart className="text-[#9A9A9A]/30" size={32} />
+                      <Store className="text-[#9A9A9A]/30" size={32} />
                     )}
                     <div className="absolute inset-0 bg-[#FF6B00]/0 group-hover:bg-[#FF6B00]/5 transition-all" />
                   </div>
