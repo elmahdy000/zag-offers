@@ -50,6 +50,7 @@ export default function OfferDetailsPage() {
   const [isFav, setIsFav] = useState(false);
   const [copied, setCopied] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
+  const [activeImg, setActiveImg] = useState(0);
 
   const showToast = (msg: string, type: ToastType = 'info') => {
     const t = { id: Date.now(), msg, type };
@@ -141,13 +142,62 @@ export default function OfferDetailsPage() {
         {/* Main Content */}
         <div className="lg:col-span-2 space-y-6">
           <div className="bg-[#1A1A1A] border border-white/5 rounded-[32px] overflow-hidden">
-            <div className="h-48 sm:h-64 bg-gradient-to-br from-zinc-800 to-zinc-900 relative">
-               <div className="absolute inset-0 bg-black/40 backdrop-blur-sm" />
-               <div className="absolute inset-0 flex flex-col items-center justify-center p-6 text-center">
-                  <div className="bg-[#FF6B00] text-white px-6 py-2 rounded-2xl font-black text-3xl sm:text-5xl shadow-2xl mb-4">
+            <div className="relative aspect-video sm:aspect-square lg:aspect-video bg-zinc-900 overflow-hidden group">
+               <AnimatePresence mode="wait">
+                 <motion.img
+                   key={activeImg}
+                   src={resolveImageUrl(offer.images?.[activeImg]) || '/placeholder-offer.jpg'}
+                   initial={{ opacity: 0, scale: 1.1 }}
+                   animate={{ opacity: 1, scale: 1 }}
+                   exit={{ opacity: 0, scale: 0.95 }}
+                   transition={{ duration: 0.5 }}
+                   className="w-full h-full object-cover"
+                   alt=""
+                 />
+               </AnimatePresence>
+               
+               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+
+               {offer.images && offer.images.length > 1 && (
+                 <>
+                   <button 
+                     onClick={() => setActiveImg(prev => (prev + 1) % offer.images.length)}
+                     className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                   >
+                     <ChevronRight size={20} />
+                   </button>
+                   <button 
+                     onClick={() => setActiveImg(prev => (prev - 1 + offer.images.length) % offer.images.length)}
+                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                   >
+                     <ArrowRight size={20} />
+                   </button>
+                   
+                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
+                     {offer.images.map((_: any, i: number) => (
+                       <button 
+                         key={i} 
+                         onClick={() => setActiveImg(i)}
+                         className={`h-1.5 rounded-full transition-all ${i === activeImg ? 'w-6 bg-[#FF6B00]' : 'w-1.5 bg-white/30'}`} 
+                       />
+                     ))}
+                   </div>
+                 </>
+               )}
+
+               <div className="absolute top-6 right-6 flex flex-col items-end gap-3 pointer-events-none">
+                  <div className="bg-[#FF6B00] text-white px-5 py-2 rounded-2xl font-black text-2xl shadow-2xl">
                     {offer.discount}
                   </div>
-                  <h1 className="text-xl sm:text-3xl font-black text-white leading-tight">{offer.title}</h1>
+                  {offer.originalPrice && (
+                    <div className="bg-black/40 backdrop-blur-md px-3 py-1 rounded-xl text-xs font-black text-white/60 line-through">
+                      EGP {offer.originalPrice}
+                    </div>
+                  )}
+               </div>
+
+               <div className="absolute bottom-6 right-8 left-8 pointer-events-none">
+                  <h1 className="text-xl sm:text-2xl font-black text-white leading-tight drop-shadow-lg">{offer.title}</h1>
                </div>
             </div>
             

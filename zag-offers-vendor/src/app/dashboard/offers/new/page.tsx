@@ -14,21 +14,34 @@ export default function NewOfferPage() {
     originalPrice: '',
     expiryDate: '',
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result;
-        if (typeof result === 'string') setImagePreview(result);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 5) {
+      setSubmitError('الحد الأقصى هو 5 صور فقط');
+      return;
+    }
+
+    if (files.length > 0) {
+      setSelectedFiles(files);
+      const newPreviews: string[] = [];
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result;
+          if (typeof result === 'string') {
+            newPreviews.push(result);
+            if (newPreviews.length === files.length) {
+              setImagePreviews(newPreviews);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -44,13 +57,16 @@ export default function NewOfferPage() {
     setSubmitting(true);
     try {
       let imageUrls: string[] = [];
-      if (selectedFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', selectedFile);
-        const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+      if (selectedFiles.length > 0) {
+        const uploadPromises = selectedFiles.map(async (file) => {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          const uploadRes = await vendorApi().post('/upload', uploadFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          return uploadRes.data.url;
         });
-        if (uploadRes.data.url) imageUrls.push(uploadRes.data.url);
+        imageUrls = await Promise.all(uploadPromises);
       }
 
       await vendorApi().post('/offers', {
@@ -77,12 +93,12 @@ export default function NewOfferPage() {
     }
   };
 
+  const discountedPrice = (Number(formData.originalPrice) * (1 - parseFloat(formData.discount) / 100)).toFixed(0);
+
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative">
-      {/* Background Glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -z-10" />
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <div className="flex items-center gap-6">
           <button
@@ -101,7 +117,6 @@ export default function NewOfferPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        {/* Main Form Area */}
         <div className="xl:col-span-8 space-y-6">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -111,55 +126,53 @@ export default function NewOfferPage() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             
             <div className="space-y-10">
-              {/* Image Upload - Reimagined */}
-              <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ImageIcon size={14} /> صورة العرض الرئيسية
+                    <ImageIcon size={14} /> صور العرض (حتى 5 صور)
                   </label>
                   <span className="text-[10px] font-bold text-primary/60">يفضل أبعاد 1:1</span>
                 </div>
                 
                 <div
-                  className="relative aspect-video sm:aspect-[21/9] rounded-[2rem] border-2 border-dashed border-white/5 bg-white/[0.02] flex items-center justify-center cursor-pointer group overflow-hidden transition-all hover:border-primary/30"
+                  className="relative min-h-[200px] rounded-[2rem] border-2 border-dashed border-white/5 bg-white/[0.02] p-4 flex flex-wrap gap-4 items-center justify-center cursor-pointer group transition-all hover:border-primary/30"
                   onClick={() => document.getElementById('imageInput')?.click()}
                 >
-                  <AnimatePresence mode="wait">
-                    {imagePreview ? (
-                      <motion.div 
-                        key="preview"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute inset-0"
-                      >
-                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent" />
-                        <div className="absolute bottom-4 left-4 bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-black text-white border border-white/10">
-                           تغيير الصورة
-                        </div>
-                      </motion.div>
+                  <AnimatePresence mode="popLayout">
+                    {imagePreviews.length > 0 ? (
+                      imagePreviews.map((preview, index) => (
+                        <motion.div 
+                          key={index}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border border-white/10 group/img"
+                        >
+                          <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                             <span className="text-[10px] text-white font-black">تغيير الكل</span>
+                          </div>
+                        </motion.div>
+                      ))
                     ) : (
                       <motion.div 
                         key="placeholder"
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
-                        className="flex flex-col items-center gap-4"
+                        className="flex flex-col items-center gap-4 py-8"
                       >
                         <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-500">
                           <Upload className="text-text-dim group-hover:text-primary transition-colors" size={32} />
                         </div>
                         <div className="text-center">
-                          <p className="text-sm font-black text-text group-hover:text-primary transition-colors">اسحب الصورة هنا أو اضغط للرفع</p>
+                          <p className="text-sm font-black text-text group-hover:text-primary transition-colors">اضغط لرفع حتى 5 صور</p>
                           <p className="text-[10px] font-bold text-text-dimmer mt-1">يدعم JPG, PNG بجودة عالية</p>
                         </div>
                       </motion.div>
                     )}
                   </AnimatePresence>
-                  <input id="imageInput" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                  <input id="imageInput" type="file" className="hidden" onChange={handleImageChange} accept="image/*" multiple />
                 </div>
-              </div>
 
-              {/* Input Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] mr-2">عنوان العرض</label>
@@ -247,7 +260,6 @@ export default function NewOfferPage() {
           </motion.div>
         </div>
 
-        {/* Sidebar Preview */}
         <div className="xl:col-span-4 space-y-8">
            <div className="flex items-center gap-2 text-text-dimmer text-[11px] font-black uppercase tracking-widest px-2">
              <Info size={14} className="text-primary" /> معاينة مباشرة (موبايل)
@@ -255,19 +267,18 @@ export default function NewOfferPage() {
 
            <div className="glass rounded-[3rem] p-6 border border-white/5 inner-shadow relative">
               <div className="aspect-[4/5] rounded-[2.5rem] bg-white/5 border border-white/5 overflow-hidden relative group">
-                 {imagePreview ? (
-                   <img src={imagePreview} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Preview" />
-                 ) : (
-                   <div className="w-full h-full flex flex-col items-center justify-center text-text-dimmer opacity-20">
-                     <ImageIcon size={64} strokeWidth={1} />
-                     <p className="mt-4 text-[10px] font-black">انتظار الصورة...</p>
-                   </div>
-                 )}
-                 
-                 {/* Floating Discount Tag */}
-                 <div className="absolute top-4 right-4 bg-primary text-white px-4 py-1.5 rounded-2xl text-[12px] font-black shadow-2xl shadow-primary/40">
-                   {formData.discount || '0%'} خصم
-                 </div>
+                 {imagePreviews.length > 0 ? (
+                    <img src={imagePreviews[0]} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Preview" />
+                  ) : (
+                    <div className="w-full h-full flex flex-col items-center justify-center text-text-dimmer opacity-20">
+                      <ImageIcon size={64} strokeWidth={1} />
+                      <p className="mt-4 text-[10px] font-black">انتظار الصورة...</p>
+                    </div>
+                  )}
+                  
+                  <div className="absolute top-4 right-4 bg-primary text-white px-4 py-1.5 rounded-2xl text-[12px] font-black shadow-2xl shadow-primary/40">
+                    {formData.discount || '0%'} خصم
+                  </div>
               </div>
 
               <div className="mt-6 space-y-4">
@@ -282,16 +293,12 @@ export default function NewOfferPage() {
 
                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                       {formData.originalPrice && (
+                       {Boolean(formData.originalPrice) && (
                          <span className="text-xs text-text-dimmer line-through">EGP {formData.originalPrice}</span>
                        )}
                        <div className="flex items-center gap-2">
                           <span className="text-2xl font-black text-text tracking-tighter">
-                            {formData.originalPrice && formData.discount
-                              ? `EGP ${(Number(formData.originalPrice) * (1 - parseFloat(formData.discount) / 100)).toFixed(0)}`
-                              : formData.discount
-                              ? `عرض حصري`
-                              : '0.00'}
+                            {(formData.originalPrice && formData.discount) ? `EGP ${discountedPrice}` : (formData.discount ? 'عرض حصري' : '0.00')}
                           </span>
                           <span className="text-[10px] font-black text-text-dimmer uppercase">EGP</span>
                        </div>

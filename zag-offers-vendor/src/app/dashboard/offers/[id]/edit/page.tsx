@@ -1,9 +1,9 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, LayoutDashboard, Sparkles, Image as ImageIcon, ChevronLeft, ShieldCheck, Trash2 } from 'lucide-react';
+import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, LayoutDashboard, Sparkles, Image as ImageIcon, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { vendorApi, getVendorStoreId, resolveImageUrl } from '@/lib/api';
+import { vendorApi, resolveImageUrl } from '@/lib/api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 
 export default function EditOfferPage() {
@@ -17,9 +17,9 @@ export default function EditOfferPage() {
     originalPrice: '',
     expiryDate: '',
   });
-  const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
-  const [selectedFile, setSelectedFile] = useState<File | null>(null);
+  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
@@ -35,9 +35,9 @@ export default function EditOfferPage() {
           originalPrice: o.originalPrice?.toString() || '',
           expiryDate: o.endDate ? new Date(o.endDate).toISOString().split('T')[0] : '',
         });
-        if (o.images?.length > 0) {
+        if (o.images && o.images.length > 0) {
           setExistingImages(o.images);
-          setImagePreview(resolveImageUrl(o.images[0]));
+          setImagePreviews(o.images.map((img: string) => resolveImageUrl(img)));
         }
       })
       .catch(err => {
@@ -48,15 +48,28 @@ export default function EditOfferPage() {
   }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-      const reader = new FileReader();
-      reader.onloadend = () => {
-        const result = reader.result;
-        if (typeof result === 'string') setImagePreview(result);
-      };
-      reader.readAsDataURL(file);
+    const files = Array.from(e.target.files || []);
+    if (files.length > 5) {
+      setSubmitError('الحد الأقصى هو 5 صور فقط');
+      return;
+    }
+
+    if (files.length > 0) {
+      setSelectedFiles(files);
+      const newPreviews: string[] = [];
+      files.forEach(file => {
+        const reader = new FileReader();
+        reader.onloadend = () => {
+          const result = reader.result;
+          if (typeof result === 'string') {
+            newPreviews.push(result);
+            if (newPreviews.length === files.length) {
+              setImagePreviews(newPreviews);
+            }
+          }
+        };
+        reader.readAsDataURL(file);
+      });
     }
   };
 
@@ -70,16 +83,16 @@ export default function EditOfferPage() {
     try {
       let imageUrls = [...existingImages];
       
-      // If new image selected, upload it and replace the first image
-      if (selectedFile) {
-        const uploadFormData = new FormData();
-        uploadFormData.append('file', selectedFile);
-        const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-          headers: { 'Content-Type': 'multipart/form-data' }
+      if (selectedFiles.length > 0) {
+        const uploadPromises = selectedFiles.map(async (file) => {
+          const uploadFormData = new FormData();
+          uploadFormData.append('file', file);
+          const uploadRes = await vendorApi().post('/upload', uploadFormData, {
+            headers: { 'Content-Type': 'multipart/form-data' }
+          });
+          return uploadRes.data.url;
         });
-        if (uploadRes.data.url) {
-          imageUrls = [uploadRes.data.url]; // For now, we only support 1 image in vendor app
-        }
+        imageUrls = await Promise.all(uploadPromises);
       }
 
       await vendorApi().patch(`/offers/${id}`, {
@@ -106,12 +119,12 @@ export default function EditOfferPage() {
 
   if (loading) return <DashboardSkeleton />;
 
+  const discountedPrice = (Number(formData.originalPrice) * (1 - parseFloat(formData.discount) / 100)).toFixed(0);
+
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative">
-      {/* Background Glow */}
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -z-10" />
 
-      {/* Header */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
         <div className="flex items-center gap-6">
           <button
@@ -130,7 +143,6 @@ export default function EditOfferPage() {
       </div>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
-        {/* Main Form Area */}
         <div className="xl:col-span-8 space-y-6">
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
@@ -140,46 +152,47 @@ export default function EditOfferPage() {
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             
             <div className="space-y-10">
-              {/* Image Upload */}
               <div className="space-y-4">
                 <div className="flex items-center justify-between px-2">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ImageIcon size={14} /> صورة العرض
+                    <ImageIcon size={14} /> صور العرض (حتى 5 صور)
                   </label>
+                  <span className="text-[10px] font-bold text-primary/60">رفع صور جديدة سيستبدل الصور القديمة</span>
                 </div>
                 
                 <div
-                  className="relative aspect-video sm:aspect-[21/9] rounded-[2rem] border-2 border-dashed border-white/5 bg-white/[0.02] flex items-center justify-center cursor-pointer group overflow-hidden transition-all hover:border-primary/30"
+                  className="relative min-h-[200px] rounded-[2rem] border-2 border-dashed border-white/5 bg-white/[0.02] p-4 flex flex-wrap gap-4 items-center justify-center cursor-pointer group transition-all hover:border-primary/30"
                   onClick={() => document.getElementById('imageInput')?.click()}
                 >
-                  <AnimatePresence mode="wait">
-                    {imagePreview ? (
-                      <motion.div 
-                        key="preview"
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        className="absolute inset-0"
-                      >
-                        <img src={imagePreview} alt="Preview" className="w-full h-full object-cover opacity-80 group-hover:opacity-100 group-hover:scale-105 transition-all duration-700" />
-                        <div className="absolute inset-0 bg-gradient-to-t from-bg/80 via-transparent to-transparent" />
-                        <div className="absolute bottom-4 left-4 bg-black/40 backdrop-blur-md px-4 py-2 rounded-xl text-xs font-black text-white border border-white/10">
-                           تغيير الصورة
-                        </div>
-                      </motion.div>
+                  <AnimatePresence mode="popLayout">
+                    {imagePreviews.length > 0 ? (
+                      imagePreviews.map((preview, index) => (
+                        <motion.div 
+                          key={index}
+                          initial={{ opacity: 0, scale: 0.8 }}
+                          animate={{ opacity: 1, scale: 1 }}
+                          exit={{ opacity: 0, scale: 0.8 }}
+                          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border border-white/10 group/img"
+                        >
+                          <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
+                             <span className="text-[10px] text-white font-black">تغيير الكل</span>
+                          </div>
+                        </motion.div>
+                      ))
                     ) : (
-                      <div className="flex flex-col items-center gap-4">
+                      <div className="flex flex-col items-center gap-4 py-8">
                         <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center">
                           <Upload className="text-text-dim" size={32} />
                         </div>
-                        <p className="text-sm font-black text-text">اضغط لرفع صورة جديدة</p>
+                        <p className="text-sm font-black text-text">اضغط لرفع حتى 5 صور</p>
                       </div>
                     )}
                   </AnimatePresence>
-                  <input id="imageInput" type="file" className="hidden" onChange={handleImageChange} accept="image/*" />
+                  <input id="imageInput" type="file" className="hidden" onChange={handleImageChange} accept="image/*" multiple />
                 </div>
               </div>
 
-              {/* Input Fields */}
               <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                 <div className="space-y-3">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] mr-2">عنوان العرض</label>
@@ -263,7 +276,6 @@ export default function EditOfferPage() {
           </motion.div>
         </div>
 
-        {/* Preview Area */}
         <div className="xl:col-span-4 space-y-8">
            <div className="flex items-center gap-2 text-text-dimmer text-[11px] font-black uppercase tracking-widest px-2">
              <Info size={14} className="text-primary" /> معاينة العرض
@@ -271,26 +283,36 @@ export default function EditOfferPage() {
 
            <div className="glass rounded-[3rem] p-6 border border-white/5 inner-shadow relative">
               <div className="aspect-[4/5] rounded-[2.5rem] bg-white/5 border border-white/5 overflow-hidden relative">
-                 {imagePreview && (
-                   <img src={imagePreview} className="w-full h-full object-cover" alt="Preview" />
-                 )}
-                 <div className="absolute top-4 right-4 bg-primary text-white px-4 py-1.5 rounded-2xl text-[12px] font-black">
-                   {formData.discount || '0%'} خصم
-                 </div>
+                 {imagePreviews.length > 0 ? (
+                    <div className="w-full h-full relative">
+                       <img src={imagePreviews[0]} className="w-full h-full object-cover" alt="Preview" />
+                       {imagePreviews.length > 1 && (
+                         <div className="absolute bottom-4 right-4 bg-black/60 backdrop-blur-md px-3 py-1 rounded-full text-[10px] font-black text-white border border-white/10">
+                           + {imagePreviews.length - 1} صور أخرى
+                         </div>
+                       )}
+                    </div>
+                  ) : (
+                   <div className="w-full h-full flex flex-col items-center justify-center text-text-dimmer opacity-20">
+                     <ImageIcon size={64} strokeWidth={1} />
+                     <p className="mt-4 text-[10px] font-black">انتظار الصورة...</p>
+                   </div>
+                  )}
+                  <div className="absolute top-4 right-4 bg-primary text-white px-4 py-1.5 rounded-2xl text-[12px] font-black">
+                    {formData.discount || '0%'} خصم
+                  </div>
               </div>
 
               <div className="mt-6 space-y-4">
                  <h3 className="text-xl font-black text-text leading-tight">{formData.title || 'عنوان العرض'}</h3>
                  <div className="pt-4 border-t border-white/5 flex items-center justify-between">
                     <div className="flex flex-col gap-1">
-                       {formData.originalPrice && (
+                       {Boolean(formData.originalPrice) && (
                          <span className="text-xs text-text-dimmer line-through">EGP {formData.originalPrice}</span>
                        )}
                        <div className="flex items-center gap-2">
                           <span className="text-2xl font-black text-text">
-                            {formData.originalPrice && formData.discount
-                              ? `EGP ${(Number(formData.originalPrice) * (1 - parseFloat(formData.discount) / 100)).toFixed(0)}`
-                              : '0.00'}
+                            {(formData.originalPrice && formData.discount) ? `EGP ${discountedPrice}` : '0.00'}
                           </span>
                        </div>
                     </div>
