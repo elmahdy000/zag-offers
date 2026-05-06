@@ -1,10 +1,11 @@
 'use client';
 import { useEffect, useState, useRef } from 'react';
-import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell } from 'lucide-react';
+import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
+import { getCookie, deleteCookie } from '@/lib/api';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
 interface Notification {
   id: string;
@@ -13,6 +14,26 @@ interface Notification {
   isRead: boolean;
   createdAt: string;
   type?: string;
+  data?: { offerId?: string; couponId?: string; storeId?: string };
+}
+
+/** Map notification type → dashboard route */
+function getNotifRoute(n: Notification): string {
+  const d = n.data || {};
+  switch (n.type) {
+    case 'OFFER_APPROVED':
+    case 'OFFER_REJECTED':
+    case 'NEW_OFFER':
+      return d.offerId ? `/dashboard/offers` : '/dashboard/offers';
+    case 'COUPON_REDEEMED':
+    case 'NEW_COUPON':
+      return '/dashboard/coupons';
+    case 'STORE_APPROVED':
+    case 'STORE_REJECTED':
+      return '/dashboard/profile';
+    default:
+      return '/dashboard';
+  }
 }
 
 export default function Sidebar() {
@@ -25,10 +46,11 @@ export default function Sidebar() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  // Fetch notifications from DB
+  const getToken = () => getCookie('auth_token');
+
   const fetchNotifications = async () => {
     try {
-      const token = localStorage.getItem('vendor_token');
+      const token = getToken();
       if (!token) return;
       const res = await fetch(`${API_URL}/api/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
@@ -61,7 +83,7 @@ export default function Sidebar() {
 
   const markAllRead = async () => {
     try {
-      const token = localStorage.getItem('vendor_token');
+      const token = getToken();
       if (!token) return;
       await fetch(`${API_URL}/api/notifications/read-all`, {
         method: 'PATCH',
@@ -73,9 +95,29 @@ export default function Sidebar() {
     }
   };
 
+  const handleNotifClick = async (n: Notification) => {
+    // Mark single as read
+    if (!n.isRead) {
+      setNotifications((prev) =>
+        prev.map((x) => (x.id === n.id ? { ...x, isRead: true } : x))
+      );
+      try {
+        const token = getToken();
+        if (token) {
+          await fetch(`${API_URL}/api/notifications/${n.id}/read`, {
+            method: 'PATCH',
+            headers: { Authorization: `Bearer ${token}` },
+          });
+        }
+      } catch { /* ignore */ }
+    }
+    setShowBell(false);
+    router.push(getNotifRoute(n));
+  };
+
   const handleLogout = async () => {
     try {
-      const token = localStorage.getItem('vendor_token');
+      const token = getToken();
       if (token) {
         await fetch(`${API_URL}/api/auth/logout`, {
           method: 'POST',
@@ -85,8 +127,9 @@ export default function Sidebar() {
     } catch {
       // ignore network errors on logout
     } finally {
-      localStorage.removeItem('vendor_token');
+      deleteCookie('auth_token');
       localStorage.removeItem('vendor_user');
+      localStorage.removeItem('vendor_store_id');
       router.push('/login');
     }
   };
@@ -131,33 +174,45 @@ export default function Sidebar() {
             )}
           </button>
 
-          {/* Dropdown */}
+          {/* Dropdown — fixed position to avoid clipping on mobile */}
           {showBell && (
             <div
-              className="absolute left-0 top-full mt-2 w-80 bg-[#1e1e1e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-50"
+              className="fixed inset-x-2 top-[5rem] sm:absolute sm:inset-x-auto sm:right-0 sm:top-full sm:mt-2 sm:w-80 bg-[#1e1e1e] border border-white/10 rounded-2xl shadow-2xl overflow-hidden z-[200]"
               dir="rtl"
             >
+              {/* Header */}
               <div className="px-4 py-3 border-b border-white/5 flex items-center justify-between">
                 <span className="text-sm font-black text-white">الإشعارات</span>
-                {unreadCount > 0 && (
+                <div className="flex items-center gap-2">
+                  {unreadCount > 0 && (
+                    <button
+                      onClick={markAllRead}
+                      className="text-[11px] text-primary font-bold hover:underline"
+                    >
+                      قراءة الكل
+                    </button>
+                  )}
                   <button
-                    onClick={markAllRead}
-                    className="text-[11px] text-primary font-bold hover:underline"
+                    onClick={() => setShowBell(false)}
+                    className="p-1 rounded-lg text-white/40 hover:text-white hover:bg-white/10 transition-all sm:hidden"
                   >
-                    قراءة الكل
+                    <X size={14} />
                   </button>
-                )}
+                </div>
               </div>
-              <div className="max-h-72 overflow-y-auto">
+
+              {/* List */}
+              <div className="max-h-[60vh] sm:max-h-72 overflow-y-auto">
                 {notifications.length === 0 ? (
                   <div className="py-8 text-center text-text-dim text-sm">
                     لا توجد إشعارات
                   </div>
                 ) : (
                   notifications.slice(0, 20).map((n) => (
-                    <div
+                    <button
                       key={n.id}
-                      className={`px-4 py-3 border-b border-white/[0.04] transition-colors ${
+                      onClick={() => handleNotifClick(n)}
+                      className={`w-full text-right px-4 py-3 border-b border-white/[0.04] hover:bg-white/5 transition-colors ${
                         n.isRead ? 'opacity-60' : 'bg-primary/5'
                       }`}
                     >
@@ -165,7 +220,7 @@ export default function Sidebar() {
                         {!n.isRead && (
                           <span className="mt-1.5 w-2 h-2 rounded-full bg-primary flex-shrink-0" />
                         )}
-                        <div className={n.isRead ? 'mr-4' : ''}>
+                        <div className={n.isRead ? 'mr-4 w-full' : 'w-full'}>
                           <p className="text-xs font-black text-white">{n.title}</p>
                           <p className="text-[11px] text-text-dim mt-0.5 leading-relaxed">{n.body}</p>
                           <p className="text-[10px] text-text-dim/60 mt-1">
@@ -178,7 +233,7 @@ export default function Sidebar() {
                           </p>
                         </div>
                       </div>
-                    </div>
+                    </button>
                   ))
                 )}
               </div>

@@ -202,7 +202,7 @@ export default function HomePage() {
           ) : (
             <>
               <Link href="/login" className="btn-auth">دخول</Link>
-              <button className="btn-auth primary">انضم مجاناً</button>
+              <Link href="/login" className="btn-auth primary">انضم مجاناً</Link>
             </>
           )}
         </div>
