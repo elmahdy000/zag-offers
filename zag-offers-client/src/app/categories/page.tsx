@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Tag, ArrowLeft, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Tool } from 'lucide-react';
+import { Tag, ArrowLeft, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <Utensils size={40} />,
@@ -14,7 +14,7 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   'سوبرماركت':    <ShoppingCart size={40} />,
   'دورات':         <BookOpen size={40} />,
   'خدمات سيارات': <Car size={40} />,
-  'خدمات محلية':  <Tool size={40} />,
+  'خدمات محلية':  <Wrench size={40} />,
   'default':       <Tag size={40} />,
 };
 
