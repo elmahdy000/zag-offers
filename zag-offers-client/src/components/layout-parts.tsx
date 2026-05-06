@@ -13,12 +13,21 @@ export function Navbar() {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn,       setIsLoggedIn]       = useState(false);
 
+  // Update login status on mount and whenever the path changes
+  useEffect(() => {
+    const checkAuth = () => {
+      try {
+        setIsLoggedIn(!!localStorage.getItem('token'));
+      } catch {
+        setIsLoggedIn(false);
+      }
+    };
+    checkAuth();
+  }, [pathname]);
+
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
     window.addEventListener('scroll', onScroll);
-    try {
-      setIsLoggedIn(!!localStorage.getItem('token'));
-    } catch {}
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
