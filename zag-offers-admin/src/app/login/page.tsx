@@ -77,52 +77,52 @@ export default function AdminLoginPage() {
       <motion.div
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-[420px] glass p-8 sm:p-10 rounded-[32px] shadow-2xl relative overflow-hidden border border-white/5"
+        className="w-full max-w-[400px] glass p-8 sm:p-9 rounded-[32px] shadow-2xl relative overflow-hidden border border-white/5"
       >
         {/* Glow effect */}
         <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF6B00]/20 blur-[60px] rounded-full" />
         
         {/* Logo & Heading */}
-        <div className="text-center mb-10">
-          <div className="w-14 h-14 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20 mx-auto mb-6">
-            <ShieldCheck className="text-white" size={28} />
+        <div className="text-center mb-8">
+          <div className="w-12 h-12 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20 mx-auto mb-5">
+            <ShieldCheck className="text-white" size={24} />
           </div>
-          <h1 className="text-2xl font-black text-white mb-2">لوحة الإدارة المركزية</h1>
-          <p className="text-white/40 text-sm font-bold uppercase tracking-widest">Zag Offers Admin</p>
+          <h1 className="text-xl font-black text-white mb-2">لوحة الإدارة المركزية</h1>
+          <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Zag Offers Admin</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-5">
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold text-center">
+            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-bold text-center">
               {error}
             </div>
           )}
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-white/50 mr-2">رقم الموبايل</label>
+            <label className="text-[10px] font-black text-white/50 mr-2 uppercase tracking-widest">رقم الموبايل</label>
             <div className="relative group">
-              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={16} />
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="01xxxxxxxxx"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-white/50 mr-2">كلمة المرور</label>
+            <label className="text-[10px] font-black text-white/50 mr-2 uppercase tracking-widest">كلمة المرور</label>
             <div className="relative group">
-              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={16} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-14 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
                 required
               />
               <button 
@@ -130,7 +130,7 @@ export default function AdminLoginPage() {
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
               </button>
             </div>
           </div>
@@ -138,7 +138,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full py-3.5 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm mt-2"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : (
               <>
