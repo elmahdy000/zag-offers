@@ -260,7 +260,7 @@ export default function HomePage() {
         <div className="modal-back" onClick={() => setSelectedOffer(null)}>
           <div className="modal-box" onClick={e => e.stopPropagation()}>
             <button className="modal-close" onClick={() => setSelectedOffer(null)}>✕</button>
-            <h2 style={{ color: var(--primary), margin: '0 0 10px' }}>{selectedOffer.discount} خصم</h2>
+            <h2 style={{ color: 'var(--primary)', margin: '0 0 10px' }}>{selectedOffer.discount} خصم</h2>
             <h3 style={{ margin: '0 0 10px' }}>{selectedOffer.title}</h3>
             <p style={{ color: 'var(--text-dim)', fontSize: '14px' }}>{selectedOffer.description}</p>
             <div style={{ borderTop: '1px solid var(--border)', padding: '15px 0', marginTop: '15px' }}>
