@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Store, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
 import Link from 'next/link';
+import { resolveImageUrl } from '@/lib/utils';
 
 import { API_URL, BASE_URL } from '@/lib/constants';
 
@@ -51,7 +52,7 @@ export default function StoresListPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredStores.map((store) => {
-            const logoUrl = store.logo ? (store.logo.startsWith('http') ? store.logo : `${BASE_URL}/${store.logo}`) : null;
+            const logoUrl = resolveImageUrl(store.logo);
             return (
               <Link key={store.id} href={`/stores/${store.id}`}>
                 <motion.div 

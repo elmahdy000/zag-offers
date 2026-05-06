@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 import { API_URL, BASE_URL } from '@/lib/constants';
+import { resolveImageUrl } from '@/lib/utils';
 
 /* ─── Toast ─────────────────────────────────────────── */
 type ToastType = 'success' | 'error' | 'info';
@@ -121,7 +122,7 @@ export default function OfferDetailsPage() {
   if (!offer) return null;
 
   const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const logoUrl = offer.store?.logo ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${BASE_URL}/${offer.store.logo}`) : null;
+  const logoUrl = resolveImageUrl(offer.store?.logo);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">

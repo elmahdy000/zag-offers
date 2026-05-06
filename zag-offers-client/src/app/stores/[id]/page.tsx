@@ -7,6 +7,7 @@ import { MapPin, Phone, MessageSquare, ExternalLink, Tag, Store } from 'lucide-r
 import Link from 'next/link';
 import { API_URL, BASE_URL } from '@/lib/constants';
 import { OfferCard } from '@/components/offer-card';
+import { resolveImageUrl } from '@/lib/utils';
 
 export default function StoreDetailsPage() {
   const { id } = useParams();
@@ -32,7 +33,7 @@ export default function StoreDetailsPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل بيانات المتجر...</div>;
   if (!store) return <div className="text-center py-20 font-black">المتجر غير موجود</div>;
 
-  const logoUrl = store.logo ? (store.logo.startsWith('http') ? store.logo : `${BASE_URL}/${store.logo}`) : null;
+  const logoUrl = resolveImageUrl(store.logo);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
