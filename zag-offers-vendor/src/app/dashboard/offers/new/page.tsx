@@ -325,7 +325,7 @@ export default function NewOfferPage() {
                        <div className="flex items-center gap-2">
                           <span className="text-2xl font-black text-text tracking-tighter">
                             {showDiscountedPrice 
-                              ? `EGP ${!isNaN(discountedPrice) ? discountedPrice : '0.00'}` 
+                              ? `EGP ${discountedPrice}` 
                               : (formData.discount ? formData.discount : '0.00')}
                           </span>
                        </div>
