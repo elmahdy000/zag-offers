@@ -1,8 +1,9 @@
 'use client';
-import { useEffect, useState, useRef } from 'react';
+import { useEffect, useState } from 'react';
+import { createPortal } from 'react-dom';
 import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, CheckCheck } from 'lucide-react';
 import Link from 'next/link';
-import { usePathname, useRouter } from 'next/navigation';
+import { usePathname } from 'next/navigation';
 import { getCookie, deleteCookie } from '@/lib/api';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
@@ -34,7 +35,7 @@ function getNotifRoute(n: Notification): string {
   }
 }
 
-/* ── Notification Panel (rendered as fixed overlay, outside sidebar) ── */
+/* ── Notification Panel rendered via Portal directly in body ── */
 function NotificationPanel({
   notifications,
   onClose,
@@ -48,23 +49,39 @@ function NotificationPanel({
 }) {
   const unread = notifications.filter((n) => !n.isRead).length;
 
-  return (
+  const panel = (
     <>
-      {/* Backdrop */}
+      {/* Full-screen backdrop */}
       <div
-        className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[300]"
+        className="fixed inset-0 bg-black/50 backdrop-blur-sm"
+        style={{ zIndex: 9998 }}
         onClick={onClose}
       />
-      {/* Panel */}
+      {/* Notification panel */}
       <div
-        className="fixed top-4 left-4 right-4 sm:right-auto sm:left-auto sm:top-20 sm:w-96 bg-[#1a1a1a] border border-white/10 rounded-2xl shadow-2xl z-[301] flex flex-col"
         dir="rtl"
-        style={{ maxHeight: 'calc(100vh - 2rem)' }}
+        style={{
+          position: 'fixed',
+          zIndex: 9999,
+          top: '1rem',
+          right: '1rem',
+          left: '1rem',
+          maxHeight: 'calc(100vh - 2rem)',
+          display: 'flex',
+          flexDirection: 'column',
+          background: '#1a1a1a',
+          border: '1px solid rgba(255,255,255,0.1)',
+          borderRadius: '1.25rem',
+          boxShadow: '0 25px 60px rgba(0,0,0,0.6)',
+          overflow: 'hidden',
+        }}
+        // On larger screens, constrain width and position near sidebar bell
+        className="sm:!right-[18rem] sm:!left-auto sm:!w-[22rem] sm:!top-16"
       >
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 shrink-0">
           <div className="flex items-center gap-2">
-            <Bell size={16} className="text-primary" />
+            <Bell size={15} className="text-primary" />
             <span className="font-black text-white text-sm">الإشعارات</span>
             {unread > 0 && (
               <span className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-full">
@@ -86,16 +103,16 @@ function NotificationPanel({
               onClick={onClose}
               className="p-1.5 rounded-xl text-white/40 hover:text-white hover:bg-white/10 transition-all"
             >
-              <X size={16} />
+              <X size={15} />
             </button>
           </div>
         </div>
 
-        {/* List */}
+        {/* Scrollable list */}
         <div className="overflow-y-auto flex-1">
           {notifications.length === 0 ? (
-            <div className="py-12 text-center">
-              <Bell size={32} className="text-white/10 mx-auto mb-3" />
+            <div className="py-16 text-center">
+              <Bell size={36} className="text-white/10 mx-auto mb-3" />
               <p className="text-white/30 text-sm font-bold">لا توجد إشعارات</p>
             </div>
           ) : (
@@ -104,16 +121,18 @@ function NotificationPanel({
                 key={n.id}
                 onClick={() => onNotifClick(n)}
                 className={`w-full text-right px-5 py-4 border-b border-white/[0.04] hover:bg-white/5 transition-colors flex items-start gap-3 ${
-                  n.isRead ? 'opacity-60' : ''
+                  n.isRead ? 'opacity-60' : 'bg-primary/5'
                 }`}
               >
-                {!n.isRead && (
-                  <span className="mt-1.5 w-2 h-2 rounded-full bg-primary flex-shrink-0" />
-                )}
-                <div className={`flex-1 min-w-0 ${n.isRead ? 'mr-5' : ''}`}>
-                  <p className="text-xs font-black text-white truncate">{n.title}</p>
+                <span
+                  className={`mt-2 w-2 h-2 rounded-full flex-shrink-0 transition-all ${
+                    n.isRead ? 'bg-transparent' : 'bg-primary'
+                  }`}
+                />
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs font-black text-white">{n.title}</p>
                   <p className="text-[11px] text-white/40 mt-0.5 leading-relaxed line-clamp-2">{n.body}</p>
-                  <p className="text-[10px] text-white/20 mt-1">
+                  <p className="text-[10px] text-white/20 mt-1.5">
                     {new Date(n.createdAt).toLocaleString('ar-EG', {
                       month: 'short', day: 'numeric',
                       hour: '2-digit', minute: '2-digit',
@@ -127,15 +146,20 @@ function NotificationPanel({
       </div>
     </>
   );
+
+  // Use portal to render directly in document.body — escapes ALL overflow/z-index contexts
+  if (typeof document === 'undefined') return null;
+  return createPortal(panel, document.body);
 }
 
 /* ── Main Sidebar ── */
 export default function Sidebar() {
   const pathname = usePathname();
-  const router = useRouter();
-
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [showBell, setShowBell] = useState(false);
+  const [mounted, setMounted] = useState(false);
+
+  useEffect(() => { setMounted(true); }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const getToken = () => getCookie('auth_token');
@@ -178,7 +202,7 @@ export default function Sidebar() {
       try {
         const token = getToken();
         if (token) {
-          await fetch(`${API_URL}/api/notifications/${n.id}/read`, {
+          fetch(`${API_URL}/api/notifications/${n.id}/read`, {
             method: 'PATCH',
             headers: { Authorization: `Bearer ${token}` },
           }).catch(() => {});
@@ -186,7 +210,6 @@ export default function Sidebar() {
       } catch { /* silent */ }
     }
     setShowBell(false);
-    // Use window.location for reliable navigation
     window.location.href = getNotifRoute(n);
   };
 
@@ -217,8 +240,8 @@ export default function Sidebar() {
 
   return (
     <>
-      {/* Notification Panel — outside aside to avoid overflow-hidden clipping */}
-      {showBell && (
+      {/* Portal-based notification panel — rendered in document.body */}
+      {mounted && showBell && (
         <NotificationPanel
           notifications={notifications}
           onClose={() => setShowBell(false)}
@@ -240,7 +263,6 @@ export default function Sidebar() {
             </div>
           </div>
 
-          {/* Bell button */}
           <button
             onClick={() => setShowBell((v) => !v)}
             className="relative p-2 rounded-xl text-text-dim hover:text-white hover:bg-white/5 transition-all"
@@ -255,7 +277,7 @@ export default function Sidebar() {
           </button>
         </div>
 
-        {/* Nav Links */}
+        {/* Nav */}
         <nav className="flex-1 px-4 space-y-2 mt-4 overflow-y-auto">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
@@ -263,11 +285,9 @@ export default function Sidebar() {
               <Link
                 key={item.href}
                 href={item.href}
-                className={`sidebar-item ${
-                  isActive
-                    ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                    : 'text-text-dim hover:bg-white/5 hover:text-white'
-                }`}
+                className={`sidebar-item ${isActive
+                  ? 'bg-primary text-white shadow-lg shadow-primary/20'
+                  : 'text-text-dim hover:bg-white/5 hover:text-white'}`}
               >
                 <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
                 <span className={isActive ? 'font-black' : 'font-bold'}>{item.name}</span>

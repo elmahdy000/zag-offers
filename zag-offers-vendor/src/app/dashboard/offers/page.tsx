@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Tag, Edit3, Trash2, Plus, Eye, Clock, Calendar, MoreVertical, TrendingUp, Users } from 'lucide-react';
+import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers } from 'lucide-react';
 import Link from 'next/link';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
 import { DashboardSkeleton } from '@/components/Skeleton';
@@ -9,18 +9,120 @@ import { motion } from 'framer-motion';
 interface Offer {
   id: string;
   title: string;
+  discount: string;
   status: string;
   views: number;
+  endDate: string;
   createdAt: string;
   images: string[];
-  _count: {
-    coupons: number;
-  };
+  store?: { category?: { name: string } };
+  _count: { coupons: number };
+}
+
+const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.ReactNode; order: number }> = {
+  PENDING:  { label: 'قيد المراجعة', color: 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20', icon: <AlertCircle size={12} />, order: 1 },
+  ACTIVE:   { label: 'نشط الآن',     color: 'bg-green-500/10  text-green-400  border-green-500/20',  icon: <CheckCircle2 size={12} />, order: 2 },
+  PAUSED:   { label: 'متوقف',        color: 'bg-blue-500/10   text-blue-400   border-blue-500/20',   icon: <PauseCircle size={12} />, order: 3 },
+  REJECTED: { label: 'مرفوض',        color: 'bg-red-500/10    text-red-400    border-red-500/20',    icon: <XCircle size={12} />, order: 4 },
+  EXPIRED:  { label: 'منتهي',        color: 'bg-white/5       text-text-dim   border-white/5',       icon: <Clock size={12} />, order: 5 },
+};
+
+function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) => void }) {
+  const cfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.EXPIRED;
+  const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / 86_400_000);
+  const isExpired = daysLeft <= 0;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="glass rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all flex flex-col"
+    >
+      {/* Image */}
+      <div className="relative h-40 bg-white/5 overflow-hidden">
+        {offer.images?.length > 0 ? (
+          <img
+            src={resolveImageUrl(offer.images[0])}
+            alt={offer.title}
+            className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          />
+        ) : (
+          <div className="w-full h-full flex items-center justify-center">
+            <Tag size={40} className="text-white/5" />
+          </div>
+        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+
+        {/* Discount badge */}
+        {offer.discount && (
+          <div className="absolute bottom-3 right-3 bg-primary text-white text-xs font-black px-3 py-1 rounded-xl shadow-lg">
+            {offer.discount}
+          </div>
+        )}
+
+        {/* Status badge */}
+        <div className={`absolute top-3 left-3 flex items-center gap-1 px-3 py-1 rounded-full text-[10px] font-black border backdrop-blur-md ${cfg.color}`}>
+          {cfg.icon}
+          {cfg.label}
+        </div>
+      </div>
+
+      {/* Content */}
+      <div className="p-5 flex-1 flex flex-col gap-4">
+        <h3 className="text-base font-black text-white group-hover:text-primary transition-colors line-clamp-2 leading-snug">
+          {offer.title}
+        </h3>
+
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+            <p className="text-[9px] font-black text-text-dim uppercase tracking-widest mb-1 flex items-center gap-1">
+              <TrendingUp size={9} className="text-primary" /> مشاهدات
+            </p>
+            <p className="text-lg font-black text-white">{offer.views || 0}</p>
+          </div>
+          <div className="bg-white/5 rounded-xl p-3 border border-white/5">
+            <p className="text-[9px] font-black text-text-dim uppercase tracking-widest mb-1 flex items-center gap-1">
+              <Users size={9} className="text-green-500" /> كوبونات
+            </p>
+            <p className="text-lg font-black text-white">{offer._count?.coupons || 0}</p>
+          </div>
+        </div>
+
+        {/* Expiry */}
+        <div className={`flex items-center gap-2 text-[11px] font-bold px-3 py-2 rounded-xl ${
+          isExpired ? 'bg-red-500/10 text-red-400' :
+          daysLeft <= 3 ? 'bg-yellow-500/10 text-yellow-400' :
+          'bg-white/5 text-text-dim'
+        }`}>
+          <Calendar size={12} className="shrink-0" />
+          {isExpired ? 'انتهت صلاحية العرض' : `ينتهي بعد ${daysLeft} يوم`}
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="px-4 pb-4 flex gap-2">
+        <Link
+          href={`/dashboard/offers/${offer.id}/edit`}
+          className="flex-1 bg-white/5 hover:bg-white/10 text-white py-3 rounded-xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2"
+        >
+          <Edit3 size={13} /> تعديل
+        </Link>
+        <button
+          onClick={() => onDelete(offer.id)}
+          className="w-12 bg-red-500/10 hover:bg-red-500 text-red-400 hover:text-white rounded-xl flex items-center justify-center transition-all"
+        >
+          <Trash2 size={15} />
+        </button>
+      </div>
+    </motion.div>
+  );
 }
 
 export default function OffersListPage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeFilter, setActiveFilter] = useState<string>('ALL');
 
   useEffect(() => {
     vendorApi()
@@ -30,122 +132,114 @@ export default function OffersListPage() {
       .finally(() => setLoading(false));
   }, []);
 
-  const getStatusLabel = (status: string) => {
-    const map: Record<string, string> = {
-      'ACTIVE': 'نشط الآن',
-      'PENDING': 'قيد المراجعة',
-      'REJECTED': 'مرفوض',
-      'EXPIRED': 'منتهي',
-      'PAUSED': 'متوقف'
-    };
-    return map[status] || status;
-  };
-
-  const getStatusColor = (status: string) => {
-    if (status === 'ACTIVE') return 'bg-green-500/10 text-green-500 border-green-500/20';
-    if (status === 'REJECTED') return 'bg-red-500/10 text-red-500 border-red-500/20';
-    if (status === 'PENDING') return 'bg-yellow-500/10 text-yellow-500 border-yellow-500/20';
-    return 'bg-white/5 text-text-dim border-white/5';
+  const handleDelete = async (id: string) => {
+    if (!confirm('هل تريد حذف هذا العرض؟')) return;
+    try {
+      await vendorApi().delete(`/offers/${id}`);
+      setOffers((prev) => prev.filter((o) => o.id !== id));
+    } catch {
+      alert('فشل الحذف، حاول مرة أخرى');
+    }
   };
 
   if (loading) return <DashboardSkeleton />;
 
+  // Filters
+  const filters = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'];
+  const filtered = activeFilter === 'ALL' ? offers : offers.filter(o => o.status === activeFilter);
+
+  // Group by category
+  const grouped = filtered.reduce<Record<string, Offer[]>>((acc, offer) => {
+    const cat = offer.store?.category?.name || 'عروض أخرى';
+    if (!acc[cat]) acc[cat] = [];
+    acc[cat].push(offer);
+    return acc;
+  }, {});
+
+  const counts: Record<string, number> = { ALL: offers.length };
+  filters.slice(1).forEach(s => { counts[s] = offers.filter(o => o.status === s).length; });
+
   return (
-    <div className="p-8 dir-rtl animate-in max-w-7xl mx-auto">
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-12">
+    <div className="p-6 md:p-8 dir-rtl animate-in max-w-7xl mx-auto">
+      {/* Header */}
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-end gap-6 mb-10">
         <div>
-          <h1 className="text-4xl font-black text-white tracking-tight">إدارة العروض</h1>
-          <p className="text-text-dim mt-2 font-bold flex items-center gap-2">
-            <Tag size={16} className="text-primary" />
-            لديك <span className="text-white">{offers.length}</span> عرضاً مضافاً
+          <h1 className="text-3xl font-black text-white tracking-tight">إدارة العروض</h1>
+          <p className="text-text-dim mt-1.5 font-bold flex items-center gap-2 text-sm">
+            <Tag size={14} className="text-primary" />
+            {offers.length} عرض إجمالي — {offers.filter(o => o.status === 'ACTIVE').length} نشط
           </p>
         </div>
-        <Link href="/dashboard/offers/new" className="bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 w-full md:w-auto justify-center">
-          <Plus size={20} />
-          إضافة عرض جديد
+        <Link
+          href="/dashboard/offers/new"
+          className="bg-primary text-white px-6 py-3.5 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2 w-full md:w-auto justify-center"
+        >
+          <Plus size={18} /> إضافة عرض جديد
         </Link>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-8">
-        {offers.length === 0 ? (
-          <div className="col-span-full py-24 glass rounded-[3rem] flex flex-col items-center justify-center text-center">
-            <div className="w-24 h-24 bg-white/5 rounded-full flex items-center justify-center mb-6">
-               <Tag size={40} className="text-white/10" />
-            </div>
-            <h3 className="text-2xl font-black text-white mb-2">لا توجد عروض حالياً</h3>
-            <p className="text-text-dim max-w-sm font-medium">ابدأ الآن بإضافة أول عرض لمتجرك واجذب العملاء!</p>
-          </div>
-        ) : (
-          offers.map((offer, i) => (
-            <motion.div
-              initial={{ opacity: 0, y: 20 }}
-              animate={{ opacity: 1, y: 0 }}
-              transition={{ delay: i * 0.1 }}
-              key={offer.id}
-              className="glass rounded-[2.5rem] overflow-hidden group hover:border-primary/30 transition-all flex flex-col"
+      {/* Status Filters */}
+      <div className="flex gap-2 overflow-x-auto pb-3 mb-8 scrollbar-none">
+        {filters.map(f => {
+          const cfg = f === 'ALL' ? null : STATUS_CONFIG[f];
+          const label = f === 'ALL' ? 'الكل' : cfg?.label || f;
+          const count = counts[f] || 0;
+          const isActive = activeFilter === f;
+          return (
+            <button
+              key={f}
+              onClick={() => setActiveFilter(f)}
+              className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-black whitespace-nowrap border transition-all shrink-0 ${
+                isActive
+                  ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20'
+                  : 'bg-white/5 text-text-dim border-white/5 hover:border-white/20'
+              }`}
             >
-              {/* Image Header */}
-              <div className="relative h-48 bg-white/5 overflow-hidden">
-                {offer.images && offer.images.length > 0 ? (
-                  <img 
-                    src={resolveImageUrl(offer.images[0])} 
-                    alt={offer.title}
-                    className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-                  />
-                ) : (
-                  <div className="w-full h-full flex items-center justify-center text-white/5">
-                    <Tag size={48} />
-                  </div>
-                )}
-                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-transparent to-transparent" />
-                <div className="absolute top-4 right-4">
-                   <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest border backdrop-blur-md ${getStatusColor(offer.status)}`}>
-                    {getStatusLabel(offer.status)}
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-8 flex-1">
-                <div className="flex justify-between items-start mb-4">
-                  <h3 className="text-2xl font-black text-white group-hover:text-primary transition-colors line-clamp-1 flex-1">{offer.title}</h3>
-                  <button className="text-white/10 hover:text-white transition-colors mr-2">
-                    <MoreVertical size={20} />
-                  </button>
-                </div>
-                
-                <div className="grid grid-cols-2 gap-4 mb-6">
-                   <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                      <p className="text-[10px] font-black text-text-dim uppercase tracking-widest mb-1 flex items-center gap-2">
-                        <TrendingUp size={10} className="text-primary" /> المشاهدات
-                      </p>
-                      <p className="text-xl font-black text-white">{offer.views || 0}</p>
-                   </div>
-                   <div className="bg-white/5 rounded-2xl p-4 border border-white/5">
-                      <p className="text-[10px] font-black text-text-dim uppercase tracking-widest mb-1 flex items-center gap-2">
-                         <Users size={10} className="text-green-500" /> الطلبات
-                      </p>
-                      <p className="text-xl font-black text-white">{offer._count?.coupons || 0}</p>
-                   </div>
-                </div>
-
-                <div className="flex items-center gap-3 text-text-dim text-xs font-bold bg-white/5 p-4 rounded-2xl">
-                  <Calendar size={14} className="text-primary" />
-                  <span>تاريخ البدء: {new Date(offer.createdAt).toLocaleDateString('ar-EG')}</span>
-                </div>
-              </div>
-
-              <div className="p-4 bg-white/[0.02] border-t border-white/5 flex gap-3">
-                 <button className="flex-1 bg-white/5 hover:bg-white/10 text-white py-4 rounded-2xl font-black text-xs uppercase tracking-widest transition-all flex items-center justify-center gap-2">
-                    <Edit3 size={14} /> تعديل
-                 </button>
-                 <button className="w-14 bg-red-500/10 hover:bg-red-500 text-red-500 hover:text-white rounded-2xl flex items-center justify-center transition-all group/del">
-                    <Trash2 size={18} className="group-hover/del:scale-110 transition-transform" />
-                 </button>
-              </div>
-            </motion.div>
-          ))
-        )}
+              {cfg?.icon}
+              {label}
+              <span className={`px-1.5 py-0.5 rounded-md text-[10px] font-black ${isActive ? 'bg-white/20' : 'bg-white/5'}`}>
+                {count}
+              </span>
+            </button>
+          );
+        })}
       </div>
+
+      {/* Content */}
+      {filtered.length === 0 ? (
+        <div className="py-24 glass rounded-[2.5rem] flex flex-col items-center justify-center text-center">
+          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mb-5">
+            <Tag size={36} className="text-white/10" />
+          </div>
+          <h3 className="text-xl font-black text-white mb-2">لا توجد عروض</h3>
+          <p className="text-text-dim font-medium text-sm">
+            {activeFilter === 'ALL' ? 'ابدأ بإضافة أول عرض لمتجرك' : `لا يوجد عروض بحالة "${STATUS_CONFIG[activeFilter]?.label}"`}
+          </p>
+        </div>
+      ) : (
+        /* Grouped by category */
+        Object.entries(grouped).map(([category, catOffers]) => (
+          <div key={category} className="mb-12">
+            {/* Category header */}
+            <div className="flex items-center gap-3 mb-5">
+              <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                <Layers size={16} className="text-primary" />
+              </div>
+              <h2 className="text-lg font-black text-white">{category}</h2>
+              <span className="text-xs font-black text-text-dim bg-white/5 px-2.5 py-1 rounded-lg border border-white/5">
+                {catOffers.length} عرض
+              </span>
+              <div className="flex-1 h-px bg-white/5" />
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {catOffers.map((offer) => (
+                <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} />
+              ))}
+            </div>
+          </div>
+        ))
+      )}
     </div>
   );
 }
