@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Tag, ArrowLeft, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
+import Link from 'next/link';
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <Utensils size={40} />,
