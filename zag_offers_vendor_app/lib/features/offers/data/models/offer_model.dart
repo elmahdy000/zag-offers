@@ -12,11 +12,13 @@ class OfferModel extends OfferEntity {
     required super.endDate,
     super.usageLimit,
     required super.status,
-    this.oldPrice,
-    this.newPrice,
-    this.rejectionReason,
-    this.viewCount = 0,
-    this.isFeatured = false,
+    required super.storeId,
+    super.oldPrice,
+    super.newPrice,
+    super.rejectionReason,
+    super.viewCount = 0,
+    super.couponsCount = 0,
+    super.isFeatured = false,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -40,6 +42,7 @@ class OfferModel extends OfferEntity {
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       rejectionReason: json['rejectionReason'],
       viewCount: json['viewCount'] ?? 0,
+      couponsCount: json['couponsCount'] ?? (json['_count']?['coupons'] ?? 0),
       isFeatured: json['isFeatured'] ?? false,
     );
   }

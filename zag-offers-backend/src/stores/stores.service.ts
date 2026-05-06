@@ -105,27 +105,38 @@ export class StoresService {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    const [activeOffers, scansToday, recentCoupons] = await Promise.all([
-      this.prisma.offer.count({
-        where: { storeId: store.id, status: 'ACTIVE' },
-      }),
-      this.prisma.coupon.count({
-        where: {
-          offer: { storeId: store.id },
-          status: 'USED',
-          redeemedAt: { gte: startOfDay },
-        },
-      }),
-      this.prisma.coupon.findMany({
-        where: {
-          offer: { storeId: store.id },
-          status: 'USED',
-        },
-        orderBy: { redeemedAt: 'desc' },
-        take: 5,
-        include: { customer: true, offer: true },
-      }),
-    ]);
+    const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons] =
+      await Promise.all([
+        this.prisma.offer.count({
+          where: { storeId: store.id, status: 'ACTIVE' },
+        }),
+        this.prisma.coupon.count({
+          where: {
+            offer: { storeId: store.id },
+            status: 'USED',
+            redeemedAt: { gte: startOfDay },
+          },
+        }),
+        this.prisma.coupon.count({
+          where: {
+            offer: { storeId: store.id },
+            createdAt: { gte: startOfDay },
+          },
+        }),
+        this.prisma.coupon.count({
+          where: {
+            offer: { storeId: store.id },
+          },
+        }),
+        this.prisma.coupon.findMany({
+          where: {
+            offer: { storeId: store.id },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 5,
+          include: { customer: true, offer: true },
+        }),
+      ]);
 
     return {
       storeName: store.name,
@@ -133,7 +144,17 @@ export class StoresService {
       storeStatus: store.status,
       activeOffers,
       scansToday,
-      recentCoupons,
+      claimsToday,
+      totalClaims,
+      recentCoupons: recentCoupons.map((c) => ({
+        id: c.id,
+        code: c.code,
+        status: c.status,
+        createdAt: c.createdAt,
+        redeemedAt: c.redeemedAt,
+        offerTitle: c.offer.title,
+        customerName: c.customer.name,
+      })),
     };
   }
 

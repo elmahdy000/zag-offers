@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
@@ -106,19 +107,11 @@ class StoreDetailPage extends StatelessWidget {
                   color: Colors.white,
                   shape: BoxShape.circle,
                 ),
-                child: CircleAvatar(
-                  radius: 60,
-                  backgroundColor: Colors.grey[100],
-                  backgroundImage: store.logo != null
-                      ? NetworkImage(store.logo!)
-                      : null,
-                  child: store.logo == null
-                      ? const Icon(
-                          Icons.storefront_rounded,
-                          size: 60,
-                          color: AppColors.primary,
-                        )
-                      : null,
+                child: NetworkImageWidget(
+                  imageUrl: store.logo,
+                  width: 120,
+                  height: 120,
+                  borderRadius: BorderRadius.circular(60),
                 ),
               ),
             ),
@@ -285,16 +278,12 @@ class StoreDetailPage extends StatelessWidget {
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
-        leading: Container(
+        leading: SizedBox(
           width: 56,
           height: 56,
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
+          child: NetworkImageWidget(
+            imageUrl: offer.image,
             borderRadius: BorderRadius.circular(12),
-          ),
-          child: const Icon(
-            Icons.local_offer_rounded,
-            color: AppColors.primary,
           ),
         ),
         title: Text(

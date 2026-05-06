@@ -202,21 +202,76 @@ class _SearchPageState extends State<SearchPage> {
           }
 
           if (state is OffersError) {
+            final isConnectionError = state.message.toLowerCase().contains('connection') || 
+                                     state.message.toLowerCase().contains('network') ||
+                                     state.message.toLowerCase().contains('socket');
+
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    size: 64,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.message,
-                    style: const TextStyle(color: Colors.grey),
-                  ),
-                ],
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                        size: 64,
+                        color: AppColors.error,
+                      ),
+                    ),
+                    const SizedBox(height: 24),
+                    Text(
+                      isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isConnectionError 
+                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                          : state.message,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.read<OffersBloc>().add(SearchOffers(_searchController.text)),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.refresh_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'إعادة المحاولة',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -291,8 +346,8 @@ class _SearchPageState extends State<SearchPage> {
     if (filtered.isEmpty) {
       return _buildEmptyState(
         icon: Icons.local_offer_outlined,
-        title: 'لا توجد عروض مطابقة الآن',
-        subtitle: 'جرّب تغيير التصنيف أو إعادة ضبط الفلاتر.',
+        title: 'لا توجد عروض مطابقة',
+        subtitle: 'جرّب تغيير التصنيف أو إعادة ضبط الفلاتر لتجد ما تبحث عنه.',
       );
     }
 
@@ -311,7 +366,7 @@ class _SearchPageState extends State<SearchPage> {
       return _buildEmptyState(
         icon: Icons.search_off_rounded,
         title: 'لم نعثر على نتائج',
-        subtitle: 'جرّب كلمات مختلفة أو خفّف الفلاتر الحالية.',
+        subtitle: 'جرّب كلمات مختلفة أو خفّف الفلاتر الحالية للحصول على نتائج أفضل.',
       );
     }
 
@@ -328,8 +383,8 @@ class _SearchPageState extends State<SearchPage> {
         final crossAxisCount = width >= 920
             ? 4
             : width >= 680
-                ? 3
-                : 2;
+                 ? 3
+                 : 2;
         final childAspectRatio = crossAxisCount >= 4
             ? 0.8
             : crossAxisCount == 3
@@ -370,24 +425,39 @@ class _SearchPageState extends State<SearchPage> {
   }) {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(40),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(icon, size: 72, color: Colors.grey[300]),
-            const SizedBox(height: 16),
-            Text(
-              title,
-              style: const TextStyle(
-                fontWeight: FontWeight.bold,
-                fontSize: 18,
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                icon,
+                size: 64,
+                color: AppColors.primary,
               ),
             ),
-            const SizedBox(height: 8),
+            const SizedBox(height: 24),
+            Text(
+              title,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+              ),
+            ),
+            const SizedBox(height: 12),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: const TextStyle(color: AppColors.textSecondary),
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
             ),
           ],
         ),

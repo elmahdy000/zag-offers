@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-
 import 'package:zag_offers_app/core/theme/app_colors.dart';
-
+import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
 import '../constants/offer_categories.dart';
 import 'all_offers_page.dart';
 
@@ -82,14 +81,9 @@ class CategoriesPage extends StatelessWidget {
                             ),
                             child: ClipOval(
                               child: category.image != null
-                                  ? Image.network(
-                                      category.image!,
+                                  ? NetworkImageWidget(
+                                      imageUrl: category.image!,
                                       fit: BoxFit.cover,
-                                      errorBuilder: (_, __, ___) => Icon(
-                                        category.icon,
-                                        color: category.color,
-                                        size: 34,
-                                      ),
                                     )
                                   : Icon(
                                       category.icon,

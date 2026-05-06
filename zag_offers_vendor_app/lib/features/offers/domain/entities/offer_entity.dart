@@ -16,6 +16,7 @@ class OfferEntity extends Equatable {
   final double? newPrice;
   final String? rejectionReason;
   final int viewCount;
+  final int couponsCount;
   final bool isFeatured;
 
   const OfferEntity({
@@ -34,6 +35,7 @@ class OfferEntity extends Equatable {
     this.newPrice,
     this.rejectionReason,
     this.viewCount = 0,
+    this.couponsCount = 0,
     this.isFeatured = false,
   });
 
@@ -54,6 +56,7 @@ class OfferEntity extends Equatable {
         newPrice,
         rejectionReason,
         viewCount,
+        couponsCount,
         isFeatured,
       ];
 }

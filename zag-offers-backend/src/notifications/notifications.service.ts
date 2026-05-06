@@ -17,7 +17,14 @@ export class NotificationsService implements OnModuleInit {
   constructor(private prisma: PrismaService) {}
 
   private sanitizeImageUrl(imageUrl?: string): string | undefined {
-    return imageUrl ? imageUrl.replace(/([^:])\/\//g, '$1/') : undefined;
+    if (!imageUrl) return undefined;
+    try {
+      const url = new URL(imageUrl);
+      url.pathname = url.pathname.replace(/\/\/+/g, '/');
+      return url.toString();
+    } catch {
+      return imageUrl;
+    }
   }
 
   private parseServiceAccount(value: string): admin.ServiceAccount | undefined {
@@ -25,7 +32,6 @@ export class NotificationsService implements OnModuleInit {
     if (!parsed || typeof parsed !== 'object') {
       return undefined;
     }
-
     return parsed;
   }
 
@@ -36,11 +42,9 @@ export class NotificationsService implements OnModuleInit {
           const serviceAccount = this.parseServiceAccount(
             process.env.FIREBASE_SERVICE_ACCOUNT_JSON,
           );
-
           if (!serviceAccount) {
             throw new Error('Invalid Firebase service account');
           }
-
           admin.initializeApp({
             credential: admin.credential.cert(serviceAccount),
           });
@@ -58,6 +62,10 @@ export class NotificationsService implements OnModuleInit {
       );
       this.logger.debug(`Firebase init error: ${(error as Error).message}`);
     }
+  }
+
+  isReady(): boolean {
+    return this.isFirebaseReady;
   }
 
   async getUserNotifications(userId: string) {
@@ -129,16 +137,39 @@ export class NotificationsService implements OnModuleInit {
   }
 
   async saveFcmToken(userId: string, token: string): Promise<void> {
+    // Read old token before overwriting so we can unsubscribe stale topics
+    const existing = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { fcmToken: true, area: true },
+    });
+
     await this.prisma.user.update({
       where: { id: userId },
       data: { fcmToken: token },
     });
 
-    if (!this.isFirebaseReady) {
-      return;
-    }
+    if (!this.isFirebaseReady) return;
 
     try {
+      // Unsubscribe old token if the device token changed
+      if (existing?.fcmToken && existing.fcmToken !== token) {
+        try {
+          await admin
+            .messaging()
+            .unsubscribeFromTopic([existing.fcmToken], 'all_users');
+          if (existing.area) {
+            await admin
+              .messaging()
+              .unsubscribeFromTopic(
+                [existing.fcmToken],
+                `area_${existing.area.replace(/\s+/g, '_')}`,
+              );
+          }
+        } catch {
+          // Ignore stale-token unsubscribe errors
+        }
+      }
+
       await admin.messaging().subscribeToTopic([token], 'all_users');
 
       const user = await this.prisma.user.findUnique({
@@ -163,9 +194,7 @@ export class NotificationsService implements OnModuleInit {
       select: { fcmToken: true, area: true },
     });
 
-    if (!user?.fcmToken) {
-      return;
-    }
+    if (!user?.fcmToken) return;
 
     if (this.isFirebaseReady) {
       try {
@@ -182,7 +211,7 @@ export class NotificationsService implements OnModuleInit {
             );
         }
       } catch {
-        // ignore unsubscribe failure
+        // Ignore unsubscribe failure
       }
     }
 
@@ -198,11 +227,7 @@ export class NotificationsService implements OnModuleInit {
     data?: Record<string, string>,
     imageUrl?: string,
   ): Promise<void> {
-    if (!this.isFirebaseReady) {
-      // Still save to DB even if Firebase is disabled
-    }
-
-    // Save to DB
+    // Save to DB for all users
     try {
       const allUsers = await this.prisma.user.findMany({
         select: { id: true },
@@ -222,7 +247,6 @@ export class NotificationsService implements OnModuleInit {
 
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
-
       const message: admin.messaging.Message = {
         notification: {
           title,
@@ -251,7 +275,6 @@ export class NotificationsService implements OnModuleInit {
           fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
-
       this.logger.debug(
         `Sending FCM broadcast to all_users. Payload: ${JSON.stringify(message)}`,
       );
@@ -274,7 +297,7 @@ export class NotificationsService implements OnModuleInit {
   ): Promise<void> {
     if (!area) return;
 
-    // Save to DB
+    // Save to DB for users in this area
     try {
       const usersInArea = await this.prisma.user.findMany({
         where: { area },
@@ -291,14 +314,11 @@ export class NotificationsService implements OnModuleInit {
       );
     }
 
-    if (!this.isFirebaseReady) {
-      return;
-    }
+    if (!this.isFirebaseReady) return;
 
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
       const topic = `area_${area.replace(/\s+/g, '_')}`;
-
       const message: admin.messaging.Message = {
         notification: {
           title,
@@ -325,7 +345,6 @@ export class NotificationsService implements OnModuleInit {
           fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
-
       this.logger.debug(
         `Sending FCM area broadcast to ${topic}. Payload: ${JSON.stringify(message)}`,
       );
@@ -348,7 +367,7 @@ export class NotificationsService implements OnModuleInit {
   ): Promise<boolean> {
     if (!fcmToken) return false;
 
-    // Save to DB
+    // Save to DB (look up user by token)
     try {
       const user = await this.prisma.user.findFirst({ where: { fcmToken } });
       if (user) {
@@ -364,9 +383,7 @@ export class NotificationsService implements OnModuleInit {
       );
     }
 
-    if (!this.isFirebaseReady) {
-      return false;
-    }
+    if (!this.isFirebaseReady) return false;
 
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
@@ -394,14 +411,13 @@ export class NotificationsService implements OnModuleInit {
           fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
-
       await admin.messaging().send(message);
       return true;
     } catch (error) {
-      const message = (error as Error).message;
+      const msg = (error as Error).message;
       const isInvalidToken =
-        message.includes('registration-token-not-registered') ||
-        message.includes('Requested entity was not found');
+        msg.includes('registration-token-not-registered') ||
+        msg.includes('Requested entity was not found');
       if (isInvalidToken) {
         await this.prisma.user.updateMany({
           where: { fcmToken },
@@ -409,37 +425,98 @@ export class NotificationsService implements OnModuleInit {
         });
         return false;
       }
-      this.logger.error(`sendToUser failed: ${message}`);
+      this.logger.error(`sendToUser failed: ${msg}`);
       return false;
     }
   }
 
+  /**
+   * Send a notification to a user by userId.
+   * Always persists to DB — even if the user has no FCM token.
+   * Only sends a push if FCM token is registered.
+   */
   async sendToUserId(
     userId: string,
     notification: NotificationPayload,
   ): Promise<void> {
+    // DB persistence is unconditional — user sees the notification in-app regardless
+    await this.saveNotification(userId, notification, notification.data?.type);
+
+    if (!this.isFirebaseReady) return;
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
       select: { fcmToken: true },
     });
 
-    if (!user?.fcmToken) {
-      return;
-    }
+    if (!user?.fcmToken) return;
 
-    await this.sendToUser(
-      user.fcmToken,
-      notification.title,
-      notification.body,
-      notification.data,
-      notification.imageUrl,
-    );
+    // Send FCM push without re-saving to DB (already saved above)
+    try {
+      const sanitizedImageUrl = this.sanitizeImageUrl(notification.imageUrl);
+      const message: admin.messaging.Message = {
+        notification: {
+          title: notification.title,
+          body: notification.body,
+          ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
+        },
+        token: user.fcmToken,
+        data: {
+          ...(notification.data || {}),
+          ...(sanitizedImageUrl
+            ? { image: sanitizedImageUrl, imageUrl: sanitizedImageUrl }
+            : {}),
+        },
+        android: {
+          priority: 'high',
+          notification: {
+            sound: 'default',
+            channelId: 'offers_channel',
+            imageUrl: sanitizedImageUrl,
+          },
+        },
+        apns: {
+          payload: {
+            aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
+          },
+          fcmOptions: { imageUrl: sanitizedImageUrl },
+        },
+      };
+      await admin.messaging().send(message);
+    } catch (error) {
+      const msg = (error as Error).message;
+      if (
+        msg.includes('registration-token-not-registered') ||
+        msg.includes('Requested entity was not found')
+      ) {
+        await this.prisma.user.update({
+          where: { id: userId },
+          data: { fcmToken: null },
+        });
+      }
+      this.logger.error(`sendToUserId FCM failed for user ${userId}: ${msg}`);
+    }
   }
 
+  /**
+   * Send a notification to multiple users by userId[].
+   * Always persists to DB for ALL users upfront — regardless of FCM token status.
+   */
   async sendToUserIds(
     userIds: string[],
     notification: NotificationPayload,
   ): Promise<{ sent: number; skipped: number }> {
+    if (userIds.length === 0) return { sent: 0, skipped: 0 };
+
+    // DB persistence is unconditional and bulk
+    await this.saveNotificationsForUsers(
+      userIds,
+      notification,
+      notification.data?.type,
+    );
+
+    if (!this.isFirebaseReady) return { sent: 0, skipped: userIds.length };
+
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
       select: { id: true, fcmToken: true },
@@ -447,26 +524,61 @@ export class NotificationsService implements OnModuleInit {
 
     let sent = 0;
     let skipped = 0;
+
     for (const user of users) {
       if (!user.fcmToken) {
         skipped += 1;
         continue;
       }
-      const ok = await this.sendToUser(
-        user.fcmToken,
-        notification.title,
-        notification.body,
-        notification.data,
-        notification.imageUrl,
-      );
-      if (ok) {
+
+      // Send FCM push without re-saving to DB
+      try {
+        const sanitizedImageUrl = this.sanitizeImageUrl(notification.imageUrl);
+        const message: admin.messaging.Message = {
+          notification: {
+            title: notification.title,
+            body: notification.body,
+            ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
+          },
+          token: user.fcmToken,
+          data: {
+            ...(notification.data || {}),
+            ...(sanitizedImageUrl
+              ? { image: sanitizedImageUrl, imageUrl: sanitizedImageUrl }
+              : {}),
+          },
+          android: {
+            priority: 'high',
+            notification: {
+              sound: 'default',
+              channelId: 'offers_channel',
+              imageUrl: sanitizedImageUrl,
+            },
+          },
+          apns: {
+            payload: {
+              aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
+            },
+            fcmOptions: { imageUrl: sanitizedImageUrl },
+          },
+        };
+        await admin.messaging().send(message);
         sent += 1;
-      } else {
+      } catch (error) {
+        const msg = (error as Error).message;
+        if (
+          msg.includes('registration-token-not-registered') ||
+          msg.includes('Requested entity was not found')
+        ) {
+          await this.prisma.user.update({
+            where: { id: user.id },
+            data: { fcmToken: null },
+          });
+        }
         skipped += 1;
       }
     }
 
-    // Include user IDs that were not found in DB
     const notFound = Math.max(0, userIds.length - users.length);
     skipped += notFound;
 
@@ -541,9 +653,5 @@ export class NotificationsService implements OnModuleInit {
       `حصل العميل "${customerName}" على كوبون لعرض "${offerTitle}".`,
       { type: 'COUPON_GENERATED' },
     );
-  }
-
-  isReady(): boolean {
-    return this.isFirebaseReady;
   }
 }

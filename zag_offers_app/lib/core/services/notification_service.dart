@@ -10,62 +10,45 @@ import '../../features/offers/presentation/pages/offer_loading_page.dart';
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static String? _fcmToken;
+  static String? _lastSubscribedArea;
 
   static String? get currentToken => _fcmToken;
 
   static Future<void> initialize() async {
-    // طلب الإذن (iOS + Android 13+)
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
       sound: true,
-      provisional: false,
     );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized ||
-        settings.authorizationStatus == AuthorizationStatus.provisional) {
-      debugPrint('✅ Notification permission granted');
-
-      // الاشتراك في القناة العامة لكل المستخدمين
+    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
       await _messaging.subscribeToTopic('all_users');
-
-      // جلب الـ FCM Token
       _fcmToken = await _messaging.getToken();
-      debugPrint('📱 FCM Token: $_fcmToken');
-
-      // حفظ التوكن محلياً
+      
       if (_fcmToken != null) {
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('fcm_token', _fcmToken!);
+        
+        // Load last subscribed area from storage to sync
+        _lastSubscribedArea = prefs.getString('last_area_topic');
       }
-    } else {
-      debugPrint('⚠️ Notification permission denied');
     }
 
-    // مستمع للتوكن عند تحديثه (Token Refresh)
     _messaging.onTokenRefresh.listen((newToken) async {
-      debugPrint('🔄 FCM Token refreshed');
       _fcmToken = newToken;
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString('fcm_token', newToken);
-      // أرسل التوكن الجديد للسيرفر لو المستخدم مسجل دخوله
       await _sendTokenToServer(newToken);
     });
 
-    // الرسائل أثناء فتح التطبيق (Foreground)
     FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-
-    // الضغط على الإشعار لفتح التطبيق من Background
     FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-    // لو التطبيق اتفتح من Terminated بسبب إشعار
     final initialMessage = await _messaging.getInitialMessage();
     if (initialMessage != null) {
       _handleNotificationTap(initialMessage);
     }
   }
-
-  // ─── إرسال التوكن للـ Backend (بعد login) ────────────────────────────────
 
   static Future<void> sendTokenToBackend() async {
     _fcmToken ??= await _messaging.getToken();
@@ -78,85 +61,92 @@ class NotificationService {
     try {
       final prefs = await SharedPreferences.getInstance();
       final authToken = prefs.getString('auth_token');
-      if (authToken == null) return; // المستخدم مش مسجل دخول
+      if (authToken == null) return;
 
       await di.sl<ApiClient>().dio.post(
         '/notifications/fcm-token',
         data: {'fcmToken': token},
       );
-      debugPrint('✅ FCM token sent to backend');
-    } catch (e) {
-      debugPrint('❌ Failed to send FCM token: $e');
-    }
+    } catch (_) {}
   }
 
   static Future<void> removeTokenFromBackend() async {
     try {
       await di.sl<ApiClient>().dio.delete('/notifications/fcm-token');
+      if (_lastSubscribedArea != null) {
+        await unsubscribeFromArea(_lastSubscribedArea);
+      }
       await _messaging.deleteToken();
       _fcmToken = null;
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('fcm_token');
-      debugPrint('✅ FCM token removed');
-    } catch (e) {
-      debugPrint('❌ Failed to remove FCM token: $e');
-    }
+      await prefs.remove('last_area_topic');
+    } catch (_) {}
   }
-
-  // ─── Area Subscription ──────────────────────────────────────────────────
 
   static Future<void> subscribeToArea(String? area) async {
     if (area == null || area.isEmpty) return;
     try {
-      final topic = 'area_${area.trim().replaceAll(' ', '_')}';
+      final prefs = await SharedPreferences.getInstance();
+      final topic = _formatTopic(area);
+
+      // Unsubscribe from old area if different
+      if (_lastSubscribedArea != null && _lastSubscribedArea != topic) {
+        await _messaging.unsubscribeFromTopic(_lastSubscribedArea!);
+      }
+
       await _messaging.subscribeToTopic(topic);
-      debugPrint('📍 Subscribed to area: $topic');
+      _lastSubscribedArea = topic;
+      await prefs.setString('last_area_topic', topic);
+      debugPrint('📍 Area Sync: Subscribed to $topic');
     } catch (e) {
-      debugPrint('❌ Error subscribing to area: $e');
+      debugPrint('❌ Area Sync Error: $e');
     }
   }
 
   static Future<void> unsubscribeFromArea(String? area) async {
     if (area == null || area.isEmpty) return;
     try {
-      final topic = 'area_${area.trim().replaceAll(' ', '_')}';
+      final topic = _formatTopic(area);
       await _messaging.unsubscribeFromTopic(topic);
     } catch (_) {}
   }
 
-  // ─── Message Handlers ────────────────────────────────────────────────────
+  static String _formatTopic(String name) {
+    return 'area_${name.trim().replaceAll(' ', '_')}';
+  }
 
   static void _handleForegroundMessage(RemoteMessage message) {
-    debugPrint('📩 Foreground message: ${message.notification?.title}');
-    final title = message.notification?.title ?? 'إشعار جديد';
+    final title = message.notification?.title ?? 'تحديث جديد';
     final body = message.notification?.body ?? '';
     
-    // إرسال الإشعار لـ BLoC ليظهر كـ SnackBar
     di.sl<NotificationBloc>().add(
       GeneralNotificationReceived(title: title, body: body),
     );
   }
 
   static void _handleNotificationTap(RemoteMessage message) {
-    debugPrint('Notification tapped: ${message.data}');
-    final type = message.data['type'];
-    final id = message.data['offerId'] ?? message.data['storeId'];
+    final data = message.data;
+    final type = data['type'];
+    final id = data['offerId'] ?? data['storeId'];
     
-    if (type == 'NEW_OFFER' && id != null) {
+    debugPrint('🔔 Navigating from notification: $type (ID: $id)');
+
+    if ((type == 'NEW_OFFER' || type == 'OFFER_APPROVED') && id != null) {
       _navigateToOffer(id);
-    } else if (type == 'OFFER_APPROVED' && id != null) {
-      _navigateToOffer(id);
-    } else if (type == 'COUPON_REDEEMED') {
-      // التوجيه لصفحة الكوبونات
-      final context = NavigationService.navigatorKey.currentContext;
-      if (context != null) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/coupons', (route) => route.isFirst);
-      }
-    } else if (type == 'DIGEST_NEW_OFFERS') {
-      final context = NavigationService.navigatorKey.currentContext;
-      if (context != null) {
-        Navigator.of(context).pushNamedAndRemoveUntil('/', (route) => false);
-      }
+    } else if (type == 'COUPON_REDEEMED' || type == 'NEW_COUPON') {
+      _navigateNamed('/coupons');
+    } else if (type == 'STORE_APPROVED') {
+       _navigateNamed('/'); // Refresh home
+    } else {
+       _navigateNamed('/');
+    }
+  }
+
+  static void _navigateNamed(String route) {
+    final context = NavigationService.navigatorKey.currentContext;
+    if (context != null) {
+      Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => r.isFirst);
     }
   }
 
@@ -169,3 +159,4 @@ class NotificationService {
     }
   }
 }
+

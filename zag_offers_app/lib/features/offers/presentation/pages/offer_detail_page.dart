@@ -7,6 +7,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../injection_container.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../../../coupons/presentation/bloc/coupons_bloc.dart';
@@ -214,27 +215,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     return Stack(
       fit: StackFit.expand,
       children: [
-        hasImages
-            ? Image.network(
-                images[_selectedImageIndex],
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: AppColors.primary,
-                  child: Icon(
-                    CategoryUtils.getIcon(widget.offer.store.category),
-                    size: 100,
-                    color: Colors.white24,
-                  ),
-                ),
-              )
-            : Container(
-                color: AppColors.primary,
-                child: Icon(
-                  CategoryUtils.getIcon(widget.offer.store.category),
-                  size: 100,
-                  color: Colors.white24,
-                ),
-              ),
+        NetworkImageWidget(
+          imageUrl: images.isNotEmpty ? images[_selectedImageIndex] : widget.offer.image,
+          fit: BoxFit.cover,
+        ),
         const DecoratedBox(
           decoration: BoxDecoration(color: Colors.black26),
         ),
@@ -654,17 +638,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 ),
               ),
               clipBehavior: Clip.antiAlias,
-              child: Image.network(
-                images[index],
+              child: NetworkImageWidget(
+                imageUrl: images[index],
                 fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Container(
-                  color: Colors.grey[100],
-                  child: const Icon(
-                    Icons.image_not_supported_rounded,
-                    color: Colors.grey,
-                    size: 20,
-                  ),
-                ),
               ),
             ),
           );

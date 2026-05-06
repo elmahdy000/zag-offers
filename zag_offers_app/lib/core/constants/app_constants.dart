@@ -12,7 +12,7 @@ class AppConstants {
   ///   flutter run --dart-define=BASE_URL=http://192.168.1.100:3001/api
   static const String baseUrl = String.fromEnvironment(
     'BASE_URL',
-    defaultValue: 'http://192.168.1.18:3001/api',
+    defaultValue: 'https://api.zagoffers.online/api',
   );
 
   static String get socketUrl {

@@ -142,6 +142,9 @@ export class OffersService {
             },
           },
         },
+        _count: {
+          select: { coupons: true }
+        }
       },
     });
 
@@ -176,7 +179,12 @@ export class OffersService {
     return this.prisma.offer.findMany({
       where: { storeId: store.id },
       orderBy: { createdAt: 'desc' },
-      include: { store: true },
+      include: { 
+        store: true,
+        _count: {
+          select: { coupons: true }
+        }
+      },
     });
   }
 

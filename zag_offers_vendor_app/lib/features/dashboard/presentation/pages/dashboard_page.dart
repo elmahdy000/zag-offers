@@ -1,13 +1,4 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:google_fonts/google_fonts.dart';
-import 'package:intl/intl.dart';
-import 'package:zag_offers_vendor_app/features/offers/presentation/pages/add_edit_offer_page.dart';
-import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/main_layout.dart';
-import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
-import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
-import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
-import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
+import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -22,6 +13,7 @@ class DashboardPage extends StatelessWidget {
     });
 
     return RefreshIndicator(
+      color: AppColors.primary,
       onRefresh: () async {
         context.read<DashboardBloc>().add(GetDashboardStatsRequested());
       },
@@ -34,7 +26,7 @@ class DashboardPage extends StatelessWidget {
                 // Header
                 SliverToBoxAdapter(
                   child: Container(
-                    padding: const EdgeInsets.all(24.0),
+                    padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
                     decoration: const BoxDecoration(
                       color: AppColors.primary,
                       borderRadius: BorderRadius.only(
@@ -55,30 +47,46 @@ class DashboardPage extends StatelessWidget {
                                   'مرحباً بك،',
                                   style: GoogleFonts.cairo(
                                     color: Colors.white70,
-                                    fontSize: 16,
+                                    fontSize: 14,
                                   ),
                                 ),
                                 Text(
                                   user?.name ?? 'تاجرنا المميز',
                                   style: GoogleFonts.cairo(
                                     color: Colors.white,
-                                    fontSize: 24,
+                                    fontSize: 22,
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
                               ],
                             ),
-                            Container(
-                              padding: const EdgeInsets.all(12),
-                              decoration: BoxDecoration(
-                                color: Colors.white.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(16),
-                              ),
-                              child: const Icon(
-                                Icons.notifications_none_rounded,
-                                color: Colors.white,
-                                size: 28,
-                              ),
+                            Stack(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.all(10),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(14),
+                                  ),
+                                  child: const Icon(
+                                    Icons.notifications_none_rounded,
+                                    color: Colors.white,
+                                    size: 26,
+                                  ),
+                                ),
+                                Positioned(
+                                  right: 8,
+                                  top: 8,
+                                  child: Container(
+                                    width: 8,
+                                    height: 8,
+                                    decoration: const BoxDecoration(
+                                      color: AppColors.accent,
+                                      shape: BoxShape.circle,
+                                    ),
+                                  ),
+                                ),
+                              ],
                             ),
                           ],
                         ),
@@ -96,7 +104,18 @@ class DashboardPage extends StatelessWidget {
                                 color: AppColors.accent,
                               ),
                             ),
-                            const SizedBox(width: 16),
+                            const SizedBox(width: 12),
+                            Expanded(
+                              child: _buildStatCard(
+                                title: 'طلبات اليوم',
+                                value: state is DashboardLoaded
+                                    ? state.stats.claimsToday.toString()
+                                    : '...',
+                                icon: Icons.confirmation_num_outlined,
+                                color: AppColors.primaryLight,
+                              ),
+                            ),
+                            const SizedBox(width: 12),
                             Expanded(
                               child: _buildStatCard(
                                 title: 'مسح اليوم',
@@ -114,7 +133,7 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
                 // Quick Actions
                 SliverToBoxAdapter(
@@ -142,7 +161,7 @@ class DashboardPage extends StatelessWidget {
                               onTap: () {
                                 Navigator.push(
                                   context,
-                                  MaterialPageRoute(builder: (context) => AddEditOfferPage()),
+                                  MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
                                 );
                               },
                             ),
@@ -151,7 +170,6 @@ class DashboardPage extends StatelessWidget {
                               'التحليلات',
                               AppColors.secondary,
                               onTap: () {
-                                // التغيير للتبويب الثالث (التقارير)
                                 (context.findAncestorStateOfType<MainLayoutState>())?.setIndex(2);
                               },
                             ),
@@ -178,7 +196,7 @@ class DashboardPage extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
-                // Recent Activity
+                // Recent Activity Header
                 SliverToBoxAdapter(
                   child: Padding(
                     padding: const EdgeInsets.symmetric(horizontal: 24.0),
@@ -186,19 +204,24 @@ class DashboardPage extends StatelessWidget {
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'أحدث الكوبونات المستخدمة',
+                          'أحدث النشاطات',
                           style: GoogleFonts.cairo(
                             fontSize: 18,
                             fontWeight: FontWeight.bold,
                             color: AppColors.textPrimary,
                           ),
                         ),
-                        Text(
-                          'عرض الكل',
-                          style: GoogleFonts.cairo(
-                            fontSize: 14,
-                            color: AppColors.secondary,
-                            fontWeight: FontWeight.bold,
+                        TextButton(
+                          onPressed: () {
+                            (context.findAncestorStateOfType<MainLayoutState>())?.setIndex(2);
+                          },
+                          child: Text(
+                            'عرض الكل',
+                            style: GoogleFonts.cairo(
+                              fontSize: 14,
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
                       ],
@@ -206,12 +229,12 @@ class DashboardPage extends StatelessWidget {
                   ),
                 ),
 
-                const SliverToBoxAdapter(child: SizedBox(height: 16)),
+                const SliverToBoxAdapter(child: SizedBox(height: 8)),
 
                 if (state is DashboardLoading)
                   const SliverToBoxAdapter(
                     child: Padding(
-                      padding: EdgeInsets.all(32.0),
+                      padding: EdgeInsets.symmetric(horizontal: 24, vertical: 16),
                       child: DashboardSkeleton(),
                     ),
                   )
@@ -222,43 +245,49 @@ class DashboardPage extends StatelessWidget {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          Icon(
-                            Icons.error_outline,
-                            size: 64,
-                            color: Colors.red[300],
-                          ),
+                          Icon(Icons.cloud_off_rounded, size: 64, color: Colors.grey[400]),
                           const SizedBox(height: 16),
                           Text(
+                            'تعذر جلب البيانات',
+                            style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold),
+                          ),
+                          Text(
                             state.message,
-                            style: GoogleFonts.cairo(
-                              fontSize: 16,
-                              color: Colors.grey[700],
-                            ),
+                            style: GoogleFonts.cairo(color: Colors.grey[600]),
                             textAlign: TextAlign.center,
                           ),
-                          const SizedBox(height: 16),
-                          ElevatedButton.icon(
+                          const SizedBox(height: 24),
+                          ElevatedButton(
                             onPressed: () => context.read<DashboardBloc>().add(GetDashboardStatsRequested()),
-                            icon: const Icon(Icons.refresh),
-                            label: const Text('إعادة المحاولة'),
                             style: ElevatedButton.styleFrom(
                               backgroundColor: AppColors.primary,
-                              foregroundColor: Colors.white,
+                              padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                             ),
+                            child: const Text('إعادة المحاولة'),
                           ),
                         ],
                       ),
                     ),
                   )
-                else if (state is DashboardLoaded &&
-                    state.stats.recentCoupons.isEmpty)
+                else if (state is DashboardLoaded && state.stats.recentCoupons.isEmpty)
                   SliverToBoxAdapter(
                     child: Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(32.0),
-                        child: Text(
-                          'لا يوجد نشاط مؤخراً',
-                          style: GoogleFonts.cairo(color: AppColors.textSecondary),
+                        padding: const EdgeInsets.all(48.0),
+                        child: Column(
+                          children: [
+                            Icon(Icons.receipt_long_outlined, size: 64, color: Colors.grey[300]),
+                            const SizedBox(height: 16),
+                            Text(
+                              'لا توجد نشاطات بعد',
+                              style: GoogleFonts.cairo(
+                                color: AppColors.textSecondary,
+                                fontSize: 16,
+                                fontWeight: FontWeight.w500,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
                     ),
@@ -268,35 +297,29 @@ class DashboardPage extends StatelessWidget {
                     delegate: SliverChildBuilderDelegate(
                       (context, index) {
                         final coupon = state.stats.recentCoupons[index];
+                        final isUsed = coupon.status == 'USED';
+
                         return Padding(
-                          padding: const EdgeInsets.symmetric(
-                            horizontal: 24.0,
-                            vertical: 8.0,
-                          ),
+                          padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 8.0),
                           child: Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
                               color: AppColors.card,
-                              borderRadius: BorderRadius.circular(16),
-                              boxShadow: [
-                                BoxShadow(
-                                  color: Colors.black.withValues(alpha: 0.03),
-                                  blurRadius: 10,
-                                  offset: const Offset(0, 4),
-                                ),
-                              ],
+                              borderRadius: BorderRadius.circular(20),
+                              border: Border.all(color: AppColors.border),
                             ),
                             child: Row(
                               children: [
                                 Container(
-                                  padding: const EdgeInsets.all(12),
+                                  padding: const EdgeInsets.all(10),
                                   decoration: BoxDecoration(
-                                    color: AppColors.success.withValues(alpha: 0.1),
-                                    shape: BoxShape.circle,
+                                    color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(12),
                                   ),
-                                  child: const Icon(
-                                    Icons.check_circle_outline,
-                                    color: AppColors.success,
+                                  child: Icon(
+                                    isUsed ? Icons.check_circle_outline : Icons.confirmation_num_outlined,
+                                    color: isUsed ? AppColors.success : AppColors.primary,
+                                    size: 24,
                                   ),
                                 ),
                                 const SizedBox(width: 16),
@@ -305,37 +328,53 @@ class DashboardPage extends StatelessWidget {
                                     crossAxisAlignment: CrossAxisAlignment.start,
                                     children: [
                                       Text(
-                                        'كوبون #${coupon.code}',
-                                        style: GoogleFonts.cairo(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 16,
-                                        ),
-                                      ),
-                                      Text(
                                         coupon.offerTitle,
                                         style: GoogleFonts.cairo(
-                                          color: AppColors.textSecondary,
-                                          fontSize: 13,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                          height: 1.2,
                                         ),
                                         maxLines: 1,
                                         overflow: TextOverflow.ellipsis,
                                       ),
+                                      const SizedBox(height: 4),
                                       Text(
-                                        'العميل: ${coupon.customerName}',
+                                        'بواسطة: ${coupon.customerName}',
                                         style: GoogleFonts.cairo(
                                           color: AppColors.textSecondary,
-                                          fontSize: 11,
+                                          fontSize: 12,
                                         ),
                                       ),
                                     ],
                                   ),
                                 ),
-                                Text(
-                                  DateFormat('HH:mm').format(coupon.redeemedAt),
-                                  style: GoogleFonts.cairo(
-                                    color: AppColors.textSecondary,
-                                    fontSize: 12,
-                                  ),
+                                Column(
+                                  crossAxisAlignment: CrossAxisAlignment.end,
+                                  children: [
+                                    Container(
+                                      padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                                      decoration: BoxDecoration(
+                                        color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+                                        borderRadius: BorderRadius.circular(6),
+                                      ),
+                                      child: Text(
+                                        isUsed ? 'تم المسح' : 'تم الطلب',
+                                        style: GoogleFonts.cairo(
+                                          color: isUsed ? AppColors.success : AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ),
+                                    const SizedBox(height: 4),
+                                    Text(
+                                      TimeUtils.getRelativeTime(isUsed ? (coupon.redeemedAt ?? coupon.createdAt) : coupon.createdAt),
+                                      style: GoogleFonts.cairo(
+                                        color: AppColors.textSecondary,
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ],
                             ),
@@ -345,9 +384,7 @@ class DashboardPage extends StatelessWidget {
                       childCount: state.stats.recentCoupons.length,
                     ),
                   ),
-                const SliverToBoxAdapter(
-                  child: SizedBox(height: 100),
-                ), // Bottom padding for FAB
+                const SliverToBoxAdapter(child: SizedBox(height: 100)),
               ],
             ),
           );

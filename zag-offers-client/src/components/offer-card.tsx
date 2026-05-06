@@ -2,26 +2,27 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Heart } from 'lucide-react';
+import { MapPin, Heart, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Tool } from 'lucide-react';
 import Link from 'next/link';
 import { BASE_URL } from '@/lib/constants';
+import { resolveImageUrl } from '@/lib/utils';
 
 interface OfferCardProps {
   offer: any;
 }
 
-const CAT_ICONS: Record<string, string> = {
-  'مطاعم':         '🍔',
-  'كافيهات':       '☕',
-  'ملابس':         '👗',
-  'جيم':           '💪',
-  'تجميل':         '💅',
-  'عيادات':        '🏥',
-  'سوبرماركت':    '🛒',
-  'دورات':         '📚',
-  'خدمات سيارات': '🚗',
-  'خدمات محلية':  '🔧',
-  'default':       '🏷️',
+const CAT_ICONS: Record<string, React.ReactNode> = {
+  'مطاعم':         <Utensils size={14} />,
+  'كافيهات':       <Coffee size={14} />,
+  'ملابس':         <Shirt size={14} />,
+  'جيم':           <Dumbbell size={14} />,
+  'تجميل':         <Sparkles size={14} />,
+  'عيادات':        <Hospital size={14} />,
+  'سوبرماركت':    <ShoppingCart size={14} />,
+  'دورات':         <BookOpen size={14} />,
+  'خدمات سيارات': <Car size={14} />,
+  'خدمات محلية':  <Tool size={14} />,
+  'default':       <Sparkles size={14} />,
 };
 
 const CAT_GRADIENTS: Record<string, string> = {
@@ -41,11 +42,7 @@ export function OfferCard({ offer }: OfferCardProps) {
     (new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
 
-  const logoUrl = offer.store?.logo
-    ? offer.store.logo.startsWith('http')
-      ? offer.store.logo
-      : `${BASE_URL}/${offer.store.logo}`
-    : null;
+  const logoUrl = resolveImageUrl(offer.store?.logo);
 
   const catName = offer.store?.category?.name || '';
   const catIcon = CAT_ICONS[catName] || CAT_ICONS.default;
@@ -79,6 +76,10 @@ export function OfferCard({ offer }: OfferCardProps) {
     } catch {}
   };
 
+  const offerImage = offer.images && offer.images.length > 0
+    ? resolveImageUrl(offer.images[0])
+    : null;
+
   return (
     <motion.div
       whileHover={{ y: -5, transition: { duration: 0.2 } }}
@@ -88,15 +89,29 @@ export function OfferCard({ offer }: OfferCardProps) {
     >
       {/* ─── Header ─────────────────────────────────── */}
       <div className={`relative h-40 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+        
+        {/* Background Image if exists */}
+        {offerImage && (
+          <img 
+            src={offerImage} 
+            alt={offer.title} 
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-60" 
+          />
+        )}
+
+        {/* Overlay gradient to ensure text readability */}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/20" />
 
         {/* dot pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.04]"
-          style={{
-            backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
-            backgroundSize: '32px 32px',
-          }}
-        />
+        {!offerImage && (
+          <div
+            className="absolute inset-0 opacity-[0.04]"
+            style={{
+              backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
+              backgroundSize: '32px 32px',
+            }}
+          />
+        )}
 
         {/* Featured */}
         {offer.featured && (
@@ -132,7 +147,7 @@ export function OfferCard({ offer }: OfferCardProps) {
                         flex items-center justify-center flex-shrink-0">
           {logoUrl
             ? <img src={logoUrl} alt={offer.store?.name} className="w-full h-full object-cover" />
-            : <span className="text-xl">{catIcon}</span>
+            : <div className="text-white/20">{catIcon}</div>
           }
         </div>
       </div>
@@ -142,7 +157,7 @@ export function OfferCard({ offer }: OfferCardProps) {
 
         {/* Category */}
         {catName && (
-          <span className="text-[11px] font-black text-[#FF6B00] uppercase tracking-wider">
+          <span className="text-[11px] font-black text-[#FF6B00] uppercase tracking-wider flex items-center gap-1.5">
             {catIcon} {catName}
           </span>
         )}
@@ -153,11 +168,19 @@ export function OfferCard({ offer }: OfferCardProps) {
           {offer.title}
         </h3>
 
-        {/* Store */}
-        <p className="text-[12px] text-[#9A9A9A] font-semibold flex items-center gap-1.5">
-          <span className="text-[10px]">🏪</span>
-          {offer.store?.name}
-        </p>
+        {/* Store & Social Proof */}
+        <div className="flex items-center justify-between">
+          <p className="text-[12px] text-[#9A9A9A] font-semibold flex items-center gap-1.5">
+            <span className="text-[10px]">🏪</span>
+            {offer.store?.name}
+          </p>
+          {(offer._count?.coupons || 0) > 0 && (
+            <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded-md flex items-center gap-1">
+              <span>🔥</span>
+              {offer._count.coupons} طلب
+            </span>
+          )}
+        </div>
 
         {/* Meta */}
         <div className="mt-auto pt-3 border-t border-white/[0.07] flex items-center justify-between gap-2">

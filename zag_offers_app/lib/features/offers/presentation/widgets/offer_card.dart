@@ -3,6 +3,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 import '../../domain/entities/offer_entity.dart';
 import 'favorite_button.dart';
 
@@ -57,13 +58,10 @@ class OfferCard extends StatelessWidget {
       children: [
         AspectRatio(
           aspectRatio: 1.35,
-          child: offer.image != null && offer.image!.isNotEmpty
-              ? Image.network(
-                  offer.image!,
-                  fit: BoxFit.cover,
-                  errorBuilder: (_, __, ___) => _buildImageFallback(),
-                )
-              : _buildImageFallback(),
+          child: NetworkImageWidget(
+            imageUrl: offer.image,
+            fit: BoxFit.cover,
+          ),
         ),
         Positioned(
           top: 10,

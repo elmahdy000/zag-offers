@@ -17,10 +17,20 @@ function resolveApiUrl() {
   }
 
   // SSR fallback.
-  return 'http://localhost:3001/api';
+  return 'https://api.zagoffers.online/api';
 }
 
 const API_URL = resolveApiUrl();
+
+/** تحويل المسار النسبي لصورة إلى رابط كامل */
+export function resolveImageUrl(path: string | null | undefined): string {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  // استخراج الدومين الأساسي من API_URL (إزالة /api)
+  const baseDomain = API_URL.replace(/\/api$/, '');
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseDomain}${cleanPath}`;
+}
 
 /** Read a cookie value from browser */
 export function getCookie(name: string): string | null {

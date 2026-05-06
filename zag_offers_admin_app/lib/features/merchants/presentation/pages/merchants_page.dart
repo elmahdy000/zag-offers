@@ -1,10 +1,11 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/merchants/domain/entities/merchant.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/bloc/merchants_bloc.dart';
 import 'package:zag_offers_admin_app/core/widgets/bottom_sheet.dart';
+import 'package:zag_offers_admin_app/core/widgets/network_image.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/widgets/merchant_card.dart';
 
@@ -165,18 +166,46 @@ class _MerchantsPageState extends State<MerchantsPage> {
 
             if (filtered.isEmpty) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(Icons.storefront, size: 64, color: Colors.grey[300]),
-                    const SizedBox(height: 16),
-                    Text(
-                      _searchQuery.isNotEmpty
-                          ? 'لا يوجد تجار يطابقون "$_searchQuery"'
-                          : 'لا يوجد تجار حالياً',
-                      style: GoogleFonts.cairo(color: Colors.grey[500]),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: Colors.orange.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.storefront_rounded,
+                          size: 64,
+                          color: Colors.orange[400],
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        _searchQuery.isNotEmpty ? 'لم نعثر على نتائج' : 'لا يوجد تجار',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.cairo(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                          color: const Color(0xFF1E293B),
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _searchQuery.isNotEmpty 
+                            ? 'جرّب البحث بكلمات مختلفة للعثور على التاجر المطلوب.'
+                            : 'لا يوجد تجار مسجلين حالياً في النظام.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.cairo(
+                          color: Colors.blueGrey[600],
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -199,25 +228,79 @@ class _MerchantsPageState extends State<MerchantsPage> {
               ),
             );
           } else if (state is MerchantsError) {
+            final isConnectionError = state.message.toLowerCase().contains('connection') || 
+                                     state.message.toLowerCase().contains('network') ||
+                                     state.message.toLowerCase().contains('socket');
+
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                  const SizedBox(height: 12),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(color: Colors.red[700]),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<MerchantsBloc>().add(
-                      LoadMerchantsEvent(status: _selectedStatus),
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: Colors.red.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                        size: 64,
+                        color: Colors.red[400],
+                      ),
                     ),
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    Text(
+                      isConnectionError ? 'مشكلة في الاتصال' : 'حدث خطأ غير متوقع',
+                      style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        color: const Color(0xFF1E293B),
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      isConnectionError 
+                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                          : state.message,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.cairo(
+                        color: Colors.blueGrey[600],
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.read<MerchantsBloc>().add(
+                          LoadMerchantsEvent(status: _selectedStatus),
+                        ),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: const Color(0xFFFF6B00),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(Icons.refresh_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'إعادة المحاولة',
+                              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -255,14 +338,9 @@ class _MerchantsPageState extends State<MerchantsPage> {
                   ),
                   child: (merchant.logoUrl != null && merchant.logoUrl!.isNotEmpty)
                       ? ClipOval(
-                          child: Image.network(
-                            merchant.logoUrl!,
+                          child: NetworkImageWithPlaceholder(
+                            imageUrl: merchant.logoUrl!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
-                              Icons.store,
-                              size: 40,
-                              color: Colors.orange[400],
-                            ),
                           ),
                         )
                       : Icon(Icons.store, size: 40, color: Colors.orange[400]),

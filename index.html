@@ -1,0 +1,1315 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Zag Offers – عروض الزقازيق</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;500;600;700;800;900&display=swap" rel="stylesheet" />
+  <style>
+    /* ─── CSS Variables ─────────────────────────────────────── */
+    :root {
+      --orange:    #FF6B00;
+      --orange-lt: #FF8C35;
+      --orange-dk: #D95A00;
+      --dark:      #1A1A1A;
+      --dark2:     #242424;
+      --dark3:     #2E2E2E;
+      --green:     #00C853;
+      --green-dk:  #00A844;
+      --surface:   #1E1E1E;
+      --card:      #252525;
+      --border:    rgba(255,255,255,0.07);
+      --text:      #F0F0F0;
+      --text-muted:#9A9A9A;
+      --radius:    16px;
+      --radius-sm: 10px;
+      --shadow:    0 8px 32px rgba(0,0,0,0.45);
+      --glow:      0 0 24px rgba(255,107,0,0.25);
+    }
+
+    /* ─── Reset ─────────────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    html { scroll-behavior: smooth; }
+    body {
+      font-family: 'Cairo', sans-serif;
+      background: var(--dark);
+      color: var(--text);
+      min-height: 100vh;
+      overflow-x: hidden;
+    }
+
+    /* ─── Scrollbar ─────────────────────────────────────────── */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: var(--dark2); }
+    ::-webkit-scrollbar-thumb { background: var(--orange); border-radius: 99px; }
+
+    /* ─── Navbar ─────────────────────────────────────────────── */
+    .navbar {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0 clamp(16px, 4vw, 60px);
+      height: 68px;
+      background: rgba(26,26,26,0.85);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+      border-bottom: 1px solid var(--border);
+    }
+    .navbar-brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      text-decoration: none;
+    }
+    .brand-icon {
+      width: 38px;
+      height: 38px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      border-radius: 10px;
+      display: grid;
+      place-items: center;
+      font-size: 20px;
+      box-shadow: var(--glow);
+      flex-shrink: 0;
+    }
+    .brand-name {
+      font-size: 22px;
+      font-weight: 800;
+      color: var(--text);
+    }
+    .brand-name span { color: var(--orange); }
+    .navbar-search {
+      flex: 1;
+      max-width: 460px;
+      margin: 0 24px;
+      position: relative;
+    }
+    .navbar-search input {
+      width: 100%;
+      padding: 10px 18px 10px 44px;
+      background: var(--dark3);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      outline: none;
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .navbar-search input::placeholder { color: var(--text-muted); }
+    .navbar-search input:focus {
+      border-color: var(--orange);
+      box-shadow: 0 0 0 3px rgba(255,107,0,0.15);
+    }
+    .navbar-search .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-muted);
+      pointer-events: none;
+    }
+    .navbar-actions { display: flex; align-items: center; gap: 12px; }
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 20px;
+      border-radius: 99px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      border: none;
+      text-decoration: none;
+      transition: all .2s;
+    }
+    .btn-ghost {
+      background: transparent;
+      color: var(--text-muted);
+      border: 1px solid var(--border);
+    }
+    .btn-ghost:hover { color: var(--text); border-color: rgba(255,255,255,0.2); }
+    .btn-primary {
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      color: #fff;
+      box-shadow: 0 4px 14px rgba(255,107,0,0.35);
+    }
+    .btn-primary:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 6px 20px rgba(255,107,0,0.45);
+    }
+
+    /* ─── Hero ───────────────────────────────────────────────── */
+    .hero {
+      position: relative;
+      text-align: center;
+      padding: 72px clamp(16px, 4vw, 60px) 60px;
+      overflow: hidden;
+    }
+    .hero-bg {
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(ellipse 700px 400px at 50% -80px, rgba(255,107,0,0.18) 0%, transparent 70%),
+        radial-gradient(ellipse 400px 300px at 20% 100%, rgba(0,200,83,0.08) 0%, transparent 60%);
+      pointer-events: none;
+    }
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: rgba(255,107,0,0.12);
+      border: 1px solid rgba(255,107,0,0.3);
+      color: var(--orange);
+      border-radius: 99px;
+      padding: 5px 14px;
+      font-size: 13px;
+      font-weight: 600;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 5vw, 58px);
+      font-weight: 900;
+      line-height: 1.2;
+      margin-bottom: 16px;
+      letter-spacing: -0.5px;
+    }
+    .hero h1 span { color: var(--orange); }
+    .hero p {
+      font-size: clamp(15px, 1.8vw, 18px);
+      color: var(--text-muted);
+      max-width: 520px;
+      margin: 0 auto 36px;
+      line-height: 1.7;
+    }
+    .hero-search {
+      display: flex;
+      align-items: center;
+      max-width: 620px;
+      margin: 0 auto 20px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 6px 6px 6px 16px;
+      gap: 8px;
+      box-shadow: var(--shadow);
+      transition: border-color .2s, box-shadow .2s;
+    }
+    .hero-search:focus-within {
+      border-color: var(--orange);
+      box-shadow: var(--glow), var(--shadow);
+    }
+    .hero-search input {
+      flex: 1;
+      background: transparent;
+      border: none;
+      outline: none;
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+      font-size: 15px;
+    }
+    .hero-search input::placeholder { color: var(--text-muted); }
+    .hero-search .search-btn {
+      padding: 10px 22px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      border: none;
+      border-radius: 10px;
+      color: #fff;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      white-space: nowrap;
+    }
+    .hero-search .search-btn:hover { opacity: 0.9; transform: translateY(-1px); }
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      gap: clamp(20px, 4vw, 48px);
+      flex-wrap: wrap;
+      margin-top: 32px;
+    }
+    .hero-stat { text-align: center; }
+    .hero-stat .number {
+      font-size: clamp(22px, 3vw, 30px);
+      font-weight: 900;
+      color: var(--orange);
+    }
+    .hero-stat .label {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-top: 2px;
+    }
+
+    /* ─── Divider ────────────────────────────────────────────── */
+    .section-divider {
+      height: 1px;
+      background: linear-gradient(90deg, transparent, var(--border), transparent);
+      margin: 0 clamp(16px, 4vw, 60px);
+    }
+
+    /* ─── Filters Section ────────────────────────────────────── */
+    .filters-wrap {
+      padding: 28px clamp(16px, 4vw, 60px) 0;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    .filters-row {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      flex-wrap: wrap;
+    }
+    .filter-label {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      white-space: nowrap;
+    }
+    .categories-scroll {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 4px;
+      flex: 1;
+    }
+    .categories-scroll::-webkit-scrollbar { height: 3px; }
+    .cat-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 8px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      white-space: nowrap;
+      transition: all .2s;
+      flex-shrink: 0;
+    }
+    .cat-chip:hover { border-color: var(--orange); color: var(--orange); }
+    .cat-chip.active {
+      background: var(--orange);
+      border-color: var(--orange);
+      color: #fff;
+      box-shadow: 0 4px 12px rgba(255,107,0,0.35);
+    }
+    .select-filter {
+      padding: 9px 16px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--text);
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 600;
+      cursor: pointer;
+      outline: none;
+      transition: border-color .2s;
+      appearance: none;
+      -webkit-appearance: none;
+      padding-left: 32px;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='12' viewBox='0 0 24 24' fill='none' stroke='%239A9A9A' stroke-width='2.5'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: left 10px center;
+    }
+    .select-filter:focus { border-color: var(--orange); }
+    .select-filter option { background: var(--dark2); color: var(--text); }
+    .results-bar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+    .results-count {
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+    .results-count strong { color: var(--text); font-weight: 700; }
+    .sort-select {
+      padding: 7px 14px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text-muted);
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      cursor: pointer;
+      outline: none;
+      appearance: none;
+      -webkit-appearance: none;
+    }
+    .sort-select option { background: var(--dark2); }
+
+    /* ─── Offers Grid ────────────────────────────────────────── */
+    .offers-section {
+      padding: 24px clamp(16px, 4vw, 60px) 60px;
+    }
+    .offers-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(min(100%, 300px), 1fr));
+      gap: 20px;
+    }
+
+    /* ─── Offer Card ─────────────────────────────────────────── */
+    .offer-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform .25s, box-shadow .25s, border-color .25s;
+      position: relative;
+      display: flex;
+      flex-direction: column;
+    }
+    .offer-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 16px 40px rgba(0,0,0,0.5);
+      border-color: rgba(255,107,0,0.3);
+    }
+    .offer-card-header {
+      position: relative;
+      height: 160px;
+      background: linear-gradient(135deg, var(--dark3), var(--dark2));
+      overflow: hidden;
+    }
+    .offer-card-bg {
+      position: absolute;
+      inset: 0;
+      background: linear-gradient(135deg, #2a1a00, #1a2a00, #001a2a);
+      opacity: 0.6;
+    }
+    .offer-card-header-pattern {
+      position: absolute;
+      inset: 0;
+      opacity: 0.04;
+      background-image:
+        radial-gradient(circle at 20% 30%, #fff 1px, transparent 1px),
+        radial-gradient(circle at 60% 70%, #fff 1px, transparent 1px),
+        radial-gradient(circle at 80% 20%, #fff 1px, transparent 1px);
+      background-size: 40px 40px;
+    }
+    .discount-badge {
+      position: absolute;
+      top: 14px;
+      right: 14px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      color: #fff;
+      font-size: 20px;
+      font-weight: 900;
+      padding: 6px 14px;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(255,107,0,0.5);
+      letter-spacing: 0.5px;
+      z-index: 2;
+    }
+    .featured-badge {
+      position: absolute;
+      top: 14px;
+      left: 14px;
+      background: linear-gradient(135deg, #FFD700, #FFA500);
+      color: #1a1a1a;
+      font-size: 11px;
+      font-weight: 800;
+      padding: 4px 10px;
+      border-radius: 99px;
+      z-index: 2;
+    }
+    .store-logo-wrap {
+      position: absolute;
+      bottom: -22px;
+      right: 16px;
+      z-index: 3;
+    }
+    .store-logo {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 3px solid var(--card);
+      background: var(--dark3);
+      object-fit: cover;
+      display: block;
+    }
+    .store-logo-placeholder {
+      width: 48px;
+      height: 48px;
+      border-radius: 12px;
+      border: 3px solid var(--card);
+      background: linear-gradient(135deg, var(--dark3), #3a3a3a);
+      display: grid;
+      place-items: center;
+      font-size: 22px;
+    }
+    .offer-card-body {
+      padding: 28px 16px 16px;
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .offer-category {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 11px;
+      font-weight: 700;
+      color: var(--orange);
+      text-transform: uppercase;
+      letter-spacing: 0.5px;
+    }
+    .offer-title {
+      font-size: 16px;
+      font-weight: 700;
+      color: var(--text);
+      line-height: 1.4;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    .offer-store {
+      font-size: 13px;
+      color: var(--text-muted);
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .offer-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-top: auto;
+      padding-top: 12px;
+      border-top: 1px solid var(--border);
+      flex-wrap: wrap;
+      gap: 6px;
+    }
+    .meta-item {
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      font-size: 12px;
+      color: var(--text-muted);
+    }
+    .meta-item svg { flex-shrink: 0; }
+    .expiry-soon { color: #FF6B6B !important; }
+    .get-coupon-btn {
+      width: 100%;
+      padding: 11px;
+      background: linear-gradient(135deg, rgba(255,107,0,0.12), rgba(255,107,0,0.06));
+      border: 1px solid rgba(255,107,0,0.25);
+      border-radius: 10px;
+      color: var(--orange);
+      font-family: 'Cairo', sans-serif;
+      font-size: 13px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      margin-top: 10px;
+      text-align: center;
+    }
+    .get-coupon-btn:hover {
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      color: #fff;
+      border-color: var(--orange);
+      box-shadow: 0 4px 14px rgba(255,107,0,0.4);
+    }
+
+    /* ─── Skeleton ───────────────────────────────────────────── */
+    .skeleton {
+      background: linear-gradient(90deg, var(--dark3) 25%, #363636 50%, var(--dark3) 75%);
+      background-size: 200% 100%;
+      animation: shimmer 1.4s infinite;
+      border-radius: 8px;
+    }
+    @keyframes shimmer {
+      0%   { background-position: 200% 0; }
+      100% { background-position: -200% 0; }
+    }
+    .skeleton-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      overflow: hidden;
+    }
+    .skeleton-img { height: 160px; border-radius: 0; }
+    .skeleton-body { padding: 32px 16px 16px; display: flex; flex-direction: column; gap: 12px; }
+    .skeleton-line { height: 14px; }
+    .skeleton-line.sm { width: 40%; }
+    .skeleton-line.md { width: 70%; }
+    .skeleton-line.lg { width: 90%; }
+    .skeleton-btn { height: 40px; margin-top: 12px; border-radius: 10px; }
+
+    /* ─── Empty / Error States ───────────────────────────────── */
+    .state-container {
+      grid-column: 1 / -1;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 80px 20px;
+      text-align: center;
+      gap: 16px;
+    }
+    .state-icon {
+      width: 80px;
+      height: 80px;
+      background: var(--dark3);
+      border-radius: 50%;
+      display: grid;
+      place-items: center;
+      font-size: 36px;
+      margin-bottom: 8px;
+    }
+    .state-title { font-size: 20px; font-weight: 700; color: var(--text); }
+    .state-msg { font-size: 14px; color: var(--text-muted); max-width: 320px; line-height: 1.6; }
+    .state-action {
+      margin-top: 8px;
+      padding: 10px 24px;
+      background: linear-gradient(135deg, var(--orange), var(--orange-dk));
+      color: #fff;
+      border: none;
+      border-radius: 99px;
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .state-action:hover { opacity: 0.9; transform: translateY(-1px); }
+
+    /* ─── Load More ──────────────────────────────────────────── */
+    .load-more-wrap {
+      display: flex;
+      justify-content: center;
+      margin-top: 32px;
+    }
+    .load-more-btn {
+      padding: 13px 40px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 99px;
+      color: var(--text-muted);
+      font-family: 'Cairo', sans-serif;
+      font-size: 14px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all .2s;
+    }
+    .load-more-btn:hover {
+      border-color: var(--orange);
+      color: var(--orange);
+    }
+    .load-more-btn:disabled {
+      opacity: 0.4;
+      cursor: default;
+    }
+
+    /* ─── Modal ──────────────────────────────────────────────── */
+    .modal-overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.75);
+      backdrop-filter: blur(8px);
+      z-index: 200;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .25s;
+    }
+    .modal-overlay.open { opacity: 1; pointer-events: all; }
+    .modal {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 20px;
+      width: 100%;
+      max-width: 500px;
+      max-height: 90vh;
+      overflow-y: auto;
+      padding: 32px;
+      position: relative;
+      transform: translateY(20px);
+      transition: transform .25s;
+    }
+    .modal-overlay.open .modal { transform: translateY(0); }
+    .modal-close {
+      position: absolute;
+      top: 16px;
+      left: 16px;
+      width: 32px;
+      height: 32px;
+      background: var(--dark3);
+      border: none;
+      border-radius: 50%;
+      color: var(--text-muted);
+      cursor: pointer;
+      font-size: 18px;
+      display: grid;
+      place-items: center;
+      transition: all .2s;
+    }
+    .modal-close:hover { background: #444; color: var(--text); }
+    .modal-discount {
+      font-size: 48px;
+      font-weight: 900;
+      color: var(--orange);
+      text-align: center;
+      margin-bottom: 8px;
+    }
+    .modal-title {
+      font-size: 22px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 6px;
+    }
+    .modal-store {
+      text-align: center;
+      color: var(--text-muted);
+      font-size: 14px;
+      margin-bottom: 20px;
+    }
+    .modal-divider { height: 1px; background: var(--border); margin: 20px 0; }
+    .modal-info-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    .modal-info-item {
+      background: var(--dark3);
+      border-radius: 12px;
+      padding: 14px;
+    }
+    .modal-info-label {
+      font-size: 11px;
+      color: var(--text-muted);
+      font-weight: 600;
+      margin-bottom: 4px;
+      text-transform: uppercase;
+    }
+    .modal-info-value { font-size: 15px; font-weight: 700; color: var(--text); }
+    .coupon-code-box {
+      background: rgba(0,200,83,0.08);
+      border: 2px dashed rgba(0,200,83,0.4);
+      border-radius: 14px;
+      padding: 20px;
+      text-align: center;
+      margin-bottom: 16px;
+    }
+    .coupon-label { font-size: 12px; color: var(--green); font-weight: 700; margin-bottom: 8px; }
+    .coupon-code {
+      font-size: 26px;
+      font-weight: 900;
+      letter-spacing: 4px;
+      color: var(--green);
+      font-family: monospace;
+    }
+    .coupon-hint { font-size: 11px; color: var(--text-muted); margin-top: 6px; }
+    .modal-cta {
+      width: 100%;
+      padding: 14px;
+      background: linear-gradient(135deg, var(--green), var(--green-dk));
+      border: none;
+      border-radius: 12px;
+      color: #fff;
+      font-family: 'Cairo', sans-serif;
+      font-size: 15px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all .2s;
+      box-shadow: 0 4px 16px rgba(0,200,83,0.35);
+    }
+    .modal-cta:hover { transform: translateY(-2px); box-shadow: 0 8px 24px rgba(0,200,83,0.4); }
+    .modal-login-hint {
+      text-align: center;
+      font-size: 12px;
+      color: var(--text-muted);
+      margin-top: 12px;
+      line-height: 1.6;
+    }
+    .modal-login-hint a { color: var(--orange); text-decoration: none; font-weight: 600; }
+
+    /* ─── Toast ──────────────────────────────────────────────── */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      left: 50%;
+      transform: translateX(-50%);
+      z-index: 999;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: center;
+    }
+    .toast {
+      background: var(--dark2);
+      border: 1px solid var(--border);
+      border-radius: 12px;
+      padding: 12px 20px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: var(--shadow);
+      animation: slideUp .3s ease;
+      white-space: nowrap;
+    }
+    .toast.success { border-color: rgba(0,200,83,0.4); color: var(--green); }
+    .toast.error   { border-color: rgba(255,107,107,0.4); color: #FF6B6B; }
+    @keyframes slideUp {
+      from { transform: translateY(16px); opacity: 0; }
+      to   { transform: translateY(0);   opacity: 1; }
+    }
+
+    /* ─── Footer ─────────────────────────────────────────────── */
+    .footer {
+      border-top: 1px solid var(--border);
+      padding: 32px clamp(16px, 4vw, 60px);
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+    .footer-brand { font-size: 18px; font-weight: 800; }
+    .footer-brand span { color: var(--orange); }
+    .footer-copy { font-size: 12px; color: var(--text-muted); }
+
+    /* ─── Live Indicator ─────────────────────────────────────── */
+    .live-dot {
+      display: inline-block;
+      width: 8px;
+      height: 8px;
+      background: var(--green);
+      border-radius: 50%;
+      animation: pulse 1.5s infinite;
+      margin-left: 6px;
+    }
+    @keyframes pulse {
+      0%, 100% { opacity: 1; transform: scale(1); }
+      50%       { opacity: 0.5; transform: scale(0.8); }
+    }
+
+    /* ─── Responsive ─────────────────────────────────────────── */
+    @media (max-width: 640px) {
+      .navbar-search { display: none; }
+      .hero h1 { font-size: 28px; }
+      .hero { padding: 48px 16px 40px; }
+      .modal { padding: 24px 16px; }
+      .modal-info-grid { grid-template-columns: 1fr; }
+      .navbar-actions .btn-ghost { display: none; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ─── Navbar ─────────────────────────────────────── -->
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">
+      <div class="brand-icon">🏷️</div>
+      <span class="brand-name">Zag<span>Offers</span></span>
+    </a>
+    <div class="navbar-search">
+      <svg class="search-icon" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input type="text" id="navSearch" placeholder="ابحث عن عروض، متاجر، فئات…" />
+    </div>
+    <div class="navbar-actions">
+      <a href="#" class="btn btn-ghost">تسجيل الدخول</a>
+      <a href="#" class="btn btn-primary">🔔 اشتراك مجاني</a>
+    </div>
+  </nav>
+
+  <!-- ─── Hero ────────────────────────────────────────── -->
+  <section class="hero">
+    <div class="hero-bg"></div>
+    <div class="hero-badge">
+      <span class="live-dot"></span>
+      عروض حية في الزقازيق
+    </div>
+    <h1>اكتشف أفضل <span>العروض والخصومات</span><br/>في مدينتك</h1>
+    <p>وفّر أكثر مع كوبونات حصرية من أفضل المحلات والمطاعم والخدمات في الزقازيق</p>
+    <div class="hero-search">
+      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#9A9A9A" stroke-width="2">
+        <circle cx="11" cy="11" r="8"/><path d="M21 21l-4.35-4.35"/>
+      </svg>
+      <input type="text" id="heroSearch" placeholder="ابحث عن مطعم، جيم، ملابس…" />
+      <button class="search-btn" onclick="applyHeroSearch()">🔍 بحث</button>
+    </div>
+    <div class="hero-stats" id="heroStats">
+      <div class="hero-stat"><div class="number" id="statOffers">…</div><div class="label">عرض نشط</div></div>
+      <div class="hero-stat"><div class="number" id="statStores">…</div><div class="label">متجر معتمد</div></div>
+      <div class="hero-stat"><div class="number" id="statCats">…</div><div class="label">فئة متنوعة</div></div>
+    </div>
+  </section>
+
+  <div class="section-divider"></div>
+
+  <!-- ─── Filters ─────────────────────────────────────── -->
+  <div class="filters-wrap">
+    <!-- Categories -->
+    <div class="filters-row">
+      <span class="filter-label">📂 الفئة:</span>
+      <div class="categories-scroll" id="categoriesScroll">
+        <button class="cat-chip active" data-id="" onclick="selectCategory(this)">🌟 الكل</button>
+        <!-- populated by JS -->
+      </div>
+    </div>
+
+    <!-- Area + Sort -->
+    <div class="filters-row">
+      <span class="filter-label">📍 المنطقة:</span>
+      <select class="select-filter" id="areaFilter" onchange="applyFilters()">
+        <option value="">كل المناطق</option>
+        <option value="جامعة">منطقة الجامعة</option>
+        <option value="القومية">القومية</option>
+        <option value="وسط البلد">وسط البلد</option>
+        <option value="المحافظة">المحافظة</option>
+        <option value="طلبة عويضة">طلبة عويضة</option>
+        <option value="منطقة الفيلات">منطقة الفيلات</option>
+      </select>
+
+      <select class="select-filter" id="sortFilter" style="margin-right: auto;" onchange="renderOffers()">
+        <option value="newest">الأحدث أولاً</option>
+        <option value="expiry">ينتهي قريباً</option>
+        <option value="discount">أعلى خصم</option>
+      </select>
+    </div>
+
+    <!-- Results bar -->
+    <div class="results-bar">
+      <div class="results-count" id="resultsCount">جاري التحميل…</div>
+    </div>
+  </div>
+
+  <!-- ─── Offers Grid ──────────────────────────────────── -->
+  <section class="offers-section">
+    <div class="offers-grid" id="offersGrid">
+      <!-- skeletons rendered by JS on load -->
+    </div>
+    <div class="load-more-wrap" id="loadMoreWrap" style="display:none;">
+      <button class="load-more-btn" id="loadMoreBtn" onclick="loadMore()">تحميل المزيد</button>
+    </div>
+  </section>
+
+  <!-- ─── Footer ─────────────────────────────────────── -->
+  <footer class="footer">
+    <div class="footer-brand">Zag<span>Offers</span></div>
+    <div class="footer-copy">© 2025 ZagOffers — عروض الزقازيق. جميع الحقوق محفوظة.</div>
+  </footer>
+
+  <!-- ─── Offer Modal ──────────────────────────────────── -->
+  <div class="modal-overlay" id="modalOverlay" onclick="closeModal(event)">
+    <div class="modal" id="modal">
+      <button class="modal-close" onclick="closeModalBtn()">✕</button>
+      <div id="modalContent"></div>
+    </div>
+  </div>
+
+  <!-- ─── Toast Container ──────────────────────────────── -->
+  <div class="toast-container" id="toastContainer"></div>
+
+  <!-- ─── JavaScript ───────────────────────────────────── -->
+  <script>
+    // ── Config ──────────────────────────────────────────────
+    const API = 'https://api.zagoffers.online/api';
+    const UPLOADS = 'https://api.zagoffers.online';
+    const PAGE_SIZE = 18;
+
+    // ── State ────────────────────────────────────────────────
+    let allOffers   = [];
+    let filteredOffers = [];
+    let categories  = [];
+    let page        = 1;
+    let activeCatId = '';
+    let activeArea  = '';
+    let searchQ     = '';
+    let isLoading   = false;
+    let searchTimer = null;
+
+    // ── Category icons map ───────────────────────────────────
+    const catIcons = {
+      'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
+      'تجميل': '💅', 'دورات': '📚', 'عيادات': '🏥', 'سوبرماركت': '🛒',
+      'خدمات سيارات': '🚗', 'خدمات محلية': '🔧', 'default': '🏷️'
+    };
+    function getCatIcon(name) {
+      return catIcons[name] || catIcons['default'];
+    }
+
+    // ── Helpers ──────────────────────────────────────────────
+    function daysLeft(dateStr) {
+      const diff = new Date(dateStr) - new Date();
+      return Math.ceil(diff / (1000 * 60 * 60 * 24));
+    }
+    function formatDate(dateStr) {
+      return new Date(dateStr).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    function logoUrl(path) {
+      if (!path) return null;
+      if (path.startsWith('http')) return path;
+      return UPLOADS + (path.startsWith('/') ? '' : '/') + path;
+    }
+    function storeLogo(store) {
+      const url = logoUrl(store.logo);
+      if (url) return `<img class="store-logo" src="${url}" alt="${store.name}" onerror="this.style.display='none';this.nextElementSibling.style.display='grid';" /><div class="store-logo-placeholder" style="display:none;">${getCatIcon(store.category?.name)}</div>`;
+      return `<div class="store-logo-placeholder">${getCatIcon(store.category?.name)}</div>`;
+    }
+
+    // ── Render Skeletons ─────────────────────────────────────
+    function renderSkeletons(n = 9) {
+      const grid = document.getElementById('offersGrid');
+      grid.innerHTML = Array.from({length: n}, () => `
+        <div class="skeleton-card">
+          <div class="skeleton skeleton-img"></div>
+          <div class="skeleton-body">
+            <div class="skeleton skeleton-line sm"></div>
+            <div class="skeleton skeleton-line md"></div>
+            <div class="skeleton skeleton-line lg"></div>
+            <div class="skeleton skeleton-line sm"></div>
+            <div class="skeleton skeleton-btn"></div>
+          </div>
+        </div>`).join('');
+    }
+
+    // ── Fetch Categories ─────────────────────────────────────
+    async function fetchCategories() {
+      try {
+        const res = await fetch(`${API}/stores/categories`);
+        if (!res.ok) throw new Error();
+        const data = await res.json();
+        categories = Array.isArray(data) ? data : (data.items || []);
+        document.getElementById('statCats').textContent = categories.length;
+        renderCategoryChips();
+      } catch {
+        document.getElementById('statCats').textContent = '—';
+      }
+    }
+
+    // ── Render Category Chips ────────────────────────────────
+    function renderCategoryChips() {
+      const scroll = document.getElementById('categoriesScroll');
+      const extras = categories.map(c => `
+        <button class="cat-chip" data-id="${c.id}" onclick="selectCategory(this)">
+          ${getCatIcon(c.name)} ${c.name}
+        </button>`).join('');
+      scroll.innerHTML = `<button class="cat-chip active" data-id="" onclick="selectCategory(this)">🌟 الكل</button>${extras}`;
+    }
+
+    // ── Fetch Offers ─────────────────────────────────────────
+    async function fetchOffers() {
+      isLoading = true;
+      renderSkeletons();
+      document.getElementById('resultsCount').textContent = 'جاري التحميل…';
+      document.getElementById('loadMoreWrap').style.display = 'none';
+
+      try {
+        const params = new URLSearchParams({ limit: 200 });
+        if (activeCatId) params.set('categoryId', activeCatId);
+        if (activeArea)  params.set('area', activeArea);
+        if (searchQ)     params.set('search', searchQ);
+
+        const res = await fetch(`${API}/offers?${params}`);
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        const data = await res.json();
+
+        allOffers = Array.isArray(data) ? data : (data.items || []);
+
+        // update stat
+        document.getElementById('statOffers').textContent = allOffers.length;
+
+        // count unique stores for stat
+        const storeIds = new Set(allOffers.map(o => o.store?.id));
+        document.getElementById('statStores').textContent = storeIds.size;
+
+        page = 1;
+        applySort();
+        renderOffers();
+      } catch (err) {
+        renderError();
+        document.getElementById('resultsCount').textContent = 'حدث خطأ في التحميل';
+      } finally {
+        isLoading = false;
+      }
+    }
+
+    // ── Apply Sort ───────────────────────────────────────────
+    function applySort() {
+      const sort = document.getElementById('sortFilter').value;
+      filteredOffers = [...allOffers];
+      if (sort === 'expiry') {
+        filteredOffers.sort((a, b) => new Date(a.endDate) - new Date(b.endDate));
+      } else if (sort === 'discount') {
+        filteredOffers.sort((a, b) => {
+          const numA = parseInt(a.discount) || 0;
+          const numB = parseInt(b.discount) || 0;
+          return numB - numA;
+        });
+      }
+      // newest: keep as-is (server order)
+    }
+
+    // ── Render Offers ─────────────────────────────────────────
+    function renderOffers() {
+      applySort();
+      const grid = document.getElementById('offersGrid');
+      const visible = filteredOffers.slice(0, page * PAGE_SIZE);
+
+      if (filteredOffers.length === 0) {
+        grid.innerHTML = renderEmpty();
+        document.getElementById('resultsCount').textContent = 'لا توجد عروض';
+        document.getElementById('loadMoreWrap').style.display = 'none';
+        return;
+      }
+
+      grid.innerHTML = visible.map(renderCard).join('');
+
+      // results count
+      const total = filteredOffers.length;
+      document.getElementById('resultsCount').innerHTML =
+        `عرض <strong>${visible.length}</strong> من أصل <strong>${total}</strong> عرض`;
+
+      // load more
+      const hasMore = visible.length < total;
+      document.getElementById('loadMoreWrap').style.display = hasMore ? 'flex' : 'none';
+      document.getElementById('loadMoreBtn').disabled = false;
+    }
+
+    // ── Render Single Card ────────────────────────────────────
+    function renderCard(offer) {
+      const days = daysLeft(offer.endDate);
+      const expiryClass = days <= 3 ? 'expiry-soon' : '';
+      const expiryText = days <= 0 ? '⚠️ انتهى' : days === 1 ? '⚡ آخر يوم!' : days <= 3 ? `⏰ ${days} أيام` : `📅 ${formatDate(offer.endDate)}`;
+      const cat = offer.store?.category?.name || '';
+      const area = offer.store?.area || '';
+      const featured = offer.featured ? '<span class="featured-badge">⭐ مميز</span>' : '';
+
+      // gradient per category
+      const gradients = {
+        'مطاعم': '#2a1000,#1a0800', 'كافيهات': '#1a0d00,#0d0600',
+        'جيم': '#001a0a,#000d05', 'ملابس': '#1a001a,#0d000d',
+        'تجميل': '#1a001a,#0a000d', 'دورات': '#001a1a,#000d0d'
+      };
+      const grad = gradients[cat] || '#1a1a2e,#16213e';
+
+      return `
+        <div class="offer-card" onclick="openModal('${offer.id}')">
+          <div class="offer-card-header" style="background:linear-gradient(135deg,${grad});">
+            <div class="offer-card-bg"></div>
+            <div class="offer-card-header-pattern"></div>
+            ${featured}
+            <div class="discount-badge">${offer.discount}</div>
+            <div class="store-logo-wrap">${storeLogo(offer.store)}</div>
+          </div>
+          <div class="offer-card-body">
+            ${cat ? `<div class="offer-category">${getCatIcon(cat)} ${cat}</div>` : ''}
+            <div class="offer-title">${offer.title}</div>
+            <div class="offer-store">
+              <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z"/><polyline points="9 22 9 12 15 12 15 22"/></svg>
+              ${offer.store?.name || '—'}
+            </div>
+            <div class="offer-meta">
+              ${area ? `<div class="meta-item">
+                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0118 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                ${area}
+              </div>` : ''}
+              <div class="meta-item ${expiryClass}">${expiryText}</div>
+            </div>
+            <button class="get-coupon-btn" onclick="event.stopPropagation();openModal('${offer.id}')">
+              🎟️ احصل على الكوبون
+            </button>
+          </div>
+        </div>`;
+    }
+
+    // ── Empty State ───────────────────────────────────────────
+    function renderEmpty() {
+      return `
+        <div class="state-container">
+          <div class="state-icon">🔍</div>
+          <div class="state-title">لا توجد عروض متطابقة</div>
+          <div class="state-msg">لم نجد عروضاً تطابق بحثك أو الفلاتر المحددة. جرّب تغيير الفلاتر أو كلمة البحث.</div>
+          <button class="state-action" onclick="resetFilters()">🔄 إعادة ضبط الفلاتر</button>
+        </div>`;
+    }
+
+    // ── Error State ───────────────────────────────────────────
+    function renderError() {
+      document.getElementById('offersGrid').innerHTML = `
+        <div class="state-container">
+          <div class="state-icon">⚠️</div>
+          <div class="state-title">تعذّر الاتصال بالسيرفر</div>
+          <div class="state-msg">تأكد من أن الخادم يعمل على <strong style="color:var(--orange)">localhost:3001</strong> ثم أعد المحاولة.</div>
+          <button class="state-action" onclick="fetchOffers()">🔄 إعادة المحاولة</button>
+        </div>`;
+    }
+
+    // ── Open Modal ────────────────────────────────────────────
+    async function openModal(id) {
+      const overlay = document.getElementById('modalOverlay');
+      const content = document.getElementById('modalContent');
+      overlay.classList.add('open');
+      content.innerHTML = '<div style="text-align:center;padding:40px;color:var(--text-muted)">⏳ جاري التحميل…</div>';
+
+      try {
+        const res = await fetch(`${API}/offers/${id}`);
+        if (!res.ok) throw new Error();
+        const offer = await res.json();
+        const days = daysLeft(offer.endDate);
+
+        content.innerHTML = `
+          <div class="modal-discount">${offer.discount}</div>
+          <div class="modal-title">${offer.title}</div>
+          <div class="modal-store">${offer.store?.name || ''} · ${offer.store?.area || ''}</div>
+          <div class="modal-divider"></div>
+          ${offer.description ? `<p style="color:var(--text-muted);font-size:14px;line-height:1.7;margin-bottom:16px;">${offer.description}</p>` : ''}
+          <div class="modal-info-grid">
+            <div class="modal-info-item">
+              <div class="modal-info-label">📂 الفئة</div>
+              <div class="modal-info-value">${getCatIcon(offer.store?.category?.name)} ${offer.store?.category?.name || '—'}</div>
+            </div>
+            <div class="modal-info-item">
+              <div class="modal-info-label">📍 المنطقة</div>
+              <div class="modal-info-value">${offer.store?.area || '—'}</div>
+            </div>
+            <div class="modal-info-item">
+              <div class="modal-info-label">⏰ ينتهي في</div>
+              <div class="modal-info-value" style="${days<=3?'color:#FF6B6B':''}">${formatDate(offer.endDate)}</div>
+            </div>
+            <div class="modal-info-item">
+              <div class="modal-info-label">📆 الأيام المتبقية</div>
+              <div class="modal-info-value" style="${days<=3?'color:#FF6B6B':''}">${days > 0 ? days + ' يوم' : '⚠️ انتهى'}</div>
+            </div>
+          </div>
+          <div class="coupon-code-box">
+            <div class="coupon-label">🎟️ كود الكوبون الخاص بك</div>
+            <div class="coupon-code" id="couponDisplay">ZAG-XXXXXX</div>
+            <div class="coupon-hint">سجّل دخولك لتوليد كود حصري لك</div>
+          </div>
+          <button class="modal-cta" onclick="handleGetCoupon()">✅ توليد كوبوني الآن</button>
+          <div class="modal-login-hint">بتضغط "توليد كوبوني"، بتوافق على <a href="#">شروط الاستخدام</a>. الكوبون لاستخدام واحد فقط.</div>
+        `;
+      } catch {
+        content.innerHTML = `<div style="text-align:center;padding:40px;color:#FF6B6B;">⚠️ تعذّر تحميل تفاصيل العرض</div>`;
+      }
+    }
+
+    function handleGetCoupon() {
+      // Show login prompt since no auth token
+      showToast('🔐 سجّل دخولك أولاً للحصول على كوبون!', 'error');
+      // Animate code
+      const display = document.getElementById('couponDisplay');
+      if (display) {
+        let i = 0;
+        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+        const interval = setInterval(() => {
+          display.textContent = 'ZAG-' + Array.from({length:6}, () => chars[Math.floor(Math.random()*chars.length)]).join('');
+          if (++i > 12) { clearInterval(interval); display.textContent = 'ZAG-XXXXXX'; }
+        }, 80);
+      }
+    }
+
+    function closeModal(e) {
+      if (e.target === document.getElementById('modalOverlay')) closeModalBtn();
+    }
+    function closeModalBtn() {
+      document.getElementById('modalOverlay').classList.remove('open');
+    }
+    document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModalBtn(); });
+
+    // ── Filters & Search ─────────────────────────────────────
+    function selectCategory(btn) {
+      document.querySelectorAll('.cat-chip').forEach(c => c.classList.remove('active'));
+      btn.classList.add('active');
+      activeCatId = btn.dataset.id;
+      page = 1;
+      fetchOffers();
+    }
+
+    function applyFilters() {
+      activeArea = document.getElementById('areaFilter').value;
+      page = 1;
+      fetchOffers();
+    }
+
+    function resetFilters() {
+      activeCatId = '';
+      activeArea  = '';
+      searchQ     = '';
+      document.getElementById('areaFilter').value = '';
+      document.getElementById('heroSearch').value = '';
+      document.getElementById('navSearch').value  = '';
+      document.querySelectorAll('.cat-chip').forEach((c, i) => c.classList.toggle('active', i === 0));
+      page = 1;
+      fetchOffers();
+    }
+
+    function applyHeroSearch() {
+      searchQ = document.getElementById('heroSearch').value.trim();
+      page = 1;
+      fetchOffers();
+    }
+
+    // Live search (debounced)
+    ['heroSearch', 'navSearch'].forEach(id => {
+      document.getElementById(id)?.addEventListener('input', e => {
+        clearTimeout(searchTimer);
+        searchTimer = setTimeout(() => {
+          searchQ = e.target.value.trim();
+          page = 1;
+          fetchOffers();
+        }, 450);
+      });
+    });
+
+    document.getElementById('heroSearch')?.addEventListener('keydown', e => {
+      if (e.key === 'Enter') applyHeroSearch();
+    });
+
+    // ── Load More ─────────────────────────────────────────────
+    function loadMore() {
+      page++;
+      renderOffers();
+      document.getElementById('loadMoreBtn').disabled = true;
+      setTimeout(() => { document.getElementById('loadMoreBtn').disabled = false; }, 300);
+    }
+
+    // ── Toast ─────────────────────────────────────────────────
+    function showToast(msg, type = '') {
+      const container = document.getElementById('toastContainer');
+      const toast = document.createElement('div');
+      toast.className = `toast ${type}`;
+      toast.textContent = msg;
+      container.appendChild(toast);
+      setTimeout(() => { toast.style.opacity = '0'; toast.style.transition = 'opacity .3s'; }, 2600);
+      setTimeout(() => toast.remove(), 3000);
+    }
+
+    // ── Init ──────────────────────────────────────────────────
+    (async function init() {
+      renderSkeletons(9);
+      await fetchCategories();
+      await fetchOffers();
+    })();
+  </script>
+</body>
+</html>

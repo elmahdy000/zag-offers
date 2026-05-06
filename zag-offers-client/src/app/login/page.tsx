@@ -31,6 +31,9 @@ export default function LoginPage() {
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
 
+      // Dispatch custom event to notify Navbar
+      window.dispatchEvent(new Event('auth-change'));
+
       router.replace('/');
     } catch (err: any) {
       setError('بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.');

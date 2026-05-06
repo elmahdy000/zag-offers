@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -78,5 +78,14 @@ export class CouponsController {
   @ApiOperation({ summary: 'عرض الكوبونات الخاصة بي (للعميل)' })
   findAll(@Request() req: { user: { id: string } }) {
     return this.couponsService.findAll(req.user.id);
+  }
+
+  @Get('merchant')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT, Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'عرض سجل الكوبونات الخاص بمحلي (للتاجر)' })
+  findMerchantCoupons(@Request() req: { user: { id: string } }) {
+    return this.couponsService.findMerchantCoupons(req.user.id);
   }
 }

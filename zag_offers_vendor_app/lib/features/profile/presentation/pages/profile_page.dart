@@ -314,8 +314,8 @@ class _ProfilePageState extends State<ProfilePage> {
                               ],
                             ),
                             child: const CircleAvatar(
-                              backgroundColor: Colors.white,
-                              child: Icon(Icons.person, size: 80, color: AppColors.primaryLight),
+                              backgroundColor: AppColors.surface,
+                              child: Icon(Icons.person, size: 80, color: AppColors.primary),
                             ),
                           ),
                           Positioned(
@@ -429,13 +429,7 @@ class _ProfilePageState extends State<ProfilePage> {
       decoration: BoxDecoration(
         color: AppColors.card,
         borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: AppColors.border),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -463,10 +457,10 @@ class _ProfilePageState extends State<ProfilePage> {
           Container(
             padding: const EdgeInsets.all(8),
             decoration: BoxDecoration(
-              color: AppColors.background,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, size: 20, color: AppColors.primaryLight),
+            child: Icon(icon, size: 20, color: AppColors.primary),
           ),
           const SizedBox(width: 16),
           Expanded(

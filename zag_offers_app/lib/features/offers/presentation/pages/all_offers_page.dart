@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
 import 'package:zag_offers_app/features/offers/domain/entities/offer_entity.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
@@ -245,8 +246,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                       ),
                                       child: ClipOval(
                                         child: categoryItem.image != null
-                                            ? Image.network(
-                                                categoryItem.image!,
+                                            ? NetworkImageWidget(
+                                                imageUrl: categoryItem.image!,
                                                 fit: BoxFit.cover,
                                               )
                                             : Container(
@@ -286,12 +287,88 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   child: Center(child: CircularProgressIndicator()),
                 )
               else if (state is OffersError)
-                SliverFillRemaining(
-                  child: Center(child: Text(state.message)),
-                ),
+                _buildErrorState(context, state.message)
             ],
           );
         },
+      ),
+    );
+  }
+
+  Widget _buildErrorState(BuildContext context, String message) {
+    final isConnectionError = message.toLowerCase().contains('connection') || 
+                             message.toLowerCase().contains('network') ||
+                             message.toLowerCase().contains('socket');
+
+    return SliverFillRemaining(
+      hasScrollBody: false,
+      child: Center(
+        child: Padding(
+          padding: const EdgeInsets.all(40),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(24),
+                decoration: BoxDecoration(
+                  color: AppColors.error.withValues(alpha: 0.1),
+                  shape: BoxShape.circle,
+                ),
+                child: Icon(
+                  isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                  size: 64,
+                  color: AppColors.error,
+                ),
+              ),
+              const SizedBox(height: 24),
+              Text(
+                isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
+                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  fontWeight: FontWeight.w900,
+                  color: AppColors.textPrimary,
+                ),
+              ),
+              const SizedBox(height: 12),
+              Text(
+                isConnectionError 
+                    ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                    : message,
+                textAlign: TextAlign.center,
+                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  height: 1.5,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: 200,
+                height: 50,
+                child: ElevatedButton(
+                  onPressed: () => context.read<OffersBloc>().add(FetchAllOffers()),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    elevation: 0,
+                  ),
+                  child: const Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(Icons.refresh_rounded, size: 20),
+                      SizedBox(width: 8),
+                      Text(
+                        'إعادة المحاولة',
+                        style: TextStyle(fontWeight: FontWeight.bold),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
       ),
     );
   }
@@ -307,26 +384,57 @@ class _AllOffersPageState extends State<AllOffersPage> {
 
     if (filtered.isEmpty) {
       return SliverFillRemaining(
+        hasScrollBody: false,
         child: Center(
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Icon(
-                Icons.local_offer_outlined,
-                size: 64,
-                color: Colors.grey[300],
-              ),
-              const SizedBox(height: 16),
-              const Text(
-                'لا توجد نتائج تطابق الفلاتر المختارة',
-                style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
-              ),
-              const SizedBox(height: 8),
-              TextButton(
-                onPressed: () => _resetAllFilters(context),
-                child: const Text('إعادة تعيين الكل'),
-              ),
-            ],
+          child: Padding(
+            padding: const EdgeInsets.all(40),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    shape: BoxShape.circle,
+                  ),
+                  child: const Icon(
+                    Icons.local_offer_outlined,
+                    size: 64,
+                    color: AppColors.primary,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'لا توجد عروض',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.textPrimary,
+                  ),
+                ),
+                const SizedBox(height: 12),
+                Text(
+                  'لا توجد نتائج تطابق الفلاتر المختارة حالياً. جرّب تغيير التصنيف أو إعادة ضبط الفلاتر.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary,
+                    height: 1.5,
+                  ),
+                ),
+                const SizedBox(height: 24),
+                TextButton(
+                  onPressed: () => _resetAllFilters(context),
+                  child: const Text(
+                    'إعادة تعيين الكل',
+                    style: TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16,
+                    ),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       );

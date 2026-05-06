@@ -7,7 +7,7 @@ class AppConfig {
 
   static const String baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://localhost:3001/api',
+    defaultValue: 'https://api.zagoffers.online/api',
   );
 
   /// Base URL without the /api suffix — used for socket.io and resolving

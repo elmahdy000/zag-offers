@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:qr_flutter/qr_flutter.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 
 import '../../../../core/services/socket_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -181,37 +182,72 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
           }
 
           if (state is CouponsError) {
+            final isConnectionError = state.message.toLowerCase().contains('connection') || 
+                                     state.message.toLowerCase().contains('network') ||
+                                     state.message.toLowerCase().contains('socket');
+
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(24),
+                padding: const EdgeInsets.all(40),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.error_outline_rounded,
-                      size: 72,
-                      color: Colors.grey[300],
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                        size: 64,
+                        color: AppColors.error,
+                      ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
                     Text(
-                      state.message,
-                      textAlign: TextAlign.center,
-                      style: const TextStyle(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.bold,
+                      isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل الكوبونات',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
                       ),
                     ),
-                    const SizedBox(height: 20),
-                    ElevatedButton(
-                      onPressed: () {
-                        context.read<CouponsBloc>().add(FetchUserCoupons());
-                      },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
+                    const SizedBox(height: 12),
+                    Text(
+                      isConnectionError 
+                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                          : state.message,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.5,
                       ),
-                      child: const Text(
-                        'إعادة المحاولة',
-                        style: TextStyle(color: Colors.white),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.read<CouponsBloc>().add(FetchUserCoupons()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.refresh_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'إعادة المحاولة',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
                       ),
                     ),
                   ],
@@ -224,28 +260,42 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             final coupons = state.coupons;
             if (coupons.isEmpty) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.confirmation_num_outlined,
-                      size: 80,
-                      color: Colors.grey[200],
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'لا توجد كوبونات حاليًا',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        color: AppColors.textPrimary,
-                        fontWeight: FontWeight.w900,
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.confirmation_num_outlined,
+                          size: 64,
+                          color: AppColors.primary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'عندما تحصل على كوبون جديد سيظهر هنا',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-                    ),
-                  ],
+                      const SizedBox(height: 24),
+                      Text(
+                        'لا توجد كوبونات حاليًا',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          color: AppColors.textPrimary,
+                          fontWeight: FontWeight.w900,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        'عندما تحصل على كوبون جديد سيظهر هنا. ابدأ باستكشاف العروض المتاحة الآن!',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -279,17 +329,11 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       children: [
                         ListTile(
                           contentPadding: const EdgeInsets.all(16),
-                          leading: Container(
+                          leading: NetworkImageWidget(
+                            imageUrl: coupon.offer.store.logo,
                             width: 50,
                             height: 50,
-                            decoration: BoxDecoration(
-                              color: AppColors.primary.withValues(alpha: 0.1),
-                              borderRadius: BorderRadius.circular(12),
-                            ),
-                            child: const Icon(
-                              Icons.storefront_rounded,
-                              color: AppColors.primary,
-                            ),
+                            borderRadius: BorderRadius.circular(12),
                           ),
                           title: Text(
                             coupon.offer.store.name,

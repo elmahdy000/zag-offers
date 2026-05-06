@@ -15,12 +15,14 @@ export default function NewOfferPage() {
     expiryDate: '',
   });
   const [imagePreview, setImagePreview] = useState<string | null>(null);
+  const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (file) {
+      setSelectedFile(file);
       const reader = new FileReader();
       reader.onloadend = () => {
         const result = reader.result;
@@ -56,6 +58,23 @@ export default function NewOfferPage() {
 
     setSubmitting(true);
     try {
+      let imageUrls: string[] = [];
+
+      // 1. Upload image if selected
+      if (selectedFile) {
+        const uploadFormData = new FormData();
+        uploadFormData.append('file', selectedFile);
+        
+        const uploadRes = await vendorApi().post('/upload', uploadFormData, {
+          headers: { 'Content-Type': 'multipart/form-data' }
+        });
+        
+        if (uploadRes.data.url) {
+          imageUrls.push(uploadRes.data.url);
+        }
+      }
+
+      // 2. Create offer with images
       await vendorApi().post('/offers', {
         title: formData.title.trim(),
         description: formData.description.trim() || formData.title.trim(),
@@ -63,11 +82,12 @@ export default function NewOfferPage() {
         startDate: new Date().toISOString(),
         endDate: new Date(formData.expiryDate).toISOString(),
         storeId,
+        images: imageUrls,
       });
 
       router.push('/dashboard/offers');
-    } catch {
-      setSubmitError('حصل خطأ أثناء إرسال العرض. حاول تاني.');
+    } catch (error: any) {
+      setSubmitError(error.response?.data?.message || 'حصل خطأ أثناء إرسال العرض. حاول تاني.');
     } finally {
       setSubmitting(false);
     }

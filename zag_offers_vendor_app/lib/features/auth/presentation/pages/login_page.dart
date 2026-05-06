@@ -119,7 +119,8 @@ class _LoginPageState extends State<LoginPage> {
                           hintText: 'رقم الهاتف',
                           prefixIcon: const Icon(
                             Icons.phone_android_outlined,
-                            color: AppColors.primaryLight,
+                            Icons.phone_android_outlined,
+                            color: AppColors.primary,
                           ),
                           border: OutlineInputBorder(
                             borderRadius: BorderRadius.circular(16),
@@ -138,13 +139,7 @@ class _LoginPageState extends State<LoginPage> {
                       decoration: BoxDecoration(
                         color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
-                            blurRadius: 10,
-                            offset: const Offset(0, 4),
-                          ),
-                        ],
+                        border: Border.all(color: AppColors.border),
                       ),
                       child: TextField(
                         controller: _passwordController,
@@ -154,14 +149,14 @@ class _LoginPageState extends State<LoginPage> {
                           hintText: 'كلمة المرور',
                           prefixIcon: const Icon(
                             Icons.lock_outline,
-                            color: AppColors.primaryLight,
+                            color: AppColors.primary,
                           ),
                           suffixIcon: IconButton(
                             icon: Icon(
                               _obscurePassword
                                   ? Icons.visibility_off_outlined
                                   : Icons.visibility_outlined,
-                              color: AppColors.primaryLight,
+                              color: AppColors.primary,
                             ),
                             onPressed: () {
                               setState(() {

@@ -47,35 +47,42 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
             if (favorites.isEmpty) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(32),
-                      decoration: BoxDecoration(
-                        color: Colors.grey[50],
-                        shape: BoxShape.circle,
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.favorite_border_rounded,
+                          size: 64,
+                          color: AppColors.primary,
+                        ),
                       ),
-                      child: Icon(
-                        Icons.favorite_border_rounded,
-                        size: 80,
-                        color: Colors.grey[300],
+                      const SizedBox(height: 24),
+                      Text(
+                        'قائمة المفضلة فارغة',
+                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                          fontWeight: FontWeight.w900,
+                          color: AppColors.textPrimary,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      'قائمة المفضلة فارغة',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                      const SizedBox(height: 12),
+                      Text(
+                        'ابدأ بإضافة العروض التي تعجبك لتجدها هنا بسهولة في أي وقت.',
+                        textAlign: TextAlign.center,
+                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'ابدأ بإضافة العروض التي تعجبك لتجدها هنا',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               );
             }
@@ -111,40 +118,76 @@ class _FavoritesPageState extends State<FavoritesPage> {
           }
 
           if (state is FavoritesError) {
+            final isConnectionError = state.message.toLowerCase().contains('connection') || 
+                                     state.message.toLowerCase().contains('network') ||
+                                     state.message.toLowerCase().contains('socket');
+
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.error_outline_rounded,
-                    size: 64,
-                    color: Colors.grey[300],
-                  ),
-                  const SizedBox(height: 16),
-                  Text(
-                    state.message,
-                    style: const TextStyle(
-                      color: AppColors.textSecondary,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  ElevatedButton(
-                    onPressed: () {
-                      context.read<FavoritesBloc>().add(FetchFavorites());
-                    },
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: AppColors.primary,
-                      shape: RoundedRectangleBorder(
-                        borderRadius: BorderRadius.circular(12),
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: Icon(
+                        isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                        size: 64,
+                        color: AppColors.error,
                       ),
                     ),
-                    child: Text(
-                      'إعادة المحاولة',
-                      style: Theme.of(context).textTheme.labelLarge?.copyWith(color: Colors.white),
+                    const SizedBox(height: 24),
+                    Text(
+                      isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل المفضلة',
+                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 12),
+                    Text(
+                      isConnectionError 
+                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                          : state.message,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    SizedBox(
+                      width: 200,
+                      height: 50,
+                      child: ElevatedButton(
+                        onPressed: () => context.read<FavoritesBloc>().add(FetchFavorites()),
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: AppColors.primary,
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: const Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            Icon(Icons.refresh_rounded, size: 20),
+                            const SizedBox(width: 8),
+                            Text(
+                              'إعادة المحاولة',
+                              style: TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ],
+                ),
               ),
             );
           }

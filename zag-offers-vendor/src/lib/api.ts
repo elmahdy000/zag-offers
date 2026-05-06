@@ -1,6 +1,16 @@
 import axios from 'axios';
 
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
+
+/** تحويل المسار النسبي لصورة إلى رابط كامل */
+export function resolveImageUrl(path: string | null | undefined): string {
+  if (!path) return '';
+  if (path.startsWith('http')) return path;
+  // الحصول على الدومين الأساسي بدون /api
+  const baseDomain = API_URL.replace(/\/api$/, '');
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  return `${baseDomain}${cleanPath}`;
+}
 
 /** قراءة قيمة كوكي من المتصفح */
 export function getCookie(name: string): string | null {
@@ -23,6 +33,18 @@ export function getVendorUser(): { id: string; name: string; role: string } | nu
   } catch {
     return null;
   }
+}
+
+export interface Offer {
+  id: string;
+  title: string;
+  status: string;
+  views: number;
+  createdAt: string;
+  images: string[];
+  _count: {
+    coupons: number;
+  };
 }
 
 /** قراءة storeId الأول للتاجر */

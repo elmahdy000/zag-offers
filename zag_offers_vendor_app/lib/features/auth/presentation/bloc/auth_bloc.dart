@@ -85,6 +85,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CheckAuthStatus event,
     Emitter<AuthState> emit,
   ) async {
+    // Add a small delay to show the splash screen and avoid flicker
+    await Future.delayed(const Duration(milliseconds: 1500));
     final user = await authRepository.checkAuthStatus();
     if (user != null) {
       emit(AuthAuthenticated(user));

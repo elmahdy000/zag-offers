@@ -15,7 +15,7 @@ import {
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -69,10 +69,7 @@ export default function BroadcastPage() {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
       const relativeUrl = response.data.url;
-      // Convert relative URL to absolute if needed, or assume backend handles it.
-      // Usually, we want the full URL for FCM.
-      const baseUrl = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001');
-      setImageUrl(baseUrl + relativeUrl);
+      setImageUrl(resolveImageUrl(relativeUrl));
       showToast('تم رفع الصورة بنجاح');
     } catch (error: any) {
       showToast(error.response?.data?.message || 'فشل رفع الصورة', 'error');

@@ -13,6 +13,8 @@ import '../../../upload/domain/repositories/upload_repository.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../bloc/offers_bloc.dart';
 
+import 'offer_preview_page.dart';
+
 class AddEditOfferPage extends StatefulWidget {
   final OfferEntity? offer;
   const AddEditOfferPage({super.key, this.offer});
@@ -117,7 +119,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     }
   }
 
-  void _onSave() {
+  void _onPreview() {
     if (_formKey.currentState!.validate()) {
       if (_imageUrls.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -145,11 +147,15 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
         isFeatured: widget.offer?.isFeatured ?? false,
       );
 
-      if (widget.offer == null) {
-        context.read<OffersBloc>().add(CreateOfferRequested(offer));
-      } else {
-        context.read<OffersBloc>().add(UpdateOfferRequested(offer));
-      }
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (context) => OfferPreviewPage(
+            offer: offer,
+            isEdit: widget.offer != null,
+          ),
+        ),
+      );
     }
   }
 
@@ -157,163 +163,150 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   Widget build(BuildContext context) {
     final isEdit = widget.offer != null;
 
-    return BlocListener<OffersBloc, OffersState>(
-      listener: (context, state) {
-        if (state is OfferActionSuccess) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: AppColors.success),
-          );
-          Navigator.pop(context);
-        } else if (state is OffersError) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-          );
-        }
-      },
-      child: Scaffold(
-        backgroundColor: AppColors.background,
-        appBar: AppBar(
-          title: Text(
-            isEdit ? 'تعديل عرض' : 'إضافة عرض جديد',
-            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-          ),
-          centerTitle: true,
-          backgroundColor: AppColors.background,
-          elevation: 0,
+    return Scaffold(
+      backgroundColor: AppColors.background,
+      appBar: AppBar(
+        title: Text(
+          isEdit ? 'تعديل عرض' : 'إضافة عرض جديد',
+          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
         ),
-        body: SingleChildScrollView(
-          padding: const EdgeInsets.all(24.0),
-          child: Form(
-            key: _formKey,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildImagePicker(),
-                const SizedBox(height: 24),
-                _buildTextField(
-                  controller: _titleController,
-                  label: 'عنوان العرض',
-                  hint: 'مثال: خصم 20% على البيتزا',
-                  icon: Icons.title_rounded,
-                  validator: (v) => v!.isEmpty ? 'الرجاء إدخال العنوان' : null,
-                ),
-                const SizedBox(height: 20),
-                _buildTextField(
-                  controller: _descController,
-                  label: 'وصف العرض',
-                  hint: 'اشرح تفاصيل العرض للعملاء',
-                  icon: Icons.description_outlined,
-                  maxLines: 3,
-                  validator: (v) => v!.isEmpty ? 'الرجاء إدخال الوصف' : null,
-                ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        controller: _oldPriceController,
-                        label: 'السعر قبل',
-                        hint: '0.0',
-                        icon: Icons.price_change_outlined,
-                        keyboardType: TextInputType.number,
-                      ),
+        centerTitle: true,
+        backgroundColor: AppColors.background,
+        elevation: 0,
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(24.0),
+        child: Form(
+          key: _formKey,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildImagePicker(),
+              const SizedBox(height: 24),
+              _buildTextField(
+                controller: _titleController,
+                label: 'عنوان العرض',
+                hint: 'مثال: خصم 20% على البيتزا',
+                icon: Icons.title_rounded,
+                validator: (v) => v!.isEmpty ? 'الرجاء إدخال العنوان' : null,
+              ),
+              const SizedBox(height: 20),
+              _buildTextField(
+                controller: _descController,
+                label: 'وصف العرض',
+                hint: 'اشرح تفاصيل العرض للعملاء',
+                icon: Icons.description_outlined,
+                maxLines: 3,
+                validator: (v) => v!.isEmpty ? 'الرجاء إدخال الوصف' : null,
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _oldPriceController,
+                      label: 'السعر قبل',
+                      hint: '0.0',
+                      icon: Icons.price_change_outlined,
+                      keyboardType: TextInputType.number,
                     ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        controller: _newPriceController,
-                        label: 'السعر بعد',
-                        hint: '0.0',
-                        icon: Icons.price_check_rounded,
-                        keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _newPriceController,
+                      label: 'السعر بعد',
+                      hint: '0.0',
+                      icon: Icons.price_check_rounded,
+                      keyboardType: TextInputType.number,
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 20),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildTextField(
+                      controller: _discountController,
+                      label: 'الخصم (%)',
+                      hint: 'مثال: 20%',
+                      icon: Icons.percent_rounded,
+                      validator: (v) => v!.isEmpty ? 'مطلوب' : null,
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildTextField(
+                      label: 'حد الاستخدام',
+                      hint: 'اختياري',
+                      icon: Icons.person_outline,
+                      keyboardType: TextInputType.number,
+                      onChanged: (v) => _usageLimit = int.tryParse(v),
+                      initialValue: _usageLimit?.toString(),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              Text(
+                'فترة صلاحية العرض',
+                style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
+              ),
+              const SizedBox(height: 12),
+              Row(
+                children: [
+                  Expanded(
+                    child: _buildDatePicker(
+                      label: 'تاريخ البدء',
+                      date: _startDate,
+                      onTap: () => _selectDate(context, true),
+                    ),
+                  ),
+                  const SizedBox(width: 16),
+                  Expanded(
+                    child: _buildDatePicker(
+                      label: 'تاريخ الانتهاء',
+                      date: _endDate,
+                      onTap: () => _selectDate(context, false),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 24),
+              _buildTextField(
+                controller: _termsController,
+                label: 'الشروط والأحكام (اختياري)',
+                hint: 'مثال: لا يسري مع عروض أخرى',
+                icon: Icons.gavel_rounded,
+                maxLines: 2,
+              ),
+              const SizedBox(height: 48),
+              ElevatedButton(
+                onPressed: _onPreview,
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.secondary,
+                  foregroundColor: Colors.white,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.remove_red_eye_outlined),
+                    const SizedBox(width: 12),
+                    Text(
+                      'معاينة العرض',
+                      style: GoogleFonts.cairo(
+                        fontSize: 18,
+                        fontWeight: FontWeight.bold,
                       ),
                     ),
                   ],
                 ),
-                const SizedBox(height: 20),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildTextField(
-                        controller: _discountController,
-                        label: 'الخصم (%)',
-                        hint: 'مثال: 20%',
-                        icon: Icons.percent_rounded,
-                        validator: (v) => v!.isEmpty ? 'مطلوب' : null,
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildTextField(
-                        label: 'حد الاستخدام',
-                        hint: 'اختياري',
-                        icon: Icons.person_outline,
-                        keyboardType: TextInputType.number,
-                        onChanged: (v) => _usageLimit = int.tryParse(v),
-                        initialValue: _usageLimit?.toString(),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                Text(
-                  'فترة صلاحية العرض',
-                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
-                ),
-                const SizedBox(height: 12),
-                Row(
-                  children: [
-                    Expanded(
-                      child: _buildDatePicker(
-                        label: 'تاريخ البدء',
-                        date: _startDate,
-                        onTap: () => _selectDate(context, true),
-                      ),
-                    ),
-                    const SizedBox(width: 16),
-                    Expanded(
-                      child: _buildDatePicker(
-                        label: 'تاريخ الانتهاء',
-                        date: _endDate,
-                        onTap: () => _selectDate(context, false),
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 24),
-                _buildTextField(
-                  controller: _termsController,
-                  label: 'الشروط والأحكام (اختياري)',
-                  hint: 'مثال: لا يسري مع عروض أخرى',
-                  icon: Icons.gavel_rounded,
-                  maxLines: 2,
-                ),
-                const SizedBox(height: 48),
-                BlocBuilder<OffersBloc, OffersState>(
-                  builder: (context, state) {
-                    return ElevatedButton(
-                      onPressed: state is OffersLoading ? null : _onSave,
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 16),
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        elevation: 0,
-                      ),
-                      child: state is OffersLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Text(
-                              isEdit ? 'تحديث العرض' : 'حفظ العرض',
-                              style: GoogleFonts.cairo(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                    );
-                  },
-                ),
-              ],
-            ),
+              ),
+            ],
           ),
         ),
       ),
@@ -461,4 +454,75 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
           maxLines: maxLines,
           validator: validator,
           onChanged: onChanged,
-          keyb
+          keyboardType: keyboardType,
+          style: GoogleFonts.cairo(fontWeight: FontWeight.w500),
+          decoration: InputDecoration(
+            hintText: hint,
+            prefixIcon: Icon(icon, color: AppColors.primary, size: 22),
+            filled: true,
+            fillColor: Colors.white,
+            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.1)),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: BorderSide(color: AppColors.primary.withValues(alpha: 0.1)),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1.5),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(14),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDatePicker({
+    required String label,
+    required DateTime date,
+    required VoidCallback onTap,
+  }) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          label,
+          style: GoogleFonts.cairo(
+            fontWeight: FontWeight.bold,
+            color: AppColors.textPrimary,
+          ),
+        ),
+        const SizedBox(height: 8),
+        InkWell(
+          onTap: onTap,
+          borderRadius: BorderRadius.circular(14),
+          child: Container(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(color: AppColors.primary.withValues(alpha: 0.1)),
+            ),
+            child: Row(
+              children: [
+                const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 20),
+                const SizedBox(width: 12),
+                Text(
+                  DateFormat('yyyy/MM/dd').format(date),
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+}

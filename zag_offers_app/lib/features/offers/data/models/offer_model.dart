@@ -37,11 +37,26 @@ class OfferModel extends OfferEntity {
       title: json['title'] ?? '',
       description: json['description'],
       image: firstImage ?? ImageUrlHelper.resolveNullable(json['image']?.toString()),
-      images: imagesList.isNotEmpty ? imagesList : (json['image'] != null ? [json['image']] : []),
+      images: imagesList.isNotEmpty ? imagesList : (json['image'] != null ? [ImageUrlHelper.resolve(json['image'].toString())] : []),
       discount: rawDiscount,
       discountPercentage: pct,
       expiryDate: dateStr != null ? DateTime.tryParse(dateStr) ?? DateTime.now() : DateTime.now(),
       store: StoreModel.fromJson(json['store'] ?? {}),
       terms: json['terms']?.toString(),
       oldPrice: json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null,
-      newPrice: json['newPrice'] != null ? double.tryParse(j
+      newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
+      viewCount: json['viewCount'] ?? 0,
+      isFeatured: json['isFeatured'] ?? false,
+      status: json['status'] ?? 'ACTIVE',
+    );
+  }
+
+  static double _parseDiscountPercentage(String discount) {
+    try {
+      final cleaned = discount.replaceAll('%', '').trim();
+      return double.tryParse(cleaned) ?? 0.0;
+    } catch (_) {
+      return 0.0;
+    }
+  }
+}

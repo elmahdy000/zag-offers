@@ -16,8 +16,8 @@ import 'features/offers/presentation/bloc/offers_bloc.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
 
 import 'core/network/notification_service.dart';
-import 'firebase_options.dart';
 import 'injection_container.dart' as di;
+import 'core/widgets/splash_screen.dart';
 
 /// Top-level background handler — must be annotated so the VM keeps it alive.
 @pragma('vm:entry-point')
@@ -74,11 +74,35 @@ class ZagOffersVendorApp extends StatelessWidget {
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,
-          colorScheme: ColorScheme.fromSeed(
-            seedColor: AppColors.primary,
+          brightness: Brightness.dark,
+          scaffoldBackgroundColor: AppColors.background,
+          colorScheme: const ColorScheme.dark(
+            primary: AppColors.primary,
+            secondary: AppColors.primary,
+            surface: AppColors.surface,
             background: AppColors.background,
+            onPrimary: Colors.white,
           ),
-          textTheme: GoogleFonts.cairoTextTheme(),
+          appBarTheme: const AppBarTheme(
+            backgroundColor: AppColors.background,
+            elevation: 0,
+            centerTitle: true,
+            titleTextStyle: TextStyle(
+              color: AppColors.textPrimary,
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              fontFamily: 'Cairo',
+            ),
+          ),
+          cardTheme: CardTheme(
+            color: AppColors.card,
+            elevation: 0,
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(16),
+              side: const BorderSide(color: AppColors.border, width: 1),
+            ),
+          ),
+          textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme),
         ),
         builder: (context, child) {
           return Directionality(
@@ -90,7 +114,6 @@ class ZagOffersVendorApp extends StatelessWidget {
       ),
     );
   }
-}
 
 class AuthWrapper extends StatelessWidget {
   const AuthWrapper({super.key});
@@ -100,7 +123,6 @@ class AuthWrapper extends StatelessWidget {
     return BlocListener<AuthBloc, AuthState>(
       listener: (context, state) {
         if (state is AuthAuthenticated) {
-          // جلب الإحصائيات فور تسجيل الدخول الناجح
           context.read<DashboardBloc>().add(GetDashboardStatsRequested());
         }
       },
@@ -108,6 +130,8 @@ class AuthWrapper extends StatelessWidget {
         builder: (context, state) {
           if (state is AuthAuthenticated) {
             return const MainLayout();
+          } else if (state is AuthInitial || state is AuthLoading) {
+            return const SplashScreen();
           }
           return const LoginPage();
         },

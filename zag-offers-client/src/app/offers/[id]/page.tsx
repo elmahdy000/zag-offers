@@ -45,7 +45,7 @@ export default function OfferDetailsPage() {
     setIsFav(!isFav);
   };
 
-  const handleGetCoupon = () => {
+  const handleGetCoupon = async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       alert("يرجى تسجيل الدخول أولاً للحصول على الكوبون");
@@ -53,18 +53,31 @@ export default function OfferDetailsPage() {
       return;
     }
 
-    setShowCoupon(true);
-    // Fake shuffle animation for code
-    let i = 0;
-    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
-    const interval = setInterval(() => {
-      setCouponCode('ZAG-' + Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''));
-      if (++i > 15) {
-        clearInterval(interval);
-        // Set final code (realistically this should come from API_URL)
-        setCouponCode('ZAG-394X2B');
+    try {
+      setLoading(true);
+      const res = await fetch(`${API_URL}/coupons/generate`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`
+        },
+        body: JSON.stringify({ offerId: id })
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        setCouponCode(data.code);
+        setShowCoupon(true);
+      } else {
+        const err = await res.json();
+        alert(err.message || "فشل في الحصول على الكوبون");
       }
-    }, 60);
+    } catch (e) {
+      console.error(e);
+      alert("حدث خطأ أثناء الاتصال بالسيرفر");
+    } finally {
+      setLoading(false);
+    }
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل العرض...</div>;

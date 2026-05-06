@@ -179,19 +179,42 @@ export class AdminService {
   }
 
   async getTopStores(limit = 10) {
-    return this.prisma.store.findMany({
+    const stores = await this.prisma.store.findMany({
       where: { status: StoreStatus.APPROVED },
       include: {
         category: { select: { name: true } },
         _count: { select: { offers: true, reviews: true } },
         offers: {
-          where: { status: OfferStatus.ACTIVE },
-          include: { _count: { select: { coupons: true } } },
+          include: {
+            _count: {
+              select: {
+                coupons: true,
+              },
+            },
+          },
         },
       },
       take: limit,
       orderBy: { reviews: { _count: 'desc' } },
     });
+
+    // Calculate total redemptions (USED coupons) for each store
+    const storeStats = await Promise.all(
+      stores.map(async (store) => {
+        const redeemedCount = await this.prisma.coupon.count({
+          where: {
+            offer: { storeId: store.id },
+            status: CouponStatus.USED,
+          },
+        });
+        return {
+          ...store,
+          totalCoupons: redeemedCount, // This matches the field expected by the Admin Dashboard
+        };
+      }),
+    );
+
+    return storeStats;
   }
 
   async getAllStores(params: {
@@ -360,14 +383,11 @@ export class AdminService {
       payload: { storeId: store.id, storeName: store.name },
     });
 
-    if (store.owner.fcmToken) {
-      void this.notificationsService.sendToUser(
-        store.owner.fcmToken,
-        'Store approved',
-        `Your store "${store.name}" has been approved.`,
-        { storeId: store.id, type: 'STORE_APPROVED' },
-      );
-    }
+    void this.notificationsService.sendToUserId(store.ownerId, {
+      title: 'تم اعتماد متجرك بنجاح ✅',
+      body: `تمت الموافقة على "${store.name}". يمكنك الآن البدء في إضافة عروضك.`,
+      data: { storeId: store.id, type: 'STORE_APPROVED' },
+    });
 
     // Log the action
     await this.auditLogService.log({
@@ -400,14 +420,11 @@ export class AdminService {
       payload: { storeId: store.id, storeName: store.name },
     });
 
-    if (store.owner.fcmToken) {
-      void this.notificationsService.sendToUser(
-        store.owner.fcmToken,
-        'Store rejected',
-        reason || 'The store request was rejected.',
-        { storeId: store.id, type: 'STORE_REJECTED' },
-      );
-    }
+    void this.notificationsService.sendToUserId(store.ownerId, {
+      title: 'تم رفض طلب المتجر ❌',
+      body: reason || `تم رفض طلب "${store.name}". تواصل مع الدعم للمزيد.`,
+      data: { storeId: store.id, type: 'STORE_REJECTED' },
+    });
 
     await this.auditLogService.log({
       action: 'REJECT_STORE',
@@ -664,14 +681,12 @@ export class AdminService {
       imageUrl,
     );
 
-    if (offer.store.owner.fcmToken) {
-      void this.notificationsService.notifyOfferApproved(
-        offer.store.owner.fcmToken,
-        offer.title,
-        offer.id,
-        imageUrl,
-      );
-    }
+    void this.notificationsService.sendToUserId(offer.store.ownerId, {
+      title: 'تم اعتماد عرضك بنجاح ✅',
+      body: `عرضك "${offer.title}" متاح الآن لجميع العملاء.`,
+      data: { offerId: offer.id, type: 'OFFER_APPROVED' },
+      imageUrl,
+    });
 
     await this.auditLogService.log({
       action: 'APPROVE_OFFER',
@@ -703,14 +718,11 @@ export class AdminService {
       payload: { offerId: offer.id, offerTitle: offer.title },
     });
 
-    if (offer.store.owner.fcmToken) {
-      void this.notificationsService.sendToUser(
-        offer.store.owner.fcmToken,
-        'Offer rejected',
-        reason || `Your offer "${offer.title}" was rejected.`,
-        { offerId: offer.id, type: 'OFFER_REJECTED' },
-      );
-    }
+    void this.notificationsService.sendToUserId(offer.store.ownerId, {
+      title: 'تم رفض العرض ❌',
+      body: reason || `تم رفض عرضك "${offer.title}". تواصل مع الدعم للمزيد.`,
+      data: { offerId: offer.id, type: 'OFFER_REJECTED' },
+    });
 
     await this.auditLogService.log({
       action: 'REJECT_OFFER',

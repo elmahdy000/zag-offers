@@ -10,12 +10,15 @@ import { nanoid } from 'nanoid';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 
+import { AuditLogService } from '../audit-log/audit-log.service';
+
 @Injectable()
 export class CouponsService {
   constructor(
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
+    private auditLogService: AuditLogService,
   ) {}
 
   async generate(offerId: string, customerId: string): Promise<Coupon> {
@@ -86,7 +89,7 @@ export class CouponsService {
 
     // إشعار التاجر بحصول عميل على كوبون جديد
     this.eventsGateway.notifyMerchant(newCoupon.offer.store.ownerId, {
-      type: 'COUPON_REDEEMED',
+      type: 'COUPON_GENERATED',
       title: 'كوبون جديد مستخرج!',
       body: `عميل حصل على كوبون لعرض: ${newCoupon.offer.title}`,
       payload: { code: newCoupon.code, offerTitle: newCoupon.offer.title },
@@ -96,7 +99,16 @@ export class CouponsService {
     void this.notificationsService.sendToUserId(newCoupon.offer.store.ownerId, {
       title: '🎟️ كوبون جديد مستخرج!',
       body: `عميل حصل على كوبون لعرض: ${newCoupon.offer.title}`,
-      data: { type: 'COUPON_REDEEMED', code: newCoupon.code },
+      data: { type: 'COUPON_GENERATED', code: newCoupon.code },
+    });
+
+    // Log the generation for admin visibility
+    void this.auditLogService.log({
+      action: 'GENERATE_COUPON',
+      adminId: customerId,
+      targetId: newCoupon.id,
+      targetName: newCoupon.code,
+      details: `Customer ${customerId} generated coupon for offer ${offerId}`,
     });
 
     return newCoupon;
@@ -173,6 +185,22 @@ export class CouponsService {
       storeName: coupon.offer.store.name,
     });
 
+    // إرسال تنبيه لحظي للتاجر لتحديث الإحصائيات
+    this.eventsGateway.notifyMerchant(merchantId, {
+      type: 'COUPON_REDEEMED',
+      title: 'تم التفعيل!',
+      body: `تم تفعيل الكوبون ${coupon.code} بنجاح`,
+    });
+
+    // Log the redemption for admin visibility
+    void this.auditLogService.log({
+      action: 'REDEEM_COUPON',
+      adminId: merchantId,
+      targetId: updatedCoupon.id,
+      targetName: updatedCoupon.code,
+      details: `Merchant ${merchantId} redeemed coupon ${code}`,
+    });
+
     return updatedCoupon;
   }
 
@@ -180,6 +208,27 @@ export class CouponsService {
     return this.prisma.coupon.findMany({
       where: { customerId },
       include: { offer: { include: { store: true } } },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
+  async findMerchantCoupons(merchantId: string) {
+    return this.prisma.coupon.findMany({
+      where: {
+        offer: {
+          store: { ownerId: merchantId },
+        },
+      },
+      include: {
+        offer: true,
+        customer: {
+          select: {
+            name: true,
+            phone: true,
+            avatar: true,
+          },
+        },
+      },
       orderBy: { createdAt: 'desc' },
     });
   }

@@ -136,6 +136,16 @@ export class AuthController {
     return this.authService.updateFcmToken(req.user.id, fcmToken);
   }
 
+  @Post('logout')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'تسجيل الخروج (مسح FCM Token)' })
+  @ApiResponse({ status: 200, description: 'تم تسجيل الخروج بنجاح' })
+  logout(@Request() req: { user: { id: string } }) {
+    return this.authService.logout(req.user.id);
+  }
+
   @Post('password')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useMemo, Suspense } from 'react';
 import { useSearchParams } from 'next/navigation';
-import { Search, Flame } from 'lucide-react';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Tool } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { API_URL } from '@/lib/constants';
@@ -11,9 +11,18 @@ const AREAS = [
   'الجامعة', 'القومية', 'وسط البلد', 'المحافظة', 'طلبة عويضة', 'منطقة الفيلات',
 ];
 
-const CAT_ICONS: Record<string, string> = {
-  'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
-  'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒', 'default': '🏷️',
+const CAT_ICONS: Record<string, React.ReactNode> = {
+  'مطاعم':         <Utensils size={14} />,
+  'كافيهات':       <Coffee size={14} />,
+  'ملابس':         <Shirt size={14} />,
+  'جيم':           <Dumbbell size={14} />,
+  'تجميل':         <Sparkles size={14} />,
+  'عيادات':        <Hospital size={14} />,
+  'سوبرماركت':    <ShoppingCart size={14} />,
+  'دورات':         <BookOpen size={14} />,
+  'خدمات سيارات': <Car size={14} />,
+  'خدمات محلية':  <Tool size={14} />,
+  'default':       <Sparkles size={14} />,
 };
 
 function OffersPageContent() {
@@ -105,12 +114,39 @@ function OffersPageContent() {
           />
         </div>
 
-        {/* Second row: area + category + sort */}
-        <div className="flex flex-wrap gap-3">
+        {/* Category Ribbon (Premium Horizontal Scroll) */}
+        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+          <button
+            onClick={() => setActiveCat('')}
+            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all border
+                       ${!activeCat 
+                         ? 'bg-[#FF6B00] border-[#FF6B00] text-white shadow-[0_8px_20px_rgba(255,107,0,0.3)]' 
+                         : 'bg-[#1E1E1E] border-white/[0.07] text-[#9A9A9A] hover:border-white/20'}`}
+          >
+            <Sparkles size={16} /> الكل
+          </button>
+          {categories.map(c => {
+            const isActive = activeCat === c.id;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setActiveCat(c.id)}
+                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all border
+                           ${isActive 
+                             ? 'bg-[#FF6B00] border-[#FF6B00] text-white shadow-[0_8px_20px_rgba(255,107,0,0.3)]' 
+                             : 'bg-[#1E1E1E] border-white/[0.07] text-[#9A9A9A] hover:border-white/20'}`}
+              >
+                {CAT_ICONS[c.name] || CAT_ICONS.default} {c.name}
+              </button>
+            );
+          })}
+        </div>
 
+        {/* Filters Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
           {/* Area select */}
           <select
-            className="flex-1 min-w-[160px] bg-[#1E1E1E] border border-white/[0.07] rounded-xl
+            className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
                        pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
                        focus:border-[#FF6B00] transition-all appearance-none"
             value={area}
@@ -118,22 +154,6 @@ function OffersPageContent() {
           >
             <option value="">📍 كل المناطق</option>
             {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
-
-          {/* Category select */}
-          <select
-            className="flex-1 min-w-[160px] bg-[#1E1E1E] border border-white/[0.07] rounded-xl
-                       pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
-                       focus:border-[#FF6B00] transition-all appearance-none"
-            value={activeCat}
-            onChange={e => setActiveCat(e.target.value)}
-          >
-            <option value="">📂 كل الفئات</option>
-            {categories.map(c => (
-              <option key={c.id} value={c.id}>
-                {CAT_ICONS[c.name] || '🏷️'} {c.name}
-              </option>
-            ))}
           </select>
 
           {/* Sort select */}

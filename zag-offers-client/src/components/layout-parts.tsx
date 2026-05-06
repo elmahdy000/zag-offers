@@ -1,19 +1,59 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
-import { ShoppingBag, User, Heart, Menu, X } from 'lucide-react';
+import { ShoppingBag, User, Heart, Menu, X, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname } from 'next/navigation';
+import { API_URL } from '@/lib/constants';
+
+interface ClientNotification {
+  id: string;
+  title: string;
+  body: string;
+  isRead: boolean;
+  createdAt: string;
+}
 
 /* ─── Navbar ─────────────────────────────────────────────── */
 export function Navbar() {
   const pathname = usePathname();
-  const [isScrolled,      setIsScrolled]      = useState(false);
+  const [isScrolled,       setIsScrolled]       = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn,       setIsLoggedIn]       = useState(false);
+  const [notifications,    setNotifications]    = useState<ClientNotification[]>([]);
+  const [showBell,         setShowBell]         = useState(false);
+  const bellRef = useRef<HTMLDivElement>(null);
 
-  // Update login status on mount and whenever the path changes
+  const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  const fetchNotifications = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      const res = await fetch(`${API_URL}/notifications`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setNotifications(Array.isArray(data) ? data : []);
+      }
+    } catch { /* ignore */ }
+  };
+
+  const markAllRead = async () => {
+    try {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      await fetch(`${API_URL}/notifications/read-all`, {
+        method: 'PATCH',
+        headers: { Authorization: `Bearer ${token}` },
+      });
+      setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
+    } catch { /* ignore */ }
+  };
+
+  // Update login status on mount, route change, and custom events
   useEffect(() => {
     const checkAuth = () => {
       try {
@@ -22,8 +62,37 @@ export function Navbar() {
         setIsLoggedIn(false);
       }
     };
+
     checkAuth();
+
+    // Listen for custom login event and storage changes (other tabs)
+    window.addEventListener('auth-change', checkAuth);
+    window.addEventListener('storage', checkAuth);
+
+    return () => {
+      window.removeEventListener('auth-change', checkAuth);
+      window.removeEventListener('storage', checkAuth);
+    };
   }, [pathname]);
+
+  // Fetch notifications when logged in
+  useEffect(() => {
+    if (!isLoggedIn) { setNotifications([]); return; }
+    fetchNotifications();
+    const interval = setInterval(fetchNotifications, 30_000);
+    return () => clearInterval(interval);
+  }, [isLoggedIn]);
+
+  // Close bell dropdown when clicking outside
+  useEffect(() => {
+    const handler = (e: MouseEvent) => {
+      if (bellRef.current && !bellRef.current.contains(e.target as Node)) {
+        setShowBell(false);
+      }
+    };
+    document.addEventListener('mousedown', handler);
+    return () => document.removeEventListener('mousedown', handler);
+  }, []);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -90,6 +159,81 @@ export function Navbar() {
           >
             <Heart size={19} />
           </Link>
+
+          {/* Notification Bell (visible when logged in) */}
+          {isLoggedIn && (
+            <div className="relative" ref={bellRef}>
+              <button
+                onClick={() => {
+                  setShowBell((v) => !v);
+                  if (!showBell && unreadCount > 0) markAllRead();
+                }}
+                className="relative p-2 text-[#9A9A9A] hover:text-[#F0F0F0] transition-colors rounded-lg hover:bg-white/5"
+                aria-label="الإشعارات"
+              >
+                <Bell size={19} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#FF6B00] text-white text-[10px] font-black rounded-full flex items-center justify-center px-0.5">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
+              </button>
+
+              {/* Dropdown */}
+              {showBell && (
+                <div
+                  className="absolute left-0 top-full mt-2 w-80 bg-[#1E1E1E] border border-white/[0.07] rounded-2xl shadow-2xl overflow-hidden z-50"
+                  dir="rtl"
+                >
+                  <div className="px-4 py-3 border-b border-white/[0.05] flex items-center justify-between">
+                    <span className="text-sm font-black text-[#F0F0F0]">الإشعارات</span>
+                    {unreadCount > 0 && (
+                      <button
+                        onClick={markAllRead}
+                        className="text-[11px] text-[#FF6B00] font-bold hover:underline"
+                      >
+                        قراءة الكل
+                      </button>
+                    )}
+                  </div>
+                  <div className="max-h-72 overflow-y-auto">
+                    {notifications.length === 0 ? (
+                      <div className="py-8 text-center text-[#9A9A9A] text-sm">
+                        لا توجد إشعارات
+                      </div>
+                    ) : (
+                      notifications.slice(0, 20).map((n) => (
+                        <div
+                          key={n.id}
+                          className={`px-4 py-3 border-b border-white/[0.04] ${
+                            n.isRead ? 'opacity-60' : 'bg-[#FF6B00]/5'
+                          }`}
+                        >
+                          <div className="flex items-start gap-2">
+                            {!n.isRead && (
+                              <span className="mt-1.5 w-2 h-2 rounded-full bg-[#FF6B00] flex-shrink-0" />
+                            )}
+                            <div className={n.isRead ? 'mr-4' : ''}>
+                              <p className="text-xs font-black text-[#F0F0F0]">{n.title}</p>
+                              <p className="text-[11px] text-[#9A9A9A] mt-0.5 leading-relaxed">{n.body}</p>
+                              <p className="text-[10px] text-[#9A9A9A]/60 mt-1">
+                                {new Date(n.createdAt).toLocaleString('ar-EG', {
+                                  month: 'short',
+                                  day: 'numeric',
+                                  hour: '2-digit',
+                                  minute: '2-digit',
+                                })}
+                              </p>
+                            </div>
+                          </div>
+                        </div>
+                      ))
+                    )}
+                  </div>
+                </div>
+              )}
+            </div>
+          )}
 
           <div className="h-5 w-px bg-white/[0.08] hidden sm:block" />
 

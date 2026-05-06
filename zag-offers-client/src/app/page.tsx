@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Flame, Sparkles } from 'lucide-react';
+import { Search, Flame, Sparkles, Utensils, Coffee, Shirt, Dumbbell, Hospital, ShoppingCart, BookOpen, Car, Tool } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
@@ -24,10 +24,18 @@ interface Offer {
   };
 }
 
-const CAT_ICONS: Record<string, string> = {
-  'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
-  'تجميل': '💅', 'عيادات': '🏥', 'سوبرماركت': '🛒',
-  'دورات': '📚', 'خدمات سيارات': '🚗', 'default': '🏷️',
+const CAT_ICONS: Record<string, React.ReactNode> = {
+  'مطاعم':         <Utensils size={14} />,
+  'كافيهات':       <Coffee size={14} />,
+  'ملابس':         <Shirt size={14} />,
+  'جيم':           <Dumbbell size={14} />,
+  'تجميل':         <Sparkles size={14} />,
+  'عيادات':        <Hospital size={14} />,
+  'سوبرماركت':    <ShoppingCart size={14} />,
+  'دورات':         <BookOpen size={14} />,
+  'خدمات سيارات': <Car size={14} />,
+  'خدمات محلية':  <Tool size={14} />,
+  'default':       <Sparkles size={14} />,
 };
 
 function HomePageContent() {
@@ -167,18 +175,21 @@ function HomePageContent() {
             🌟 الكل
           </button>
 
-          {categories.map(c => (
-            <button
-              key={c.id}
-              onClick={() => setActiveCat(c.id)}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all
-                ${activeCat === c.id
-                  ? 'bg-[#FF6B00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)]'
-                  : 'bg-[#252525] border border-white/[0.07] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
-            >
-              {CAT_ICONS[c.name] || '🏷️'} {c.name}
-            </button>
-          ))}
+          {categories.map(c => {
+            const Icon = CAT_ICONS[c.name] || CAT_ICONS.default;
+            return (
+              <button
+                key={c.id}
+                onClick={() => setActiveCat(c.id)}
+                className={`flex-shrink-0 px-5 py-2.5 rounded-full text-sm font-bold whitespace-nowrap transition-all flex items-center gap-2
+                  ${activeCat === c.id
+                    ? 'bg-[#FF6B00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.35)] border-transparent'
+                    : 'bg-[#252525] border border-white/[0.07] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
+              >
+                {Icon} {c.name}
+              </button>
+            );
+          })}
         </div>
       </section>
 

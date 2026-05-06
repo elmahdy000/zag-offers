@@ -48,7 +48,8 @@ export interface WsMerchantNotification {
     | 'OFFER_APPROVED'
     | 'OFFER_REJECTED'
     | 'NEW_REVIEW'
-    | 'COUPON_REDEEMED';
+    | 'COUPON_REDEEMED'
+    | 'COUPON_GENERATED';
   title: string;
   body: string;
   payload?: Record<string, unknown>;
@@ -90,9 +91,7 @@ interface JoinRoomPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: process.env.ALLOWED_ORIGINS
-      ? process.env.ALLOWED_ORIGINS.split(',')
-      : '*',
+    origin: (origin: any, callback: any) => callback(null, true),
     credentials: true,
   },
   namespace: '/',

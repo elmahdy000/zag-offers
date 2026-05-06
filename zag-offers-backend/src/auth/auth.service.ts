@@ -249,6 +249,12 @@ export class AuthService {
     return { success: true, message: 'تم تسجيل توكن الإشعارات بنجاح' };
   }
 
+  async logout(userId: string) {
+    // Clear the FCM token so the device stops receiving push notifications
+    await this.usersService.update(userId, { fcmToken: null });
+    return { success: true, message: 'تم تسجيل الخروج بنجاح' };
+  }
+
   async updatePassword(
     userId: string,
     data: { currentPassword?: string; newPassword?: string },

@@ -198,7 +198,7 @@ export default function AdminDashboard() {
       </div>
 
       {/* Dynamic Stats Grid */}
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           label="مستخدمين جدد"
           value={pStatsLoading ? '...' : format(pStats?.newUsers ?? 0)}
@@ -224,12 +224,20 @@ export default function AdminDashboard() {
           trend="+18%"
         />
         <StatCard
-          label="كوبونات مفعلة"
+          label="طلبات الكوبونات"
           value={pStatsLoading ? '...' : format(pStats?.newCoupons ?? 0)}
-          icon={Percent}
+          icon={TicketPercent}
           color="text-violet-600"
           bg="bg-violet-50"
           trend="+24%"
+        />
+        <StatCard
+          label="معدل التحويل"
+          value={statsLoading ? '...' : stats?.coupons.couponConversionRate ?? '0%'}
+          icon={TrendingUp}
+          color="text-pink-600"
+          bg="bg-pink-50"
+          subValue={`${stats?.coupons.totalCouponsUsed ?? 0} مسح فعلي`}
         />
       </div>
 
@@ -333,22 +341,33 @@ export default function AdminDashboard() {
             </h3>
             <div className="space-y-5">
               {topStoresLoading ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-12 animate-pulse bg-slate-50 rounded-xl" />) :
-                topStores.map((store, i) => (
-                  <div key={store.id} className="flex items-center gap-3">
-                    <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
-                      {store.logo ? <img src={store.logo} alt="logo" className="h-full w-full object-cover" /> : <Store size={18} className="text-slate-300" />}
+                topStores.map((store, i) => {
+                  const totalClaims = (store.offers || []).reduce((sum, off) => sum + (off._count?.coupons || 0), 0);
+                  const totalScans = store.totalCoupons || 0; // Using totalCoupons as redeemed count if available
+                  
+                  return (
+                    <div key={store.id} className="flex items-center gap-3">
+                      <div className="h-10 w-10 rounded-xl bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0">
+                        {store.logo ? <img src={store.logo} alt="logo" className="h-full w-full object-cover" /> : <Store size={18} className="text-slate-300" />}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold text-slate-900 truncate">{store.name}</p>
+                        <div className="flex items-center gap-2 mt-1">
+                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                            {totalClaims} طلب
+                          </p>
+                          <span className="h-1 w-1 rounded-full bg-slate-200" />
+                          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
+                            {totalScans} مسح
+                          </p>
+                        </div>
+                      </div>
+                      <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-[10px] font-black">
+                        #{i + 1}
+                      </div>
                     </div>
-                    <div className="flex-1 min-w-0">
-                      <p className="text-sm font-bold text-slate-900 truncate">{store.name}</p>
-                      <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
-                        {(store.offers || []).reduce((sum, off) => sum + (off._count?.coupons || 0), 0)} كوبون مُستخدم
-                      </p>
-                    </div>
-                    <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-[10px] font-black">
-                      #{i + 1}
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
             </div>
           </div>
         </div>
@@ -365,7 +384,7 @@ export default function AdminDashboard() {
   );
 }
 
-function StatCard({ label, value, icon: Icon, color, bg, trend }: { label: string; value: string; icon: any; color: string; bg: string; trend?: string }) {
+function StatCard({ label, value, icon: Icon, color, bg, trend, subValue }: { label: string; value: string; icon: any; color: string; bg: string; trend?: string; subValue?: string }) {
   return (
     <div className="flex flex-col rounded-2xl border border-slate-200 bg-white p-6 shadow-sm hover:shadow-md transition-all hover:-translate-y-1">
       <div className="flex justify-between items-start mb-5">
@@ -381,6 +400,11 @@ function StatCard({ label, value, icon: Icon, color, bg, trend }: { label: strin
       <div>
         <p className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
         <p className="mt-1.5 text-3xl font-black text-slate-900 leading-none tabular-nums">{value}</p>
+        {subValue && (
+          <p className="mt-2 text-[11px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md w-fit">
+            {subValue}
+          </p>
+        )}
       </div>
     </div>
   );
