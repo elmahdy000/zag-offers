@@ -30,6 +30,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // Remove FCM token from backend before clearing local auth
+    await NotificationService.removeTokenFromBackend();
     await logoutUseCase();
     emit(AuthInitial());
   }

@@ -58,6 +58,7 @@ export class AuthService {
       role: user.role,
       avatar: user.avatar,
       area: user.area,
+      points: user.points,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
     };

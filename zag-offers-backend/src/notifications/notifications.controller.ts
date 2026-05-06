@@ -6,6 +6,7 @@ import {
   UseGuards,
   Request,
   Get,
+  Param,
 } from '@nestjs/common';
 import { NotificationsService } from './notifications.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -13,6 +14,10 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
 import { ApiTags, ApiOperation, ApiBearerAuth, ApiBody } from '@nestjs/swagger';
+import { RegisterFcmTokenDto } from './dto/register-fcm-token.dto';
+import { SendNotificationDto } from './dto/send-notification.dto';
+import { SendNotificationToUserDto } from './dto/send-notification-to-user.dto';
+import { SendNotificationToUsersDto } from './dto/send-notification-to-users.dto';
 
 @ApiTags('notifications (الإشعارات)')
 @Controller('notifications')
@@ -25,25 +30,14 @@ export class NotificationsController {
   @ApiOperation({
     summary: 'تسجيل توكن الإشعارات للجهاز',
     description:
-      'يُسجَّل التوكن في DB ويُشترك تلقائياً في topics المنطقة وall_users',
+      'يُسجل التوكن في DB ويُشترك تلقائياً في topics المنطقة وall_users',
   })
-  @ApiBody({
-    schema: {
-      required: ['fcmToken'],
-      properties: {
-        fcmToken: {
-          type: 'string',
-          example: 'fGH8k2m...',
-          description: 'FCM Registration Token من Firebase SDK',
-        },
-      },
-    },
-  })
+  @ApiBody({ type: RegisterFcmTokenDto })
   async registerToken(
     @Request() req: { user: { id: string } },
-    @Body('fcmToken') fcmToken: string,
+    @Body() body: RegisterFcmTokenDto,
   ) {
-    await this.notificationsService.saveFcmToken(req.user.id, fcmToken);
+    await this.notificationsService.saveFcmToken(req.user.id, body.fcmToken);
     return { success: true, message: 'تم تسجيل توكن الإشعارات بنجاح' };
   }
 
@@ -52,7 +46,7 @@ export class NotificationsController {
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'إلغاء تسجيل توكن الإشعارات (عند تسجيل الخروج)',
-    description: 'يُلغَى الاشتراك في كل الـ Topics ويُحذف التوكن من DB',
+    description: 'يُلغى الاشتراك في كل الـ Topics ويُحذف التوكن من DB',
   })
   async removeToken(@Request() req: { user: { id: string } }) {
     await this.notificationsService.removeFcmToken(req.user.id);
@@ -71,36 +65,104 @@ export class NotificationsController {
     };
   }
 
-  @Post('test')
+  @Get()
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'الحصول على إشعارات المستخدم الحالي' })
+  async getMyNotifications(@Request() req: { user: { id: string } }) {
+    return this.notificationsService.getUserNotifications(req.user.id);
+  }
+
+  @Post(':id/read')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'تحديد إشعار كمقروء' })
+  async markNotificationAsRead(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    return this.notificationsService.markNotificationAsRead(req.user.id, id);
+  }
+
+  @Post('read-all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'تحديد كافة إشعارات المستخدم كمقروءة' })
+  async markAllNotificationsAsRead(@Request() req: { user: { id: string } }) {
+    return this.notificationsService.markAllNotificationsAsRead(req.user.id);
+  }
+
+  @Post('test/me')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'إرسال إشعار تجريبي للمستخدم الحالي' })
+  @ApiBody({ type: SendNotificationDto })
+  async sendTestToMe(
+    @Request() req: { user: { id: string } },
+    @Body() body: SendNotificationDto,
+  ) {
+    await this.notificationsService.sendToUserId(req.user.id, {
+      title: body.title,
+      body: body.body,
+      data: body.data,
+      imageUrl: body.imageUrl,
+    });
+    return {
+      success: true,
+      message: 'Test notification sent (if token exists)',
+    };
+  }
+
+  @Post('test/public')
+  @ApiOperation({ summary: 'إرسال إشعار للجميع لاختبار النظام' })
+  @ApiBody({ type: SendNotificationDto })
+  async sendTestPublic(@Body() body: SendNotificationDto) {
+    await this.notificationsService.sendToAll(
+      body.title,
+      body.body,
+      body.data,
+      body.imageUrl,
+    );
+    return {
+      success: true,
+      message: 'Public test broadcast triggered',
+    };
+  }
+
+  @Post('admin/send-user')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.ADMIN)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'إرسال إشعار تجريبي (للأدمن فقط)' })
-  @ApiBody({
-    schema: {
-      properties: {
-        title: { type: 'string', example: 'اختبار الإشعارات' },
-        body: { type: 'string', example: 'هذا إشعار تجريبي من لوحة التحكم' },
-        area: {
-          type: 'string',
-          example: 'القومية',
-          description: 'فارغ = كل المستخدمين',
-        },
-      },
-    },
-  })
-  async sendTest(
-    @Body('title') title: string,
-    @Body('body') body: string,
-    @Body('area') area?: string,
-  ) {
-    if (area) {
-      await this.notificationsService.sendToArea(area, title, body, {
-        type: 'TEST',
-      });
-    } else {
-      await this.notificationsService.sendToAll(title, body, { type: 'TEST' });
-    }
-    return { success: true, message: 'تم إرسال الإشعار التجريبي' };
+  @ApiOperation({ summary: 'إرسال إشعار لمستخدم محدد (Admin)' })
+  @ApiBody({ type: SendNotificationToUserDto })
+  async sendToUserByAdmin(@Body() body: SendNotificationToUserDto) {
+    await this.notificationsService.sendToUserId(body.userId, {
+      title: body.title,
+      body: body.body,
+      data: body.data,
+      imageUrl: body.imageUrl,
+    });
+    return { success: true, message: 'Notification processed for target user' };
+  }
+
+  @Post('admin/send-users')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'إرسال إشعار لمجموعة مستخدمين (Admin)' })
+  @ApiBody({ type: SendNotificationToUsersDto })
+  async sendToUsersByAdmin(@Body() body: SendNotificationToUsersDto) {
+    const result = await this.notificationsService.sendToUserIds(body.userIds, {
+      title: body.title,
+      body: body.body,
+      data: body.data,
+      imageUrl: body.imageUrl,
+    });
+
+    return {
+      success: true,
+      message: 'Bulk notification processed',
+      ...result,
+    };
   }
 }

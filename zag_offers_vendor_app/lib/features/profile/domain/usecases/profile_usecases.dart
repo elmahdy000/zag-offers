@@ -23,3 +23,21 @@ class UpdateProfileParams {
   final String? phone;
   UpdateProfileParams({this.name, this.phone});
 }
+
+class ChangePasswordUseCase implements UseCase<void, ChangePasswordParams> {
+  final ProfileRepository repository;
+  ChangePasswordUseCase(this.repository);
+  @override
+  Future<void> call(ChangePasswordParams params) async {
+    return await repository.changePassword(
+      currentPassword: params.currentPassword,
+      newPassword: params.newPassword,
+    );
+  }
+}
+
+class ChangePasswordParams {
+  final String currentPassword;
+  final String newPassword;
+  ChangePasswordParams({required this.currentPassword, required this.newPassword});
+}

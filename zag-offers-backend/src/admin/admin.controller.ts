@@ -25,6 +25,7 @@ import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { AdminService } from './admin.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateOfferDto } from './dto/update-offer.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 
 @ApiTags('admin')
@@ -37,8 +38,10 @@ export class AdminController {
 
   @Get('stats/global')
   @ApiOperation({ summary: 'Get global admin dashboard statistics' })
-  getGlobalStats() {
-    return this.adminService.getGlobalStats();
+  async getGlobalStats() {
+    const stats = await this.adminService.getGlobalStats();
+    console.log('Backend: Admin Stats Requested:', stats);
+    return stats;
   }
 
   @Get('stats/period')
@@ -134,15 +137,19 @@ export class AdminController {
 
   @Patch('stores/:id/approve')
   @ApiOperation({ summary: 'Approve a store' })
-  approveStore(@Param('id') id: string) {
-    return this.adminService.approveStore(id);
+  approveStore(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.approveStore(id, req.user.id);
   }
 
   @Patch('stores/:id/reject')
   @ApiOperation({ summary: 'Reject a store' })
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
-  rejectStore(@Param('id') id: string, @Body('reason') reason?: string) {
-    return this.adminService.rejectStore(id, reason);
+  rejectStore(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: any,
+  ) {
+    return this.adminService.rejectStore(id, req.user.id, reason);
   }
 
   @Patch('stores/:id/suspend')
@@ -197,40 +204,33 @@ export class AdminController {
   @ApiOperation({ summary: 'Update offer details as admin' })
   updateOffer(
     @Param('id') id: string,
-    @Body()
-    body: {
-      title?: string;
-      description?: string;
-      discount?: string;
-      terms?: string;
-      startDate?: string;
-      endDate?: string;
-      usageLimit?: number | null;
-      status?: OfferStatus;
-      storeId?: string;
-      images?: string[];
-    },
+    @Body() body: UpdateOfferDto,
+    @Request() req: any,
   ) {
-    return this.adminService.updateOffer(id, body);
+    return this.adminService.updateOffer(id, body, req.user.id);
   }
 
   @Patch('offers/:id/approve')
   @ApiOperation({ summary: 'Approve an offer' })
-  approveOffer(@Param('id') id: string) {
-    return this.adminService.approveOffer(id);
+  approveOffer(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.approveOffer(id, req.user.id);
   }
 
   @Patch('offers/:id/reject')
   @ApiOperation({ summary: 'Reject an offer' })
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
-  rejectOffer(@Param('id') id: string, @Body('reason') reason?: string) {
-    return this.adminService.rejectOffer(id, reason);
+  rejectOffer(
+    @Param('id') id: string,
+    @Body('reason') reason: string,
+    @Request() req: any,
+  ) {
+    return this.adminService.rejectOffer(id, req.user.id, reason);
   }
 
   @Delete('offers/:id')
   @ApiOperation({ summary: 'Delete an offer' })
-  deleteOffer(@Param('id') id: string) {
-    return this.adminService.deleteOffer(id);
+  deleteOffer(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.deleteOffer(id, req.user.id);
   }
 
   @Get('users')
@@ -299,20 +299,24 @@ export class AdminController {
   @Post('categories')
   @ApiOperation({ summary: 'Create category' })
   @ApiBody({ schema: { properties: { name: { type: 'string' } } } })
-  createCategory(@Body('name') name: string) {
-    return this.adminService.createCategory(name);
+  createCategory(@Body('name') name: string, @Request() req: any) {
+    return this.adminService.createCategory(name, req.user.id);
   }
 
   @Patch('categories/:id')
   @ApiOperation({ summary: 'Update category name' })
-  updateCategory(@Param('id') id: string, @Body('name') name: string) {
-    return this.adminService.updateCategory(id, name);
+  updateCategory(
+    @Param('id') id: string,
+    @Body('name') name: string,
+    @Request() req: any,
+  ) {
+    return this.adminService.updateCategory(id, name, req.user.id);
   }
 
   @Delete('categories/:id')
   @ApiOperation({ summary: 'Delete category' })
-  deleteCategory(@Param('id') id: string) {
-    return this.adminService.deleteCategory(id);
+  deleteCategory(@Param('id') id: string, @Request() req: any) {
+    return this.adminService.deleteCategory(id, req.user.id);
   }
 
   @Get('coupons')
@@ -361,8 +365,16 @@ export class AdminController {
   broadcastAnnouncement(
     @Body('title') title: string,
     @Body('body') body: string,
-    @Body('area') area?: string,
+    @Body('area') area: string,
+    @Body('imageUrl') imageUrl: string,
+    @Request() req: any,
   ) {
-    return this.adminService.broadcastAnnouncement(title, body, area);
+    return this.adminService.broadcastAnnouncement({
+      title,
+      body,
+      area,
+      imageUrl,
+      adminId: req.user.id,
+    });
   }
 }

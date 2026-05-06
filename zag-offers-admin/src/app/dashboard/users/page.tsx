@@ -91,6 +91,7 @@ export default function UsersPage() {
     role: 'CUSTOMER' as any,
     password: ''
   });
+  const [formErrors, setFormErrors] = useState<Record<string, string>>({});
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -184,7 +185,37 @@ export default function UsersPage() {
       setEditingUser(null);
       setFormData({ name: '', phone: '', email: '', area: '', role: 'CUSTOMER', password: '' });
     }
+    setFormErrors({});
     setIsUpsertOpen(true);
+  };
+
+  const validateForm = () => {
+    const errors: Record<string, string> = {};
+
+    if (!formData.name.trim()) {
+      errors.name = 'الاسم مطلوب';
+    } else if (formData.name.trim().length < 3) {
+      errors.name = 'الاسم يجب أن يكون 3 أحرف على الأقل';
+    }
+
+    if (!formData.phone.trim()) {
+      errors.phone = 'رقم الهاتف مطلوب';
+    } else if (!/^[0-9]{10,}$/.test(formData.phone.replace(/\s/g, ''))) {
+      errors.phone = 'رقم الهاتف يجب أن يكون 10 أرقام على الأقل';
+    }
+
+    if (formData.email && formData.email.trim() && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      errors.email = 'البريد الإلكتروني غير صالح';
+    }
+
+    if (!editingUser && !formData.password.trim()) {
+      errors.password = 'كلمة المرور مطلوبة';
+    } else if (formData.password && formData.password.length < 6) {
+      errors.password = 'كلمة المرور يجب أن تكون 6 أحرف على الأقل';
+    }
+
+    setFormErrors(errors);
+    return Object.keys(errors).length === 0;
   };
 
   const users = data?.items ?? [];
@@ -315,21 +346,24 @@ export default function UsersPage() {
                 <button onClick={() => setIsUpsertOpen(false)} className="rounded-xl bg-slate-50 p-3 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"><X size={20} /></button>
               </div>
 
-              <form onSubmit={(e) => { e.preventDefault(); upsertMutation.mutate(formData); }} className="space-y-6">
+              <form onSubmit={(e) => { e.preventDefault(); if (validateForm()) upsertMutation.mutate(formData); }} className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">الاسم الكامل</label>
-                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all" />
+                    <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.name ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} />
+                    {formErrors.name && <p className="text-xs text-rose-600">{formErrors.name}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">رقم الهاتف</label>
-                    <input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-outfit" />
+                    <input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.phone ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-outfit`} />
+                    {formErrors.phone && <p className="text-xs text-rose-600">{formErrors.phone}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">البريد الإلكتروني (اختياري)</label>
-                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-outfit" />
+                  <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.email ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-outfit`} />
+                  {formErrors.email && <p className="text-xs text-rose-600">{formErrors.email}</p>}
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2">
@@ -357,8 +391,9 @@ export default function UsersPage() {
                     value={formData.password} 
                     onChange={e => setFormData({...formData, password: e.target.value})} 
                     placeholder={editingUser ? "اتركها فارغة لعدم التغيير" : "أدخل كلمة المرور"}
-                    className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all" 
+                    className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.password ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
                   />
+                  {formErrors.password && <p className="text-xs text-rose-600">{formErrors.password}</p>}
                 </div>
 
                 <button 

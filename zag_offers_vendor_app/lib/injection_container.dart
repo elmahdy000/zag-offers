@@ -111,11 +111,13 @@ Future<void> init() async {
   sl.registerFactory(() => ProfileBloc(
         getProfileUseCase: sl(),
         updateProfileUseCase: sl(),
+        changePasswordUseCase: sl(),
       ));
 
   // Use cases
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
+  sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<ProfileRepository>(

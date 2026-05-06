@@ -14,11 +14,49 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import 'package:zag_offers_app/features/offers/presentation/pages/search_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/ads_slider.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/categories_section.dart';
+import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
+import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offers_skeleton.dart';
 
-class HomePage extends StatelessWidget {
+class HomePage extends StatefulWidget {
   const HomePage({super.key});
+
+  @override
+  State<HomePage> createState() => _HomePageState();
+}
+
+class _HomePageState extends State<HomePage> {
+  String _currentArea = 'الكل';
+  double _minDiscount = 0;
+  String _sortBy = 'newest';
+
+  void _showFilterSheet(BuildContext context, OffersLoaded state) async {
+    final availableAreas = OfferFilterUtils.extractAreas([
+      ...state.trendingOffers,
+      ...(state.recommendedOffers ?? []),
+    ]);
+
+    final result = await showModalBottomSheet<Map<String, dynamic>>(
+      context: context,
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => FilterBottomSheet(
+        selectedArea: _currentArea,
+        minDiscount: _minDiscount,
+        sortBy: _sortBy,
+        availableAreas: availableAreas,
+      ),
+    );
+
+    if (result != null) {
+      setState(() {
+        _currentArea = result['area'];
+        _minDiscount = result['minDiscount'];
+        _sortBy = result['sortBy'];
+      });
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -70,7 +108,7 @@ class HomePage extends StatelessWidget {
                             _buildNoticeBanner(context, state.noticeMessage!),
                           ],
                           const SizedBox(height: 24),
-                          _buildSearchBar(context),
+                          _buildSearchBar(context, state),
                           const SizedBox(height: 24),
                           const AdsSlider(),
                           const SizedBox(height: 20),
@@ -80,13 +118,23 @@ class HomePage extends StatelessWidget {
                             context,
                             title: 'الأكثر انتشارًا',
                             subtitle: 'عروض يكثر عليها الطلب الآن',
-                            offers: state.trendingOffers,
+                            offers: OfferFilterUtils.apply(
+                              offers: state.trendingOffers,
+                              area: _currentArea,
+                              minDiscount: _minDiscount,
+                              sortBy: _sortBy,
+                            ),
                           ),
                           _buildOffersSection(
                             context,
                             title: 'مقترح لك',
                             subtitle: 'عروض مناسبة حسب نشاطك الحالي',
-                            offers: state.recommendedOffers ?? const [],
+                            offers: OfferFilterUtils.apply(
+                              offers: state.recommendedOffers ?? const [],
+                              area: _currentArea,
+                              minDiscount: _minDiscount,
+                              sortBy: _sortBy,
+                            ),
                           ),
                           _buildCategoryFilteredSection(
                             context,
@@ -225,8 +273,6 @@ class HomePage extends StatelessWidget {
 
   Widget _buildLiveStats(BuildContext context, OffersLoaded state) {
     final offersCount = state.trendingOffers.length;
-    final storesCount = state.featuredStores.length;
-
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Container(
@@ -296,7 +342,7 @@ class HomePage extends StatelessWidget {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context) {
+  Widget _buildSearchBar(BuildContext context, OffersLoaded state) {
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
       child: Row(
@@ -335,23 +381,43 @@ class HomePage extends StatelessWidget {
             ),
           ),
           const SizedBox(width: 12),
-          Container(
-            padding: const EdgeInsets.all(12),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(16),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                  blurRadius: 10,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: const Icon(
-              Icons.tune_rounded,
-              color: Colors.white,
-              size: 24,
+          GestureDetector(
+            onTap: () => _showFilterSheet(context, state),
+            child: Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                borderRadius: BorderRadius.circular(16),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Stack(
+                children: [
+                  const Icon(
+                    Icons.tune_rounded,
+                    color: Colors.white,
+                    size: 24,
+                  ),
+                  if (_currentArea != 'الكل' || _minDiscount > 0 || _sortBy != 'newest')
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        width: 8,
+                        height: 8,
+                        decoration: const BoxDecoration(
+                          color: Colors.white,
+                          shape: BoxShape.circle,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
             ),
           ),
         ],
@@ -410,7 +476,7 @@ class HomePage extends StatelessWidget {
           ),
         ),
         SizedBox(
-          height: 222,
+          height: 242,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.only(left: 16, right: 4),
@@ -441,9 +507,12 @@ class HomePage extends StatelessWidget {
     required String title,
     required String subtitle,
   }) {
-    final filtered = state.trendingOffers
-        .where((offer) => offer.store.category == category)
-        .toList();
+    final filtered = OfferFilterUtils.apply(
+      offers: state.trendingOffers.where((offer) => offer.store.category == category).toList(),
+      area: _currentArea,
+      minDiscount: _minDiscount,
+      sortBy: _sortBy,
+    );
 
     return _buildOffersSection(
       context,

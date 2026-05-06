@@ -8,8 +8,8 @@ import {
   UseGuards,
   Request,
   Query,
+  Logger,
 } from '@nestjs/common';
-import * as fs from 'fs';
 
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
@@ -26,6 +26,8 @@ import { UseInterceptors } from '@nestjs/common';
 @Controller('stores')
 @UseInterceptors(CacheInterceptor)
 export class StoresController {
+  private readonly logger = new Logger(StoresController.name);
+
   constructor(private readonly storesService: StoresService) {}
 
   @Post()
@@ -53,9 +55,9 @@ export class StoresController {
       });
     } catch (e: unknown) {
       const error = e as Error;
-      fs.appendFileSync(
-        'error.log',
-        `[${new Date().toISOString()}] Store Create Error: ${error.message}\nStack: ${error.stack}\n`,
+      this.logger.error(
+        `Store create failed for user ${req.user.id}: ${error.message}`,
+        error.stack,
       );
       throw error;
     }
@@ -68,6 +70,7 @@ export class StoresController {
     @Query('categoryId') categoryId?: string,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('includeMeta') includeMeta?: string,
   ) {
     const skip = (page - 1) * limit;
     return this.storesService.findAll({
@@ -78,6 +81,9 @@ export class StoresController {
       },
       skip: +skip,
       take: +limit,
+      page: +page,
+      limit: +limit,
+      includeMeta: includeMeta === 'true',
     });
   }
 

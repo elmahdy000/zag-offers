@@ -28,9 +28,19 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
   Future<List<CouponModel>> getUserCoupons() async {
     try {
       final response = await apiClient.dio.get('/coupons/my');
-      return (response.data as List)
-          .map<CouponModel>((json) => CouponModel.fromJson(json))
-          .toList();
+      final raw = response.data;
+      if (raw is List) {
+        return raw.whereType<Map<String, dynamic>>()
+            .map((json) => CouponModel.fromJson(json))
+            .toList();
+      }
+      if (raw is Map && raw['items'] is List) {
+        return (raw['items'] as List)
+            .whereType<Map<String, dynamic>>()
+            .map((json) => CouponModel.fromJson(json))
+            .toList();
+      }
+      return [];
     } on DioException catch (e) {
       throw Exception(e.message);
     }

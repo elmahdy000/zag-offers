@@ -16,6 +16,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { AuditLogService } from '../audit-log/audit-log.service';
 
 type StoreUpdatePayload = {
   name?: string;
@@ -44,10 +45,35 @@ type OfferUpdatePayload = {
 
 @Injectable()
 export class AdminService {
+  private validateOfferImages(images: string[]) {
+    if (images.length > 10) {
+      throw new BadRequestException('Maximum 10 images are allowed per offer');
+    }
+
+    const normalized = images.map((img) => img.trim()).filter(Boolean);
+    if (normalized.length !== images.length) {
+      throw new BadRequestException('Offer images cannot contain empty values');
+    }
+
+    const unique = new Set(normalized);
+    if (unique.size !== normalized.length) {
+      throw new BadRequestException('Offer images cannot contain duplicates');
+    }
+
+    for (const img of normalized) {
+      if (!/^https?:\/\/.+/i.test(img) && !img.startsWith('/')) {
+        throw new BadRequestException(
+          `Invalid image URL "${img}". Use absolute URL or server-relative path`,
+        );
+      }
+    }
+  }
+
   constructor(
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
+    private auditLogService: AuditLogService,
   ) {}
 
   async getGlobalStats() {
@@ -311,7 +337,7 @@ export class AdminService {
     });
   }
 
-  async approveStore(id: string) {
+  async approveStore(id: string, adminId: string) {
     const store = await this.prisma.store.findUnique({
       where: { id },
       include: { owner: true },
@@ -343,10 +369,18 @@ export class AdminService {
       );
     }
 
+    // Log the action
+    await this.auditLogService.log({
+      action: 'APPROVE_STORE',
+      adminId,
+      targetId: id,
+      targetName: store.name,
+    });
+
     return updated;
   }
 
-  async rejectStore(id: string, reason?: string) {
+  async rejectStore(id: string, adminId: string, reason?: string) {
     const store = await this.prisma.store.findUnique({
       where: { id },
       include: { owner: true },
@@ -374,6 +408,14 @@ export class AdminService {
         { storeId: store.id, type: 'STORE_REJECTED' },
       );
     }
+
+    await this.auditLogService.log({
+      action: 'REJECT_STORE',
+      adminId,
+      targetId: id,
+      targetName: store.name,
+      details: reason,
+    });
 
     return updated;
   }
@@ -515,7 +557,7 @@ export class AdminService {
     return offer;
   }
 
-  async updateOffer(id: string, payload: OfferUpdatePayload) {
+  async updateOffer(id: string, payload: OfferUpdatePayload, adminId?: string) {
     const offer = await this.prisma.offer.findUnique({ where: { id } });
     if (!offer) {
       throw new NotFoundException('Offer not found');
@@ -547,7 +589,11 @@ export class AdminService {
       throw new BadRequestException('Start date must be before end date');
     }
 
-    return this.prisma.offer.update({
+    if (payload.images !== undefined) {
+      this.validateOfferImages(payload.images);
+    }
+
+    const updated = await this.prisma.offer.update({
       where: { id },
       data: {
         ...(payload.title !== undefined ? { title: payload.title } : {}),
@@ -577,9 +623,20 @@ export class AdminService {
         _count: { select: { coupons: true } },
       },
     });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'UPDATE_OFFER',
+        adminId,
+        targetId: id,
+        targetName: updated.title,
+      });
+    }
+
+    return updated;
   }
 
-  async approveOffer(id: string) {
+  async approveOffer(id: string, adminId: string) {
     const offer = await this.prisma.offer.findUnique({
       where: { id },
       include: { store: { include: { owner: true } } },
@@ -616,10 +673,17 @@ export class AdminService {
       );
     }
 
+    await this.auditLogService.log({
+      action: 'APPROVE_OFFER',
+      adminId,
+      targetId: id,
+      targetName: offer.title,
+    });
+
     return updated;
   }
 
-  async rejectOffer(id: string, reason?: string) {
+  async rejectOffer(id: string, adminId: string, reason?: string) {
     const offer = await this.prisma.offer.findUnique({
       where: { id },
       include: { store: { include: { owner: true } } },
@@ -648,13 +712,32 @@ export class AdminService {
       );
     }
 
+    await this.auditLogService.log({
+      action: 'REJECT_OFFER',
+      adminId,
+      targetId: id,
+      targetName: offer.title,
+      details: reason,
+    });
+
     return updated;
   }
 
-  async deleteOffer(id: string) {
+  async deleteOffer(id: string, adminId?: string) {
     const offer = await this.prisma.offer.findUnique({ where: { id } });
     if (!offer) throw new NotFoundException('Offer not found');
-    return this.prisma.offer.delete({ where: { id } });
+    const deleted = await this.prisma.offer.delete({ where: { id } });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'DELETE_OFFER',
+        adminId,
+        targetId: id,
+        targetName: offer.title,
+      });
+    }
+
+    return deleted;
   }
 
   async getAllUsers(params: {
@@ -688,6 +771,7 @@ export class AdminService {
           area: true,
           avatar: true,
           createdAt: true,
+          points: true,
           _count: { select: { stores: true, coupons: true, favorites: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -717,8 +801,8 @@ export class AdminService {
         throw new BadRequestException('User with this phone already exists');
       }
 
-      const hashedPassword = data.password 
-        ? await bcrypt.hash(data.password, 10) 
+      const hashedPassword = data.password
+        ? await bcrypt.hash(data.password, 10)
         : await bcrypt.hash('123456', 10); // Default password
 
       return await this.prisma.user.create({
@@ -740,8 +824,11 @@ export class AdminService {
       if (!user) throw new NotFoundException('User not found');
 
       if (data.phone && data.phone !== user.phone) {
-        const existing = await this.prisma.user.findUnique({ where: { phone: data.phone } });
-        if (existing) throw new BadRequestException('Phone number already in use');
+        const existing = await this.prisma.user.findUnique({
+          where: { phone: data.phone },
+        });
+        if (existing)
+          throw new BadRequestException('Phone number already in use');
       }
 
       const { password, ...updateData } = data;
@@ -757,7 +844,11 @@ export class AdminService {
       });
     } catch (error) {
       console.error('Error updating user:', error);
-      if (error instanceof BadRequestException || error instanceof NotFoundException) throw error;
+      if (
+        error instanceof BadRequestException ||
+        error instanceof NotFoundException
+      )
+        throw error;
       throw new BadRequestException('Failed to update user: ' + error.message);
     }
   }
@@ -812,11 +903,11 @@ export class AdminService {
   }
 
   async deleteUser(id: string) {
-    const user = await this.prisma.user.findUnique({ 
+    const user = await this.prisma.user.findUnique({
       where: { id },
-      include: { stores: true }
+      include: { stores: true },
     });
-    
+
     if (!user) throw new NotFoundException('User not found');
     if (user.role === Role.ADMIN) {
       throw new BadRequestException('Cannot delete an admin account');
@@ -826,19 +917,23 @@ export class AdminService {
     return this.prisma.$transaction(async (tx) => {
       // 1. If merchant, handle stores and their nested offers/coupons
       if (user.stores.length > 0) {
-        const storeIds = user.stores.map(s => s.id);
-        
+        const storeIds = user.stores.map((s) => s.id);
+
         // Delete all offers images/coupons/favorites associated with this merchant's stores
-        const merchantOffers = await tx.offer.findMany({ where: { storeId: { in: storeIds } } });
-        const offerIds = merchantOffers.map(o => o.id);
-        
+        const merchantOffers = await tx.offer.findMany({
+          where: { storeId: { in: storeIds } },
+        });
+        const offerIds = merchantOffers.map((o) => o.id);
+
         if (offerIds.length > 0) {
-          await tx.favorite.deleteMany({ where: { offerId: { in: offerIds } } });
+          await tx.favorite.deleteMany({
+            where: { offerId: { in: offerIds } },
+          });
           await tx.coupon.deleteMany({ where: { offerId: { in: offerIds } } });
           await tx.review.deleteMany({ where: { offerId: { in: offerIds } } });
           await tx.offer.deleteMany({ where: { storeId: { in: storeIds } } });
         }
-        
+
         await tx.review.deleteMany({ where: { storeId: { in: storeIds } } });
         await tx.store.deleteMany({ where: { ownerId: id } });
       }
@@ -860,7 +955,7 @@ export class AdminService {
     });
   }
 
-  async createCategory(name: string) {
+  async createCategory(name: string, adminId?: string) {
     const normalizedName = name.trim();
     if (!normalizedName) {
       throw new BadRequestException('Category name is required');
@@ -873,10 +968,23 @@ export class AdminService {
       throw new BadRequestException('Category already exists');
     }
 
-    return this.prisma.category.create({ data: { name: normalizedName } });
+    const created = await this.prisma.category.create({
+      data: { name: normalizedName },
+    });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'CREATE_CATEGORY',
+        adminId,
+        targetId: created.id,
+        targetName: created.name,
+      });
+    }
+
+    return created;
   }
 
-  async updateCategory(id: string, name: string) {
+  async updateCategory(id: string, name: string, adminId?: string) {
     const normalizedName = name.trim();
     if (!normalizedName) {
       throw new BadRequestException('Category name is required');
@@ -894,27 +1002,54 @@ export class AdminService {
       },
     });
     if (duplicate) {
-      throw new BadRequestException('Category already exists');
+      throw new BadRequestException('القسم موجود بالفعل');
     }
 
-    return this.prisma.category.update({
+    const updated = await this.prisma.category.update({
       where: { id },
       data: { name: normalizedName },
       include: { _count: { select: { stores: true } } },
     });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'UPDATE_CATEGORY',
+        adminId,
+        targetId: id,
+        targetName: updated.name,
+      });
+    }
+
+    return updated;
   }
 
-  async deleteCategory(id: string) {
+  async deleteCategory(id: string, adminId?: string) {
+    const category = await this.prisma.category.findUnique({ where: { id } });
+    if (!category) {
+      throw new NotFoundException('Category not found');
+    }
+
     const storesCount = await this.prisma.store.count({
       where: { categoryId: id },
     });
     if (storesCount > 0) {
       throw new BadRequestException(
-        `Cannot delete category because it still has ${storesCount} stores`,
+        `لا يمكن حذف القسم لأنه يحتوي على ${storesCount} متاجر/متجر`,
       );
     }
 
-    return this.prisma.category.delete({ where: { id } });
+    const deleted = await this.prisma.category.delete({ where: { id } });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'DELETE_CATEGORY',
+        adminId,
+        targetId: id,
+        targetName: category.name,
+      });
+    }
+
+    return deleted;
   }
 
   async getAllCoupons(params: {
@@ -1015,15 +1150,33 @@ export class AdminService {
     return this.prisma.coupon.delete({ where: { id } });
   }
 
-  async broadcastAnnouncement(title: string, body: string, area?: string) {
+  async broadcastAnnouncement(params: {
+    title: string;
+    body: string;
+    area?: string;
+    imageUrl?: string;
+    adminId: string;
+  }) {
+    const { title, body, area, imageUrl, adminId } = params;
     if (area) {
-      await this.notificationsService.sendToArea(area, title, body, {
-        type: 'ANNOUNCEMENT',
-      });
+      await this.notificationsService.sendToArea(
+        area,
+        title,
+        body,
+        {
+          type: 'ANNOUNCEMENT',
+        },
+        imageUrl,
+      );
     } else {
-      await this.notificationsService.sendToAll(title, body, {
-        type: 'ANNOUNCEMENT',
-      });
+      await this.notificationsService.sendToAll(
+        title,
+        body,
+        {
+          type: 'ANNOUNCEMENT',
+        },
+        imageUrl,
+      );
     }
 
     this.eventsGateway.broadcastNewOffer({
@@ -1033,6 +1186,11 @@ export class AdminService {
       area,
     });
 
+    await this.auditLogService.log({
+      action: 'SEND_BROADCAST',
+      adminId,
+      details: `Title: ${title}, Area: ${area || 'All Users'}`,
+    });
     return {
       success: true,
       message: area

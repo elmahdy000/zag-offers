@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Post,
   Get,
@@ -21,6 +21,8 @@ import {
   ApiBody,
   ApiBearerAuth,
 } from '@nestjs/swagger';
+import { UpdateProfileDto } from './dto/update-profile.dto';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('auth (نظام الدخول والتسجيل)')
 @Controller('auth')
@@ -28,6 +30,7 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
+  @Throttle({ medium: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'تسجيل حساب جديد' })
   @ApiResponse({ status: 201, description: 'تم التسجيل بنجاح' })
   @ApiResponse({ status: 409, description: 'رقم الموبايل مسجل مسبقاً' })
@@ -36,6 +39,7 @@ export class AuthController {
   }
 
   @Post('login')
+  @Throttle({ short: { limit: 5, ttl: 1000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'تسجيل الدخول بالهاتف' })
   @ApiResponse({ status: 200, description: 'تم الدخول بنجاح ويرجع التوكن' })
@@ -109,7 +113,7 @@ export class AuthController {
   })
   updateProfile(
     @Request() req: { user: { id: string } },
-    @Body() body: { name?: string; area?: string; avatar?: string },
+    @Body() body: UpdateProfileDto,
   ) {
     return this.authService.updateProfile(req.user.id, body);
   }

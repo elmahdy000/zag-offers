@@ -1,3 +1,4 @@
+import '../../../../core/utils/image_url_helper.dart';
 import '../../domain/entities/offer_entity.dart';
 import 'store_model.dart';
 
@@ -12,13 +13,19 @@ class OfferModel extends OfferEntity {
     required super.discountPercentage,
     required super.expiryDate,
     required super.store,
+    super.terms,
+    super.oldPrice,
+    super.newPrice,
+    super.viewCount = 0,
+    super.isFeatured = false,
+    super.status = 'ACTIVE',
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
     final rawDiscount = json['discount']?.toString() ?? '0%';
     final imagesRaw = json['images'];
-    final List<String> imagesList = (imagesRaw is List) 
-        ? imagesRaw.map((e) => e.toString()).toList() 
+    final List<String> imagesList = (imagesRaw is List)
+        ? imagesRaw.map((e) => ImageUrlHelper.resolve(e.toString())).toList()
         : [];
     final firstImage = imagesList.isNotEmpty ? imagesList[0] : null;
 
@@ -29,21 +36,12 @@ class OfferModel extends OfferEntity {
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       title: json['title'] ?? '',
       description: json['description'],
-      image: firstImage ?? json['image'],
+      image: firstImage ?? ImageUrlHelper.resolveNullable(json['image']?.toString()),
       images: imagesList.isNotEmpty ? imagesList : (json['image'] != null ? [json['image']] : []),
       discount: rawDiscount,
       discountPercentage: pct,
       expiryDate: dateStr != null ? DateTime.tryParse(dateStr) ?? DateTime.now() : DateTime.now(),
       store: StoreModel.fromJson(json['store'] ?? {}),
-    );
-  }
-
-  /// يحوّل "20%", "20", 20 → 20.0
-  /// قيم زي "BOGO" ترجع 0.0
-  static double _parseDiscountPercentage(dynamic raw) {
-    if (raw == null) return 0.0;
-    if (raw is num) return raw.toDouble();
-    final cleaned = raw.toString().replaceAll('%', '').trim();
-    return double.tryParse(cleaned) ?? 0.0;
-  }
-}
+      terms: json['terms']?.toString(),
+      oldPrice: json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null,
+      newPrice: json['newPrice'] != null ? double.tryParse(j

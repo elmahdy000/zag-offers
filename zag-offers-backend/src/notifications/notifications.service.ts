@@ -16,6 +16,10 @@ export class NotificationsService implements OnModuleInit {
 
   constructor(private prisma: PrismaService) {}
 
+  private sanitizeImageUrl(imageUrl?: string): string | undefined {
+    return imageUrl ? imageUrl.replace(/([^:])\/\//g, '$1/') : undefined;
+  }
+
   private parseServiceAccount(value: string): admin.ServiceAccount | undefined {
     const parsed: unknown = JSON.parse(value);
     if (!parsed || typeof parsed !== 'object') {
@@ -53,6 +57,74 @@ export class NotificationsService implements OnModuleInit {
         'Firebase Admin could not be initialized - Push Notifications disabled',
       );
       this.logger.debug(`Firebase init error: ${(error as Error).message}`);
+    }
+  }
+
+  async getUserNotifications(userId: string) {
+    return this.prisma.notification.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
+
+  async markNotificationAsRead(userId: string, notificationId: string) {
+    return this.prisma.notification.updateMany({
+      where: { id: notificationId, userId },
+      data: { isRead: true },
+    });
+  }
+
+  async markAllNotificationsAsRead(userId: string) {
+    return this.prisma.notification.updateMany({
+      where: { userId, isRead: false },
+      data: { isRead: true },
+    });
+  }
+
+  private async saveNotification(
+    userId: string,
+    payload: NotificationPayload,
+    type?: string,
+  ) {
+    try {
+      await this.prisma.notification.create({
+        data: {
+          userId,
+          title: payload.title,
+          body: payload.body,
+          imageUrl: payload.imageUrl,
+          type: type || payload.data?.type,
+          data: payload.data ? JSON.stringify(payload.data) : null,
+        },
+      });
+    } catch (e) {
+      this.logger.error('Failed to save notification: ' + (e as Error).message);
+    }
+  }
+
+  private async saveNotificationsForUsers(
+    userIds: string[],
+    payload: NotificationPayload,
+    type?: string,
+  ) {
+    if (userIds.length === 0) return;
+    try {
+      await this.prisma.notification.createMany({
+        data: userIds.map((userId) => ({
+          userId,
+          title: payload.title,
+          body: payload.body,
+          imageUrl: payload.imageUrl,
+          type: type || payload.data?.type,
+          data: payload.data ? JSON.stringify(payload.data) : null,
+        })),
+        skipDuplicates: true,
+      });
+    } catch (e) {
+      this.logger.error(
+        'Failed to save notifications for users: ' + (e as Error).message,
+      );
     }
   }
 
@@ -127,27 +199,69 @@ export class NotificationsService implements OnModuleInit {
     imageUrl?: string,
   ): Promise<void> {
     if (!this.isFirebaseReady) {
-      return;
+      // Still save to DB even if Firebase is disabled
     }
 
+    // Save to DB
     try {
+      const allUsers = await this.prisma.user.findMany({
+        select: { id: true },
+      });
+      await this.saveNotificationsForUsers(
+        allUsers.map((u) => u.id),
+        { title, body, data, imageUrl },
+        data?.type,
+      );
+    } catch (e) {
+      this.logger.error(
+        'Failed fetching users for broadcast: ' + (e as Error).message,
+      );
+    }
+
+    if (!this.isFirebaseReady) return;
+
+    try {
+      const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
+
       const message: admin.messaging.Message = {
-        notification: { title, body, imageUrl },
+        notification: {
+          title,
+          body,
+          ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
+        },
         topic: 'all_users',
-        data: data || {},
+        data: {
+          ...(data || {}),
+          ...(sanitizedImageUrl
+            ? { image: sanitizedImageUrl, imageUrl: sanitizedImageUrl }
+            : {}),
+        },
         android: {
           priority: 'high',
-          notification: { sound: 'default', channelId: 'offers_channel' },
+          notification: {
+            sound: 'default',
+            channelId: 'offers_channel',
+            imageUrl: sanitizedImageUrl,
+          },
         },
         apns: {
-          payload: { aps: { sound: 'default', badge: 1 } },
-          fcmOptions: { imageUrl },
+          payload: {
+            aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
+          },
+          fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
 
+      this.logger.debug(
+        `Sending FCM broadcast to all_users. Payload: ${JSON.stringify(message)}`,
+      );
       await admin.messaging().send(message);
+      this.logger.log('FCM broadcast sent successfully');
     } catch (error) {
       this.logger.error(`sendToAll failed: ${(error as Error).message}`);
+      if ((error as Error).stack) {
+        this.logger.debug((error as Error).stack);
+      }
     }
   }
 
@@ -158,28 +272,70 @@ export class NotificationsService implements OnModuleInit {
     data?: Record<string, string>,
     imageUrl?: string,
   ): Promise<void> {
-    if (!this.isFirebaseReady || !area) {
+    if (!area) return;
+
+    // Save to DB
+    try {
+      const usersInArea = await this.prisma.user.findMany({
+        where: { area },
+        select: { id: true },
+      });
+      await this.saveNotificationsForUsers(
+        usersInArea.map((u) => u.id),
+        { title, body, data, imageUrl },
+        data?.type,
+      );
+    } catch (e) {
+      this.logger.error(
+        'Failed fetching users for area broadcast: ' + (e as Error).message,
+      );
+    }
+
+    if (!this.isFirebaseReady) {
       return;
     }
 
     try {
+      const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
       const topic = `area_${area.replace(/\s+/g, '_')}`;
+
       const message: admin.messaging.Message = {
-        notification: { title, body, imageUrl },
+        notification: {
+          title,
+          body,
+          ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
+        },
         topic,
-        data: data || {},
+        data: {
+          ...(data || {}),
+          ...(sanitizedImageUrl
+            ? { image: sanitizedImageUrl, imageUrl: sanitizedImageUrl }
+            : {}),
+        },
         android: {
           priority: 'high',
-          notification: { sound: 'default', channelId: 'offers_channel' },
+          notification: {
+            sound: 'default',
+            channelId: 'offers_channel',
+            imageUrl: sanitizedImageUrl,
+          },
         },
         apns: {
-          fcmOptions: { imageUrl },
+          payload: { aps: { 'mutable-content': 1 } },
+          fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
 
+      this.logger.debug(
+        `Sending FCM area broadcast to ${topic}. Payload: ${JSON.stringify(message)}`,
+      );
       await admin.messaging().send(message);
+      this.logger.log(`FCM area broadcast to ${topic} sent successfully`);
     } catch (error) {
       this.logger.error(`sendToArea failed: ${(error as Error).message}`);
+      if ((error as Error).stack) {
+        this.logger.debug((error as Error).stack);
+      }
     }
   }
 
@@ -189,32 +345,72 @@ export class NotificationsService implements OnModuleInit {
     body: string,
     data?: Record<string, string>,
     imageUrl?: string,
-  ): Promise<void> {
-    if (!this.isFirebaseReady || !fcmToken) {
-      return;
+  ): Promise<boolean> {
+    if (!fcmToken) return false;
+
+    // Save to DB
+    try {
+      const user = await this.prisma.user.findFirst({ where: { fcmToken } });
+      if (user) {
+        await this.saveNotification(
+          user.id,
+          { title, body, data, imageUrl },
+          data?.type,
+        );
+      }
+    } catch (e) {
+      this.logger.error(
+        `Error saving notification to DB: ${(e as Error).message}`,
+      );
+    }
+
+    if (!this.isFirebaseReady) {
+      return false;
     }
 
     try {
+      const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
       const message: admin.messaging.Message = {
-        notification: { title, body, imageUrl },
+        notification: { title, body, imageUrl: sanitizedImageUrl },
         token: fcmToken,
-        data: data || {},
+        data: {
+          ...(data || {}),
+          ...(sanitizedImageUrl
+            ? { image: sanitizedImageUrl, imageUrl: sanitizedImageUrl }
+            : {}),
+        },
         android: {
           priority: 'high',
-          notification: { sound: 'default', channelId: 'offers_channel' },
+          notification: {
+            sound: 'default',
+            channelId: 'offers_channel',
+            imageUrl: sanitizedImageUrl,
+          },
         },
         apns: {
-          payload: { aps: { sound: 'default', badge: 1 } },
-          fcmOptions: { imageUrl },
+          payload: {
+            aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
+          },
+          fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
 
       await admin.messaging().send(message);
+      return true;
     } catch (error) {
       const message = (error as Error).message;
-      if (!message.includes('registration-token-not-registered')) {
-        this.logger.error(`sendToUser failed: ${message}`);
+      const isInvalidToken =
+        message.includes('registration-token-not-registered') ||
+        message.includes('Requested entity was not found');
+      if (isInvalidToken) {
+        await this.prisma.user.updateMany({
+          where: { fcmToken },
+          data: { fcmToken: null },
+        });
+        return false;
       }
+      this.logger.error(`sendToUser failed: ${message}`);
+      return false;
     }
   }
 
@@ -238,6 +434,43 @@ export class NotificationsService implements OnModuleInit {
       notification.data,
       notification.imageUrl,
     );
+  }
+
+  async sendToUserIds(
+    userIds: string[],
+    notification: NotificationPayload,
+  ): Promise<{ sent: number; skipped: number }> {
+    const users = await this.prisma.user.findMany({
+      where: { id: { in: userIds } },
+      select: { id: true, fcmToken: true },
+    });
+
+    let sent = 0;
+    let skipped = 0;
+    for (const user of users) {
+      if (!user.fcmToken) {
+        skipped += 1;
+        continue;
+      }
+      const ok = await this.sendToUser(
+        user.fcmToken,
+        notification.title,
+        notification.body,
+        notification.data,
+        notification.imageUrl,
+      );
+      if (ok) {
+        sent += 1;
+      } else {
+        skipped += 1;
+      }
+    }
+
+    // Include user IDs that were not found in DB
+    const notFound = Math.max(0, userIds.length - users.length);
+    skipped += notFound;
+
+    return { sent, skipped };
   }
 
   async notifyNewOfferInArea(

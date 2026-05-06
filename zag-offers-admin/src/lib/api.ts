@@ -1,26 +1,43 @@
 import axios from 'axios';
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001') + '/api';
+function resolveApiUrl() {
+  const envBase = process.env.NEXT_PUBLIC_API_URL?.trim();
 
-/** قراءة قيمة كوكي من المتصفح */
+  // If env is set, normalize it whether it ends with /api or not.
+  if (envBase) {
+    const normalized = envBase.replace(/\/+$/, '');
+    return normalized.endsWith('/api') ? normalized : `${normalized}/api`;
+  }
+
+  // Browser fallback: use same host as dashboard, backend on 3001.
+  if (typeof window !== 'undefined') {
+    const protocol = window.location.protocol;
+    const host = window.location.hostname;
+    return `${protocol}//${host}:3001/api`;
+  }
+
+  // SSR fallback.
+  return 'http://localhost:3001/api';
+}
+
+const API_URL = resolveApiUrl();
+
+/** Read a cookie value from browser */
 export function getCookie(name: string): string | null {
   if (typeof document === 'undefined') return null;
   const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
   return match ? decodeURIComponent(match[1]) : null;
 }
 
-/** حذف كوكي */
+/** Remove cookie */
 export function deleteCookie(name: string) {
   document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
 }
 
-/**
- * Instance واحدة ثابتة — بدل ما نعمل axios.create() مع كل request
- * الـ interceptor بيضيف الـ token تلقائياً قبل كل طلب
- */
 const _axiosInstance = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
+  timeout: 15000,
 });
 
 _axiosInstance.interceptors.request.use((config) => {
@@ -36,22 +53,19 @@ _axiosInstance.interceptors.request.use((config) => {
 _axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('❌ API Error Message:', error.message);
+    console.error('API Error Message:', error.message);
     if (error.response) {
-      console.error('❌ API Error Status:', error.response.status);
-      console.error('❌ API Error Data:', JSON.stringify(error.response.data, null, 2));
+      console.error('API Error Status:', error.response.status);
     }
     if (error.config) {
-      console.error('❌ API Error Path:', error.config.url);
+      console.error('API Error Path:', error.config.url);
     }
     return Promise.reject(error);
   }
 );
 
-/** ترجع نفس الـ instance دايماً — لا تعمل instance جديدة مع كل استدعاء */
 export function adminApi() {
   return _axiosInstance;
 }
 
-/** Alias مباشر للـ instance */
 export const api = _axiosInstance;

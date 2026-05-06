@@ -1,12 +1,15 @@
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../injection_container.dart' as di;
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../../main.dart' show navigatorKey;
 
+/// NOTE: Firebase.initializeApp() and onBackgroundMessage() are registered
+/// in main.dart — do NOT call them here to avoid duplicate initialization.
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static String? _fcmToken;
@@ -15,9 +18,7 @@ class NotificationService {
 
   static Future<void> initialize() async {
     try {
-      await Firebase.initializeApp();
-
-      // طلب الإذن (iOS + Android 13+)
+      // ── 1. Request permission ────────────────────────────────────────────
       final settings = await _messaging.requestPermission(
         alert: true,
         badge: true,
@@ -29,14 +30,13 @@ class NotificationService {
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         log('✅ Notification permission granted');
 
-        // الاشتراك في القناة العامة للتجار (اختياري)
+        // الاشتراك في القناة العامة للتجار
         await _messaging.subscribeToTopic('all_merchants');
 
-        // جلب الـ FCM Token
+        // ── 2. Get & cache FCM token ─────────────────────────────────────
         _fcmToken = await _messaging.getToken();
         log('📱 FCM Token: $_fcmToken');
 
-        // حفظ التوكن محلياً
         if (_fcmToken != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('fcm_token', _fcmToken!);
@@ -45,25 +45,23 @@ class NotificationService {
         log('⚠️ Notification permission denied');
       }
 
-      // مستمع للتوكن عند تحديثه
+      // ── 3. Token refresh listener ────────────────────────────────────────
       _messaging.onTokenRefresh.listen((newToken) async {
         log('🔄 FCM Token refreshed');
         _fcmToken = newToken;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('fcm_token', newToken);
+        // Only send to backend if user is already logged in
         await sendTokenToBackend();
       });
 
-      // الرسائل أثناء فتح التطبيق (Foreground)
+      // ── 4. Foreground messages ───────────────────────────────────────────
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
 
-      // التعامل مع الرسائل في الخلفية
-      FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-
-      // الضغط على الإشعار لفتح التطبيق من Background
+      // ── 5. Notification tapped from background ───────────────────────────
       FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
 
-      // لو التطبيق اتفتح من Terminated بسبب إشعار
+      // ── 6. App launched from terminated state ────────────────────────────
       final initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
         _handleNotificationTap(initialMessage);
@@ -73,6 +71,7 @@ class NotificationService {
     }
   }
 
+  /// Send the cached FCM token to the backend. Call this after login.
   static Future<void> sendTokenToBackend() async {
     if (_fcmToken == null) {
       _fcmToken = await _messaging.getToken();
@@ -87,32 +86,47 @@ class NotificationService {
     }
   }
 
+  /// Remove FCM token from backend and delete it locally. Call this on logout.
+  static Future<void> removeTokenFromBackend() async {
+    try {
+      if (_fcmToken != null) {
+        await di.sl<AuthRemoteDataSource>().removeFcmToken();
+      }
+      await _messaging.deleteToken();
+      _fcmToken = null;
+      final prefs = await SharedPreferences.getInstance();
+      await prefs.remove('fcm_token');
+      log('✅ FCM token removed');
+    } catch (e) {
+      log('❌ Failed to remove FCM token: $e');
+    }
+  }
+
+  // ── Message handlers ─────────────────────────────────────────────────────
+
   static void _handleForegroundMessage(RemoteMessage message) {
     log('📩 Foreground message: ${message.notification?.title}');
-    
-    // تحديث البيانات تلقائياً لو الإشعار يخص كوبون
+
+    // Refresh dashboard stats when a coupon is redeemed
     if (message.data['type'] == 'COUPON_REDEEMED') {
       di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
     }
-    
-    // يمكنك هنا إظهار SnackBar أو إشعار محلي
   }
 
   static void _handleNotificationTap(RemoteMessage message) {
     log('Notification tapped: ${message.data}');
     final type = message.data['type'];
-    
+
     if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED') {
-      // تحديث الإحصائيات والتوجيه للوحة التحكم
       di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
-      // يمكن إضافة توجيه لصفحة معينة هنا لو رغبت
-    } else if (type == 'STORE_APPROVED') {
-      // التوجيه لصفحة الملف الشخصي أو الرئيسية
+    }
+
+    // Default Navigation to Notifications Page
+    final ctx = navigatorKey.currentContext;
+    if (ctx != null) {
+      Navigator.of(ctx).push(
+        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+      );
     }
   }
-}
-
-Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
-  await Firebase.initializeApp();
-  log('FCM Message (Background): ${message.messageId}');
 }

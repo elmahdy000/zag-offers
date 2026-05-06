@@ -6,11 +6,16 @@ import '../constants/app_constants.dart';
 class SocketService {
   io.Socket? _socket;
   bool _isConnected = false;
+  final Map<String, List<Function(dynamic)>> _eventHandlers = {};
 
   io.Socket? get socket => _socket;
   bool get isConnected => _isConnected;
 
   void connect() async {
+    if (_socket?.connected == true) {
+      return;
+    }
+
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
 
@@ -19,13 +24,23 @@ class SocketService {
       return;
     }
 
+    _socket?.clearListeners();
+    _socket?.dispose();
+
     _socket = io.io(AppConstants.socketUrl, 
       io.OptionBuilder()
-        .setTransports(['websocket'])
+        .setTransports(['websocket', 'polling'])
         .setAuth({'token': token})
-        .enableAutoConnect()
+        .enableReconnection()
+        .disableAutoConnect()
         .build()
     );
+
+    _eventHandlers.forEach((event, handlers) {
+      for (final handler in handlers) {
+        _socket?.on(event, handler);
+      }
+    });
 
     _socket?.onConnect((_) {
       _isConnected = true;
@@ -44,10 +59,18 @@ class SocketService {
     _socket?.on('error', (data) {
       log('WebSocket Error: $data');
     });
+
+    _socket?.onConnectError((data) {
+      log('WebSocket connect error: $data');
+    });
+
+    _socket?.connect();
   }
 
   void disconnect() {
+    _socket?.clearListeners();
     _socket?.disconnect();
+    _socket?.dispose();
     _socket = null;
     _isConnected = false;
   }
@@ -62,10 +85,15 @@ class SocketService {
   }
 
   void on(String event, Function(dynamic) handler) {
+    final handlers = _eventHandlers.putIfAbsent(event, () => []);
+    if (!handlers.contains(handler)) {
+      handlers.add(handler);
+    }
     _socket?.on(event, handler);
   }
 
   void off(String event) {
+    _eventHandlers.remove(event);
     _socket?.off(event);
   }
 }

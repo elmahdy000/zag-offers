@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:firebase_core/firebase_core.dart';
+import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'core/theme/app_colors.dart';
 import 'core/network/api_client.dart';
@@ -14,10 +16,30 @@ import 'features/offers/presentation/bloc/offers_bloc.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
 
 import 'core/network/notification_service.dart';
+import 'firebase_options.dart';
 import 'injection_container.dart' as di;
+
+/// Top-level background handler — must be annotated so the VM keeps it alive.
+@pragma('vm:entry-point')
+Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
+  await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
+  debugPrint('FCM background message (vendor): ${message.notification?.title}');
+}
+
+final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+
+  try {
+    await Firebase.initializeApp(
+      options: DefaultFirebaseOptions.currentPlatform,
+    );
+    FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+  } catch (e) {
+    debugPrint('Firebase initialization error: $e');
+  }
+
   await di.init();
   await NotificationService.initialize();
   runApp(const ZagOffersVendorApp());
@@ -34,7 +56,7 @@ class ZagOffersVendorApp extends StatelessWidget {
           create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatus()),
         ),
         BlocProvider(
-          create: (_) => di.sl<DashboardBloc>()..add(GetDashboardStatsRequested()),
+          create: (_) => di.sl<DashboardBloc>(),
         ),
         BlocProvider(
           create: (_) => di.sl<QRScannerBloc>(),
@@ -48,6 +70,7 @@ class ZagOffersVendorApp extends StatelessWidget {
       ],
       child: MaterialApp(
         title: 'Zag Offers Vendor',
+        navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: ThemeData(
           useMaterial3: true,

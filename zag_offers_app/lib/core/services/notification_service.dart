@@ -68,9 +68,7 @@ class NotificationService {
   // ─── إرسال التوكن للـ Backend (بعد login) ────────────────────────────────
 
   static Future<void> sendTokenToBackend() async {
-    if (_fcmToken == null) {
-      _fcmToken = await _messaging.getToken();
-    }
+    _fcmToken ??= await _messaging.getToken();
     if (_fcmToken != null) {
       await _sendTokenToServer(_fcmToken!);
     }

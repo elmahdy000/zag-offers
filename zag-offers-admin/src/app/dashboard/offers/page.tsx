@@ -30,6 +30,7 @@ import { adminApi } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { OfferCard } from '@/components/offers/OfferCard';
 import { useToast } from '@/components/shared/Toast';
+import Pagination from '@/components/shared/Pagination';
 
 interface OfferRow {
   id: string;
@@ -230,6 +231,12 @@ export default function OffersManagementPage() {
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
           <Tag size={48} className="mb-4 opacity-20" />
           <p className="text-lg font-bold">لا توجد عروض حالياً</p>
+          <button
+            onClick={() => setIsCreating(true)}
+            className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2"
+          >
+            <Plus size={16} /> إضافة عرض جديد
+          </button>
         </div>
       ) : (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
@@ -246,13 +253,11 @@ export default function OffersManagementPage() {
       )}
 
       {/* Pagination */}
-      {(data?.meta?.lastPage ?? 0) > 1 && (
-        <div className="flex justify-center gap-2 mt-8">
-          {Array.from({ length: data?.meta?.lastPage ?? 0 }).map((_, i) => (
-            <button key={i} onClick={() => setPage(i + 1)} className={`h-10 w-10 rounded-xl text-sm font-bold transition-all ${page === i + 1 ? 'bg-orange-600 text-white shadow-lg shadow-orange-900/20' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-300'}`}>{i + 1}</button>
-          ))}
-        </div>
-      )}
+      <Pagination
+        currentPage={page}
+        lastPage={data?.meta?.lastPage ?? 0}
+        onPageChange={setPage}
+      />
 
       {/* Overlays */}
       <AnimatePresence>

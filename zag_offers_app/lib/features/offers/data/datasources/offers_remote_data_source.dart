@@ -18,6 +18,19 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
 
   OffersRemoteDataSourceImpl({required this.apiClient});
 
+  List<T> _parseList<T>(dynamic raw, T Function(Map<String, dynamic>) fromJson) {
+    if (raw is List) {
+      return raw.whereType<Map<String, dynamic>>().map(fromJson).toList();
+    }
+    if (raw is Map && raw['items'] is List) {
+      return (raw['items'] as List)
+          .whereType<Map<String, dynamic>>()
+          .map(fromJson)
+          .toList();
+    }
+    return [];
+  }
+
   @override
   Future<List<OfferModel>> getAllOffers({String? categoryId, String? area, int page = 1}) async {
     try {
@@ -27,7 +40,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
         'page': page,
         'limit': 20,
       });
-      return (response.data as List).map<OfferModel>((json) => OfferModel.fromJson(json)).toList();
+      return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -37,7 +50,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<List<OfferModel>> getTrendingOffers() async {
     try {
       final response = await apiClient.dio.get('/recommendations/trending');
-      return (response.data as List).map<OfferModel>((json) => OfferModel.fromJson(json)).toList();
+      return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -47,7 +60,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<List<OfferModel>> getRecommendedOffers() async {
     try {
       final response = await apiClient.dio.get('/recommendations');
-      return (response.data as List).map<OfferModel>((json) => OfferModel.fromJson(json)).toList();
+      return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -56,10 +69,8 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   @override
   Future<List<OfferModel>> searchOffers(String query) async {
     try {
-      final response = await apiClient.dio.get('/offers/search', queryParameters: {
-        'q': query,
-      });
-      return (response.data as List).map<OfferModel>((json) => OfferModel.fromJson(json)).toList();
+      final response = await apiClient.dio.get('/offers/search', queryParameters: {'q': query});
+      return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -69,7 +80,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<List<StoreModel>> getFeaturedStores() async {
     try {
       final response = await apiClient.dio.get('/stores');
-      return (response.data as List).map<StoreModel>((json) => StoreModel.fromJson(json)).toList();
+      return _parseList(response.data, StoreModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -79,7 +90,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<List<OfferModel>> getOffersByStore(String storeId) async {
     try {
       final response = await apiClient.dio.get('/offers/store/$storeId');
-      return (response.data as List).map<OfferModel>((json) => OfferModel.fromJson(json)).toList();
+      return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -89,10 +100,9 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<OfferModel> getOfferById(String id) async {
     try {
       final response = await apiClient.dio.get('/offers/$id');
-      return OfferModel.fromJson(response.data);
+      return OfferModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw Exception(e.message);
     }
   }
 }
-

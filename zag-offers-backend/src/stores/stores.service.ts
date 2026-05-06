@@ -1,4 +1,8 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 import { Prisma, Store, StoreStatus } from '@prisma/client';
@@ -11,9 +15,20 @@ export class StoresService {
   ) {}
 
   async create(data: Prisma.StoreCreateInput): Promise<Store> {
-    return this.prisma.store.create({
+    const store = await this.prisma.store.create({
       data,
     });
+
+    if (store.status === StoreStatus.PENDING) {
+      this.events.notifyAdmin({
+        type: 'NEW_PENDING_STORE',
+        title: 'طلب تاجر جديد بانتظار المراجعة',
+        body: `تم إنشاء متجر جديد: ${store.name}`,
+        payload: { storeId: store.id, storeName: store.name },
+      });
+    }
+
+    return store;
   }
 
   async findAll(params: {
@@ -22,14 +37,18 @@ export class StoresService {
     cursor?: Prisma.StoreWhereUniqueInput;
     where?: Prisma.StoreWhereInput;
     orderBy?: Prisma.StoreOrderByWithRelationInput;
-  }): Promise<any[]> {
-    const { skip, take, cursor, where, orderBy } = params;
-    // دائماً نُرجع المحلات المعتمدة فقط ما لم يُحدَّد خلاف ذلك صراحةً
+    includeMeta?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<any[] | { items: any[]; meta: any }> {
+    const { skip, take, cursor, where, orderBy, includeMeta, page, limit } =
+      params;
+    // Always return approved stores unless a controller explicitly narrows it.
     const finalWhere: Prisma.StoreWhereInput = {
       status: StoreStatus.APPROVED,
       ...where,
     };
-    return this.prisma.store.findMany({
+    const items = await this.prisma.store.findMany({
       skip,
       take,
       cursor,
@@ -47,6 +66,24 @@ export class StoresService {
         category: { select: { name: true } },
       },
     });
+
+    if (!includeMeta) {
+      return items;
+    }
+
+    const total = await this.prisma.store.count({ where: finalWhere });
+    const currentLimit = limit ?? take ?? 10;
+    const currentPage = page ?? 1;
+
+    return {
+      items,
+      meta: {
+        total,
+        page: currentPage,
+        limit: currentLimit,
+        lastPage: Math.max(1, Math.ceil(total / currentLimit)),
+      },
+    };
   }
 
   async findOne(id: string): Promise<Store | null> {
@@ -62,7 +99,7 @@ export class StoresService {
     });
 
     if (!store) {
-      throw new Error('لا يوجد محل مرتبط بهذا التاجر');
+      throw new NotFoundException('لا يوجد محل مرتبط بهذا التاجر');
     }
 
     const startOfDay = new Date();
@@ -91,6 +128,9 @@ export class StoresService {
     ]);
 
     return {
+      storeName: store.name,
+      storeId: store.id,
+      storeStatus: store.status,
       activeOffers,
       scansToday,
       recentCoupons,
@@ -117,7 +157,7 @@ export class StoresService {
         this.events.notifyMerchant(ownerId, {
           type: 'STORE_APPROVED',
           title: 'تم اعتماد متجرك!',
-          body: `مبروك! تم قبول "${store.name}" — يمكنك الآن إضافة عروضك.`,
+          body: `مبروك! تم قبول "${store.name}" - يمكنك الآن إضافة عروضك.`,
           payload: { storeId: store.id, storeName: store.name },
         });
       } else if (status === StoreStatus.REJECTED) {
@@ -151,9 +191,10 @@ export class StoresService {
     const store = await this.prisma.store.findUnique({
       where: { id: storeId },
     });
-    if (!store) throw new Error('المحل غير موجود');
-    if (store.ownerId !== merchantId)
-      throw new Error('غير مصرح لك بتعديل هذا المحل');
+    if (!store) throw new NotFoundException('المحل غير موجود');
+    if (store.ownerId !== merchantId) {
+      throw new ForbiddenException('غير مصرح لك بتعديل هذا المحل');
+    }
     return this.prisma.store.update({ where: { id: storeId }, data });
   }
 }

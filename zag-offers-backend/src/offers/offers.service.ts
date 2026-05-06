@@ -67,6 +67,26 @@ export class OffersService {
       payload: { offerId: offer.id, storeName: offer.store.name },
     });
 
+    void this.prisma.user
+      .findMany({
+        where: { role: 'ADMIN', fcmToken: { not: null } },
+        select: { id: true },
+      })
+      .then((admins) => admins.map((admin) => admin.id))
+      .then((adminIds) => {
+        if (adminIds.length === 0) return;
+        return this.notificationsService.sendToUserIds(adminIds, {
+          title: 'عرض جديد بانتظار المراجعة',
+          body: `المتجر "${offer.store.name}" أضاف عرضًا جديدًا: ${offer.title}`,
+          data: {
+            type: 'NEW_PENDING_OFFER',
+            offerId: offer.id,
+            storeName: offer.store.name,
+          },
+        });
+      })
+      .catch(() => undefined);
+
     return offer;
   }
 
@@ -75,8 +95,11 @@ export class OffersService {
     take?: number;
     where?: Prisma.OfferWhereInput;
     orderBy?: Prisma.OfferOrderByWithRelationInput;
-  }): Promise<unknown[]> {
-    const { skip, take, where, orderBy } = params;
+    includeMeta?: boolean;
+    page?: number;
+    limit?: number;
+  }): Promise<unknown[] | { items: unknown[]; meta: any }> {
+    const { skip, take, where, orderBy, includeMeta, page, limit } = params;
 
     // الفلاتر الأمنية ثابتة دايمًا — لا يمكن تجاوزها عبر where الخارجي
     // نستخرج فقط الفلاتر المسموح بيها (categoryId, area, search) ونمنع تعديل status أو store.status
@@ -94,7 +117,7 @@ export class OffersService {
       store: { status: StoreStatus.APPROVED }, // من محلات معتمدة فقط
     };
 
-    return this.prisma.offer.findMany({
+    const items = await this.prisma.offer.findMany({
       skip,
       take,
       where: finalWhere,
@@ -121,6 +144,24 @@ export class OffersService {
         },
       },
     });
+
+    if (!includeMeta) {
+      return items;
+    }
+
+    const total = await this.prisma.offer.count({ where: finalWhere });
+    const currentLimit = limit ?? take ?? 10;
+    const currentPage = page ?? 1;
+
+    return {
+      items,
+      meta: {
+        total,
+        page: currentPage,
+        limit: currentLimit,
+        lastPage: Math.max(1, Math.ceil(total / currentLimit)),
+      },
+    };
   }
 
   async findMerchantOffers(userId: string) {
@@ -129,7 +170,7 @@ export class OffersService {
     });
 
     if (!store) {
-      throw new Error('Store not found for this user');
+      throw new NotFoundException('Store not found for this user');
     }
 
     return this.prisma.offer.findMany({

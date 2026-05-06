@@ -12,7 +12,11 @@ class OfferModel extends OfferEntity {
     required super.endDate,
     super.usageLimit,
     required super.status,
-    required super.storeId,
+    this.oldPrice,
+    this.newPrice,
+    this.rejectionReason,
+    this.viewCount = 0,
+    this.isFeatured = false,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -24,14 +28,19 @@ class OfferModel extends OfferEntity {
       discount: json['discount'] ?? '',
       terms: json['terms'],
       startDate: json['startDate'] != null 
-          ? DateTime.parse(json['startDate']) 
+          ? (DateTime.tryParse(json['startDate'].toString()) ?? DateTime.now()) 
           : DateTime.now(),
       endDate: json['endDate'] != null 
-          ? DateTime.parse(json['endDate']) 
+          ? (DateTime.tryParse(json['endDate'].toString()) ?? DateTime.now().add(const Duration(days: 7))) 
           : DateTime.now().add(const Duration(days: 7)),
       usageLimit: json['usageLimit'],
       status: json['status'] ?? 'PENDING',
       storeId: json['storeId'] ?? '',
+      oldPrice: json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null,
+      newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
+      rejectionReason: json['rejectionReason'],
+      viewCount: json['viewCount'] ?? 0,
+      isFeatured: json['isFeatured'] ?? false,
     );
   }
 
@@ -46,6 +55,11 @@ class OfferModel extends OfferEntity {
       'endDate': endDate.toIso8601String(),
       'usageLimit': usageLimit,
       'storeId': storeId,
+      'oldPrice': oldPrice,
+      'newPrice': newPrice,
+      'rejectionReason': rejectionReason,
+      'viewCount': viewCount,
+      'isFeatured': isFeatured,
     };
   }
 }

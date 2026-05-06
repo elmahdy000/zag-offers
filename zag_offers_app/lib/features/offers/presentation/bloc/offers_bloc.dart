@@ -194,7 +194,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       final result = await request.timeout(timeout);
       return result.fold(
         (failure) => _SectionResult<T>(items: const [], errorMessage: failure.message),
-        (items) => _SectionResult<T>(items: List<T>.from(items as List)),
+        (items) => _SectionResult<T>(items: items is List ? List<T>.from(items) : <T>[]),
       );
     } catch (_) {
       return _SectionResult<T>(

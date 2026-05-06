@@ -30,9 +30,13 @@ class ReviewsRemoteDataSourceImpl implements ReviewsRemoteDataSource {
   Future<List<ReviewModel>> getReviewsByStore(String storeId) async {
     try {
       final response = await apiClient.dio.get('/reviews/store/$storeId');
-      return (response.data as List)
-          .map<ReviewModel>((json) => ReviewModel.fromJson(json))
-          .toList();
+      final raw = response.data;
+      if (raw is List) {
+        return raw.whereType<Map<String, dynamic>>()
+            .map((json) => ReviewModel.fromJson(json))
+            .toList();
+      }
+      return [];
     } on DioException catch (e) {
       throw Exception(e.message);
     }

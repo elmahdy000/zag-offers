@@ -11,22 +11,37 @@ async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
 
-  // تفعيل CORS — السماح للـ Frontend بالتواصل مع الـ API
   const allowedOrigins = process.env.ALLOWED_ORIGINS
-    ? process.env.ALLOWED_ORIGINS.split(',')
+    ? process.env.ALLOWED_ORIGINS.split(',').map((origin) => origin.trim())
     : ['http://localhost:3000', 'http://localhost:3002'];
 
   app.enableCors({
-    origin: allowedOrigins,
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean | string) => void,
+    ) => {
+      if (!origin) {
+        callback(null, true);
+        return;
+      }
+
+      if (
+        allowedOrigins.includes(origin) ||
+        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
+      ) {
+        callback(null, origin);
+        return;
+      }
+
+      callback(new Error(`CORS origin not allowed: ${origin}`));
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization'],
     credentials: true,
   });
 
-  // تفعيل ضغط البيانات لتسريع التحميل
   app.use(compression());
 
-  // إعدادات الـ Validation والـ Global Filter
   app.useGlobalPipes(
     new ValidationPipe({
       whitelist: true,
@@ -35,10 +50,8 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  // تفعيل الوصول للصور المرفوعة محلياً
   app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
 
-  // إعداد الـ Swagger (Documentation)
   const config = new DocumentBuilder()
     .setTitle('Zag Offers API')
     .setDescription('نظام إدارة العروض والخصومات في مدينة الزقازيق')
@@ -51,8 +64,8 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   const host = process.env.HOST || '0.0.0.0';
   await app.listen(port, host);
-  console.log(`🚀 السيرفر شغال على: http://localhost:${port}`);
-  console.log(`🌐 متاح على الشبكة عبر: http://${host}:${port}`);
-  console.log(`📜 التوثيق (Swagger): http://localhost:${port}/api`);
+  console.log(`Server running on: http://localhost:${port}`);
+  console.log(`Network URL: http://${host}:${port}`);
+  console.log(`Swagger docs: http://localhost:${port}/api`);
 }
 void bootstrap();

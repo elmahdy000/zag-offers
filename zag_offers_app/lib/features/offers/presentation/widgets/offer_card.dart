@@ -96,9 +96,25 @@ class OfferCard extends StatelessWidget {
               color: Colors.white.withValues(alpha: 0.95),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: Text(
-              offer.store.category ?? 'عرض',
-              style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                if ((offer.images?.length ?? 0) > 1) ...[
+                  const Icon(Icons.collections_rounded, size: 12, color: AppColors.primary),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${offer.images!.length}',
+                    style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary),
+                  ),
+                  const SizedBox(width: 6),
+                  Container(width: 1, height: 10, color: Colors.grey[300]),
+                  const SizedBox(width: 6),
+                ],
+                Text(
+                  offer.store.category ?? 'عرض',
+                  style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+                ),
+              ],
             ),
           ),
         ),
@@ -123,7 +139,7 @@ class OfferCard extends StatelessWidget {
     final textTheme = Theme.of(context).textTheme;
     return Expanded(
       child: Padding(
-        padding: const EdgeInsets.fromLTRB(12, 12, 12, 10),
+        padding: const EdgeInsets.fromLTRB(12, 10, 12, 8),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -152,7 +168,7 @@ class OfferCard extends StatelessWidget {
                 ),
               ],
             ),
-            const Spacer(),
+            const SizedBox(height: 4),
             Row(
               children: [
                 Icon(

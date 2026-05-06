@@ -9,6 +9,8 @@ import '../../../favorites/presentation/bloc/favorites_bloc.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../home/presentation/pages/notifications_page.dart';
 import '../../data/datasources/auth_local_data_source.dart';
+import '../bloc/auth_bloc.dart';
+import '../bloc/auth_event.dart';
 import 'login_page.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -57,8 +59,13 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isLoggingOut = true);
     try {
       sl<SocketService>().dispose();
+      // Dispatch through AuthBloc — it handles FCM token removal + cache clear
+      if (mounted) {
+        context.read<AuthBloc>().add(LogoutRequested());
+      }
+    } catch (_) {
+      // Fallback: clear cache directly if bloc is unavailable
       await sl<AuthLocalDataSource>().clearCache();
-    } finally {
       if (mounted) {
         Navigator.pushAndRemoveUntil(
           context,

@@ -41,16 +41,21 @@ class SocketService {
   void initSocket(String userId, String token) {
     if (_isInitialized) return;
 
-    _socket = io.io(AppConstants.socketUrl, <String, dynamic>{
-      'transports': ['websocket'],
-      'autoConnect': false,
-    });
+    _socket = io.io(
+      AppConstants.socketUrl,
+      io.OptionBuilder()
+          .setTransports(['websocket', 'polling'])
+          .setAuth({'token': token})
+          .enableReconnection()
+          .disableAutoConnect()
+          .build(),
+    );
 
     _socket!.connect();
 
     _socket!.onConnect((_) {
       log('[Socket] Connected');
-      _socket!.emit('join_room', {'userId': userId, 'token': token});
+      _socket!.emit('join_room', {'room': userId, 'token': token});
     });
 
     _socket!.on('new_offer', (data) {
@@ -75,17 +80,18 @@ class SocketService {
       _couponUpdateController.add(_toMap(data));
     });
 
+    _socket!.onConnectError((error) => log('[Socket] connect_error: $error'));
     _socket!.onDisconnect((_) => log('[Socket] Disconnected'));
 
     _isInitialized = true;
   }
 
   void dispose() {
+    _socket?.clearListeners();
     _socket?.disconnect();
+    _socket?.dispose();
+    _socket = null;
     _isInitialized = false;
-    _newOfferController.close();
-    _couponUpdateController.close();
-    _socialProofController.close();
   }
 
   // ---------------------------------------------------------------------------

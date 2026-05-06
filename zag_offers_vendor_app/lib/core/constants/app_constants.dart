@@ -6,8 +6,14 @@ class AppConstants {
     defaultValue: 'http://192.168.1.18:3001/api',
   );
 
-  static const String socketUrl = String.fromEnvironment(
-    'SOCKET_URL',
-    defaultValue: 'http://192.168.1.18:3001',
-  );
+  static String get socketUrl {
+    const configuredUrl = String.fromEnvironment('SOCKET_URL');
+    if (configuredUrl.isNotEmpty) {
+      return configuredUrl;
+    }
+
+    return baseUrl.endsWith('/api')
+        ? baseUrl.substring(0, baseUrl.length - 4)
+        : baseUrl;
+  }
 }

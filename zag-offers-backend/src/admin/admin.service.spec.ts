@@ -3,6 +3,7 @@ import { AdminService } from './admin.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { AuditLogService } from '../audit-log/audit-log.service';
 import { StoreStatus, OfferStatus } from '@prisma/client';
 
 describe('AdminService', () => {
@@ -30,6 +31,10 @@ describe('AdminService', () => {
     notifyStoreApproved: jest.fn(),
   };
 
+  const mockAuditLog = {
+    log: jest.fn(),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -37,6 +42,7 @@ describe('AdminService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: EventsGateway, useValue: mockEvents },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: AuditLogService, useValue: mockAuditLog },
       ],
     }).compile();
 
@@ -79,7 +85,7 @@ describe('AdminService', () => {
         status: StoreStatus.APPROVED,
       });
 
-      await service.approveStore('s1');
+      await service.approveStore('s1', 'admin-1');
 
       expect(mockPrisma.store.update).toHaveBeenCalled();
       expect(mockEvents.notifyMerchant).toHaveBeenCalled();
@@ -100,7 +106,7 @@ describe('AdminService', () => {
         status: OfferStatus.ACTIVE,
       });
 
-      await service.approveOffer('o1');
+      await service.approveOffer('o1', 'admin-1');
 
       expect(mockPrisma.offer.update).toHaveBeenCalled();
       expect(mockEvents.broadcastNewOffer).toHaveBeenCalled();

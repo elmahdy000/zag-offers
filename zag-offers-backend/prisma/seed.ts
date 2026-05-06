@@ -51,7 +51,19 @@ async function main() {
     },
   });
 
-  // 3. Create Categories
+  // 3. Create Test Customer
+  await prisma.user.upsert({
+    where: { phone: '01033333333' },
+    update: {},
+    create: {
+      phone: '01033333333',
+      password,
+      name: 'أحمد محمد',
+      role: Role.CUSTOMER,
+    },
+  });
+
+  // 4. Create Categories
   const categories = [
     'مطاعم',
     'كافيهات',
@@ -73,7 +85,7 @@ async function main() {
     catMap[name] = cat.id;
   }
 
-  // 4. Create Stores
+  // 5. Create Stores
   const stores = [
     {
       name: 'مطعم البرنس - القومية',
@@ -127,7 +139,7 @@ async function main() {
       data: s,
     });
 
-    // 5. Create Offers for each store
+    // 6. Create Offers for each store
     if (s.categoryId === catMap['مطاعم']) {
       await prisma.offer.create({
         data: {

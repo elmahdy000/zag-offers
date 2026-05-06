@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -8,6 +8,7 @@ import {
 } from '@nestjs/common';
 import { CouponsService } from './coupons.service';
 import { GenerateCouponDto } from './dto/generate-coupon.dto';
+import { RedeemCouponDto } from './dto/redeem-coupon.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -19,6 +20,7 @@ import {
   ApiResponse,
   ApiBody,
 } from '@nestjs/swagger';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('coupons (نظام الكوبونات)')
 @Controller('coupons')
@@ -39,6 +41,7 @@ export class CouponsController {
   }
 
   @Post('redeem')
+  @Throttle({ short: { limit: 5, ttl: 1000 } })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT, Role.ADMIN)
   @ApiBearerAuth()
@@ -59,10 +62,13 @@ export class CouponsController {
   })
   redeem(
     @Request() req: { user: { id: string } },
-    @Body('code') code: string,
-    @Body('storeId') storeId?: string,
+    @Body() body: RedeemCouponDto,
   ) {
-    return this.couponsService.redeem(code, storeId || null, req.user.id);
+    return this.couponsService.redeem(
+      body.code,
+      body.storeId || null,
+      req.user.id,
+    );
   }
 
   @Get('my')

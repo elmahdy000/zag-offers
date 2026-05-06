@@ -159,18 +159,42 @@ export default function AdminDashboard() {
           <h1 className="text-3xl font-bold text-slate-900 leading-tight">لوحة التحكم الرئيسية</h1>
           <p className="text-sm font-medium text-slate-500 mt-1">أهلاً بك مجدداً، إليك ملخص لأداء المنصة اليوم</p>
         </div>
-        <div className="flex p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
-          {(['today', 'week', 'month'] as const).map((p) => (
-            <button
-              key={p}
-              onClick={() => setPeriod(p)}
-              className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${period === p ? 'bg-orange-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900'
-                }`}
-            >
-              {p === 'today' ? 'اليوم' : p === 'week' ? 'الأسبوع' : 'الشهر'}
-            </button>
-          ))}
+        <div className="flex flex-col md:flex-row md:items-center gap-4">
+          <div className="flex items-center gap-3 bg-slate-900 text-white px-5 py-3 rounded-2xl shadow-xl shadow-slate-200">
+             <div className="h-2 w-2 rounded-full bg-emerald-500 animate-pulse" />
+             <div className="flex flex-col">
+                <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Live Server Time</span>
+                <span className="text-sm font-black tracking-widest font-mono">
+                   {new Date().toLocaleTimeString('ar-EG', { hour12: true })}
+                </span>
+             </div>
+          </div>
+          <div className="flex p-1 bg-white border border-slate-200 rounded-xl shadow-sm">
+            {(['today', 'week', 'month'] as const).map((p) => (
+              <button
+                key={p}
+                onClick={() => setPeriod(p)}
+                className={`px-4 py-2 rounded-lg text-xs font-bold transition-all ${period === p ? 'bg-orange-600 text-white shadow-md' : 'text-slate-500 hover:text-slate-900'
+                  }`}
+              >
+                {p === 'today' ? 'اليوم' : p === 'week' ? 'الأسبوع' : 'الشهر'}
+              </button>
+            ))}
+          </div>
         </div>
+      </div>
+
+      {/* Quick Actions Bar */}
+      <div className="bg-slate-50/50 p-2 rounded-[2rem] border border-slate-100 flex flex-wrap items-center gap-2">
+         <Link href="/dashboard/broadcast" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:text-orange-600 transition-all text-xs font-black">
+            <Bell size={14} /> إرسال تنبيه عاجل
+         </Link>
+         <Link href="/dashboard/audit-logs" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:text-blue-600 transition-all text-xs font-black">
+            <ClipboardCheck size={14} /> مراجعة سجلات الأمان
+         </Link>
+         <Link href="/dashboard/users" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition-all text-xs font-black">
+            <Users size={14} /> إدارة الطاقم
+         </Link>
       </div>
 
       {/* Dynamic Stats Grid */}

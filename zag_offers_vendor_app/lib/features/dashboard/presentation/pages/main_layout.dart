@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_vendor_app/features/offers/presentation/pages/offers_page.dart';
+import 'package:zag_offers_vendor_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_vendor_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:zag_offers_vendor_app/core/network/socket_service.dart';
 import 'package:zag_offers_vendor_app/features/qr_scanner/presentation/pages/qr_scanner_page.dart';
@@ -47,7 +48,6 @@ class MainLayoutState extends State<MainLayout> {
     _socketService.on('merchant_notification', (data) {
       if (!mounted) return;
       
-      // إظهار تنبيه جذاب
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Column(
@@ -71,8 +71,8 @@ class MainLayoutState extends State<MainLayout> {
         ),
       );
 
-      // تحديث البيانات تلقائياً
       context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+      context.read<OffersBloc>().add(GetMyOffersRequested());
     });
   }
 
@@ -86,7 +86,7 @@ class MainLayoutState extends State<MainLayout> {
   final List<Widget> _pages = [
     const DashboardPage(),
     OffersPage(),
-    const Center(child: Text('التقارير')), // Placeholder
+    const ReportsPage(),
     ProfilePage(),
   ];
 
@@ -166,7 +166,7 @@ class MainLayoutState extends State<MainLayout> {
             padding: const EdgeInsets.all(4),
             decoration: BoxDecoration(
               color: isSelected
-                  ? AppColors.primary.withOpacity(0.1)
+                  ? AppColors.primary.withValues(alpha: 0.1)
                   : Colors.transparent,
               borderRadius: BorderRadius.circular(12),
             ),

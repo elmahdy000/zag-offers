@@ -12,6 +12,11 @@ class OfferEntity extends Equatable {
   final int? usageLimit;
   final String status;
   final String storeId;
+  final double? oldPrice;
+  final double? newPrice;
+  final String? rejectionReason;
+  final int viewCount;
+  final bool isFeatured;
 
   const OfferEntity({
     required this.id,
@@ -25,6 +30,11 @@ class OfferEntity extends Equatable {
     this.usageLimit,
     required this.status,
     required this.storeId,
+    this.oldPrice,
+    this.newPrice,
+    this.rejectionReason,
+    this.viewCount = 0,
+    this.isFeatured = false,
   });
 
   @override
@@ -40,5 +50,10 @@ class OfferEntity extends Equatable {
         usageLimit,
         status,
         storeId,
+        oldPrice,
+        newPrice,
+        rejectionReason,
+        viewCount,
+        isFeatured,
       ];
 }

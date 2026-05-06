@@ -90,7 +90,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   crossAxisCount: 2,
                   mainAxisSpacing: 16,
                   crossAxisSpacing: 16,
-                  childAspectRatio: 0.75,
+                  childAspectRatio: 0.70,
                 ),
                 itemCount: favorites.length,
                 itemBuilder: (context, index) {

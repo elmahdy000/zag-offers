@@ -7,6 +7,9 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/services/socket_service.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/auth/data/datasources/auth_local_data_source.dart';
+import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:zag_offers_app/features/auth/presentation/bloc/auth_state.dart';
+import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
 import 'package:zag_offers_app/features/auth/presentation/pages/profile_page.dart';
 import 'package:zag_offers_app/features/coupons/presentation/pages/my_coupons_page.dart';
 import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';
@@ -161,8 +164,17 @@ class MainScreenState extends State<MainScreen> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      body: IndexedStack(
+    return BlocListener<AuthBloc, AuthState>(
+      listener: (context, state) {
+        if (state is AuthInitial) {
+          Navigator.of(context).pushAndRemoveUntil(
+            MaterialPageRoute(builder: (_) => const LoginPage()),
+            (route) => false,
+          );
+        }
+      },
+      child: Scaffold(
+        body: IndexedStack(
         index: _selectedIndex,
         children: _pages,
       ),
@@ -194,6 +206,7 @@ class MainScreenState extends State<MainScreen> {
           items: _items,
         ),
       ),
-    );
+    ),   // Scaffold
+    );   // BlocListener
   }
 }

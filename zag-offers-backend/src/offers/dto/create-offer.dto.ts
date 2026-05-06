@@ -4,8 +4,10 @@ import {
   IsOptional,
   IsString,
   IsArray,
+  ArrayMaxSize,
   IsDateString,
   IsInt,
+  IsUrl,
 } from 'class-validator';
 
 export class CreateOfferDto {
@@ -32,7 +34,12 @@ export class CreateOfferDto {
   })
   @IsOptional()
   @IsArray()
+  @ArrayMaxSize(10)
   @IsString({ each: true })
+  @IsUrl(
+    { require_tld: false, require_protocol: true },
+    { each: true, message: 'Each image must be a valid absolute URL' },
+  )
   images?: string[];
 
   @ApiProperty({ description: 'نسبة الخصم أو نوع العرض', example: '20%' })

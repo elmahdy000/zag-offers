@@ -11,6 +11,12 @@ class OfferEntity extends Equatable {
   final double discountPercentage; // قيمة رقمية للعرض في الـ UI (مشتقة من discount)
   final DateTime expiryDate;
   final StoreEntity store;
+  final String? terms;
+  final double? oldPrice;
+  final double? newPrice;
+  final int viewCount;
+  final bool isFeatured;
+  final String status;
 
   const OfferEntity({
     required this.id,
@@ -22,8 +28,30 @@ class OfferEntity extends Equatable {
     required this.discountPercentage,
     required this.expiryDate,
     required this.store,
+    this.terms,
+    this.oldPrice,
+    this.newPrice,
+    this.viewCount = 0,
+    this.isFeatured = false,
+    this.status = 'ACTIVE',
   });
 
   @override
-  List<Object?> get props => [id, title, description, image, images, discount, discountPercentage, expiryDate, store];
+  List<Object?> get props => [
+        id,
+        title,
+        description,
+        image,
+        images,
+        discount,
+        discountPercentage,
+        expiryDate,
+        store,
+        terms,
+        oldPrice,
+        newPrice,
+        viewCount,
+        isFeatured,
+        status,
+      ];
 }

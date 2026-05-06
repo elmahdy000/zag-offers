@@ -32,4 +32,8 @@ export class UpdateUserDto {
   @IsString()
   @IsOptional()
   password?: string;
+
+  @ApiProperty({ required: false })
+  @IsOptional()
+  points?: number;
 }

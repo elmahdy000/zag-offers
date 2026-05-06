@@ -5,6 +5,7 @@ import 'package:zag_offers_vendor_app/core/network/api_client.dart';
 abstract class ProfileRemoteDataSource {
   Future<UserModel> getProfile();
   Future<UserModel> updateProfile(Map<String, dynamic> data);
+  Future<void> changePassword({required String currentPassword, required String newPassword});
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -29,6 +30,21 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
       return UserModel.fromJson(response.data);
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? e.message);
+    }
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    try {
+      await apiClient.dio.post('/auth/password', data: {
+        'currentPassword': currentPassword,
+        'newPassword': newPassword,
+      });
+    } on DioException catch (e) {
+      throw Exception(e.response?.data['message'] ?? e.message ?? 'فشل تغيير كلمة المرور');
     }
   }
 }

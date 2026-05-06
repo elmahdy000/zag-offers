@@ -18,7 +18,9 @@ class OfferRemoteDataSourceImpl implements OfferRemoteDataSource {
   Future<List<OfferModel>> getMyOffers() async {
     try {
       final response = await apiClient.dio.get('/offers/my');
-      return (response.data as List)
+      final raw = response.data;
+      final items = raw is List ? List<dynamic>.from(raw) : <dynamic>[];
+      return items
           .map<OfferModel>((e) => OfferModel.fromJson(e))
           .toList();
     } on DioException catch (e) {

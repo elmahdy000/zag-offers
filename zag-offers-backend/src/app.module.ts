@@ -23,6 +23,7 @@ import { RecommendationsController } from './recommendations/recommendations.con
 import { UploadModule } from './upload/upload.module';
 import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
+import { AuditLogModule } from './audit-log/audit-log.module';
 import { CacheModule } from '@nestjs/cache-manager';
 
 @Module({
@@ -64,6 +65,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     UploadModule,
     EventsModule,
     NotificationsModule,
+    AuditLogModule,
   ],
   controllers: [AppController, HealthController, RecommendationsController],
   providers: [

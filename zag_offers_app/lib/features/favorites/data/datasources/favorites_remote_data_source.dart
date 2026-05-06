@@ -16,7 +16,7 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
   Future<bool> toggleFavorite(String offerId) async {
     try {
       final response = await apiClient.dio.post('/favorites/toggle/$offerId');
-      return response.data['favorited'] ?? false;
+      return (response.data as Map<String, dynamic>?)?['favorited'] as bool? ?? false;
     } on DioException catch (e) {
       throw Exception(e.message);
     }
@@ -26,14 +26,19 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
   Future<List<OfferModel>> getFavorites() async {
     try {
       final response = await apiClient.dio.get('/favorites');
-      return (response.data as List).map<OfferModel>((json) {
-        final item = json as Map<String, dynamic>;
-        final offerJson = item['offer'];
+      final raw = response.data;
+      final list = raw is List
+          ? raw
+          : (raw is Map && raw['items'] is List)
+              ? raw['items'] as List
+              : <dynamic>[];
 
+      return list.whereType<Map<String, dynamic>>().map((item) {
+        // Backend wraps offer inside { offer: {...} }
+        final offerJson = item['offer'];
         if (offerJson is Map<String, dynamic>) {
           return OfferModel.fromJson(offerJson);
         }
-
         return OfferModel.fromJson(item);
       }).toList();
     } on DioException catch (e) {

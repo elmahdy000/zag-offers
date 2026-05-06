@@ -310,12 +310,42 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildTitleSection() {
-    return Text(
-      widget.offer.title,
-      style: textTheme.headlineLarge?.copyWith(
-        fontWeight: FontWeight.w900,
-        height: 1.3,
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(
+          widget.offer.title,
+          style: textTheme.headlineLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            height: 1.3,
+          ),
+        ),
+        if (widget.offer.oldPrice != null || widget.offer.newPrice != null) ...[
+          const SizedBox(height: 8),
+          Row(
+            children: [
+              if (widget.offer.newPrice != null)
+                Text(
+                  '${widget.offer.newPrice} ج.م',
+                  style: textTheme.headlineSmall?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+              if (widget.offer.oldPrice != null) ...[
+                const SizedBox(width: 12),
+                Text(
+                  '${widget.offer.oldPrice} ج.م',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: Colors.grey[500],
+                    decoration: TextDecoration.lineThrough,
+                  ),
+                ),
+              ],
+            ],
+          ),
+        ],
+      ],
     );
   }
 
@@ -750,7 +780,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     int selectedRating = 5;
     final commentController = TextEditingController();
 
-    showModalBottomSheet(
+    showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
       shape: const RoundedRectangleBorder(
@@ -838,6 +868,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
         ),
       ),
-    );
+    ).whenComplete(commentController.dispose);
   }
 }

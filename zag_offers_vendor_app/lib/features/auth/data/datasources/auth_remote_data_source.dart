@@ -8,6 +8,7 @@ import '../models/user_model.dart';
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String phone, String password);
   Future<void> updateFcmToken(String fcmToken);
+  Future<void> removeFcmToken();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -52,6 +53,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await apiClient.dio.post('/notifications/fcm-token', data: {'fcmToken': fcmToken});
     } on DioException catch (e) {
       log('Failed to update FCM token: ${e.message}');
+    }
+  }
+
+  @override
+  Future<void> removeFcmToken() async {
+    try {
+      await apiClient.dio.delete('/notifications/fcm-token');
+    } on DioException catch (e) {
+      log('Failed to remove FCM token: ${e.message}');
     }
   }
 }

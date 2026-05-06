@@ -20,6 +20,14 @@ class UpdateProfileRequested extends ProfileEvent {
   List<Object?> get props => [name, phone];
 }
 
+class ChangePasswordRequested extends ProfileEvent {
+  final String currentPassword;
+  final String newPassword;
+  ChangePasswordRequested({required this.currentPassword, required this.newPassword});
+  @override
+  List<Object?> get props => [currentPassword, newPassword];
+}
+
 // --- States ---
 abstract class ProfileState extends Equatable {
   @override
@@ -44,17 +52,42 @@ class ProfileError extends ProfileState {
   List<Object?> get props => [message];
 }
 
+class PasswordChanging extends ProfileState {
+  final UserEntity user;
+  PasswordChanging(this.user);
+  @override
+  List<Object?> get props => [user];
+}
+
+class PasswordChanged extends ProfileState {
+  final UserEntity user;
+  PasswordChanged(this.user);
+  @override
+  List<Object?> get props => [user];
+}
+
+class PasswordChangeError extends ProfileState {
+  final UserEntity user;
+  final String message;
+  PasswordChangeError(this.user, this.message);
+  @override
+  List<Object?> get props => [user, message];
+}
+
 // --- BLoC ---
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetProfileUseCase getProfileUseCase;
   final UpdateProfileUseCase updateProfileUseCase;
+  final ChangePasswordUseCase changePasswordUseCase;
 
   ProfileBloc({
     required this.getProfileUseCase,
     required this.updateProfileUseCase,
+    required this.changePasswordUseCase,
   }) : super(ProfileInitial()) {
     on<GetProfileRequested>(_onGetProfileRequested);
     on<UpdateProfileRequested>(_onUpdateProfileRequested);
+    on<ChangePasswordRequested>(_onChangePasswordRequested);
   }
 
   Future<void> _onGetProfileRequested(
@@ -78,6 +111,33 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(ProfileLoaded(user));
     } catch (e) {
       emit(ProfileError(e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  Future<void> _onChangePasswordRequested(
+      ChangePasswordRequested event, Emitter<ProfileState> emit) async {
+    // Keep current user visible while changing password
+    final currentUser = state is ProfileLoaded
+        ? (state as ProfileLoaded).user
+        : state is PasswordChanged
+            ? (state as PasswordChanged).user
+            : state is PasswordChangeError
+                ? (state as PasswordChangeError).user
+                : null;
+    if (currentUser == null) return;
+
+    emit(PasswordChanging(currentUser));
+    try {
+      await changePasswordUseCase(ChangePasswordParams(
+        currentPassword: event.currentPassword,
+        newPassword: event.newPassword,
+      ));
+      emit(PasswordChanged(currentUser));
+    } catch (e) {
+      emit(PasswordChangeError(
+        currentUser,
+        e.toString().replaceAll('Exception: ', ''),
+      ));
     }
   }
 }

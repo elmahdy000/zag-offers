@@ -24,7 +24,7 @@ class ProfileRepositoryImpl implements ProfileRepository {
     final data = <String, dynamic>{};
     if (name != null) data['name'] = name;
     if (phone != null) data['phone'] = phone;
-    
+
     final model = await remoteDataSource.updateProfile(data);
     return UserEntity(
       id: model.id,
@@ -32,6 +32,17 @@ class ProfileRepositoryImpl implements ProfileRepository {
       name: model.name,
       role: model.role,
       phone: model.phone,
+    );
+  }
+
+  @override
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  }) async {
+    await remoteDataSource.changePassword(
+      currentPassword: currentPassword,
+      newPassword: newPassword,
     );
   }
 }

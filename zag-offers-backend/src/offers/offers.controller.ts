@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Post,
@@ -9,6 +9,7 @@ import {
   UseGuards,
   Query,
   Request,
+  NotFoundException,
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
@@ -43,7 +44,7 @@ export class OffersController {
     if (!storeId) {
       const store = await this.offersService.getStoreByOwnerId(req.user.id);
       if (!store) {
-        throw new Error('لا يوجد محل مسجل لهذا المستخدم');
+        throw new NotFoundException('لا يوجد محل مسجل لهذا المستخدم');
       }
       storeId = store.id;
     }
@@ -67,6 +68,7 @@ export class OffersController {
     @Query('featured') featured?: boolean,
     @Query('page') page: number = 1,
     @Query('limit') limit: number = 10,
+    @Query('includeMeta') includeMeta?: string,
   ) {
     const skip = (page - 1) * limit;
     return this.offersService.findAll({
@@ -79,6 +81,9 @@ export class OffersController {
       },
       skip: +skip,
       take: +limit,
+      page: +page,
+      limit: +limit,
+      includeMeta: includeMeta === 'true',
       orderBy: { createdAt: 'desc' },
     });
   }

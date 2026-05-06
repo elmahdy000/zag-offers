@@ -1,4 +1,4 @@
-import {
+﻿import {
   Controller,
   Get,
   Patch,
@@ -14,6 +14,7 @@ import {
   ApiBearerAuth,
   ApiResponse,
 } from '@nestjs/swagger';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 
 @ApiTags('users (الملف الشخصي)')
 @Controller('users')
@@ -33,7 +34,7 @@ export class UsersController {
   @ApiOperation({ summary: 'تحديث بيانات الملف الشخصي' })
   updateProfile(
     @Request() req: { user: { id: string } },
-    @Body() updateData: Record<string, any>,
+    @Body() updateData: UpdateProfileDto,
   ) {
     return this.usersService.update(req.user.id, updateData);
   }

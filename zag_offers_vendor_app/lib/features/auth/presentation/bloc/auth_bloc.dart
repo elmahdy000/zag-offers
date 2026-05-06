@@ -4,6 +4,7 @@ import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_usecase.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../../data/datasources/auth_remote_data_source.dart';
+import '../../../../core/network/notification_service.dart';
 
 // --- Events ---
 abstract class AuthEvent extends Equatable {
@@ -57,7 +58,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc({required this.loginUseCase, required this.authRepository})
-    : super(AuthInitial()) {
+      : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LogoutRequested>(_onLogoutRequested);
@@ -72,6 +73,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await loginUseCase(
         LoginParams(phone: event.phone, password: event.password),
       );
+      // Register FCM token with backend now that the user is authenticated
+      await NotificationService.sendTokenToBackend();
       emit(AuthAuthenticated(user));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll('Exception: ', '')));
@@ -94,6 +97,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
+    // Remove FCM token from backend before clearing local auth
+    await NotificationService.removeTokenFromBackend();
     await authRepository.logout();
     emit(AuthUnauthenticated());
   }

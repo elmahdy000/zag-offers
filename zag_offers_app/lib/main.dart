@@ -8,6 +8,7 @@ import 'core/services/notification_service.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 import 'injection_container.dart' as di;
+import 'features/auth/presentation/bloc/auth_bloc.dart';
 import 'features/offers/presentation/bloc/offers_bloc.dart';
 import 'features/offers/presentation/bloc/offers_event.dart';
 import 'features/coupons/presentation/bloc/coupons_bloc.dart';
@@ -55,6 +56,7 @@ class ZagOffersApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
+        BlocProvider(create: (_) => di.sl<AuthBloc>()),
         BlocProvider(create: (_) => di.sl<NotificationBloc>()),
         BlocProvider(create: (_) => di.sl<OffersBloc>()..add(FetchHomeData())),
         BlocProvider(create: (_) => di.sl<CouponsBloc>()),
