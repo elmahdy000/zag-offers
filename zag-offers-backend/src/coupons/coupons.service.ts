@@ -132,28 +132,20 @@ export class CouponsService {
       throw new NotFoundException('عفواً، الكود ده مش صحيح');
     }
 
-    // إذا لم يتم إرسال storeId، نأخذ الـ storeId الخاص بالمحل المرتبط بالتاجر
-    if (!storeId) {
-      const merchantStore = await this.prisma.store.findFirst({
-        where: { ownerId: merchantId },
-      });
-      if (!merchantStore) {
-        throw new BadRequestException('عفواً، لا يوجد محل مسجل باسمك');
-      }
-      storeId = merchantStore.id;
+    // التحقق من أن التاجر هو صاحب المحل فعلاً أو أدمن
+    const isOwner = coupon.offer.store.ownerId === merchantId;
+    const user = await this.prisma.user.findUnique({
+      where: { id: merchantId },
+      select: { role: true },
+    });
+    const isAdmin = user?.role === 'ADMIN';
+
+    if (!isOwner && !isAdmin) {
+      throw new BadRequestException('عفواً، المحل ده مش مسجل باسمك');
     }
 
-    // التحقق من أن التاجر هو صاحب المحل فعلاً
-    if (coupon.offer.store.ownerId !== merchantId) {
-      const user = await this.prisma.user.findUnique({
-        where: { id: merchantId },
-      });
-      if (user?.role !== 'ADMIN' && coupon.offer.store.ownerId !== merchantId) {
-        throw new BadRequestException('عفواً، المحل ده مش مسجل باسمك');
-      }
-    }
-
-    if (coupon.offer.storeId !== storeId) {
+    // إذا تم إرسال storeId، نتأكد أنه يخص نفس المحل الخاص بالكوبون
+    if (storeId && coupon.offer.storeId !== storeId) {
       throw new BadRequestException('عفواً، الكوبون ده مش خاص بالمحل ده');
     }
 
