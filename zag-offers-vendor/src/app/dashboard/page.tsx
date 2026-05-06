@@ -131,6 +131,14 @@ export default function MerchantDashboard() {
 
   return (
     <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative min-h-screen">
+      {/* Floating Action Button for Scanner (Mobile Only) */}
+      <button 
+        onClick={() => setShowScanner(true)}
+        className="lg:hidden fixed bottom-24 left-6 w-16 h-16 bg-primary text-white rounded-full shadow-2xl shadow-primary/40 flex items-center justify-center z-[50] active:scale-90 transition-all border-4 border-bg"
+      >
+        <ScanLine size={28} />
+      </button>
+
       <AnimatePresence>
         {notification && (
           <motion.div initial={{ opacity: 0, x: 50 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 50 }}
@@ -177,8 +185,8 @@ export default function MerchantDashboard() {
       </div>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
-        {/* Recent Activity */}
-        <div className="lg:col-span-2 glass rounded-[2rem] overflow-hidden flex flex-col min-h-[450px]">
+        {/* Recent Activity (order-2 on mobile, order-1 on desktop) */}
+        <div className="lg:col-span-2 glass rounded-[2rem] overflow-hidden flex flex-col min-h-[450px] order-2 lg:order-1">
           <div className="p-6 border-b border-white/5 flex justify-between items-center bg-white/[0.01]">
             <h2 className="text-base font-black text-text flex items-center gap-2.5">
               <Clock className="text-primary" size={18} /> النشاط الأخير
@@ -215,8 +223,8 @@ export default function MerchantDashboard() {
           </div>
         </div>
 
-        {/* Redemption Panel */}
-        <div className="space-y-6">
+        {/* Redemption Panel (order-1 on mobile, order-2 on desktop) */}
+        <div className="space-y-6 order-1 lg:order-2">
           <div className="glass p-7 rounded-[2rem] relative overflow-hidden border-primary/20 bg-gradient-to-br from-white/[0.02] to-transparent">
             <h3 className="text-base font-black text-text mb-2">تفعيل الكوبونات</h3>
             <p className="text-[11px] text-text-dim mb-6 leading-relaxed">تحقق من صحة الكوبون وقم بتفعيله فوراً لخدمة العميل.</p>

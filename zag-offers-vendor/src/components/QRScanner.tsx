@@ -97,7 +97,12 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
   };
 
   return (
-    <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl flex flex-col items-center justify-center p-6">
+    <motion.div 
+      initial={{ opacity: 0 }} 
+      animate={{ opacity: 1 }} 
+      exit={{ opacity: 0 }} 
+      className="fixed inset-0 z-[100] bg-black/95 backdrop-blur-3xl overflow-y-auto flex flex-col items-center py-10 px-6"
+    >
       <div className="w-full max-w-md relative">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
