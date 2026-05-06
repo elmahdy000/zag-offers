@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Tag, TrendingUp, Plus, ScanLine, Loader2, Bell, CheckCircle2, Clock, Users, ArrowUpRight, Calendar, ChevronLeft } from 'lucide-react';
+import { LayoutDashboard, Tag, TrendingUp, Plus, ScanLine, Loader2, Bell, CheckCircle2, Clock, Users, ArrowUpRight, Calendar, ChevronLeft, Camera, Keyboard } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { io } from 'socket.io-client';
 import { vendorApi, getCookie, getVendorUser } from '@/lib/api';
+import QRScanner from '@/components/QRScanner';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online';
 
@@ -35,6 +36,16 @@ export default function MerchantDashboard() {
   const [redeeming, setRedeeming] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
+  const [showScanner, setShowScanner] = useState(false);
+
+  const handleScan = (decodedText: string) => {
+    setShowScanner(false);
+    setCouponCode(decodedText.toUpperCase());
+    // Trigger redeem after a short delay
+    setTimeout(() => {
+       document.getElementById('redeem-btn')?.click();
+    }, 200);
+  };
 
   const vendorUser = getVendorUser();
   const merchantId = vendorUser?.id ?? '';
@@ -216,11 +227,26 @@ export default function MerchantDashboard() {
                 className="w-full bg-bg border border-white/5 rounded-xl px-4 py-3.5 text-center text-lg font-mono font-black tracking-[0.2em] focus:border-primary outline-none transition-all placeholder:text-text-dimmer/30" />
               
               <button disabled={redeeming || !storeId} onClick={handleRedeem}
+                id="redeem-btn"
                 className="w-full bg-primary text-white py-4 rounded-xl font-black text-[13px] flex items-center justify-center gap-2.5 hover:bg-primary-lt transition-all shadow-lg shadow-primary/20 disabled:opacity-50">
                 {redeeming ? <Loader2 className="animate-spin" size={18} /> : <ScanLine size={18} />}
                 تأكيد الكود
               </button>
+
+              <button 
+                type="button"
+                onClick={() => setShowScanner(true)}
+                className="w-full glass py-3.5 rounded-xl font-black text-[11px] text-text-dim flex items-center justify-center gap-2 border border-white/5 hover:border-primary/30 transition-all"
+              >
+                <Camera size={16} /> فتح الكاميرا للمسح
+              </button>
             </div>
+
+            <AnimatePresence>
+              {showScanner && (
+                <QRScanner onScan={handleScan} onClose={() => setShowScanner(false)} />
+              )}
+            </AnimatePresence>
 
             <AnimatePresence>
               {message && (
