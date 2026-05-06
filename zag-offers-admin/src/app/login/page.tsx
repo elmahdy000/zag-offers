@@ -1,13 +1,13 @@
 'use client';
 
-import { useState, useEffect } from 'react';
-import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight } from 'lucide-react';
+import { useState } from 'react';
+import { LogIn, Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online') + '/api';
+const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -40,8 +40,9 @@ export default function AdminLoginPage() {
       });
       const { access_token, user } = res.data;
 
-      if (user.role !== 'ADMIN' && user.role !== 'MERCHANT') {
-        setError('عذراً، هذا الحساب غير مصرح له بالدخول');
+      if (user.role !== 'ADMIN') {
+        setError('عذراً، هذا الحساب غير مصرح له بدخول لوحة الإدارة');
+        setLoading(false);
         return;
       }
 
@@ -58,197 +59,112 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="login-root" dir="rtl">
-      <style dangerouslySetInnerHTML={{ __html: `
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&display=swap');
-        
-        :root {
-          --orange: #FF6B00;
-          --orange-dk: #D95A00;
-          --bg: #0A0A0A;
-          --card: rgba(255, 255, 255, 0.04);
-          --border: rgba(255, 255, 255, 0.08);
-        }
-
-        .login-root {
-          min-height: 100vh;
-          background: var(--bg);
-          color: white;
-          font-family: 'Cairo', sans-serif;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          position: relative;
-          overflow: hidden;
-        }
-
-        /* Abstract Background Glows */
-        .glow {
-          position: absolute;
-          width: 400px;
-          height: 400px;
-          background: radial-gradient(circle, rgba(255, 107, 0, 0.15) 0%, transparent 70%);
-          z-index: 0;
-          pointer-events: none;
-        }
-        .glow-1 { top: -100px; left: -100px; }
-        .glow-2 { bottom: -100px; right: -100px; }
-
-        .login-card {
-          width: 100%;
-          max-width: 420px;
-          background: var(--card);
+    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-4" dir="rtl">
+      <style jsx global>{`
+        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
+        body { font-family: 'Cairo', sans-serif; }
+        .glass {
+          background: rgba(25, 25, 25, 0.7);
           backdrop-filter: blur(20px);
-          border: 1px solid var(--border);
-          border-radius: 24px;
-          padding: 40px;
-          z-index: 10;
-          box-shadow: 0 20px 50px rgba(0,0,0,0.5);
+          -webkit-backdrop-filter: blur(20px);
+          border: 1px solid rgba(255, 255, 255, 0.05);
         }
+      `}</style>
 
-        .logo-area { text-align: center; margin-bottom: 32px; }
-        .logo-text { font-size: 28px; font-weight: 800; color: white; text-decoration: none; }
-        .logo-text span { color: var(--orange); }
-        .subtitle { color: #999; font-size: 14px; margin-top: 8px; }
+      {/* Background Glows */}
+      <div className="fixed inset-0 overflow-hidden pointer-events-none">
+         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#FF6B00]/10 blur-[120px] rounded-full" />
+         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#FF6B00]/5 blur-[120px] rounded-full" />
+      </div>
 
-        .form-group { margin-bottom: 20px; position: relative; }
-        .form-group label { display: block; font-size: 13px; font-weight: 600; color: #BBB; margin-bottom: 8px; margin-right: 4px; }
-        .input-wrap { position: relative; }
-        .input-wrap input {
-          width: 100%;
-          background: rgba(255,255,255,0.03);
-          border: 1px solid var(--border);
-          border-radius: 14px;
-          padding: 12px 42px 12px 16px;
-          color: white;
-          font-family: inherit;
-          font-size: 15px;
-          outline: none;
-          transition: all 0.2s;
-        }
-        .input-wrap input:focus { border-color: var(--orange); background: rgba(255,107,0,0.03); box-shadow: 0 0 0 4px rgba(255,107,0,0.1); }
-        .input-icon { position: absolute; right: 14px; top: 50%; transform: translateY(-50%); color: #666; }
-        .pass-toggle { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); background: none; border: none; color: #666; cursor: pointer; padding: 4px; }
-
-        .btn-login {
-          width: 100%;
-          background: linear-gradient(135deg, var(--orange), var(--orange-dk));
-          color: white;
-          border: none;
-          border-radius: 14px;
-          padding: 14px;
-          font-size: 16px;
-          font-weight: 700;
-          cursor: pointer;
-          transition: all 0.2s;
-          display: flex;
-          align-items: center;
-          justify-content: center;
-          gap: 10px;
-          margin-top: 10px;
-          box-shadow: 0 4px 15px rgba(255,107,0,0.3);
-        }
-        .btn-login:hover:not(:disabled) { transform: translateY(-2px); box-shadow: 0 6px 20px rgba(255,107,0,0.4); }
-        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
-
-        .error-msg { background: rgba(255, 68, 68, 0.1); border: 1px solid rgba(255, 68, 68, 0.2); color: #FF4444; border-radius: 12px; padding: 12px; font-size: 13px; font-weight: 600; margin-bottom: 20px; text-align: center; }
-
-        .footer-links { text-align: center; margin-top: 24px; font-size: 13px; color: #666; }
-        .footer-links a { color: var(--orange); text-decoration: none; font-weight: 700; }
-        .footer-links a:hover { text-decoration: underline; }
-
-        .demo-box { margin-top: 20px; padding-top: 20px; border-top: 1px solid var(--border); text-align: center; }
-        .btn-demo { background: none; border: 1px solid var(--border); color: #888; padding: 6px 16px; border-radius: 10px; font-size: 12px; cursor: pointer; transition: 0.2s; }
-        .btn-demo:hover { border-color: var(--orange); color: white; }
-      ` }} />
-
-      <div className="glow glow-1"></div>
-      <div className="glow glow-2"></div>
-
-      <motion.div 
+      <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="login-card"
+        className="max-w-md w-full glass p-10 rounded-[2.5rem] relative z-10 shadow-2xl shadow-black/60"
       >
-        <div className="logo-area">
-          <Link href="/" className="logo-text">Zag<span>Offers</span></Link>
-          <p className="subtitle">لوحة التحكم في العروض والخصومات</p>
+        {/* Logo & Heading */}
+        <div className="text-center mb-10">
+          <div className="w-20 h-20 bg-[#FF6B00]/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-[#FF6B00]/20">
+            <ShieldCheck className="text-[#FF6B00]" size={40} />
+          </div>
+          <h1 className="text-3xl font-black text-white leading-tight">لوحة الإدارة المركزية</h1>
+          <p className="text-white/40 text-sm mt-2 font-bold uppercase tracking-widest">Zag Offers Admin</p>
         </div>
 
-        <form onSubmit={handleLogin}>
-          <AnimatePresence>
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                exit={{ opacity: 0, scale: 0.95 }}
-                className="error-msg"
-              >
-                {error}
-              </motion.div>
-            )}
-          </AnimatePresence>
+        {error && (
+          <motion.div 
+            initial={{ opacity: 0, x: -10 }} 
+            animate={{ opacity: 1, x: 0 }}
+            className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-2xl px-5 py-4 mb-8"
+          >
+            <AlertCircle size={18} className="shrink-0" />
+            {error}
+          </motion.div>
+        )}
 
-          <div className="form-group">
-            <label>رقم الموبايل</label>
-            <div className="input-wrap">
-              <Smartphone className="input-icon" size={18} />
-              <input 
-                type="tel" 
-                placeholder="01xxxxxxxxx" 
+        <form onSubmit={handleLogin} className="space-y-6">
+          <div className="space-y-2">
+            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-widest">رقم الموبايل</label>
+            <div className="relative group">
+              <Smartphone className="absolute right-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[#FF6B00] transition-colors" size={20} />
+              <input
+                type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                placeholder="01xxxxxxxxx"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pr-14 pl-4 text-white focus:border-[#FF6B00] outline-none transition-all text-base font-bold placeholder:text-white/5"
                 required
               />
             </div>
           </div>
 
-          <div className="form-group">
-            <label>كلمة المرور</label>
-            <div className="input-wrap">
-              <Lock className="input-icon" size={18} />
-              <input 
-                type={showPassword ? 'text' : 'password'} 
-                placeholder="••••••••" 
+          <div className="space-y-2">
+            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-widest">كلمة المرور</label>
+            <div className="relative group">
+              <Lock className="absolute right-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[#FF6B00] transition-colors" size={20} />
+              <input
+                type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                placeholder="••••••••"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pr-14 pl-14 text-white focus:border-[#FF6B00] outline-none transition-all text-base font-bold placeholder:text-white/5"
                 required
               />
               <button 
-                type="button" 
-                className="pass-toggle"
+                type="button"
                 onClick={() => setShowPassword(!showPassword)}
+                className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 hover:text-white transition-colors"
               >
-                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
               </button>
             </div>
           </div>
 
-          <button className="btn-login" type="submit" disabled={loading}>
-            {loading ? (
-              <Loader2 className="animate-spin" size={20} />
-            ) : (
+          <button
+            type="submit"
+            disabled={loading}
+            className="w-full bg-[#FF6B00] text-white py-5 rounded-2xl font-black text-base shadow-xl shadow-orange-950/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 mt-4 flex items-center justify-center gap-3"
+          >
+            {loading ? <Loader2 className="animate-spin" size={24} /> : (
               <>
-                تسجيل الدخول
-                <ArrowRight size={18} />
+                <span>تسجيل الدخول للنظام</span>
+                <ArrowRight size={20} />
               </>
             )}
           </button>
         </form>
 
-        <div className="demo-box">
+        <div className="mt-12 text-center pt-8 border-t border-white/5">
           <button 
-            className="btn-demo"
+            type="button"
             onClick={() => { setPhone('01000000000'); setPassword('password123'); }}
+            className="text-white/20 text-xs font-black uppercase tracking-widest hover:text-[#FF6B00] transition-colors"
           >
-            استخدام حساب تجريبي
+            استخدام الحساب التجريبي للأدمن
           </button>
-        </div>
-
-        <div className="footer-links">
-          ليس لديك حساب؟ <Link href="#">تواصل مع الإدارة</Link>
         </div>
       </motion.div>
     </div>
   );
 }
+
