@@ -21,28 +21,40 @@ export default function NewOfferPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (files.length > 5) {
+    if (selectedFiles.length + files.length > 5) {
       setSubmitError('الحد الأقصى هو 5 صور فقط');
       return;
     }
 
     if (files.length > 0) {
-      setSelectedFiles(files);
-      const newPreviews: string[] = [];
-      files.forEach(file => {
+      const newFiles = [...selectedFiles, ...files];
+      setSelectedFiles(newFiles);
+      
+      const filePreviews = new Array(files.length);
+      let loadedCount = 0;
+
+      files.forEach((file, index) => {
         const reader = new FileReader();
         reader.onloadend = () => {
-          const result = reader.result;
-          if (typeof result === 'string') {
-            newPreviews.push(result);
-            if (newPreviews.length === files.length) {
-              setImagePreviews(newPreviews);
+          if (typeof reader.result === 'string') {
+            filePreviews[index] = reader.result;
+            loadedCount++;
+            if (loadedCount === files.length) {
+              setImagePreviews(prev => [...prev, ...filePreviews]);
             }
           }
         };
         reader.readAsDataURL(file);
       });
     }
+  };
+
+  const removeImage = (index: number) => {
+    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
+    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    // Reset input value to allow re-selecting same file
+    const input = document.getElementById('imageInput') as HTMLInputElement;
+    if (input) input.value = '';
   };
 
   const handleSubmit = async () => {
@@ -152,12 +164,19 @@ export default function NewOfferPage() {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
-                          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border border-white/10 group/img"
+                          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border border-white/10 group/img shadow-xl"
                         >
                           <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
-                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover/img:opacity-100 transition-opacity flex items-center justify-center">
-                             <span className="text-[10px] text-white font-black">تغيير الكل</span>
-                          </div>
+                          <button 
+                            type="button"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              removeImage(index);
+                            }}
+                            className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600 shadow-lg"
+                          >
+                            <span className="text-xs font-black">×</span>
+                          </button>
                         </motion.div>
                       ))
                     ) : (
@@ -171,8 +190,8 @@ export default function NewOfferPage() {
                           <Upload className="text-text-dim group-hover:text-primary transition-colors" size={32} />
                         </div>
                         <div className="text-center">
-                          <p className="text-sm font-black text-text group-hover:text-primary transition-colors">اضغط لرفع حتى 5 صور</p>
-                          <p className="text-[10px] font-bold text-text-dimmer mt-1">يدعم JPG, PNG بجودة عالية</p>
+                          <p className="text-sm font-black text-text group-hover:text-primary transition-colors">اضغط لإضافة صور (حتى 5)</p>
+                          <p className="text-[10px] font-bold text-text-dimmer mt-1">يمكنك إضافة الصور واحدة تلو الأخرى</p>
                         </div>
                       </motion.div>
                     )}

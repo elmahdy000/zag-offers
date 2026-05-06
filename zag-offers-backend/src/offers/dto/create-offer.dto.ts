@@ -7,6 +7,7 @@ import {
   ArrayMaxSize,
   IsDateString,
   IsInt,
+  IsNumber,
   IsUrl,
 } from 'class-validator';
 
@@ -86,6 +87,6 @@ export class CreateOfferDto {
     required: false,
   })
   @IsOptional()
-  @IsInt()
+  @IsNumber()
   originalPrice?: number;
 }

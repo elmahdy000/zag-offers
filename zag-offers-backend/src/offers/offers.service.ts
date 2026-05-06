@@ -130,6 +130,7 @@ export class OffersService {
         discount: true,
         endDate: true,
         status: true,
+        images: true,
         store: {
           select: {
             id: true,
