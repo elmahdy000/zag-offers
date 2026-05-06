@@ -16,18 +16,36 @@ export default function OfferDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [showCoupon, setShowCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('ZAG-XXXXXX');
+  const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
     const fetchOffer = async () => {
       try {
         const res = await fetch(`${API}/offers/${id}`);
-        if (res.ok) setOffer(await res.json());
+        if (res.ok) {
+          const data = await res.json();
+          setOffer(data);
+          const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+          setIsFav(favs.some((f: any) => f.id === data.id));
+        }
         else router.replace('/');
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
     };
     fetchOffer();
   }, [id, router]);
+
+  const toggleFav = () => {
+    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+    let updated;
+    if (isFav) {
+      updated = favs.filter((f: any) => f.id !== offer.id);
+    } else {
+      updated = [...favs, offer];
+    }
+    localStorage.setItem('favorites', JSON.stringify(updated));
+    setIsFav(!isFav);
+  };
 
   const handleGetCoupon = () => {
     const token = localStorage.getItem('token');
@@ -93,7 +111,12 @@ export default function OfferDetailsPage() {
                     <span className="text-xs font-bold">{offer.store?.area}</span>
                   </div>
                   <button className="mr-auto p-2 text-white/40 hover:text-white transition-colors"><Share2 size={20} /></button>
-                  <button className="p-2 text-white/40 hover:text-red-500 transition-colors"><Heart size={20} /></button>
+                  <button 
+                    onClick={toggleFav}
+                    className={`p-2 transition-all ${isFav ? 'text-red-500' : 'text-white/40 hover:text-red-500'}`}
+                  >
+                    <Heart size={20} fill={isFav ? "currentColor" : "none"} />
+                  </button>
                </div>
 
                <div className="space-y-4">

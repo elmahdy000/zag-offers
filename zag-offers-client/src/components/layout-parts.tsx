@@ -4,8 +4,10 @@ import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Search, ShoppingBag, User, Heart, Menu, X, Bell } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
+import { usePathname } from 'next/navigation';
 
 export function Navbar() {
+  const pathname = usePathname();
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -21,6 +23,21 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
+  const NavLink = ({ href, children }: { href: string, children: React.ReactNode }) => {
+    const isActive = pathname === href;
+    return (
+      <Link 
+        href={href} 
+        className={`text-sm font-bold transition-all ${isActive ? 'text-[#FF6B00]' : 'text-white/70 hover:text-[#FF6B00]'}`}
+      >
+        {children}
+        {isActive && (
+          <motion.div layoutId="nav-underline" className="h-[2px] bg-[#FF6B00] mt-1 rounded-full" />
+        )}
+      </Link>
+    );
+  };
+
   return (
     <nav className={`fixed top-0 inset-x-0 z-50 transition-all duration-300 ${isScrolled ? 'glass h-16 shadow-lg' : 'h-20 bg-transparent'}`}>
       <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between" dir="rtl">
@@ -34,10 +51,10 @@ export function Navbar() {
 
         {/* Desktop Links */}
         <div className="hidden md:flex items-center gap-8">
-          <Link href="/" className="text-sm font-bold text-white/90 hover:text-[#FF6B00] transition-colors">الرئيسية</Link>
-          <Link href="/categories" className="text-sm font-bold text-white/70 hover:text-[#FF6B00] transition-colors">الأقسام</Link>
-          <Link href="/stores" className="text-sm font-bold text-white/70 hover:text-[#FF6B00] transition-colors">المحلات</Link>
-          <Link href="/top-offers" className="text-sm font-bold text-white/70 hover:text-[#FF6B00] transition-colors">أقوى الخصومات</Link>
+          <NavLink href="/">الرئيسية</NavLink>
+          <NavLink href="/categories">الأقسام</NavLink>
+          <NavLink href="/stores">المحلات</NavLink>
+          <NavLink href="/offers">أقوى العروض</NavLink>
         </div>
 
         {/* Actions */}
