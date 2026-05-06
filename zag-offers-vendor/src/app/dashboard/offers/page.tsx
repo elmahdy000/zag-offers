@@ -36,90 +36,79 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="glass rounded-[2rem] overflow-hidden group hover:border-primary/30 transition-all flex flex-col bg-white/[0.01]"
+      className="glass rounded-3xl overflow-hidden group hover:border-primary/40 transition-all flex flex-col bg-white/[0.02] border border-white/5"
     >
-      {/* Image Section */}
-      <div className="relative h-32 bg-white/5 overflow-hidden">
+      {/* Mini Image & Header */}
+      <div className="relative h-28 bg-white/5 overflow-hidden">
         {offer.images?.length > 0 ? (
           <img
             src={resolveImageUrl(offer.images[0])}
             alt={offer.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-80 group-hover:opacity-100"
+            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center">
-            <Tag size={32} className="text-white/5" />
+          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
+            <Tag size={24} className="text-white/10" />
           </div>
         )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent" />
+        <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent opacity-60" />
 
-        {/* Status & Category */}
-        <div className="absolute top-3 inset-x-3 flex justify-between items-start">
-          <div className={`flex items-center gap-1.5 px-2.5 py-1 rounded-lg text-[9px] font-black border backdrop-blur-md uppercase tracking-wider ${cfg.color}`}>
-            {cfg.icon}
+        {/* Status Badge */}
+        <div className="absolute top-3 left-3">
+          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[8px] font-black border backdrop-blur-md uppercase tracking-wider ${cfg.color}`}>
             {cfg.label}
           </div>
-          {offer.discount && (
-            <div className="bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-xl shadow-primary/20">
-              {offer.discount}
-            </div>
-          )}
         </div>
+
+        {/* Discount Badge */}
+        {offer.discount && (
+          <div className="absolute bottom-3 right-3 bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-lg shadow-primary/20">
+            {offer.discount}
+          </div>
+        )}
       </div>
 
       {/* Body */}
-      <div className="p-5 flex-1 flex flex-col">
-        <h3 className="text-[13px] font-black text-text group-hover:text-primary transition-colors line-clamp-2 leading-relaxed mb-4">
+      <div className="p-4 flex-1 flex flex-col">
+        <h3 className="text-[12px] font-black text-text group-hover:text-primary transition-colors line-clamp-1 leading-tight mb-3">
           {offer.title}
         </h3>
 
-        {/* Grid Stats */}
+        {/* High-Density Stats */}
         <div className="grid grid-cols-2 gap-2 mb-4">
-          <div className="bg-white/5 rounded-xl p-2.5 border border-white/5 flex flex-col items-center justify-center text-center">
-            <p className="text-[8px] font-black text-text-dim uppercase tracking-[0.1em] mb-1">المشاهدات</p>
-            <p className="text-sm font-black text-text">{offer.views || 0}</p>
+          <div className="bg-white/5 rounded-xl px-3 py-2 border border-white/5 flex items-center justify-between">
+            <TrendingUp size={11} className="text-primary/60" />
+            <span className="text-[11px] font-black text-text">{offer.views || 0}</span>
           </div>
-          <div className="bg-white/5 rounded-xl p-2.5 border border-white/5 flex flex-col items-center justify-center text-center">
-            <p className="text-[8px] font-black text-text-dim uppercase tracking-[0.1em] mb-1">الطلبات</p>
-            <p className="text-sm font-black text-text">{offer._count?.coupons || 0}</p>
+          <div className="bg-white/5 rounded-xl px-3 py-2 border border-white/5 flex items-center justify-between">
+            <Users size={11} className="text-secondary/60" />
+            <span className="text-[11px] font-black text-text">{offer._count?.coupons || 0}</span>
           </div>
         </div>
 
-        {/* Expiry Bar */}
-        <div className={`mt-auto flex items-center justify-between gap-2 text-[10px] font-black px-3 py-2 rounded-xl border border-white/5 ${
-          isExpired ? 'text-red-500 bg-red-500/5' :
-          daysLeft <= 3 ? 'text-yellow-500 bg-yellow-500/5' :
-          'text-text-dim bg-white/5'
+        {/* Expiry Status */}
+        <div className={`flex items-center gap-2 text-[9px] font-black mb-4 ${
+          isExpired ? 'text-red-500' : daysLeft <= 3 ? 'text-yellow-500' : 'text-text-dimmer'
         }`}>
-          <div className="flex items-center gap-1.5">
-            <Clock size={12} />
-            {isExpired ? 'منتهي الصلاحية' : `ينتهي خلال ${daysLeft} يوم`}
-          </div>
-          {!isExpired && (
-            <div className="w-12 h-1 bg-white/10 rounded-full overflow-hidden">
-               <div 
-                 className={`h-full transition-all duration-1000 ${daysLeft <= 3 ? 'bg-yellow-500' : 'bg-primary'}`} 
-                 style={{ width: `${Math.min(100, (daysLeft / 30) * 100)}%` }} 
-               />
-            </div>
-          )}
+          <Clock size={10} />
+          {isExpired ? 'منتهي الصلاحية' : `ينتهي خلال ${daysLeft} يوم`}
         </div>
-      </div>
 
-      {/* Quick Actions */}
-      <div className="px-4 pb-4 flex gap-2">
-        <Link
-          href={`/dashboard/offers/${offer.id}/edit`}
-          className="flex-1 bg-white/5 hover:bg-white/10 text-text font-black text-[10px] uppercase tracking-wider py-2.5 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/5"
-        >
-          <Edit3 size={12} /> تعديل
-        </Link>
-        <button
-          onClick={() => onDelete(offer.id)}
-          className="w-10 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all border border-red-500/10"
-        >
-          <Trash2 size={12} />
-        </button>
+        {/* Actions - Modern & Compact */}
+        <div className="mt-auto flex gap-2">
+          <Link
+            href={`/dashboard/offers/${offer.id}/edit`}
+            className="flex-1 bg-white/5 hover:bg-white/10 text-text font-black text-[9px] uppercase tracking-wider py-2 rounded-xl transition-all flex items-center justify-center gap-2 border border-white/5"
+          >
+            <Edit3 size={11} /> تعديل
+          </Link>
+          <button
+            onClick={() => onDelete(offer.id)}
+            className="w-9 bg-red-500/5 hover:bg-red-500 text-red-500 hover:text-white rounded-xl flex items-center justify-center transition-all border border-red-500/10"
+          >
+            <Trash2 size={11} />
+          </button>
+        </div>
       </div>
     </motion.div>
   );
@@ -235,7 +224,7 @@ export default function OffersListPage() {
               </span>
             </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
               {catOffers.map((offer) => (
                 <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} />
               ))}
