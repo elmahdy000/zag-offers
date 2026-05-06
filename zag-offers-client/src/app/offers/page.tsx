@@ -21,7 +21,7 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   'سوبرماركت':    <ShoppingCart size={14} />,
   'دورات':         <BookOpen size={14} />,
   'خدمات سيارات': <Car size={14} />,
-  'خدمات محلية':  <Tool size={14} />,
+  'خدمات محلية':  <Wrench size={14} />,
   'default':       <Sparkles size={14} />,
 };
 
