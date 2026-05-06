@@ -5,9 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight } from 'lucide-react';
 import Link from 'next/link';
-
-const API = 'https://api.zagoffers.online/api';
-const UPLOADS = 'https://api.zagoffers.online';
+import { API_URL, BASE_URL } from '@/lib/constants';
 
 export default function OfferDetailsPage() {
   const { id } = useParams();
@@ -21,7 +19,7 @@ export default function OfferDetailsPage() {
   useEffect(() => {
     const fetchOffer = async () => {
       try {
-        const res = await fetch(`${API}/offers/${id}`);
+        const res = await fetch(`${API_URL}/offers/${id}`);
         if (res.ok) {
           const data = await res.json();
           setOffer(data);
@@ -63,7 +61,7 @@ export default function OfferDetailsPage() {
       setCouponCode('ZAG-' + Array.from({ length: 6 }, () => chars[Math.floor(Math.random() * chars.length)]).join(''));
       if (++i > 15) {
         clearInterval(interval);
-        // Set final code (realistically this should come from API)
+        // Set final code (realistically this should come from API_URL)
         setCouponCode('ZAG-394X2B');
       }
     }, 60);
@@ -73,7 +71,7 @@ export default function OfferDetailsPage() {
   if (!offer) return null;
 
   const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const logoUrl = offer.store?.logo ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${UPLOADS}/${offer.store.logo}`) : null;
+  const logoUrl = offer.store?.logo ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${BASE_URL}/${offer.store.logo}`) : null;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">

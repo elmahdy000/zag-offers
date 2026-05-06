@@ -5,9 +5,8 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, MessageSquare, ExternalLink, Tag, Store } from 'lucide-react';
 import Link from 'next/link';
-
-const API = 'https://api.zagoffers.online/api';
-const UPLOADS = 'https://api.zagoffers.online';
+import { API_URL, BASE_URL } from '@/lib/constants';
+import { OfferCard } from '@/components/offer-card';
 
 export default function StoreDetailsPage() {
   const { id } = useParams();
@@ -19,8 +18,8 @@ export default function StoreDetailsPage() {
     const fetchData = async () => {
       try {
         const [sRes, oRes] = await Promise.all([
-          fetch(`${API}/stores/${id}`),
-          fetch(`${API}/offers/store/${id}`)
+          fetch(`${API_URL}/stores/${id}`),
+          fetch(`${API_URL}/offers/store/${id}`)
         ]);
         if (sRes.ok) setStore(await sRes.json());
         if (oRes.ok) setOffers(await oRes.json());
@@ -33,7 +32,7 @@ export default function StoreDetailsPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل بيانات المتجر...</div>;
   if (!store) return <div className="text-center py-20 font-black">المتجر غير موجود</div>;
 
-  const logoUrl = store.logo ? (store.logo.startsWith('http') ? store.logo : `${UPLOADS}/${store.logo}`) : null;
+  const logoUrl = store.logo ? (store.logo.startsWith('http') ? store.logo : `${BASE_URL}/${store.logo}`) : null;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">

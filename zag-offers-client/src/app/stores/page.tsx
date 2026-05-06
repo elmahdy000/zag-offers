@@ -5,8 +5,7 @@ import { motion } from 'framer-motion';
 import { Store, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
 import Link from 'next/link';
 
-const API = 'https://api.zagoffers.online/api';
-const UPLOADS = 'https://api.zagoffers.online';
+import { API_URL, BASE_URL } from '@/lib/constants';
 
 export default function StoresListPage() {
   const [stores, setStores] = useState<any[]>([]);
@@ -16,7 +15,7 @@ export default function StoresListPage() {
   useEffect(() => {
     const fetchStores = async () => {
       try {
-        const res = await fetch(`${API}/stores?limit=100`);
+        const res = await fetch(`${API_URL}/stores?limit=100`);
         if (res.ok) setStores((await res.json()).items || []);
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
@@ -52,7 +51,7 @@ export default function StoresListPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
           {filteredStores.map((store) => {
-            const logoUrl = store.logo ? (store.logo.startsWith('http') ? store.logo : `${UPLOADS}/${store.logo}`) : null;
+            const logoUrl = store.logo ? (store.logo.startsWith('http') ? store.logo : `${BASE_URL}/${store.logo}`) : null;
             return (
               <Link key={store.id} href={`/stores/${store.id}`}>
                 <motion.div 

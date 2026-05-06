@@ -6,8 +6,7 @@ import { Search, Filter, Flame, Clock, MapPin, Tag, ArrowLeft } from 'lucide-rea
 import Link from 'next/link';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
-
-const API = 'https://api.zagoffers.online/api';
+import { API_URL } from '@/lib/constants';
 
 export default function OffersListingPage() {
   const searchParams = useSearchParams();
@@ -25,8 +24,8 @@ export default function OffersListingPage() {
       setLoading(true);
       try {
         const [offRes, catRes] = await Promise.all([
-          fetch(`${API}/offers?limit=100`),
-          fetch(`${API}/stores/categories`)
+          fetch(`${API_URL}/offers?limit=100`),
+          fetch(`${API_URL}/stores/categories`)
         ]);
         if (offRes.ok) setOffers((await offRes.json()).items || []);
         if (catRes.ok) setCategories(await catRes.json());

@@ -4,8 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Tag, MapPin, Heart, ArrowLeft, Sparkles } from 'lucide-react';
 import Link from 'next/link';
-
-const UPLOADS = 'https://api.zagoffers.online';
+import { API_URL, BASE_URL } from '@/lib/constants';
 
 interface OfferCardProps {
   offer: any;
@@ -19,7 +18,7 @@ const CAT_ICONS: Record<string, string> = {
 export function OfferCard({ offer }: OfferCardProps) {
   const [isFav, setIsFav] = useState(false);
   const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
-  const logoUrl = offer.store?.logo ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${UPLOADS}/${offer.store.logo}`) : null;
+  const logoUrl = offer.store?.logo ? (offer.store.logo.startsWith('http') ? offer.store.logo : `${BASE_URL}/${offer.store.logo}`) : null;
 
   useEffect(() => {
     const favs = JSON.parse(localStorage.getItem('favorites') || '[]');

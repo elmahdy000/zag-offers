@@ -6,8 +6,7 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
-
-const API_URL = 'https://api.zagoffers.online/api';
+import { API_URL } from '@/lib/constants';
 
 export default function RegisterPage() {
   const router = useRouter();

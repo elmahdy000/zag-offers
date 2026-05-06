@@ -5,8 +5,7 @@ import { motion } from 'framer-motion';
 import { Ticket, Clock, CheckCircle2, AlertCircle, ShoppingBag, ArrowRight } from 'lucide-react';
 import Link from 'next/link';
 import axios from 'axios';
-
-const API_URL = 'https://api.zagoffers.online/api';
+import { API_URL } from '@/lib/constants';
 
 export default function MyCouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);

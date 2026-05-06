@@ -5,7 +5,12 @@ import { Navbar, Footer } from "@/components/layout-parts";
 export const metadata: Metadata = {
   title: "Zag Offers | أفضل عروض الزقازيق",
   description: "اكتشف أفضل الخصومات والكوبونات الحصرية في مدينة الزقازيق. وفر أكثر مع زقازيق أوفرز.",
-  viewport: "width=device-width, initial-scale=1, maximum-scale=1",
+};
+
+export const viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
 };
 
 export default function RootLayout({

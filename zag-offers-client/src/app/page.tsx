@@ -5,11 +5,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Search, MapPin, Tag, Sparkles, Flame, Clock, ArrowLeft, Heart } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
+import { API_URL } from '@/lib/constants';
 
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
-
-// --- Constants & Types ---
-const API = 'https://api.zagoffers.online/api';
 
 interface Offer {
   id: string;
@@ -46,8 +44,8 @@ export default function HomePage() {
     setLoading(true);
     try {
       const [offRes, catRes] = await Promise.all([
-        fetch(`${API}/offers?limit=50`),
-        fetch(`${API}/stores/categories`)
+        fetch(`${API_URL}/offers?limit=50`),
+        fetch(`${API_URL}/stores/categories`)
       ]);
       if (offRes.ok) setOffers((await offRes.json()).items || []);
       if (catRes.ok) setCategories(await catRes.json());

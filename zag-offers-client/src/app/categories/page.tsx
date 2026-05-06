@@ -5,7 +5,7 @@ import { motion } from 'framer-motion';
 import { Tag, ArrowLeft } from 'lucide-react';
 import Link from 'next/link';
 
-const API = 'https://api.zagoffers.online/api';
+import { API_URL } from '@/lib/constants';
 
 const CAT_ICONS: Record<string, string> = {
   'مطاعم': '🍔', 'كافيهات': '☕', 'ملابس': '👗', 'جيم': '💪',
@@ -19,7 +19,7 @@ export default function CategoriesPage() {
   useEffect(() => {
     const fetchCats = async () => {
       try {
-        const res = await fetch(`${API}/stores/categories`);
+        const res = await fetch(`${API_URL}/stores/categories`);
         if (res.ok) setCategories(await res.json());
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
