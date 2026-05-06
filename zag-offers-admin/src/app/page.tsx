@@ -39,8 +39,6 @@ const OfferCard = ({ offer, onClick }: { offer: Offer; onClick: () => void }) =>
   const isExpired = daysLeft <= 0;
   const icon = CAT_ICONS[offer.store?.category?.name || ''] || CAT_ICONS.default;
 
-  const icon = CAT_ICONS[offer.store?.category?.name || ''] || CAT_ICONS.default;
-
   return (
     <div className="offer-card-mini" onClick={onClick}>
       <div className="card-image-wrap">
