@@ -11,6 +11,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../upload/domain/repositories/upload_repository.dart';
 import '../../domain/entities/offer_entity.dart';
+import '../../../../core/utils/image_url_helper.dart';
 import '../bloc/offers_bloc.dart';
 
 import 'offer_preview_page.dart';
@@ -55,17 +56,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     }
   }
 
-  String _resolveImageUrl(String url) {
-    final trimmed = url.trim();
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    final base = AppConstants.socketUrl.endsWith('/')
-        ? AppConstants.socketUrl.substring(0, AppConstants.socketUrl.length - 1)
-        : AppConstants.socketUrl;
-    final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
-    return '$base$path';
-  }
+  String _resolveImageUrl(String url) => ImageUrlHelper.resolve(url);
 
   Future<void> _pickImage() async {
     final picker = ImagePicker();

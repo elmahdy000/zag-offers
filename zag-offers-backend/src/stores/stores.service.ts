@@ -5,6 +5,7 @@ import {
 } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
+import { UploadService } from '../upload/upload.service';
 import { Prisma, Store, StoreStatus } from '@prisma/client';
 
 @Injectable()
@@ -12,6 +13,7 @@ export class StoresService {
   constructor(
     private prisma: PrismaService,
     private events: EventsGateway,
+    private uploadService: UploadService,
   ) {}
 
   async create(data: Prisma.StoreCreateInput): Promise<Store> {
@@ -159,6 +161,19 @@ export class StoresService {
   }
 
   async update(id: string, data: Prisma.StoreUpdateInput): Promise<Store> {
+    const store = await this.prisma.store.findUnique({ where: { id } });
+    if (!store) throw new NotFoundException('المحل غير موجود');
+
+    // تنظيف اللوجو القديم
+    if (data.logo && typeof data.logo === 'string' && store.logo && data.logo !== store.logo) {
+      await this.uploadService.deleteImage(store.logo);
+    }
+    
+    // تنظيف صورة الغلاف القديمة
+    if (data.coverImage && typeof data.coverImage === 'string' && store.coverImage && data.coverImage !== store.coverImage) {
+      await this.uploadService.deleteImage(store.coverImage);
+    }
+
     return this.prisma.store.update({
       where: { id },
       data,

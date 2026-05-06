@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/constants/app_constants.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
+import 'package:zag_offers_vendor_app/core/utils/image_url_helper.dart';
 import 'package:zag_offers_vendor_app/core/widgets/network_image.dart';
 import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_vendor_app/features/offers/domain/entities/offer_entity.dart';
@@ -36,18 +37,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
     super.dispose();
   }
 
-  String _resolveImageUrl(String url) {
-    if (url.isEmpty) return '';
-    final trimmed = url.trim();
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://')) {
-      return trimmed;
-    }
-    final base = AppConstants.socketUrl.endsWith('/')
-        ? AppConstants.socketUrl.substring(0, AppConstants.socketUrl.length - 1)
-        : AppConstants.socketUrl;
-    final path = trimmed.startsWith('/') ? trimmed : '/$trimmed';
-    return '$base$path';
-  }
+  String _resolveImageUrl(String url) => ImageUrlHelper.resolve(url);
 
   List<OfferEntity> _filterOffers(List<OfferEntity> offers, String status) {
     var filtered = offers;

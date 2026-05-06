@@ -2,6 +2,7 @@ import { Module } from '@nestjs/common';
 import { StoresService } from './stores.service';
 import { StoresController } from './stores.controller';
 import { EventsModule } from '../events/events.module';
+import { UploadModule } from '../upload/upload.module';
 
 import { CacheModule } from '@nestjs/cache-manager';
 
@@ -12,6 +13,7 @@ import { CacheModule } from '@nestjs/cache-manager';
       max: 200,
     }),
     EventsModule,
+    UploadModule,
   ],
   providers: [StoresService],
   controllers: [StoresController],

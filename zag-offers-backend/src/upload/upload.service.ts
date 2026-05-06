@@ -2,6 +2,7 @@ import { Injectable } from '@nestjs/common';
 import sharp from 'sharp';
 import { join } from 'path';
 import { promises as fs } from 'fs';
+import * as fsSync from 'fs';
 
 @Injectable()
 export class UploadService {
@@ -9,20 +10,34 @@ export class UploadService {
     const uploadDir = './uploads';
 
     // التأكد من وجود المجلد
-    try {
-      await fs.access(uploadDir);
-    } catch {
-      await fs.mkdir(uploadDir);
+    if (!fsSync.existsSync(uploadDir)) {
+      fsSync.mkdirSync(uploadDir, { recursive: true });
     }
 
-    const filename = `${Date.now()}-${Math.round(Math.random() * 1e9)}.webp`;
-    const outputPath = join(uploadDir, filename);
+    const nameWithoutExt = file.originalname.split('.').slice(0, -1).join('.') || 'upload';
+    const filename = `${Date.now()}-${nameWithoutExt}.webp`;
+    const path = join(uploadDir, filename);
 
     await sharp(file.buffer)
-      .resize(800) // عرض 800 بكسل كافٍ جداً للموبايل
-      .webp({ quality: 80 }) // تحويل لـ WebP مع جودة 80% (توازن ممتاز بين الحجم والجودة)
-      .toFile(outputPath);
+      .resize(800, 800, { fit: 'inside', withoutEnlargement: true })
+      .webp({ quality: 80 })
+      .toFile(path);
 
     return filename;
+  }
+
+  async deleteImage(filename: string): Promise<void> {
+    if (!filename) return;
+    
+    // إزالة السوابق إذا وجدت (مثل /uploads/)
+    const pureFilename = filename.split('/').pop();
+    if (!pureFilename) return;
+
+    const path = join('./uploads', pureFilename);
+    try {
+      await fs.unlink(path);
+    } catch (e) {
+      console.error(`Failed to delete image: ${path}`, e);
+    }
   }
 }

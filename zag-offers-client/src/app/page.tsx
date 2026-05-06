@@ -6,6 +6,7 @@ import { Search, Flame, Sparkles, Utensils, Coffee, Shirt, Dumbbell, Hospital, S
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
+import { resolveImageUrl } from '@/lib/utils';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 
 interface Offer {
@@ -226,7 +227,7 @@ function HomePageContent() {
                                   group-hover:border-[#FF6B00]/50 transition-all">
                     {s.logo ? (
                       <img 
-                        src={s.logo.startsWith('http') ? s.logo : `${API_URL.replace('/api', '')}/${s.logo}`} 
+                        src={resolveImageUrl(s.logo)} 
                         alt={s.name} 
                         className="w-full h-full object-cover"
                       />

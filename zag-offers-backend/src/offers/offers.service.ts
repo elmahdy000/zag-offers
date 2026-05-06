@@ -8,6 +8,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Offer, OfferStatus, StoreStatus } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UploadService } from '../upload/upload.service';
 
 @Injectable()
 export class OffersService {
@@ -15,6 +16,7 @@ export class OffersService {
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
+    private uploadService: UploadService,
   ) {}
 
   async getStoreByOwnerId(ownerId: string) {
@@ -226,6 +228,17 @@ export class OffersService {
       updateData.status = OfferStatus.PENDING;
     }
 
+    // تنظيف الصور القديمة لو تم استبدالها
+    if (data.images && Array.isArray(data.images)) {
+      const oldImages = offer.images as string[];
+      const newImages = data.images as string[];
+      
+      const imagesToDelete = oldImages.filter(img => !newImages.includes(img));
+      for (const img of imagesToDelete) {
+        await this.uploadService.deleteImage(img);
+      }
+    }
+
     return this.prisma.offer.update({
       where: { id },
       data: updateData,
@@ -246,6 +259,13 @@ export class OffersService {
       });
       if (user?.role !== 'ADMIN') {
         throw new UnauthorizedException('لا تملك صلاحية حذف هذا العرض');
+      }
+    }
+
+    // حذف الصور من الهارد ديسك
+    if (offer.images && Array.isArray(offer.images)) {
+      for (const img of offer.images) {
+        await this.uploadService.deleteImage(img);
       }
     }
 
