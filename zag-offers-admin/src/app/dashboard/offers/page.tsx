@@ -195,7 +195,7 @@ export default function OffersManagementPage() {
         />
         <button 
           onClick={() => { setIsCreating(true); setTempImages([]); }}
-          className="h-12 px-6 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-orange-600 transition-all shadow-lg shadow-slate-900/10 shrink-0"
+          className="h-12 px-6 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 shrink-0"
         >
           <Plus size={20} /> إضافة عرض جديد
         </button>
@@ -209,7 +209,7 @@ export default function OffersManagementPage() {
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="ابحث عن عرض بالاسم أو المتجر..."
-            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-medium shadow-sm focus:border-orange-500 focus:outline-none transition-all"
+            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-xs font-black shadow-sm focus:border-indigo-500 focus:outline-none transition-all"
           />
         </div>
         <select
@@ -224,22 +224,22 @@ export default function OffersManagementPage() {
 
       {/* Content */}
       {isLoading ? (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-          {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-56 animate-pulse bg-white rounded-2xl border border-slate-100 shadow-sm" />)}
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
+          {Array.from({ length: 10 }).map((_, i) => <div key={i} className="h-40 animate-pulse bg-white rounded-2xl border border-slate-100" />)}
         </div>
       ) : offers.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
-          <Tag size={48} className="mb-4 opacity-20" />
-          <p className="text-lg font-bold">لا توجد عروض حالياً</p>
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
+          <Tag size={48} className="mb-4 opacity-10" />
+          <p className="text-sm font-black">لا توجد عروض حالياً</p>
           <button
             onClick={() => setIsCreating(true)}
-            className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2"
+            className="mt-6 px-8 py-3 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/10"
           >
-            <Plus size={16} /> إضافة عرض جديد
+            <Plus size={16} /> إضافة أول عرض
           </button>
         </div>
       ) : (
-        <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {offers.map((offer, idx) => (
             <OfferCard 
               key={offer.id} 
