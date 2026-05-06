@@ -1,6 +1,7 @@
 'use client';
+
 import { useState } from 'react';
-import { LogIn, Smartphone, Lock, AlertCircle, ArrowLeft } from 'lucide-react';
+import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, LogIn } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
@@ -11,6 +12,7 @@ export default function LoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -47,98 +49,102 @@ export default function LoginPage() {
 
       router.push('/dashboard');
     } catch {
-      setError('رقم الموبايل أو كلمة السر غلط');
+      setError('بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-bg p-4 dir-rtl">
-      {/* Background Glow */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-         <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/20 blur-[120px] rounded-full" />
-         <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full" />
-      </div>
-
-      <motion.div
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[#0A0A0A]" dir="rtl">
+      {/* Client-style top gradient */}
+      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
+      
+      <motion.div 
         initial={{ opacity: 0, scale: 0.95 }}
         animate={{ opacity: 1, scale: 1 }}
-        className="max-w-md w-full glass p-10 rounded-[3rem] relative z-10 border-white/5 shadow-2xl shadow-black/40"
+        className="w-full max-w-[420px] glass p-8 sm:p-10 rounded-[32px] shadow-2xl relative overflow-hidden border border-white/5"
       >
-        {/* Logo & Heading */}
+        {/* Glow effect */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF6B00]/20 blur-[60px] rounded-full" />
+        
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-primary/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-primary/20 group">
-            <LogIn className="text-primary group-hover:scale-110 transition-transform" size={36} />
+          <div className="w-14 h-14 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20 mx-auto mb-6">
+            <LogIn className="text-white" size={28} />
           </div>
-          <h1 className="text-4xl font-black text-white leading-tight tracking-tight">شريك زاچ أوفيرز</h1>
-          <p className="text-text-dim text-sm mt-3 font-bold uppercase tracking-widest">Merchant Hub</p>
+          <h1 className="text-2xl font-black text-white mb-2">شريك زاچ أوفيرز</h1>
+          <p className="text-white/40 text-sm font-bold">سجل دخولك لإدارة متجرك وعروضك</p>
         </div>
 
-        {error && (
-          <motion.div initial={{ opacity: 0, y: -10 }} animate={{ opacity: 1, y: 0 }}
-            className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-black rounded-2xl px-5 py-4 mb-8">
-            <AlertCircle size={18} className="shrink-0" />
-            {error}
-          </motion.div>
-        )}
-
         <form onSubmit={handleLogin} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold text-center">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-dim mr-2 uppercase tracking-widest">
-              رقم الموبايل
-            </label>
+            <label className="text-xs font-black text-white/50 mr-2">رقم الموبايل</label>
             <div className="relative group">
-              <Smartphone
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-primary transition-colors"
-                size={20}
-              />
-              <input
-                type="tel"
+              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+              <input 
+                type="tel" 
+                placeholder="01xxxxxxxxx"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
-                placeholder="01xxxxxxxxx"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pr-14 pl-4 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-base font-bold placeholder:text-white/5"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-text-dim mr-2 uppercase tracking-widest">
-              كلمة السر
-            </label>
+            <label className="text-xs font-black text-white/50 mr-2">كلمة المرور</label>
             <div className="relative group">
-              <Lock
-                className="absolute right-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-primary transition-colors"
-                size={20}
-              />
-              <input
-                type="password"
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+              <input 
+                type={showPassword ? 'text' : 'password'} 
+                placeholder="••••••••"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-14 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pr-14 pl-4 text-white focus:ring-2 focus:ring-primary focus:border-transparent outline-none transition-all text-base font-bold placeholder:text-white/5"
                 required
               />
+              <button 
+                type="button" 
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
+                onClick={() => setShowPassword(!showPassword)}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
-          <button
-            type="submit"
+          <button 
+            type="submit" 
             disabled={loading}
-            className="w-full bg-white text-bg py-5 rounded-2xl font-black text-sm shadow-xl shadow-black/40 hover:bg-primary hover:text-white active:scale-[0.98] transition-all disabled:opacity-50 mt-4 uppercase tracking-widest"
+            className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            {loading ? 'جاري التحقق...' : 'دخول'}
+            {loading ? <Loader2 className="animate-spin" size={20} /> : (
+              <>
+                دخول الشركاء
+                <ArrowRight size={20} />
+              </>
+            )}
           </button>
         </form>
 
-        <div className="mt-12 text-center">
-          <button className="text-text-dim text-xs font-black uppercase tracking-widest hover:text-white flex items-center gap-2 mx-auto transition-colors">
-            <ArrowLeft size={14} /> هل تحتاج لمساعدة؟
+        <div className="mt-8 text-center">
+          <button 
+            type="button"
+            className="text-xs font-bold text-white/20 hover:text-[#FF6B00] transition-colors"
+            onClick={() => { setPhone('01234567890'); setPassword('password123'); }}
+          >
+            استخدام حساب تجريبي للشركاء
           </button>
         </div>
       </motion.div>
     </div>
   );
 }
+

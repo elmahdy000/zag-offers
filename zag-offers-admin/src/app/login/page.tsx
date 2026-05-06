@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { LogIn, Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
+import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -59,7 +59,7 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#0A0A0A] p-4" dir="rtl">
+    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[#0A0A0A]" dir="rtl">
       <style jsx global>{`
         @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
         body { font-family: 'Cairo', sans-serif; }
@@ -71,71 +71,66 @@ export default function AdminLoginPage() {
         }
       `}</style>
 
-      {/* Background Glows */}
-      <div className="fixed inset-0 overflow-hidden pointer-events-none">
-         <div className="absolute top-[-10%] left-[-10%] w-[50%] h-[50%] bg-[#FF6B00]/10 blur-[120px] rounded-full" />
-         <div className="absolute bottom-[-10%] right-[-10%] w-[50%] h-[50%] bg-[#FF6B00]/5 blur-[120px] rounded-full" />
-      </div>
-
+      {/* Client-style top gradient */}
+      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
+      
       <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="max-w-md w-full glass p-10 rounded-[2.5rem] relative z-10 shadow-2xl shadow-black/60"
+        initial={{ opacity: 0, scale: 0.95 }}
+        animate={{ opacity: 1, scale: 1 }}
+        className="w-full max-w-[420px] glass p-8 sm:p-10 rounded-[32px] shadow-2xl relative overflow-hidden border border-white/5"
       >
+        {/* Glow effect */}
+        <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF6B00]/20 blur-[60px] rounded-full" />
+        
         {/* Logo & Heading */}
         <div className="text-center mb-10">
-          <div className="w-20 h-20 bg-[#FF6B00]/10 rounded-3xl flex items-center justify-center mx-auto mb-6 border border-[#FF6B00]/20">
-            <ShieldCheck className="text-[#FF6B00]" size={40} />
+          <div className="w-14 h-14 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20 mx-auto mb-6">
+            <ShieldCheck className="text-white" size={28} />
           </div>
-          <h1 className="text-3xl font-black text-white leading-tight">لوحة الإدارة المركزية</h1>
-          <p className="text-white/40 text-sm mt-2 font-bold uppercase tracking-widest">Zag Offers Admin</p>
+          <h1 className="text-2xl font-black text-white mb-2">لوحة الإدارة المركزية</h1>
+          <p className="text-white/40 text-sm font-bold uppercase tracking-widest">Zag Offers Admin</p>
         </div>
 
-        {error && (
-          <motion.div 
-            initial={{ opacity: 0, x: -10 }} 
-            animate={{ opacity: 1, x: 0 }}
-            className="flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-500 text-xs font-bold rounded-2xl px-5 py-4 mb-8"
-          >
-            <AlertCircle size={18} className="shrink-0" />
-            {error}
-          </motion.div>
-        )}
-
         <form onSubmit={handleLogin} className="space-y-6">
+          {error && (
+            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold text-center">
+              {error}
+            </div>
+          )}
+
           <div className="space-y-2">
-            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-widest">رقم الموبايل</label>
+            <label className="text-xs font-black text-white/50 mr-2">رقم الموبايل</label>
             <div className="relative group">
-              <Smartphone className="absolute right-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[#FF6B00] transition-colors" size={20} />
+              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
               <input
                 type="tel"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 placeholder="01xxxxxxxxx"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pr-14 pl-4 text-white focus:border-[#FF6B00] outline-none transition-all text-base font-bold placeholder:text-white/5"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-widest">كلمة المرور</label>
+            <label className="text-xs font-black text-white/50 mr-2">كلمة المرور</label>
             <div className="relative group">
-              <Lock className="absolute right-5 top-1/2 -translate-y-1/2 text-white/10 group-focus-within:text-[#FF6B00] transition-colors" size={20} />
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
               <input
                 type={showPassword ? 'text' : 'password'}
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl py-5 pr-14 pl-14 text-white focus:border-[#FF6B00] outline-none transition-all text-base font-bold placeholder:text-white/5"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-14 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
                 required
               />
               <button 
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-5 top-1/2 -translate-y-1/2 text-white/10 hover:text-white transition-colors"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
               >
-                {showPassword ? <EyeOff size={20} /> : <Eye size={20} />}
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
           </div>
@@ -143,28 +138,29 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full bg-[#FF6B00] text-white py-5 rounded-2xl font-black text-base shadow-xl shadow-orange-950/20 hover:scale-[1.02] active:scale-[0.98] transition-all disabled:opacity-50 mt-4 flex items-center justify-center gap-3"
+            className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
           >
-            {loading ? <Loader2 className="animate-spin" size={24} /> : (
+            {loading ? <Loader2 className="animate-spin" size={20} /> : (
               <>
-                <span>تسجيل الدخول للنظام</span>
+                <span>دخول النظام</span>
                 <ArrowRight size={20} />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-12 text-center pt-8 border-t border-white/5">
+        <div className="mt-8 text-center pt-6 border-t border-white/5">
           <button 
             type="button"
             onClick={() => { setPhone('01000000000'); setPassword('password123'); }}
-            className="text-white/20 text-xs font-black uppercase tracking-widest hover:text-[#FF6B00] transition-colors"
+            className="text-white/20 text-[10px] font-black uppercase tracking-widest hover:text-[#FF6B00] transition-colors"
           >
-            استخدام الحساب التجريبي للأدمن
+            استخدام حساب الأدمن التجريبي
           </button>
         </div>
       </motion.div>
     </div>
   );
 }
+
 
