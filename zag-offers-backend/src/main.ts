@@ -16,27 +16,9 @@ async function bootstrap() {
     : ['http://localhost:3000', 'http://localhost:3002'];
 
   app.enableCors({
-    origin: (
-      origin: string | undefined,
-      callback: (err: Error | null, allow?: boolean | string) => void,
-    ) => {
-      if (!origin) {
-        callback(null, true);
-        return;
-      }
-
-      if (
-        allowedOrigins.includes(origin) ||
-        /^https?:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(origin)
-      ) {
-        callback(null, origin);
-        return;
-      }
-
-      callback(new Error(`CORS origin not allowed: ${origin}`));
-    },
+    origin: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true,
   });
 
