@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Get,
   Post,
@@ -136,10 +136,19 @@ export class OffersController {
   @ApiOperation({ summary: 'Update an offer' })
   update(
     @Param('id') id: string,
-    @Body() data: Prisma.OfferUpdateInput,
+    @Body() data: any, // Using any here to handle incoming ISO strings before mapping
     @Request() req: { user: { id: string } },
   ) {
-    return this.offersService.update(id, data, req.user.id);
+    const updateData: any = { ...data };
+    
+    if (data.startDate) {
+      updateData.startDate = new Date(data.startDate);
+    }
+    if (data.endDate) {
+      updateData.endDate = new Date(data.endDate);
+    }
+
+    return this.offersService.update(id, updateData, req.user.id);
   }
 
   @Delete(':id')
