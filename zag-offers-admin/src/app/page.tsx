@@ -74,16 +74,37 @@ export default function LandingPage() {
     setIsLoading(true);
     setIsError(false);
     try {
+      let url = `${API}/offers`;
       const params = new URLSearchParams({ limit: '200' });
-      if (activeCatId) params.set('categoryId', activeCatId);
-      if (activeArea) params.set('area', activeArea);
-      if (searchQ) params.set('search', searchQ);
 
-      const res = await fetch(`${API}/offers?${params}`);
+      if (searchQ.trim()) {
+        url = `${API}/offers/search`;
+        params.set('q', searchQ.trim());
+      } else {
+        if (activeCatId) params.set('categoryId', activeCatId);
+        if (activeArea) params.set('area', activeArea);
+      }
+
+      const res = await fetch(`${url}?${params}`);
       if (!res.ok) throw new Error(`HTTP ${res.status}`);
       const data = await res.json();
+      
+      // The search endpoint might return a different structure or just an array
       const items = Array.isArray(data) ? data : (data.items || []);
-      setAllOffers(items);
+      
+      // If we have both search AND filters, we might need to filter manually on client 
+      // since the search endpoint doesn't support categoryId/area
+      let finalItems = items;
+      if (searchQ.trim()) {
+        if (activeCatId) {
+          finalItems = finalItems.filter((o: any) => o.store?.categoryId === activeCatId);
+        }
+        if (activeArea) {
+          finalItems = finalItems.filter((o: any) => o.store?.area === activeArea);
+        }
+      }
+
+      setAllOffers(finalItems);
       setPage(1);
     } catch (err) {
       setIsError(true);
