@@ -98,12 +98,17 @@ export default function NewOfferPage() {
 
       router.push('/dashboard/offers');
     } catch (error: any) {
-      console.error('Submit Error:', error);
+      console.error('Full Submit Error:', error);
       const msg = error.response?.data?.message;
-      setSubmitError(
-        Array.isArray(msg) ? msg.join(' | ') : 
-        msg || 'حدث خطأ في الخادم. تأكد من أن جميع الحقول صحيحة.'
-      );
+      const status = error.response?.status;
+      
+      if (status === 401) {
+        setSubmitError('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى');
+      } else if (msg) {
+        setSubmitError(Array.isArray(msg) ? msg.join(' | ') : msg);
+      } else {
+        setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
+      }
     } finally {
       setSubmitting(false);
     }

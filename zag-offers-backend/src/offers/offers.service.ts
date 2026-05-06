@@ -48,10 +48,13 @@ export class OffersService {
       }
     }
 
-    // التحقق من تاريخ انتهاء العرض
+    // التحقق من تاريخ انتهاء العرض (نسمح باليوم الحالي)
+    const now = new Date();
+    now.setHours(0, 0, 0, 0);
+
     const endDate =
       data.endDate instanceof Date ? data.endDate : new Date(data.endDate);
-    if (endDate < new Date()) {
+    if (endDate < now) {
       throw new BadRequestException(
         'تاريخ انتهاء العرض لا يمكن أن يكون في الماضي',
       );
