@@ -259,12 +259,12 @@ function HomePageContent() {
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.12 }}
             className="flex items-center gap-2 max-w-xl mx-auto
-                       bg-[#252525] border border-white/[0.07] rounded-2xl
+                       bg-[#1E1E1E] border border-white/[0.07] rounded-2xl
                        p-2 shadow-[0_8px_32px_rgba(0,0,0,0.45)]
-                       focus-within:border-[#FF6B00] focus-within:shadow-[0_0_24px_rgba(255,107,0,0.2)]
+                       focus-within:border-[#FF6B00] focus-within:shadow-[0_0_0_3px_rgba(255,107,0,0.15)]
                        transition-all duration-200"
           >
-            <Search className="text-[#9A9A9A] mx-2 flex-shrink-0" size={18} />
+            <Search className="text-[#FF6B00] mx-2 flex-shrink-0" size={18} />
             <input
               type="text"
               placeholder="ابحث عن عرض، محل، أو قسم..."
@@ -280,7 +280,7 @@ function HomePageContent() {
                          hover:shadow-[0_6px_20px_rgba(255,107,0,0.45)]
                          hover:scale-[1.02] active:scale-95 transition-all"
             >
-              🔍 بحث
+              بحث
             </button>
           </motion.div>
 

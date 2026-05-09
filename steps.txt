@@ -1,0 +1,4 @@
+
+cd /var/www/zag-offers
+git pull origin main
+./deploy.sh
