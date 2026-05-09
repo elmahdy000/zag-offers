@@ -19,7 +19,7 @@ export default function DashboardLayout({
     if (!storeId) {
       vendorApi().get('/stores/my-dashboard')
         .then((res: any) => {
-          if (res.data?.storeId) {
+          if (res.data?.storeId && typeof window !== 'undefined') {
             localStorage.setItem('vendor_store_id', res.data.storeId);
           }
         })
