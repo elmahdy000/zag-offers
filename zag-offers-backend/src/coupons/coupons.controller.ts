@@ -5,6 +5,7 @@ import {
   Body,
   UseGuards,
   Request,
+  Param,
 } from '@nestjs/common';
 import { CouponsService } from './coupons.service';
 import { GenerateCouponDto } from './dto/generate-coupon.dto';
@@ -87,5 +88,14 @@ export class CouponsController {
   @ApiOperation({ summary: 'عرض سجل الكوبونات الخاص بمحلي (للتاجر)' })
   findMerchantCoupons(@Request() req: { user: { id: string } }) {
     return this.couponsService.findMerchantCoupons(req.user.id);
+  }
+
+  @Get('by-code/:code')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT, Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'عرض بيانات كوبون بالكود (للتاجر)' })
+  findByCode(@Param('code') code: string) {
+    return this.couponsService.findByCode(code);
   }
 }

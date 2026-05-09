@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Heart, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
 import Link from 'next/link';
-import { BASE_URL } from '@/lib/constants';
+import { BASE_URL, API_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 
 interface OfferCardProps {
@@ -37,6 +37,7 @@ const CAT_GRADIENTS: Record<string, string> = {
 
 export function OfferCard({ offer }: OfferCardProps) {
   const [isFav, setIsFav] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   const daysLeft = Math.ceil(
     (new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
@@ -57,23 +58,61 @@ export function OfferCard({ offer }: OfferCardProps) {
     : `📅 ${daysLeft} يوم`;
 
   useEffect(() => {
-    try {
-      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setIsFav(favs.some((f: any) => f.id === offer.id));
-    } catch {}
-  }, [offer.id]);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
 
-  const toggleFav = (e: React.MouseEvent) => {
+    // Check favorite status
+    const checkFavoriteStatus = async () => {
+      if (token) {
+        try {
+          const res = await fetch(`${API_URL}/favorites`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const data = await res.json();
+            setIsFav(data.some((fav: any) => fav.offerId === offer.id));
+          }
+        } catch { /* silent */ }
+      } else {
+        // Fallback to localStorage if not logged in
+        try {
+          const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+          setIsFav(favs.some((f: any) => f.id === offer.id));
+        } catch { /* silent */ }
+      }
+    };
+    checkFavoriteStatus();
+  }, [offer.id, isLoggedIn]);
+
+  const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
-    try {
-      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      const updated = isFav
-        ? favs.filter((f: any) => f.id !== offer.id)
-        : [...favs, offer];
-      localStorage.setItem('favorites', JSON.stringify(updated));
-      setIsFav(!isFav);
-    } catch {}
+
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // Use API if logged in
+      try {
+        const res = await fetch(`${API_URL}/favorites/toggle/${offer.id}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsFav(data.favorited);
+        }
+      } catch { /* silent */ }
+    } else {
+      // Fallback to localStorage if not logged in
+      try {
+        const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+        const updated = isFav
+          ? favs.filter((f: any) => f.id !== offer.id)
+          : [...favs, offer];
+        localStorage.setItem('favorites', JSON.stringify(updated));
+        setIsFav(!isFav);
+      } catch { /* silent */ }
+    }
   };
 
   const offerImage = offer.images && offer.images.length > 0

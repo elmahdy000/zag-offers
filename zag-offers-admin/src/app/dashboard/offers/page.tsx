@@ -124,7 +124,7 @@ export default function OffersManagementPage() {
   });
 
   const createOfferMutation = useMutation({
-    mutationFn: async (payload: any) => adminApi().post('/offers', payload),
+    mutationFn: async (payload: any) => adminApi().post('/admin/offers', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-offers'] });
       setIsCreating(false);
@@ -286,17 +286,39 @@ export default function OffersManagementPage() {
                   </div>
 
                   {isEditing ? (
-                    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); updateOfferMutation.mutate({ id: offerDetails!.id, data: Object.fromEntries(fd.entries()) }); }} className="grid gap-6 sm:grid-cols-2">
-                      <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">العنوان</label>
-                        <input name="title" defaultValue={offerDetails?.title} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); updateOfferMutation.mutate({ id: offerDetails!.id, data: Object.fromEntries(fd.entries()) }); }} className="space-y-4">
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">العنوان</label>
+                          <input name="title" defaultValue={offerDetails?.title} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الخصم</label>
+                          <input name="discount" defaultValue={offerDetails?.discount} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                        </div>
                       </div>
                       <div className="space-y-2">
-                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الخصم</label>
-                        <input name="discount" defaultValue={offerDetails?.discount} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الوصف</label>
+                        <textarea name="description" defaultValue={offerDetails?.description || ''} rows={3} className="w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 py-3 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm resize-none" />
                       </div>
-                      <div className="sm:col-span-2 flex gap-4 mt-4">
-                        <button type="submit" disabled={updateOfferMutation.isPending} className="flex-1 h-12 rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-orange-600 transition-all shadow-lg">{updateOfferMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'حفظ'}</button>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ البداية</label>
+                          <input type="date" name="startDate" defaultValue={offerDetails?.startDate ? offerDetails.startDate.slice(0, 10) : ''} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانتهاء</label>
+                          <input type="date" name="endDate" defaultValue={offerDetails?.endDate ? offerDetails.endDate.slice(0, 10) : ''} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                        </div>
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</label>
+                        <select name="status" defaultValue={offerDetails?.status} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm">
+                          {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                        </select>
+                      </div>
+                      <div className="flex gap-4 pt-2">
+                        <button type="submit" disabled={updateOfferMutation.isPending} className="flex-1 h-12 rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-orange-600 transition-all shadow-lg">{updateOfferMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'حفظ التعديلات'}</button>
                         <button type="button" onClick={() => setIsEditing(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
                       </div>
                     </form>

@@ -82,6 +82,8 @@ export default function UserDetailPage() {
     enabled: !!id,
   });
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+
   const deleteMutation = useMutation({
     mutationFn: () => adminApi().delete(`/admin/users/${id}`),
     onSuccess: () => {
@@ -268,7 +270,7 @@ export default function UserDetailPage() {
               <div className="bg-white border border-slate-200 rounded-[2.5rem] p-8 space-y-4 shadow-sm">
                  <h3 className="text-[10px] font-black text-rose-500 uppercase tracking-[0.2em] px-1 mb-4">إجراءات خطيرة</h3>
                  <button 
-                   onClick={() => { if(confirm('هل أنت متأكد من حذف هذا المستخدم نهائياً؟')) deleteMutation.mutate(); }}
+                   onClick={() => setDeleteModalOpen(true)}
                    disabled={deleteMutation.isPending}
                    className="w-full h-14 rounded-2xl bg-rose-50 text-rose-600 font-bold text-sm flex items-center justify-center gap-3 hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
                  >
@@ -289,6 +291,32 @@ export default function UserDetailPage() {
            </div>
         </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-[2rem] bg-white p-10 shadow-2xl text-center border border-slate-100">
+              <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
+                <Trash2 size={36} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900 tracking-tight">تأكيد الحذف النهائي</h3>
+              <p className="mt-4 text-sm font-medium text-slate-500 leading-relaxed px-2">أنت على وشك حذف حساب "{user.name}" بشكل نهائي. لا يمكن التراجع عن هذا الإجراء.</p>
+              <div className="mt-8 flex gap-3">
+                <button
+                  onClick={() => { setDeleteModalOpen(false); deleteMutation.mutate(); }}
+                  disabled={deleteMutation.isPending}
+                  className="flex-[2] h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {deleteMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Trash2 size={18} />}
+                  نعم، احذف نهائياً
+                </button>
+                <button onClick={() => setDeleteModalOpen(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

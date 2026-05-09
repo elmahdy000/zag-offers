@@ -10,6 +10,7 @@ import {
   Shield,
   Settings as SettingsIcon,
   CheckCircle2,
+  AlertCircle,
   Database,
   Server,
   Activity,
@@ -40,6 +41,17 @@ export default function SettingsPage() {
       const response = await adminApi().get<ProfileData>('/auth/me');
       return response.data;
     },
+  });
+
+  const { data: healthData, isLoading: healthLoading, isError: healthError, dataUpdatedAt } = useQuery({
+    queryKey: ['health'],
+    queryFn: async () => {
+      const response = await adminApi().get('/health');
+      return response.data as { status?: string; db?: string; version?: string };
+    },
+    retry: 1,
+    refetchInterval: 30_000, // refresh every 30 seconds
+    staleTime: 20_000,
   });
 
   const updateProfileMutation = useMutation({

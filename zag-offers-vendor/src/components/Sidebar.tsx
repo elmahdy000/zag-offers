@@ -6,6 +6,7 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCookie, deleteCookie } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSocket } from '@/hooks/useSocket';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
@@ -138,6 +139,23 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const getToken = () => getCookie('auth_token');
 
+  // Get userId from localStorage
+  const getUserId = () => {
+    const userStr = localStorage.getItem('vendor_user');
+    if (userStr) {
+      try {
+        const user = JSON.parse(userStr);
+        return user.id;
+      } catch { return null; }
+    }
+    return null;
+  };
+
+  const userId = getUserId();
+
+  // Use WebSocket for real-time notifications
+  const socket = useSocket(userId);
+
   const fetchNotifications = async () => {
     try {
       const token = getToken();
@@ -152,11 +170,23 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     } catch { /* silent */ }
   };
 
+  // Fetch notifications on mount
   useEffect(() => {
     fetchNotifications();
-    const interval = setInterval(fetchNotifications, 30_000);
-    return () => clearInterval(interval);
   }, []);
+
+  // Listen for real-time notifications via WebSocket
+  useEffect(() => {
+    if (!socket.current) return;
+
+    socket.current.on('merchant_notification', (data: Notification) => {
+      setNotifications((prev) => [data, ...prev].slice(0, 50));
+    });
+
+    return () => {
+      socket.current?.off('merchant_notification');
+    };
+  }, [socket]);
 
   const markAllRead = async () => {
     try {

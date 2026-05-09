@@ -103,7 +103,8 @@ export default function ApprovalsPage() {
   const [rejectReason, setRejectReason] = useState('');
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
-  const [loadingId, setLoadingId] = useState<string | null>(null);
+  const [storeLoadingId, setStoreLoadingId] = useState<string | null>(null);
+  const [offerLoadingId, setOfferLoadingId] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -131,7 +132,7 @@ export default function ApprovalsPage() {
   const { data: approvedStores = [] } = useQuery({
     queryKey: ['approved-stores'],
     queryFn: async () => {
-      const response = await adminApi().get<{ items: PendingStore[] }>('/admin/stores?status=APPROVED&limit=10');
+      const response = await adminApi().get<{ items: PendingStore[] }>('/admin/stores?status=APPROVED&limit=50');
       return response.data.items;
     },
     enabled: activeTab === 'history',
@@ -140,7 +141,7 @@ export default function ApprovalsPage() {
   const { data: approvedOffers = [] } = useQuery({
     queryKey: ['approved-offers'],
     queryFn: async () => {
-      const response = await adminApi().get<{ items: PendingOffer[] }>('/admin/offers?status=APPROVED&limit=10');
+      const response = await adminApi().get<{ items: PendingOffer[] }>('/admin/offers?status=APPROVED&limit=50');
       return response.data.items;
     },
     enabled: activeTab === 'history',
@@ -198,7 +199,7 @@ export default function ApprovalsPage() {
       setRejectReason('');
       setSelectedStoreId(null);
     },
-    onSettled: () => setLoadingId(null),
+    onSettled: () => setStoreLoadingId(null),
   });
 
   const offerMutation = useMutation({
@@ -212,7 +213,7 @@ export default function ApprovalsPage() {
       setRejectReason('');
       setSelectedOfferId(null);
     },
-    onSettled: () => setLoadingId(null),
+    onSettled: () => setOfferLoadingId(null),
   });
 
   return (
@@ -285,8 +286,8 @@ export default function ApprovalsPage() {
                     <td className="px-6 py-5 text-[11px] font-bold text-slate-400">{formatDate(item.createdAt)}</td>
                     <td className="px-6 py-5">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => { setLoadingId(item.id); storeMutation.mutate({ id: item.id, action: 'approve' }); }} className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="اعتماد المتجر">
-                          {loadingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />}
+                        <button onClick={() => { setStoreLoadingId(item.id); storeMutation.mutate({ id: item.id, action: 'approve' }); }} className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="اعتماد المتجر">
+                          {storeLoadingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />}
                         </button>
                         <button onClick={() => setRejectModal({ id: item.id, type: 'store', label: item.name })} className="h-9 w-9 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="رفض الطلب">
                           <X size={18} />
@@ -321,8 +322,8 @@ export default function ApprovalsPage() {
                     <td className="px-6 py-5 text-[11px] font-bold text-slate-400">{formatDate(item.createdAt)}</td>
                     <td className="px-6 py-5">
                       <div className="flex items-center justify-center gap-2">
-                        <button onClick={() => { setLoadingId(item.id); offerMutation.mutate({ id: item.id, action: 'approve' }); }} className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="اعتماد العرض">
-                          {loadingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />}
+                        <button onClick={() => { setOfferLoadingId(item.id); offerMutation.mutate({ id: item.id, action: 'approve' }); }} className="h-9 w-9 rounded-xl bg-emerald-50 text-emerald-600 hover:bg-emerald-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="اعتماد العرض">
+                          {offerLoadingId === item.id ? <Loader2 size={16} className="animate-spin" /> : <Check size={18} />}
                         </button>
                         <button onClick={() => setRejectModal({ id: item.id, type: 'offer', label: item.title })} className="h-9 w-9 rounded-xl bg-rose-50 text-rose-600 hover:bg-rose-600 hover:text-white transition-all flex items-center justify-center shadow-sm" title="رفض الطلب">
                           <X size={18} />

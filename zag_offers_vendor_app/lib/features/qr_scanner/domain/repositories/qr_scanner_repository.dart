@@ -1,3 +1,3 @@
 abstract class QRScannerRepository {
-  Future<void> redeemCoupon(String code);
+  Future<void> redeemCoupon(String code, String? storeId);
 }

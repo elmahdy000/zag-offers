@@ -47,6 +47,7 @@ export interface WsMerchantNotification {
     | 'STORE_SUSPENDED'
     | 'OFFER_APPROVED'
     | 'OFFER_REJECTED'
+    | 'OFFER_UPDATED'
     | 'NEW_REVIEW'
     | 'COUPON_REDEEMED'
     | 'COUPON_GENERATED';

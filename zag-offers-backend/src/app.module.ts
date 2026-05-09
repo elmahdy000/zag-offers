@@ -25,6 +25,7 @@ import { EventsModule } from './events/events.module';
 import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { AnalyticsModule } from './analytics/analytics.module';
 
 @Module({
   imports: [
@@ -66,6 +67,7 @@ import { CacheModule } from '@nestjs/cache-manager';
     EventsModule,
     NotificationsModule,
     AuditLogModule,
+    AnalyticsModule,
   ],
   controllers: [AppController, HealthController, RecommendationsController],
   providers: [

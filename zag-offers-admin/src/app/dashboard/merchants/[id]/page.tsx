@@ -101,11 +101,31 @@ export default function MerchantDetailPage() {
     },
   });
 
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
+  const [rejectModal, setRejectModal] = useState(false);
+  const [rejectReason, setRejectReason] = useState('');
+
   const deleteMutation = useMutation({
     mutationFn: () => adminApi().delete(`/admin/stores/${id}`),
     onSuccess: () => {
       router.push('/dashboard/merchants');
       showToast('تم حذف المتجر نهائياً');
+    },
+    onError: (err: any) => {
+      showToast(err.response?.data?.message || 'فشل حذف المتجر', 'error');
+    },
+  });
+
+  const rejectMutation = useMutation({
+    mutationFn: (reason: string) => adminApi().patch(`/admin/stores/${id}/reject`, { reason }),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['store', id] });
+      showToast('تم رفض المتجر');
+      setRejectModal(false);
+      setRejectReason('');
+    },
+    onError: (err: any) => {
+      showToast(err.response?.data?.message || 'فشل رفض المتجر', 'error');
     },
   });
 
@@ -221,7 +241,7 @@ export default function MerchantDetailPage() {
                              </div>
                           </div>
                        </div>
-                       <Link href="/dashboard/offers" className="h-9 w-9 rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white flex items-center justify-center transition-all">
+                       <Link href={`/dashboard/offers/${offer.id}`} className="h-9 w-9 rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white flex items-center justify-center transition-all">
                           <ExternalLink size={14} />
                        </Link>
                     </div>
@@ -293,8 +313,46 @@ export default function MerchantDetailPage() {
                    تفعيل المتجر الآن
                  </button>
                )}
-               <button 
-                 onClick={() => { if(confirm('حذف المتجر نهائياً؟')) deleteMutation.mutate(); }}
+               {store.status === 'APPROVED' ? (
+                 <button
+                   onClick={() => changeStatusMutation.mutate('suspend')}
+                   disabled={changeStatusMutation.isPending}
+                   className="w-full h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
+                 >
+                   {changeStatusMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <ShieldOff size={18} />}
+                   إيقاف نشاط المتجر
+                 </button>
+               ) : store.status === 'PENDING' ? (
+                 <>
+                   <button
+                     onClick={() => changeStatusMutation.mutate('approve')}
+                     disabled={changeStatusMutation.isPending}
+                     className="w-full h-12 rounded-xl bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10"
+                   >
+                     {changeStatusMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
+                     تفعيل المتجر الآن
+                   </button>
+                   <button
+                     onClick={() => setRejectModal(true)}
+                     disabled={rejectMutation.isPending}
+                     className="w-full h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
+                   >
+                     {rejectMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <ShieldOff size={18} />}
+                     رفض طلب التفعيل
+                   </button>
+                 </>
+               ) : (
+                 <button
+                   onClick={() => changeStatusMutation.mutate('approve')}
+                   disabled={changeStatusMutation.isPending}
+                   className="w-full h-12 rounded-xl bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10"
+                 >
+                   {changeStatusMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
+                   تفعيل المتجر الآن
+                 </button>
+               )}
+               <button
+                 onClick={() => setDeleteModalOpen(true)}
                  disabled={deleteMutation.isPending}
                  className="w-full h-12 rounded-xl bg-slate-900 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-600 transition-all"
                >
@@ -304,6 +362,50 @@ export default function MerchantDetailPage() {
 
          </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><Trash2 size={32} /></div>
+              <h3 className="text-xl font-bold text-slate-900">حذف المتجر نهائياً؟</h3>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">سيتم حذف المتجر "{store.name}" وجميع بياناته بشكل دائم.</p>
+              <div className="mt-8 flex gap-4">
+                <button onClick={() => { setDeleteModalOpen(false); deleteMutation.mutate(); }} disabled={deleteMutation.isPending} className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg">
+                  {deleteMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'نعم، احذف'}
+                </button>
+                <button onClick={() => setDeleteModalOpen(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Reject Modal */}
+      <AnimatePresence>
+        {rejectModal && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><ShieldOff size={32} /></div>
+              <h3 className="text-xl font-bold text-slate-900">رفض طلب التفعيل</h3>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">يرجى كتابة سبب الرفض لإعلام صاحب المتجر.</p>
+              <textarea
+                value={rejectReason}
+                onChange={(e) => setRejectReason(e.target.value)}
+                placeholder="مثلاً: الصور غير واضحة، أو البيانات ناقصة..."
+                className="mt-4 w-full rounded-xl border border-slate-200 bg-slate-50 p-4 text-sm font-medium focus:border-rose-500 focus:bg-white focus:outline-none transition-all min-h-[100px] shadow-inner"
+              />
+              <div className="mt-6 flex gap-4">
+                <button onClick={() => rejectMutation.mutate(rejectReason)} disabled={!rejectReason.trim() || rejectMutation.isPending} className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all disabled:opacity-50">
+                  {rejectMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'إرسال الرفض'}
+                </button>
+                <button onClick={() => setRejectModal(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

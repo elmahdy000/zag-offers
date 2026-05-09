@@ -7,7 +7,7 @@ class QRScannerRepositoryImpl implements QRScannerRepository {
   QRScannerRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<void> redeemCoupon(String code) async {
-    return await remoteDataSource.redeemCoupon(code);
+  Future<void> redeemCoupon(String code, String? storeId) async {
+    return await remoteDataSource.redeemCoupon(code, storeId);
   }
 }

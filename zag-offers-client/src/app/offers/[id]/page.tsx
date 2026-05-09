@@ -65,8 +65,24 @@ export default function OfferDetailsPage() {
         if (res.ok) {
           const data = await res.json();
           setOffer(data);
-          const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-          setIsFav(favs.some((f: any) => f.id === data.id));
+          
+          // Check favorite status from API if logged in
+          const token = localStorage.getItem('token');
+          if (token) {
+            try {
+              const favRes = await fetch(`${API_URL}/favorites`, {
+                headers: { Authorization: `Bearer ${token}` }
+              });
+              if (favRes.ok) {
+                const favData = await favRes.json();
+                setIsFav(favData.some((fav: any) => fav.offerId === data.id));
+              }
+            } catch { /* silent */ }
+          } else {
+            // Fallback to localStorage if not logged in
+            const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+            setIsFav(favs.some((f: any) => f.id === data.id));
+          }
         } else router.replace('/');
       } catch (e) { console.error(e); }
       finally { setLoading(false); }
@@ -74,12 +90,32 @@ export default function OfferDetailsPage() {
     fetchOffer();
   }, [id, router]);
 
-  const toggleFav = () => {
-    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const updated = isFav ? favs.filter((f: any) => f.id !== offer.id) : [...favs, offer];
-    localStorage.setItem('favorites', JSON.stringify(updated));
-    setIsFav(!isFav);
-    showToast(isFav ? 'تم إزالة العرض من المفضلة' : 'تم إضافة العرض للمفضلة ❤️', isFav ? 'info' : 'success');
+  const toggleFav = async () => {
+    const token = localStorage.getItem('token');
+    
+    if (token) {
+      // Use API if logged in
+      try {
+        const res = await fetch(`${API_URL}/favorites/toggle/${id}`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsFav(data.favorited);
+          showToast(data.favorited ? 'تم إضافة العرض للمفضلة ❤️' : 'تم إزالة العرض من المفضلة', data.favorited ? 'success' : 'info');
+        }
+      } catch {
+        showToast('حدث خطأ أثناء تحديث المفضلة', 'error');
+      }
+    } else {
+      // Fallback to localStorage if not logged in
+      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      const updated = isFav ? favs.filter((f: any) => f.id !== offer.id) : [...favs, offer];
+      localStorage.setItem('favorites', JSON.stringify(updated));
+      setIsFav(!isFav);
+      showToast(isFav ? 'تم إزالة العرض من المفضلة' : 'تم إضافة العرض للمفضلة ❤️', isFav ? 'info' : 'success');
+    }
   };
 
   const handleGetCoupon = async () => {

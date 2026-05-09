@@ -1,13 +1,38 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, Suspense, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Flame, Sparkles, Utensils, Coffee, Shirt, Dumbbell, Hospital, ShoppingCart, BookOpen, Car, Wrench, Store } from 'lucide-react';
+import { Search, Flame, Sparkles, Utensils, Coffee, Shirt, Dumbbell, Hospital, ShoppingCart, BookOpen, Car, Wrench, Store, ArrowUpDown, Clock, TrendingUp, Calendar } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
+
+// ─── Debounce Hook ────────────────────────────────────
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const timer = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(timer);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
+// ─── Analytics Hook ───────────────────────────────────
+function useAnalytics() {
+  const trackEvent = useCallback((event: string, params?: Record<string, any>) => {
+    // Google Analytics 4
+    if (typeof window !== 'undefined' && (window as any).gtag) {
+      (window as any).gtag('event', event, params);
+    }
+    // Custom analytics logging
+    console.log('[Analytics]', event, params);
+  }, []);
+  return { trackEvent };
+}
+
+type SortOption = 'newest' | 'expiring' | 'popular' | 'discount';
 
 interface Offer {
   id: string;
@@ -39,43 +64,125 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   'default':       <Sparkles size={14} />,
 };
 
+const CACHE_KEY = 'zag_offers_home_cache';
+const CACHE_DURATION = 5 * 60 * 1000; // 5 minutes
+
 function HomePageContent() {
   const searchParams = useSearchParams();
   const catIdParam = searchParams.get('categoryId');
+  const { trackEvent } = useAnalytics();
 
   const [offers,     setOffers]     = useState<Offer[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [stores,     setStores]     = useState<any[]>([]);
   const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
   const [search,     setSearch]     = useState('');
   const [activeCat,  setActiveCat]  = useState(catIdParam || '');
+  const [sortBy,     setSortBy]     = useState<SortOption>('newest');
 
-  const fetchData = useCallback(async () => {
+  // Debounced search for analytics (reduces tracking events)
+  const debouncedSearch = useDebounce(search, 500);
+
+  // Load from cache on mount
+  useEffect(() => {
+    try {
+      const cached = localStorage.getItem(CACHE_KEY);
+      if (cached) {
+        const { data, timestamp } = JSON.parse(cached);
+        if (Date.now() - timestamp < CACHE_DURATION) {
+          setOffers(data.offers || []);
+          setCategories(data.categories || []);
+          setStores(data.stores || []);
+          setLoading(false);
+          trackEvent('cache_hit', { source: 'localStorage' });
+        }
+      }
+    } catch { /* ignore cache errors */ }
+  }, [trackEvent]);
+
+  const fetchData = useCallback(async (force = false) => {
+    // Check cache first if not forcing refresh
+    if (!force) {
+      try {
+        const cached = localStorage.getItem(CACHE_KEY);
+        if (cached) {
+          const { data, timestamp } = JSON.parse(cached);
+          if (Date.now() - timestamp < CACHE_DURATION) {
+            setOffers(data.offers || []);
+            setCategories(data.categories || []);
+            setStores(data.stores || []);
+            setLoading(false);
+            return;
+          }
+        }
+      } catch { /* ignore */ }
+    }
+
     setLoading(true);
+    setError(null);
     try {
       const [offRes, catRes, storeRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=100`),
         fetch(`${API_URL}/stores/categories`),
         fetch(`${API_URL}/stores?limit=12`),
       ]);
+
+      let newOffers: Offer[] = [];
+      let newCategories: any[] = [];
+      let newStores: any[] = [];
+
       if (offRes.ok) {
         const data = await offRes.json();
-        setOffers(Array.isArray(data) ? data : (data.items || []));
+        newOffers = Array.isArray(data) ? data : (data.items || []);
+        setOffers(newOffers);
       }
-      if (catRes.ok) setCategories(await catRes.json());
+      if (catRes.ok) {
+        newCategories = await catRes.json();
+        setCategories(newCategories);
+      }
       if (storeRes.ok) {
         const data = await storeRes.json();
-        setStores(Array.isArray(data) ? data : (data.items || []));
+        newStores = Array.isArray(data) ? data : (data.items || []);
+        setStores(newStores);
       }
-    } catch (e) { console.error(e); }
+
+      // Save to cache
+      try {
+        localStorage.setItem(CACHE_KEY, JSON.stringify({
+          data: { offers: newOffers, categories: newCategories, stores: newStores },
+          timestamp: Date.now()
+        }));
+        trackEvent('cache_save', { offersCount: newOffers.length });
+      } catch { /* ignore quota errors */ }
+
+    } catch (e) {
+      console.error(e);
+      setError('فشل تحميل البيانات. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.');
+      trackEvent('fetch_error', { error: String(e) });
+    }
     finally { setLoading(false); }
-  }, []);
+  }, [trackEvent]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (catIdParam) setActiveCat(catIdParam); }, [catIdParam]);
 
+  // Track search analytics (debounced)
+  useEffect(() => {
+    if (debouncedSearch) {
+      trackEvent('search', { query: debouncedSearch, resultsCount: filteredOffers.length });
+    }
+  }, [debouncedSearch, trackEvent]);
+
+  // Track category filter
+  useEffect(() => {
+    if (activeCat) {
+      trackEvent('filter_category', { categoryId: activeCat });
+    }
+  }, [activeCat, trackEvent]);
+
   const filteredOffers = useMemo(() => {
-    return offers.filter(o => {
+    let result = offers.filter(o => {
       const q = search.toLowerCase();
       const matchSearch = !q
         || o.title.toLowerCase().includes(q)
@@ -85,7 +192,31 @@ function HomePageContent() {
         : true;
       return matchSearch && matchCat;
     });
-  }, [offers, search, activeCat]);
+
+    // Apply sorting
+    switch (sortBy) {
+      case 'newest':
+        result = result.sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+        break;
+      case 'expiring':
+        result = result.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
+        break;
+      case 'discount':
+        result = result.sort((a, b) => {
+          const getDiscountValue = (discount: string) => {
+            const num = parseInt(discount.replace(/[^0-9]/g, ''));
+            return isNaN(num) ? 0 : num;
+          };
+          return getDiscountValue(b.discount) - getDiscountValue(a.discount);
+        });
+        break;
+      case 'popular':
+        result = result.sort((a, b) => (b.featured ? 1 : 0) - (a.featured ? 1 : 0));
+        break;
+    }
+
+    return result;
+  }, [offers, search, activeCat, sortBy]);
 
   return (
     <div className="pb-20" dir="rtl">
@@ -252,7 +383,7 @@ function HomePageContent() {
       {/* ─── Offers Grid ───────────────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4">
         {/* section header */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
           <div className="flex items-center gap-3">
             <div className="w-9 h-9 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
               <Flame size={18} />
@@ -266,16 +397,50 @@ function HomePageContent() {
               )}
             </div>
           </div>
-          <Link
-            href="/offers"
-            className="text-sm font-bold text-[#FF6B00] hover:underline flex items-center gap-1"
-          >
-            عرض الكل ←
-          </Link>
+
+          <div className="flex items-center gap-3">
+            {/* Sort Dropdown */}
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => {
+                  const newSort = e.target.value as SortOption;
+                  setSortBy(newSort);
+                  trackEvent('sort_change', { sortBy: newSort });
+                }}
+                className="appearance-none bg-[#252525] border border-white/[0.07] text-[#F0F0F0] text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-[#FF6B00]/50 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+              >
+                <option value="newest">📅 الأحدث</option>
+                <option value="expiring">⏰ ينتهي قريباً</option>
+                <option value="discount">🏷️ الأعلى خصماً</option>
+                <option value="popular">🔥 الأشهر</option>
+              </select>
+              <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none" />
+            </div>
+
+            <Link
+              href="/offers"
+              className="text-sm font-bold text-[#FF6B00] hover:underline flex items-center gap-1"
+            >
+              عرض الكل ←
+            </Link>
+          </div>
         </div>
 
         {/* grid */}
-        {loading ? (
+        {error ? (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-4xl">⚠️</div>
+            <h3 className="text-lg font-bold text-[#F0F0F0]">حدث خطأ</h3>
+            <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">{error}</p>
+            <button
+              onClick={() => fetchData(true)}
+              className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full hover:opacity-90 transition-opacity"
+            >
+              🔄 إعادة المحاولة
+            </button>
+          </div>
+        ) : loading ? (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
@@ -305,6 +470,14 @@ function HomePageContent() {
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0 }}
                   transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                  onClick={() => trackEvent('offer_click', {
+                    offerId: offer.id,
+                    offerTitle: offer.title,
+                    storeId: offer.store.id,
+                    storeName: offer.store.name,
+                    position: i,
+                    source: 'homepage'
+                  })}
                 >
                   <OfferCard offer={offer} />
                 </motion.div>

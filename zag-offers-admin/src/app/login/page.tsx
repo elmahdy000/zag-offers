@@ -5,9 +5,7 @@ import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, AlertC
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import axios from 'axios';
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
+import { api } from '@/lib/api';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -34,7 +32,7 @@ export default function AdminLoginPage() {
 
     setLoading(true);
     try {
-      const res = await axios.post(`${API_URL}/auth/login`, {
+      const res = await api.post('/auth/login', {
         phone: phone.trim(),
         password,
       });

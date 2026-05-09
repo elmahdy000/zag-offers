@@ -11,6 +11,7 @@ import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 @Injectable()
 export class CouponsService {
@@ -19,6 +20,7 @@ export class CouponsService {
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
     private auditLogService: AuditLogService,
+    private analyticsService: AnalyticsService,
   ) {}
 
   async generate(offerId: string, customerId: string): Promise<Coupon> {
@@ -111,6 +113,13 @@ export class CouponsService {
       details: `Customer ${customerId} generated coupon for offer ${offerId}`,
     });
 
+    void this.analyticsService.logEvent({
+      userId: customerId,
+      offerId,
+      storeId: offer.storeId,
+      eventType: 'COUPON_GENERATE',
+    });
+
     return newCoupon;
   }
 
@@ -125,6 +134,9 @@ export class CouponsService {
         offer: {
           include: { store: true },
         },
+        customer: {
+          select: { id: true, name: true, phone: true },
+        },
       },
     });
 
@@ -132,11 +144,21 @@ export class CouponsService {
       throw new NotFoundException('عفواً، الكود ده مش صحيح');
     }
 
+    // التحقق من أن العرض لا يزال نشطاً
+    if (coupon.offer.status !== OfferStatus.ACTIVE) {
+      throw new BadRequestException('عفواً، العرض ده مش متاح حالياً');
+    }
+
+    // التحقق من تاريخ انتهاء العرض
+    if (coupon.offer.endDate && new Date() > coupon.offer.endDate) {
+      throw new BadRequestException('عفواً، العرض ده انتهت صلاحيته');
+    }
+
     // التحقق من أن التاجر هو صاحب المحل فعلاً أو أدمن
     const isOwner = coupon.offer.store.ownerId === merchantId;
     const user = await this.prisma.user.findUnique({
       where: { id: merchantId },
-      select: { role: true },
+      select: { role: true, fcmToken: true },
     });
     const isAdmin = user?.role === 'ADMIN';
 
@@ -149,10 +171,20 @@ export class CouponsService {
       throw new BadRequestException('عفواً، الكوبون ده مش خاص بالمحل ده');
     }
 
-    if (coupon.status !== CouponStatus.GENERATED) {
+    // التحقق من حالة الكوبون
+    if (coupon.status === CouponStatus.USED) {
       throw new BadRequestException('الكوبون ده تم استخدامه قبل كدة');
     }
 
+    if (coupon.status === CouponStatus.EXPIRED) {
+      throw new BadRequestException('عفواً، صلاحية الكوبون ده انتهت');
+    }
+
+    if (coupon.status !== CouponStatus.GENERATED) {
+      throw new BadRequestException('حالة الكوبون غير صالحة للتفعيل');
+    }
+
+    // التحقق من انتهاء صلاحية الكوبون (ساعتين)
     if (new Date() > coupon.expiresAt) {
       await this.prisma.coupon.update({
         where: { id: coupon.id },
@@ -166,6 +198,14 @@ export class CouponsService {
       data: {
         status: CouponStatus.USED,
         redeemedAt: new Date(),
+      },
+      include: {
+        offer: {
+          include: { store: true },
+        },
+        customer: {
+          select: { id: true, name: true, phone: true },
+        },
       },
     });
 
@@ -181,8 +221,28 @@ export class CouponsService {
     this.eventsGateway.notifyMerchant(merchantId, {
       type: 'COUPON_REDEEMED',
       title: 'تم التفعيل!',
-      body: `تم تفعيل الكوبون ${coupon.code} بنجاح`,
+      body: `تم تفعيل الكوبون ${coupon.code} بنجاح للعميل ${coupon.customer?.name || 'غير معروف'}`,
+      payload: {
+        couponId: updatedCoupon.id,
+        code: updatedCoupon.code,
+        customerName: coupon.customer?.name,
+        customerPhone: coupon.customer?.phone,
+      },
     });
+
+    // إرسال Push Notification للتاجر
+    if (user?.fcmToken) {
+      void this.notificationsService.sendToUser(
+        user.fcmToken,
+        'تم تفعيل الكوبون! ✅',
+        `تم تفعيل الكوبون ${updatedCoupon.code} للعميل ${coupon.customer?.name || 'غير معروف'}`,
+        {
+          couponId: updatedCoupon.id,
+          type: 'COUPON_REDEEMED',
+          customerName: coupon.customer?.name,
+        },
+      );
+    }
 
     // Log the redemption for admin visibility
     void this.auditLogService.log({
@@ -190,7 +250,15 @@ export class CouponsService {
       adminId: merchantId,
       targetId: updatedCoupon.id,
       targetName: updatedCoupon.code,
-      details: `Merchant ${merchantId} redeemed coupon ${code}`,
+      details: `Merchant ${merchantId} redeemed coupon ${code} for customer ${coupon.customerId}`,
+    });
+
+    // Log analytics event
+    void this.analyticsService.logEvent({
+      userId: coupon.customerId,
+      offerId: coupon.offerId,
+      storeId: coupon.offer.storeId,
+      eventType: 'COUPON_REDEEM',
     });
 
     return updatedCoupon;
@@ -215,13 +283,35 @@ export class CouponsService {
         offer: true,
         customer: {
           select: {
+            id: true,
             name: true,
             phone: true,
-            avatar: true,
           },
         },
       },
       orderBy: { createdAt: 'desc' },
     });
+  }
+
+  async findByCode(code: string) {
+    const coupon = await this.prisma.coupon.findUnique({
+      where: { code },
+      include: {
+        offer: {
+          select: {
+            id: true,
+            title: true,
+            status: true,
+            endDate: true,
+          },
+        },
+      },
+    });
+
+    if (!coupon) {
+      throw new NotFoundException('الكود غير صحيح');
+    }
+
+    return coupon;
   }
 }

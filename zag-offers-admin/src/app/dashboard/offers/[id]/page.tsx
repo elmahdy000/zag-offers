@@ -37,7 +37,7 @@ interface OfferDetails {
   title: string;
   description: string;
   discount: string;
-  status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'REJECTED';
+  status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'REJECTED' | 'PAUSED';
   images?: string[];
   createdAt: string;
   startDate: string;
@@ -68,22 +68,30 @@ export default function OfferDetailPage() {
 
   const changeStatusMutation = useMutation({
     mutationFn: async (action: 'approve' | 'suspend') => {
-      // Assuming existing endpoints or generic update
-      return adminApi().patch(`/admin/offers/${id}`, { 
-        status: action === 'approve' ? 'ACTIVE' : 'EXPIRED' 
-      });
+      if (action === 'approve') {
+        return adminApi().patch(`/admin/offers/${id}/approve`);
+      }
+      return adminApi().patch(`/admin/offers/${id}`, { status: 'PAUSED' });
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['offer-details', id] });
       showToast('تم تحديث حالة العرض بنجاح');
     },
+    onError: (err: any) => {
+      showToast(err.response?.data?.message || 'فشل تحديث حالة العرض', 'error');
+    },
   });
+
+  const [deleteModalOpen, setDeleteModalOpen] = useState(false);
 
   const deleteMutation = useMutation({
     mutationFn: () => adminApi().delete(`/admin/offers/${id}`),
     onSuccess: () => {
       router.push('/dashboard/offers');
       showToast('تم حذف العرض نهائياً');
+    },
+    onError: (err: any) => {
+      showToast(err.response?.data?.message || 'فشل حذف العرض', 'error');
     },
   });
 
@@ -265,8 +273,8 @@ export default function OfferDetailPage() {
                  </button>
                )}
                
-               <button 
-                 onClick={() => { if(confirm('حذف العرض نهائياً؟')) deleteMutation.mutate(); }}
+               <button
+                 onClick={() => setDeleteModalOpen(true)}
                  disabled={deleteMutation.isPending}
                  className="w-full h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
                >
@@ -284,6 +292,25 @@ export default function OfferDetailPage() {
 
          </div>
       </div>
+
+      {/* Delete Confirmation Modal */}
+      <AnimatePresence>
+        {deleteModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><Trash2 size={32} /></div>
+              <h3 className="text-xl font-bold text-slate-900">حذف العرض نهائياً؟</h3>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">سيتم حذف هذا العرض وجميع كوبوناته بشكل دائم. لا يمكن التراجع.</p>
+              <div className="mt-8 flex gap-4">
+                <button onClick={() => { setDeleteModalOpen(false); deleteMutation.mutate(); }} disabled={deleteMutation.isPending} className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg">
+                  {deleteMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'نعم، احذف'}
+                </button>
+                <button onClick={() => setDeleteModalOpen(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

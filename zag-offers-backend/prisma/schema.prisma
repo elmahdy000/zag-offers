@@ -60,6 +60,8 @@ model User {
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
+  analyticsEvents AnalyticsEvent[]
+
   @@index([role])
 }
 
@@ -94,6 +96,8 @@ model Store {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  analyticsEvents AnalyticsEvent[]
+
   @@index([area])
   @@index([status])
   @@index([categoryId])
@@ -123,6 +127,8 @@ model Offer {
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  analyticsEvents AnalyticsEvent[]
 
   @@index([status])
   @@index([storeId])
@@ -217,4 +223,21 @@ model Notification {
   @@index([userId])
   @@index([createdAt])
   @@index([isRead])
+}
+
+model AnalyticsEvent {
+  id        String   @id @default(uuid())
+  userId    String?
+  user      User?    @relation(fields: [userId], references: [id])
+  offerId   String?
+  offer     Offer?   @relation(fields: [offerId], references: [id])
+  storeId   String?
+  store     Store?   @relation(fields: [storeId], references: [id])
+  eventType String   // e.g., 'OFFER_VIEW', 'OFFER_FAVORITE', 'COUPON_GENERATE'
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+  @@index([offerId])
+  @@index([eventType])
+  @@index([createdAt])
 }

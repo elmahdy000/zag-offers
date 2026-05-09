@@ -213,6 +213,21 @@ export class StoresService {
     return this.prisma.category.findMany();
   }
 
+  async getMerchantStores(merchantId: string) {
+    return this.prisma.store.findMany({
+      where: { ownerId: merchantId },
+      select: {
+        id: true,
+        name: true,
+        logo: true,
+        area: true,
+        status: true,
+        category: { select: { name: true } },
+      },
+      orderBy: { createdAt: 'desc' },
+    });
+  }
+
   async createCategory(name: string) {
     return this.prisma.category.create({
       data: { name },

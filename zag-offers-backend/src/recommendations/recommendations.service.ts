@@ -1,47 +1,45 @@
 import { Injectable } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OfferStatus, StoreStatus } from '@prisma/client';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 @Injectable()
 export class RecommendationsService {
-  constructor(private prisma: PrismaService) {}
+  constructor(
+    private prisma: PrismaService,
+    private analyticsService: AnalyticsService,
+  ) {}
 
   async getRecommendedOffers(userId: string) {
-    // 1. جلب بيانات المستخدم والمفضلة بتاعته
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      include: {
-        favorites: {
-          include: {
-            offer: {
-              include: {
-                store: true,
-              },
-            },
-          },
-        },
-      },
     });
 
     if (!user) return [];
 
-    // 2. استخراج التصنيفات اللي اليوزر مهتم بيها من المفضلة
-    const interestCategoryIds = [
-      ...new Set(user.favorites.map((f) => f.offer.store.categoryId)),
-    ];
+    // 1. حساب اهتمامات المستخدم بناءً على سلوكه (المشاهدات، المفضلة، الكوبونات)
+    const interests = await this.analyticsService.getUserInterests(userId);
+    const { categoryWeights, areaWeights } = interests;
 
-    // 3. البحث عن عروض مشابهة (نفس التصنيف أو نفس المنطقة)
-    // بنستبعد العروض اللي هو حطها فعلاً في المفضلة
-    const favoritedOfferIds = user.favorites.map((f) => f.offerId);
+    // إضافة منطقة المستخدم الأساسية كعامل ترجيح إذا لم تكن موجودة
+    if (user.area && !areaWeights[user.area]) {
+      areaWeights[user.area] = 2; 
+    }
 
-    return this.prisma.offer.findMany({
+    const hasInterests = Object.keys(categoryWeights).length > 0 || Object.keys(areaWeights).length > 0;
+
+    // إذا كان مستخدم جديد تماماً وليس لديه سلوك مسجل، نعرض له العروض الشائعة (التريند)
+    if (!hasInterests) {
+      return this.getTrendingOffers();
+    }
+
+    // 2. جلب مجموعة من العروض النشطة لتقييمها (مثلاً أحدث 100 عرض)
+    // في التطبيقات الضخمة جداً، يمكن استخدام Elasticsearch أو محرك توصيات متخصص،
+    // لكن هذه الطريقة ممتازة للمستوى الحالي.
+    const pool = await this.prisma.offer.findMany({
       where: {
         status: OfferStatus.ACTIVE,
-        id: { notIn: favoritedOfferIds },
-        OR: [
-          { store: { categoryId: { in: interestCategoryIds } } },
-          { store: { area: user.area } },
-        ],
+        store: { status: StoreStatus.APPROVED },
       },
       select: {
         id: true,
@@ -54,13 +52,37 @@ export class RecommendationsService {
             name: true,
             logo: true,
             area: true,
+            categoryId: true,
             category: { select: { name: true } },
           },
         },
       },
-      take: 10,
+      take: 100,
       orderBy: { createdAt: 'desc' },
     });
+
+    // 3. تقييم (Scoring) كل عرض بناءً على مدى تطابقه مع اهتمامات المستخدم
+    const scoredOffers = pool.map((offer) => {
+      let score = 0;
+      const catId = offer.store.categoryId;
+      const area = offer.store.area;
+
+      if (categoryWeights[catId]) {
+        score += categoryWeights[catId] * 2; // التصنيف له وزن أعلى
+      }
+      
+      if (area && areaWeights[area]) {
+        score += areaWeights[area];
+      }
+
+      return { ...offer, _score: score };
+    });
+
+    // 4. ترتيب العروض حسب النقاط، وعرض أفضل 10
+    scoredOffers.sort((a, b) => b._score - a._score);
+
+    // إزالة حقل التقييم قبل الإرجاع
+    return scoredOffers.slice(0, 10).map(({ _score, ...offer }) => offer);
   }
 
   async getTrendingOffers() {

@@ -78,9 +78,7 @@ export default function UsersPage() {
   const [roleFilter, setRoleFilter] = useState('');
   const [page, setPage] = useState(1);
   const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null);
-  const [selectedUserId, setSelectedUserId] = useState<string | null>(null);
   const [mutatingId, setMutatingId] = useState<string | null>(null);
-  const [activeTab, setActiveTab] = useState<'info' | 'stores' | 'coupons'>('info');
   const [isUpsertOpen, setIsUpsertOpen] = useState(false);
   const [editingUser, setEditingUser] = useState<UserItem | null>(null);
   const [formData, setFormData] = useState({
@@ -92,6 +90,7 @@ export default function UsersPage() {
     password: ''
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [adminRoleConfirm, setAdminRoleConfirm] = useState(false);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -116,22 +115,12 @@ export default function UsersPage() {
     },
   });
 
-  const { data: userDetails, isLoading: userDetailsLoading } = useQuery({
-    queryKey: ['admin-user-details', selectedUserId],
-    queryFn: async () => {
-      const response = await adminApi().get<UserDetails>(`/admin/users/${selectedUserId}`);
-      return response.data;
-    },
-    enabled: !!selectedUserId,
-  });
-
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminApi().delete(`/admin/users/${id}`),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
       showToast('تم حذف المستخدم بنجاح');
       setDeleteModal(null);
-      setSelectedUserId(null);
     },
     onSettled: () => setMutatingId(null),
   });
@@ -164,7 +153,6 @@ export default function UsersPage() {
       adminApi().patch(`/admin/users/${id}/role`, { role }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-users'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-user-details', selectedUserId] });
       showToast('تم تحديث صلاحية المستخدم');
     },
     onSettled: () => setMutatingId(null),
@@ -304,10 +292,6 @@ export default function UsersPage() {
         </div>
       )}
 
-      {/* User Details Modal (Comprehensive) */}
-      <AnimatePresence>
-      </AnimatePresence>
-
       {/* Delete Confirmation Modal (Professional) */}
       <AnimatePresence>
         {deleteModal && (
@@ -333,6 +317,27 @@ export default function UsersPage() {
         )}
       </AnimatePresence>
 
+      {/* ADMIN Role Confirmation Modal */}
+      <AnimatePresence>
+        {adminRoleConfirm && (
+          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-6 border border-amber-100">
+                <Shield size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">تعيين صلاحية مدير؟</h3>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">أنت على وشك منح صلاحيات مدير النظام الكاملة لـ "{formData.name}". هذا الإجراء يمنح وصولاً كاملاً للوحة التحكم.</p>
+              <div className="mt-8 flex gap-4">
+                <button onClick={() => { setAdminRoleConfirm(false); upsertMutation.mutate(formData); }} disabled={upsertMutation.isPending} className="flex-1 h-12 rounded-xl bg-amber-600 text-sm font-bold text-white hover:bg-amber-700 transition-all shadow-lg disabled:opacity-50">
+                  {upsertMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'نعم، تأكيد'}
+                </button>
+                <button onClick={() => setAdminRoleConfirm(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
       {/* Create/Edit User Modal */}
       <AnimatePresence>
         {isUpsertOpen && (
@@ -346,7 +351,15 @@ export default function UsersPage() {
                 <button onClick={() => setIsUpsertOpen(false)} className="rounded-xl bg-slate-50 p-3 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"><X size={20} /></button>
               </div>
 
-              <form onSubmit={(e) => { e.preventDefault(); if (validateForm()) upsertMutation.mutate(formData); }} className="space-y-6">
+              <form onSubmit={(e) => {
+                e.preventDefault();
+                if (!validateForm()) return;
+                if (formData.role === 'ADMIN' && (!editingUser || editingUser.role !== 'ADMIN')) {
+                  setAdminRoleConfirm(true);
+                  return;
+                }
+                upsertMutation.mutate(formData);
+              }} className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">الاسم الكامل</label>

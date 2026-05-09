@@ -81,7 +81,7 @@ export default function LoginPage() {
               <motion.div 
                 initial={{ opacity: 0, height: 0 }}
                 animate={{ opacity: 1, height: 'auto' }}
-                className="p-3 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-[11px] font-black text-center"
+                className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-black text-center"
               >
                 {error}
               </motion.div>
@@ -93,6 +93,7 @@ export default function LoginPage() {
                 <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={16} />
                 <input 
                   type="tel" 
+                  autoFocus
                   placeholder="01xxxxxxxxx"
                   className="w-full bg-bg2/50 border border-white/5 rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
                   value={phone}

@@ -15,6 +15,7 @@ import {
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { AlertTriangle } from 'lucide-react';
 import { adminApi, resolveImageUrl } from '@/lib/api';
 
 // Components
@@ -28,6 +29,7 @@ export default function BroadcastPage() {
   const [area, setArea] = useState('');
   const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
+  const [confirmOpen, setConfirmOpen] = useState(false);
 
   const broadcastMutation = useMutation({
     mutationFn: (payload: { title: string; body: string; area?: string; imageUrl?: string }) =>
@@ -68,8 +70,8 @@ export default function BroadcastPage() {
       const response = await adminApi().post('/upload', formData, {
         headers: { 'Content-Type': 'multipart/form-data' },
       });
-      const relativeUrl = response.data.url;
-      setImageUrl(resolveImageUrl(relativeUrl));
+      // Store the raw relative path; resolve only at display/send time to avoid double-prefixing
+      setImageUrl(response.data.url);
       showToast('تم رفع الصورة بنجاح');
     } catch (error: any) {
       showToast(error.response?.data?.message || 'فشل رفع الصورة', 'error');
@@ -84,7 +86,15 @@ export default function BroadcastPage() {
       showToast('يرجى ملء عنوان ومحتوى الإشعار', 'error');
       return;
     }
-    broadcastMutation.mutate({ title, body, area: area || undefined, imageUrl: imageUrl || undefined });
+    // Show confirmation before blasting to all users
+    setConfirmOpen(true);
+  };
+
+  const handleConfirmedSend = () => {
+    setConfirmOpen(false);
+    // Resolve image URL at send time (handles both raw paths and full URLs safely)
+    const resolvedImage = imageUrl ? resolveImageUrl(imageUrl) : undefined;
+    broadcastMutation.mutate({ title, body, area: area || undefined, imageUrl: resolvedImage });
   };
 
   return (
@@ -304,6 +314,36 @@ export default function BroadcastPage() {
            </div>
         </div>
       </div>
+
+      {/* Broadcast Confirmation Modal */}
+      <AnimatePresence>
+        {confirmOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
+              <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-orange-50 text-orange-600 mb-6 border border-orange-100">
+                <AlertTriangle size={32} />
+              </div>
+              <h3 className="text-xl font-bold text-slate-900">تأكيد الإرسال الجماعي</h3>
+              <div className="mt-4 p-4 rounded-xl bg-slate-50 border border-slate-100 text-right space-y-2">
+                <p className="text-xs font-bold text-slate-500">العنوان: <span className="text-slate-900">{title}</span></p>
+                <p className="text-xs font-bold text-slate-500">المنطقة: <span className="text-slate-900">{area || 'جميع المستخدمين'}</span></p>
+              </div>
+              <p className="mt-4 text-sm font-medium text-slate-500 leading-relaxed">سيتم إرسال هذا الإشعار فوراً. لا يمكن التراجع عن هذا الإجراء.</p>
+              <div className="mt-8 flex gap-4">
+                <button
+                  onClick={handleConfirmedSend}
+                  disabled={broadcastMutation.isPending}
+                  className="flex-1 h-12 rounded-xl bg-orange-600 text-sm font-bold text-white hover:bg-orange-700 transition-all shadow-lg shadow-orange-900/10 disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {broadcastMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <Megaphone size={18} />}
+                  إرسال الآن
+                </button>
+                <button onClick={() => setConfirmOpen(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }

@@ -10,9 +10,10 @@ abstract class QRScannerEvent extends Equatable {
 
 class CouponScanned extends QRScannerEvent {
   final String code;
-  CouponScanned(this.code);
+  final String? storeId;
+  CouponScanned(this.code, {this.storeId});
   @override
-  List<Object?> get props => [code];
+  List<Object?> get props => [code, storeId];
 }
 
 class ResetScanner extends QRScannerEvent {}
@@ -56,7 +57,7 @@ class QRScannerBloc extends Bloc<QRScannerEvent, QRScannerState> {
   ) async {
     emit(QRScannerLoading());
     try {
-      await redeemCouponUseCase(event.code);
+      await redeemCouponUseCase({'code': event.code, 'storeId': event.storeId});
       emit(QRScannerSuccess('تم تفعيل الكوبون بنجاح!'));
     } catch (e) {
       emit(QRScannerError(e.toString().replaceAll('Exception: ', '')));

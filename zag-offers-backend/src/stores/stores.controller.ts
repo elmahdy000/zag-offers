@@ -102,6 +102,15 @@ export class StoresController {
     return this.storesService.getVendorDashboardStats(req.user.id);
   }
 
+  @Get('my-stores')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT, Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'عرض جميع متاجر التاجر' })
+  async getMerchantStores(@Request() req: { user: { id: string } }) {
+    return this.storesService.getMerchantStores(req.user.id);
+  }
+
   @Get(':id')
   @ApiOperation({ summary: 'عرض بيانات محل معين' })
   findOne(@Param('id') id: string) {

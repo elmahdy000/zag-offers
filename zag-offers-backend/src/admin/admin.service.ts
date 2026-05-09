@@ -457,10 +457,19 @@ export class AdminService {
 
     this.eventsGateway.notifyMerchant(store.ownerId, {
       type: 'STORE_SUSPENDED',
-      title: 'Store suspended',
-      body: reason || 'The store was suspended by admin.',
+      title: 'تم إيقاف المتجر',
+      body: reason || 'تم إيقاف المتجر مؤقتاً من قبل الإدارة.',
       payload: { storeId: store.id, storeName: store.name },
     });
+
+    if (store.owner.fcmToken) {
+      void this.notificationsService.sendToUser(
+        store.owner.fcmToken,
+        'تم إيقاف المتجر',
+        reason || 'تم إيقاف المتجر مؤقتاً من قبل الإدارة.',
+        { storeId: store.id, type: 'STORE_SUSPENDED' },
+      );
+    }
 
     return updated;
   }
@@ -634,7 +643,7 @@ export class AdminService {
         store: {
           include: {
             category: { select: { id: true, name: true } },
-            owner: { select: { id: true, name: true, phone: true } },
+            owner: { select: { id: true, name: true, phone: true, fcmToken: true } },
           },
         },
         _count: { select: { coupons: true } },
@@ -648,6 +657,25 @@ export class AdminService {
         targetId: id,
         targetName: updated.title,
       });
+    }
+
+    // Notify merchant about the update
+    if (updated.store?.ownerId) {
+      this.eventsGateway.notifyMerchant(updated.store.ownerId, {
+        type: 'OFFER_UPDATED',
+        title: 'تم تعديل العرض',
+        body: `تم تعديل عرض "${updated.title}" من قبل الإدارة.`,
+        payload: { offerId: updated.id, offerTitle: updated.title },
+      });
+
+      if (updated.store.owner.fcmToken) {
+        void this.notificationsService.sendToUser(
+          updated.store.owner.fcmToken,
+          'تم تعديل العرض',
+          `تم تعديل عرض "${updated.title}" من قبل الإدارة.`,
+          { offerId: updated.id, type: 'OFFER_UPDATED' },
+        );
+      }
     }
 
     return updated;

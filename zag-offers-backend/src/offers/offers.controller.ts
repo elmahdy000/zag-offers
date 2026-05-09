@@ -23,11 +23,16 @@ import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { UseInterceptors } from '@nestjs/common';
 
+import { AnalyticsService } from '../analytics/analytics.service';
+
 @ApiTags('offers')
 @Controller('offers')
 @UseInterceptors(CacheInterceptor)
 export class OffersController {
-  constructor(private readonly offersService: OffersService) {}
+  constructor(
+    private readonly offersService: OffersService,
+    private readonly analyticsService: AnalyticsService,
+  ) {}
 
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
@@ -125,8 +130,20 @@ export class OffersController {
 
   @Get(':id')
   @ApiOperation({ summary: 'Get offer by ID' })
-  findOne(@Param('id') id: string) {
-    return this.offersService.findOne(id);
+  async findOne(@Param('id') id: string, @Request() req: any) {
+    const offer = await this.offersService.findOne(id);
+    
+    // تسجيل المشاهدة لو العميل مسجل دخول
+    if (offer && req.user?.id) {
+      void this.analyticsService.logEvent({
+        userId: req.user.id,
+        offerId: id,
+        storeId: offer.storeId,
+        eventType: 'OFFER_VIEW',
+      });
+    }
+    
+    return offer;
   }
 
   @Patch(':id')

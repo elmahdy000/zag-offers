@@ -5,21 +5,79 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { OfferCard } from '@/components/offer-card';
+import { API_URL } from '@/lib/constants';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
-    const saved = localStorage.getItem('favorites');
-    if (saved) setFavorites(JSON.parse(saved));
-    setLoading(false);
+    const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
   }, []);
 
-  const removeFavorite = (id: string) => {
-    const updated = favorites.filter(f => f.id !== id);
-    setFavorites(updated);
-    localStorage.setItem('favorites', JSON.stringify(updated));
+  const fetchFavorites = async () => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Fallback to localStorage if not logged in
+      const saved = localStorage.getItem('favorites');
+      if (saved) setFavorites(JSON.parse(saved));
+      setLoading(false);
+      return;
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/favorites`, {
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      if (res.ok) {
+        const data = await res.json();
+        // Transform data to match offer structure
+        const offers = data.map((fav: any) => ({
+          ...fav.offer,
+          store: fav.offer.store
+        }));
+        setFavorites(offers);
+      }
+    } catch (e) {
+      console.error('Failed to fetch favorites:', e);
+      // Fallback to localStorage on error
+      const saved = localStorage.getItem('favorites');
+      if (saved) setFavorites(JSON.parse(saved));
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchFavorites();
+  }, [isLoggedIn]);
+
+  const removeFavorite = async (id: string) => {
+    const token = localStorage.getItem('token');
+    if (!token) {
+      // Fallback to localStorage if not logged in
+      const updated = favorites.filter(f => f.id !== id);
+      setFavorites(updated);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+      return;
+    }
+
+    try {
+      await fetch(`${API_URL}/favorites/toggle/${id}`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+      // Refresh favorites list
+      await fetchFavorites();
+    } catch (e) {
+      console.error('Failed to remove favorite:', e);
+      // Fallback to localStorage on error
+      const updated = favorites.filter(f => f.id !== id);
+      setFavorites(updated);
+      localStorage.setItem('favorites', JSON.stringify(updated));
+    }
   };
 
   return (

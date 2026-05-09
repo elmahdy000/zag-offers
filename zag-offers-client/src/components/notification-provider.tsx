@@ -9,7 +9,8 @@ interface Notification {
   id: string;
   title: string;
   body: string;
-  type?: 'NEW_OFFER' | 'COUPON_UPDATE' | 'GENERAL';
+  type?: 'NEW_OFFER' | 'COUPON_UPDATE' | 'GENERAL' | string;
+  show?: boolean;
 }
 
 const NotificationContext = createContext<{
@@ -18,24 +19,13 @@ const NotificationContext = createContext<{
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  
-  // Try to get token from cookies
   const [token, setToken] = useState<string | null>(null);
+  const { socket, isConnected, connectionStatus } = useSocket(token);
 
   useEffect(() => {
     const t = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
-    if (t) setToken(t);
+    setToken(t || null);
   }, []);
-
-  const socket = useSocket(token);
-
-  const addNotification = (title: string, body: string, type: any = 'GENERAL') => {
-    const id = Math.random().toString(36).substring(2, 9);
-    setNotifications((prev) => [...prev, { id, title, body, type }]);
-    setTimeout(() => {
-      setNotifications((prev) => prev.filter((n) => n.id !== id));
-    }, 6000);
-  };
 
   useEffect(() => {
     if (!socket) return;
@@ -65,39 +55,56 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     };
   }, [socket]);
 
+  const addNotification = (title: string, body: string, type: string) => {
+    const notification = { id: Date.now().toString(), title, body, type, show: true };
+    setNotifications((prev) => [...prev, notification]);
+    setTimeout(() => {
+      setNotifications((prev) => prev.map((n) => n.id === notification.id ? { ...n, show: false } : n));
+      setTimeout(() => {
+        setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
+      }, 300);
+    }, 5000);
+  };
+
   return (
     <NotificationContext.Provider value={{ addNotification }}>
+      {/* Connection Status Indicator */}
+      {connectionStatus === 'error' && (
+        <div className="fixed bottom-20 left-4 z-50 px-4 py-2 bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-black rounded-xl">
+          ⚠️ مشكلة في الاتصال
+        </div>
+      )}
+      {connectionStatus === 'connecting' && (
+        <div className="fixed bottom-20 left-4 z-50 px-4 py-2 bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-black rounded-xl">
+          🔄 جاري الاتصال...
+        </div>
+      )}
+
       {children}
-      
-      {/* Toast UI */}
-      <div className="fixed bottom-8 left-8 z-[100] flex flex-col gap-4 pointer-events-none">
+
+      {/* Notification Toasts */}
+      <div className="fixed top-4 left-4 z-50 flex flex-col gap-2">
         <AnimatePresence>
-          {notifications.map((n) => (
+          {notifications.map((notif) => (
             <motion.div
-              key={n.id}
-              initial={{ opacity: 0, x: -50, scale: 0.9 }}
-              animate={{ opacity: 1, x: 0, scale: 1 }}
-              exit={{ opacity: 0, x: -50, scale: 0.9 }}
-              className="pointer-events-auto bg-slate-900/90 backdrop-blur-xl border border-white/10 p-5 rounded-3xl shadow-2xl flex items-center gap-4 min-w-[320px] max-w-md"
+              key={notif.id}
+              initial={{ opacity: 0, x: -20 }}
+              animate={{ opacity: 1, x: 0 }}
+              exit={{ opacity: 0, x: -20 }}
+              className="flex items-start gap-3 px-4 py-3 bg-[#FF6B00] text-white text-sm font-black rounded-xl shadow-lg"
             >
-              <div className={`p-3 rounded-2xl ${
-                n.type === 'NEW_OFFER' ? 'bg-orange-500/20 text-orange-500' : 
-                n.type === 'COUPON_UPDATE' ? 'bg-emerald-500/20 text-emerald-500' : 
-                'bg-blue-500/20 text-blue-500'
-              }`}>
-                {n.type === 'NEW_OFFER' ? <Tag size={24} /> : 
-                 n.type === 'COUPON_UPDATE' ? <CheckCircle2 size={24} /> : 
-                 <Bell size={24} />}
-              </div>
+              {notif.type === 'NEW_OFFER' ? <Tag size={20} /> : 
+               notif.type === 'COUPON_UPDATE' ? <CheckCircle2 size={20} /> : 
+               <Bell size={20} />}
               
               <div className="flex-1 min-w-0">
-                <h4 className="text-white font-black text-sm leading-tight">{n.title}</h4>
-                <p className="text-slate-400 text-xs mt-1 font-medium leading-relaxed">{n.body}</p>
+                <h4 className="text-white font-black text-sm leading-tight">{notif.title}</h4>
+                <p className="text-white/80 text-xs mt-1 font-medium leading-relaxed">{notif.body}</p>
               </div>
               
               <button 
-                onClick={() => setNotifications(prev => prev.filter(item => item.id !== n.id))}
-                className="text-slate-500 hover:text-white transition-colors"
+                onClick={() => setNotifications(prev => prev.filter(item => item.id !== notif.id))}
+                className="text-white/60 hover:text-white transition-colors"
               >
                 <X size={16} />
               </button>

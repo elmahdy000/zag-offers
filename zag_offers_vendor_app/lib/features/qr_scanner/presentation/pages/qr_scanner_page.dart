@@ -7,7 +7,8 @@ import '../bloc/qr_scanner_bloc.dart';
 import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 
 class QRScannerPage extends StatefulWidget {
-  const QRScannerPage({super.key});
+  final String? storeId;
+  const QRScannerPage({super.key, this.storeId});
 
   @override
   State<QRScannerPage> createState() => _QRScannerPageState();
@@ -49,7 +50,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   final String? code = barcodes.first.rawValue;
                   if (code != null) {
                     setState(() => _isScanned = true);
-                    context.read<QRScannerBloc>().add(CouponScanned(code));
+                    context.read<QRScannerBloc>().add(CouponScanned(code, storeId: widget.storeId));
                   }
                 }
               },

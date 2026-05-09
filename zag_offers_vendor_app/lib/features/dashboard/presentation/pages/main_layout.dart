@@ -24,6 +24,7 @@ class MainLayout extends StatefulWidget {
 class MainLayoutState extends State<MainLayout> {
   int _currentIndex = 0;
   late SocketService _socketService;
+  String? _storeId;
 
   void setIndex(int index) {
     setState(() {
@@ -38,6 +39,11 @@ class MainLayoutState extends State<MainLayout> {
     _socketService.connect();
     _setupSocketListeners();
     _registerFcmToken();
+    _loadStoreId();
+  }
+
+  Future<void> _loadStoreId() async {
+    context.read<DashboardBloc>().add(GetDashboardStatsRequested());
   }
 
   void _registerFcmToken() async {
@@ -92,25 +98,33 @@ class MainLayoutState extends State<MainLayout> {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: AppColors.background,
-      body: Padding(
-        padding: const EdgeInsets.only(bottom: 80), // زيادة مساحة الحماية
-        child: IndexedStack(index: _currentIndex, children: _pages),
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'main_fab',
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const QRScannerPage()),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        elevation: 8,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
-      ),
+    return BlocListener<DashboardBloc, DashboardState>(
+      listener: (context, state) {
+        if (state is DashboardLoaded) {
+          setState(() {
+            _storeId = state.storeId;
+          });
+        }
+      },
+      child: Scaffold(
+        backgroundColor: AppColors.background,
+        body: Padding(
+          padding: const EdgeInsets.only(bottom: 80), // زيادة مساحة الحماية
+          child: IndexedStack(index: _currentIndex, children: _pages),
+        ),
+        floatingActionButton: FloatingActionButton(
+          heroTag: 'main_fab',
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => QRScannerPage(storeId: _storeId)),
+            );
+          },
+          backgroundColor: AppColors.primary,
+          elevation: 8,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+          child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
+        ),
       floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
       bottomNavigationBar: BottomAppBar(
         color: AppColors.card,
@@ -144,6 +158,7 @@ class MainLayoutState extends State<MainLayout> {
               ),
             ],
         ),
+      ),
       ),
     );
   }
