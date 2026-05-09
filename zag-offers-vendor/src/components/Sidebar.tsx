@@ -141,6 +141,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   // Get userId from localStorage
   const getUserId = () => {
+    if (typeof localStorage === 'undefined') return null;
     const userStr = localStorage.getItem('vendor_user');
     if (userStr) {
       try {
