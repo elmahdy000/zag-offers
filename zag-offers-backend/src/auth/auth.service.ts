@@ -295,7 +295,7 @@ export class AuthService {
   async forgotPassword(email: string) {
     if (!email) throw new ConflictException('يجب إدخال البريد الإلكتروني');
     
-    const user = await this.usersService.findByEmail(email);
+    const user = (await this.usersService.findByEmail(email)) as any;
     if (!user) {
       // Return success even if not found to prevent email enumeration
       return { success: true, message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً' };
@@ -343,7 +343,7 @@ export class AuthService {
       throw new ConflictException('الرجاء إدخال البريد الإلكتروني والكود وكلمة السر الجديدة');
     }
 
-    const user = await this.usersService.findByEmail(email);
+    const user = (await this.usersService.findByEmail(email)) as any;
     if (!user || !user.resetOtp || !user.resetOtpExpiry) {
       throw new UnauthorizedException('الكود غير صحيح أو منتهي الصلاحية');
     }
