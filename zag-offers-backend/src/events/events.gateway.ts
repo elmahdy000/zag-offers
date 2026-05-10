@@ -71,7 +71,8 @@ export interface WsMerchantNotification {
     | 'OFFER_UPDATED'
     | 'NEW_REVIEW'
     | 'COUPON_REDEEMED'
-    | 'COUPON_GENERATED';
+    | 'COUPON_GENERATED'
+    | 'COUPON_SHARED';
   title: string;
   body: string;
   payload?: Record<string, unknown>;
