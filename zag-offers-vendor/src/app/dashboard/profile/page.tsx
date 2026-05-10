@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2 } from 'lucide-react';
+import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
 import { vendorApi, getVendorStoreId, resolveImageUrl } from '@/lib/api';
 import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
@@ -12,6 +12,7 @@ export default function StoreProfilePage() {
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
+    whatsapp: '',
     address: '',
     email: '', // User's email from owner relation
   });
@@ -26,6 +27,7 @@ export default function StoreProfilePage() {
         setFormData({
           name: store.name || '',
           phone: store.phone || '',
+          whatsapp: store.whatsapp || '',
           address: store.address || '',
           email: store.owner?.email || '',
         });
@@ -60,6 +62,7 @@ export default function StoreProfilePage() {
       {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
+        whatsapp: formData.whatsapp.trim(),
         address: formData.address.trim(),
       },
       {
@@ -134,7 +137,21 @@ export default function StoreProfilePage() {
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
                 />
-              </div>
+                </div>
+          
+          <div className="space-y-2.5">
+            <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">رقم الواتساب (لإرسال الكوبونات)</label>
+            <div className="relative group">
+              <MessageCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={18} />
+              <input 
+                type="tel" 
+                value={formData.whatsapp}
+                onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                placeholder="2010XXXXXXXX"
+                className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
+              />
+            </div>
+          </div>
             </div>
           </div>
 

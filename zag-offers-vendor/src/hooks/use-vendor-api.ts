@@ -35,6 +35,7 @@ interface UpdateStoreData {
   name?: string;
   phone?: string;
   address?: string;
+  whatsapp?: string;
 }
 
 // جلب عروض المتجر
