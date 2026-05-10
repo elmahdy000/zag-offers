@@ -30,18 +30,6 @@ export default function LoginPage() {
     script.src = "https://accounts.google.com/gsi/client";
     script.async = true;
     script.defer = true;
-    script.onload = () => {
-      if (window.google) {
-        window.google.accounts.id.initialize({
-          client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
-          callback: handleGoogleResponse,
-        });
-        window.google.accounts.id.renderButton(
-          document.getElementById("googleBtn"),
-          { theme: "outline", size: "large", width: "200" }
-        );
-      }
-    };
     document.body.appendChild(script);
     return () => { document.body.removeChild(script); };
   }, []);
@@ -83,21 +71,32 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleResponse = async (response: any) => {
+  const handleGoogleLogin = () => {
     setSocialLoading('google');
-    if (response.credential) {
-      try {
-        const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.credential });
-        localStorage.setItem('token', res.data.access_token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        window.dispatchEvent(new Event('auth-change'));
-        router.replace('/');
-      } catch (err: any) {
-        console.error('Google Auth Backend Error:', err.response?.data || err.message);
-        setError('تعذر تسجيل الدخول عبر جوجل حالياً: ' + (err.response?.data?.message || 'خطأ في السيرفر'));
-      }
+    try {
+      window.google.accounts.id.initialize({
+        client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
+        callback: async (response: any) => {
+          if (response.credential) {
+            try {
+              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.credential });
+              localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('user', JSON.stringify(res.data.user));
+              window.dispatchEvent(new Event('auth-change'));
+              router.replace('/');
+            } catch (err: any) {
+              console.error('Google Auth Backend Error:', err.response?.data || err.message);
+              setError('تعذر تسجيل الدخول عبر جوجل حالياً: ' + (err.response?.data?.message || 'خطأ في السيرفر'));
+            }
+          }
+          setSocialLoading(null);
+        },
+      });
+      window.google.accounts.id.prompt();
+    } catch (e) {
+      setError('يرجى التأكد من إعدادات Google API');
+      setSocialLoading(null);
     }
-    setSocialLoading(null);
   };
 
   const handleFacebookLogin = () => {
@@ -107,7 +106,7 @@ export default function LoginPage() {
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
+      <div className="absolute top/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -126,10 +125,21 @@ export default function LoginPage() {
 
         {/* Social Login Buttons */}
         <div className="grid grid-cols-2 gap-4 mb-8">
-          <div id="googleBtn" className="flex justify-center"></div>
+          <button 
+            onClick={handleGoogleLogin}
+            disabled={socialLoading === 'google'}
+            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group disabled:opacity-50"
+          >
+            {socialLoading === 'google' ? <Loader2 size={20} className="animate-spin" /> : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.36-2.04 4.48-1.28 1.28-3.12 2.12-5.8 2.12-4.68 0-8.52-3.8-8.52-8.52s3.84-8.52 8.52-8.52c2.52 0 4.6 1 6.12 2.44l2.32-2.32C18.64 1.64 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.72 0 6.52-1.24 8.72-3.48 2.24-2.24 3.12-5.4 3.12-8.12 0-.84-.08-1.48-.2-2.12h-11.64z"/>
+              </svg>
+            )}
+            <span className="text-xs font-black">جوجل</span>
+          </button>
           <button 
             onClick={handleFacebookLogin}
-            className="flex items-center justify-center gap-3 py-2 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
+            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
           >
             <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
               <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
