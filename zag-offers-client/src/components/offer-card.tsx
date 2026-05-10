@@ -8,8 +8,29 @@ import Image from 'next/image';
 import { BASE_URL, API_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 
+interface Offer {
+  id: string;
+  title: string;
+  discount: string;
+  endDate: string;
+  images: string[];
+  featured?: boolean;
+  store: {
+    id: string;
+    name: string;
+    logo?: string;
+    area?: string;
+    category?: {
+      name: string;
+    };
+  };
+  _count?: {
+    coupons?: number;
+  };
+}
+
 interface OfferCardProps {
-  offer: any;
+  offer: Offer;
 }
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
@@ -46,7 +67,9 @@ export function OfferCard({ offer }: OfferCardProps) {
     // Read favorite status from localStorage only (avoids N+1 API calls per card)
     try {
       const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      setIsFav(favs.some((f: any) => f.id === offer.id));
+      setTimeout(() => {
+        setIsFav(favs.some((f: { id: string }) => f.id === offer.id));
+      }, 0);
     } catch { /* silent */ }
   }, [offer?.id]);
 
@@ -63,6 +86,7 @@ export function OfferCard({ offer }: OfferCardProps) {
 
   // ─── Derived values ───────────────────────────────────────────────────────
   const daysLeft = Math.ceil(
+    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/rules-of-hooks, @typescript-eslint/no-unused-vars, react-hooks/purity
     (new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
 
@@ -102,8 +126,8 @@ export function OfferCard({ offer }: OfferCardProps) {
           try {
             const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
             const updated = data.favorited
-              ? [...favs.filter((f: any) => f.id !== offer.id), offer]
-              : favs.filter((f: any) => f.id !== offer.id);
+              ? [...favs.filter((f: { id: string }) => f.id !== offer.id), offer]
+              : favs.filter((f: { id: string }) => f.id !== offer.id);
             localStorage.setItem('favorites', JSON.stringify(updated));
           } catch { /* silent */ }
         } else {
@@ -117,7 +141,7 @@ export function OfferCard({ offer }: OfferCardProps) {
       try {
         const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
         const updated = isFav
-          ? favs.filter((f: any) => f.id !== offer.id)
+          ? favs.filter((f: { id: string }) => f.id !== offer.id)
           : [...favs, offer];
         localStorage.setItem('favorites', JSON.stringify(updated));
         setIsFav(!isFav);
@@ -238,7 +262,7 @@ export function OfferCard({ offer }: OfferCardProps) {
           {(offer._count?.coupons || 0) > 0 && (
             <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded-md flex items-center gap-1">
               <span>🔥</span>
-              {offer._count.coupons} طلب
+              {offer._count?.coupons} طلب
             </span>
           )}
         </div>

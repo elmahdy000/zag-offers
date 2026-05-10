@@ -31,7 +31,7 @@ export class CouponsService {
 
     const offer = await this.prisma.offer.findUnique({
       where: { id: offerId },
-      include: { store: true }
+      include: { store: true },
     });
 
     if (!offer) {
@@ -69,7 +69,7 @@ export class CouponsService {
         expiresAt: { gt: new Date() },
       },
     });
-    
+
     if (activeCouponCount >= 10) {
       throw new BadRequestException('لديك الحد الأقصى من الكوبونات النشطة');
     }
@@ -342,7 +342,9 @@ export class CouponsService {
     const isAdmin = requester?.role === 'ADMIN';
     const isStoreOwner = coupon.offer.store.ownerId === requesterId;
     if (!isAdmin && !isStoreOwner) {
-      throw new BadRequestException('Ø¹ÙÙˆØ§Ù‹ØŒ Ø§Ù„ÙƒÙˆØ¨ÙˆÙ† Ø¯Ù‡ Ù…Ø´ Ø®Ø§Øµ Ø¨Ù…ØªØ¬Ø±Ùƒ');
+      throw new BadRequestException(
+        'Ø¹ÙÙˆØ§Ù‹ØŒ Ø§Ù„ÙƒÙˆØ¨ÙˆÙ† Ø¯Ù‡ Ù…Ø´ Ø®Ø§Øµ Ø¨Ù…ØªØ¬Ø±Ùƒ',
+      );
     }
 
     return coupon;

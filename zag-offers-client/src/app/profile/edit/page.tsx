@@ -6,9 +6,15 @@ import { motion } from 'framer-motion';
 import { ArrowRight, Save, User, MapPin, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
+interface User {
+  name: string;
+  phone: string;
+  area?: string;
+}
+
 export default function EditProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   
   // Forms state
   const [name, setName] = useState('');
@@ -23,10 +29,12 @@ export default function EditProfilePage() {
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
     if (savedUser) {
-      const parsed = JSON.parse(savedUser);
-      setUser(parsed);
-      setName(parsed.name || '');
-      setArea(parsed.area || '');
+      setTimeout(() => {
+        const parsed = JSON.parse(savedUser);
+        setUser(parsed);
+        setName(parsed.name || '');
+        setArea(parsed.area || '');
+      }, 0);
     } else {
       router.replace('/login');
     }
@@ -81,8 +89,8 @@ export default function EditProfilePage() {
       setMessage({ type: 'success', text: 'تم تحديث البيانات بنجاح!' });
       setCurrentPassword('');
       setNewPassword('');
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message || 'حدث خطأ غير متوقع' });
+    } catch (err: unknown) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'حدث خطأ غير متوقع' });
     } finally {
       setIsLoading(false);
     }

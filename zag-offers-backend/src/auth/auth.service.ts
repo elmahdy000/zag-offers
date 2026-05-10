@@ -15,8 +15,18 @@ import { UsersService } from '../users/users.service';
 
 type SanitizedUser = Omit<
   User,
-  'password' | 'googleId' | 'facebookId' | 'fcmToken' | 'resetOtp' | 'resetOtpExpiry'
+  | 'password'
+  | 'googleId'
+  | 'facebookId'
+  | 'fcmToken'
+  | 'resetOtp'
+  | 'resetOtpExpiry'
 >;
+
+type UserWithReset = User & {
+  resetOtp?: string | null;
+  resetOtpExpiry?: Date | null;
+};
 
 type LoginUser = Pick<
   User,
@@ -50,7 +60,7 @@ export class AuthService {
     private jwtService: JwtService,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
-    
+
     // Configure nodemailer transporter with Gmail
     this.transporter = nodemailer.createTransport({
       service: 'gmail',
@@ -294,11 +304,14 @@ export class AuthService {
 
   async forgotPassword(email: string) {
     if (!email) throw new ConflictException('يجب إدخال البريد الإلكتروني');
-    
-    const user = (await this.usersService.findByEmail(email)) as any;
+
+    const user = (await this.usersService.findByEmail(email)) as UserWithReset;
     if (!user) {
       // Return success even if not found to prevent email enumeration
-      return { success: true, message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً' };
+      return {
+        success: true,
+        message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً',
+      };
     }
 
     // Generate 6-digit OTP
@@ -311,7 +324,7 @@ export class AuthService {
     await this.usersService.update(user.id, {
       resetOtp: hashedOtp,
       resetOtpExpiry: expiry,
-    } as any);
+    });
 
     // Send Email
     try {
@@ -332,24 +345,33 @@ export class AuthService {
       });
     } catch (err) {
       console.error('Failed to send OTP email:', err);
-      throw new InternalServerErrorException('حدث خطأ أثناء إرسال البريد الإلكتروني');
+      throw new InternalServerErrorException(
+        'حدث خطأ أثناء إرسال البريد الإلكتروني',
+      );
     }
 
-    return { success: true, message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً' };
+    return {
+      success: true,
+      message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً',
+    };
   }
 
   async resetPassword(email: string, otp: string, newPassword: string) {
     if (!email || !otp || !newPassword) {
-      throw new ConflictException('الرجاء إدخال البريد الإلكتروني والكود وكلمة السر الجديدة');
+      throw new ConflictException(
+        'الرجاء إدخال البريد الإلكتروني والكود وكلمة السر الجديدة',
+      );
     }
 
-    const user = (await this.usersService.findByEmail(email)) as any;
+    const user = (await this.usersService.findByEmail(email)) as UserWithReset;
     if (!user || !user.resetOtp || !user.resetOtpExpiry) {
       throw new UnauthorizedException('الكود غير صحيح أو منتهي الصلاحية');
     }
 
     if (new Date() > user.resetOtpExpiry) {
-      throw new UnauthorizedException('الكود منتهي الصلاحية، يرجى طلب كود جديد');
+      throw new UnauthorizedException(
+        'الكود منتهي الصلاحية، يرجى طلب كود جديد',
+      );
     }
 
     const isMatch = await bcrypt.compare(otp, user.resetOtp);
@@ -358,16 +380,16 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(newPassword, 10);
-    
+
     await this.usersService.update(user.id, {
       password: hashedPassword,
       resetOtp: null,
       resetOtpExpiry: null,
-    } as any);
+    });
 
-    return { success: true, message: 'تم تغيير كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول' };
+    return {
+      success: true,
+      message: 'تم تغيير كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول',
+    };
   }
 }
-
-
-

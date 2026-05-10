@@ -24,7 +24,7 @@ function getAllowedOrigins(): string[] {
     'https://zagoffers.online',
     'https://www.zagoffers.online',
     'https://vendor.zagoffers.online',
-    'https://admin.zagoffers.online'
+    'https://admin.zagoffers.online',
   ];
 }
 
@@ -34,7 +34,10 @@ async function bootstrap() {
   const allowedOrigins = getAllowedOrigins();
 
   app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
         return;
@@ -42,7 +45,12 @@ async function bootstrap() {
       callback(new Error('CORS blocked'));
     },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Requested-With',
+      'Accept',
+    ],
     credentials: true,
   });
 

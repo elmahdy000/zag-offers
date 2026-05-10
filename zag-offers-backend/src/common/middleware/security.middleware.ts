@@ -1,4 +1,8 @@
-import { Injectable, NestMiddleware, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  NestMiddleware,
+  BadRequestException,
+} from '@nestjs/common';
 import { Request, Response, NextFunction } from 'express';
 
 @Injectable()
@@ -15,18 +19,19 @@ export class SecurityMiddleware implements NestMiddleware {
       try {
         // Basic JSON injection prevention
         const bodyString = JSON.stringify(req.body);
-        if (bodyString.includes('<script>') || bodyString.includes('javascript:')) {
+        if (
+          bodyString.includes('<script>') ||
+          bodyString.includes('javascript:')
+        ) {
           throw new BadRequestException('بيانات غير آمنة');
         }
-      } catch (error) {
+      } catch {
         throw new BadRequestException('بيانات غير صالحة');
       }
     }
 
-    // Rate limiting by IP (basic implementation)
-    const clientIp = req.ip || req.connection.remoteAddress;
     // Note: In production, use Redis for distributed rate limiting
-    
+
     next();
   }
 }

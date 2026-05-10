@@ -160,10 +160,19 @@ export class NotificationsService implements OnModuleInit {
       if (existing?.fcmToken && existing.fcmToken !== token) {
         try {
           // Fallback unsubscribe from all possible legacy topics
-          await admin.messaging().unsubscribeFromTopic([existing.fcmToken], 'all_users').catch(() => {});
-          await admin.messaging().unsubscribeFromTopic([existing.fcmToken], 'all_customers').catch(() => {});
-          await admin.messaging().unsubscribeFromTopic([existing.fcmToken], 'all_merchants').catch(() => {});
-          
+          await admin
+            .messaging()
+            .unsubscribeFromTopic([existing.fcmToken], 'all_users')
+            .catch(() => {});
+          await admin
+            .messaging()
+            .unsubscribeFromTopic([existing.fcmToken], 'all_customers')
+            .catch(() => {});
+          await admin
+            .messaging()
+            .unsubscribeFromTopic([existing.fcmToken], 'all_merchants')
+            .catch(() => {});
+
           if (existing.area) {
             await admin
               .messaging()
@@ -178,7 +187,8 @@ export class NotificationsService implements OnModuleInit {
       }
 
       // Subscribe to role-specific topic
-      const roleTopic = user?.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
+      const roleTopic =
+        user?.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
       await admin.messaging().subscribeToTopic([token], roleTopic);
 
       if (user?.area) {
@@ -202,8 +212,11 @@ export class NotificationsService implements OnModuleInit {
 
     if (this.isFirebaseReady) {
       try {
-        const roleTopic = user.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
-        await admin.messaging().unsubscribeFromTopic([user.fcmToken], roleTopic);
+        const roleTopic =
+          user.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
+        await admin
+          .messaging()
+          .unsubscribeFromTopic([user.fcmToken], roleTopic);
 
         if (user.area) {
           await admin

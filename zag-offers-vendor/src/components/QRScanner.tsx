@@ -12,7 +12,7 @@ interface QRScannerProps {
 export default function QRScanner({ onScan, onClose }: QRScannerProps) {
   const [error, setError] = useState<string | null>(null);
   const [debug, setDebug] = useState<string>("جاري تهيئة الكاميرا...");
-  const [cameras, setCameras] = useState<any[]>([]);
+  const [cameras, setCameras] = useState<Array<{id: string; label: string}>>([]);
   const [activeCam, setActiveCam] = useState<string | null>(null);
   const html5QrCode = useRef<Html5Qrcode | null>(null);
 
@@ -39,10 +39,10 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
         setActiveCam(backCam.id);
         
         await startCamera(backCam.id);
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Scanner Init Error:", err);
         setError("فشل في الوصول للكاميرا. تأكد من إعطاء الصلاحية للموقع.");
-        setDebug(err?.message || "Permission Denied");
+        setDebug(err instanceof Error ? err.message : "Permission Denied");
       }
     };
 
@@ -66,7 +66,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
           () => {}
         );
         setDebug("الكاميرا تعمل الآن");
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error("Start Camera Error:", err);
         setError("فشل في تشغيل هذه الكاميرا المحددة.");
       }

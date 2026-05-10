@@ -1,5 +1,11 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, Matches, MaxLength, MinLength } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  Matches,
+  MaxLength,
+  MinLength,
+} from 'class-validator';
 
 export class LoginDto {
   @ApiProperty({ description: 'رقم الموبايل', example: '01012345678' })

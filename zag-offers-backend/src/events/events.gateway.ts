@@ -29,7 +29,7 @@ function getAllowedOrigins(): string[] {
     'https://zagoffers.online',
     'https://www.zagoffers.online',
     'https://vendor.zagoffers.online',
-    'https://admin.zagoffers.online'
+    'https://admin.zagoffers.online',
   ];
 }
 

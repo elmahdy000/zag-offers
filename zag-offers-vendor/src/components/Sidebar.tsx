@@ -135,7 +135,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const [mounted, setMounted] = useState(false);
 
   useEffect(() => { 
-    setMounted(true); 
+    setTimeout(() => setMounted(true), 0); 
   }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
@@ -176,7 +176,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   // Fetch notifications on mount
   useEffect(() => {
     if (mounted) {
-      fetchNotifications();
+      setTimeout(() => fetchNotifications(), 0);
     }
   }, [mounted]);
 

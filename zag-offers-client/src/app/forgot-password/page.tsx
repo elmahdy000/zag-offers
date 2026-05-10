@@ -38,8 +38,8 @@ export default function ForgotPasswordPage() {
         setStep(2);
         setMessage(null);
       }, 2000);
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+    } catch (err: unknown) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'حدث خطأ' });
     } finally {
       setIsLoading(false);
     }
@@ -66,8 +66,8 @@ export default function ForgotPasswordPage() {
       setTimeout(() => {
         router.push('/login');
       }, 2000);
-    } catch (err: any) {
-      setMessage({ type: 'error', text: err.message });
+    } catch (err: unknown) {
+      setMessage({ type: 'error', text: err instanceof Error ? err.message : 'حدث خطأ' });
     } finally {
       setIsLoading(false);
     }

@@ -12,7 +12,7 @@ export class AnalyticsService {
     eventType: string;
   }) {
     try {
-      await (this.prisma as any).analyticsEvent.create({
+      await this.prisma.analyticsEvent.create({
         data,
       });
     } catch (error) {
@@ -22,7 +22,7 @@ export class AnalyticsService {
   }
 
   async getUserInterests(userId: string) {
-    const events = await (this.prisma as any).analyticsEvent.findMany({
+    const events = await this.prisma.analyticsEvent.findMany({
       where: { userId },
       orderBy: { createdAt: 'desc' },
       take: 50,
@@ -39,7 +39,7 @@ export class AnalyticsService {
     const categoryWeights: Record<string, number> = {};
     const areaWeights: Record<string, number> = {};
 
-    events.forEach((event: any) => {
+    events.forEach((event) => {
       if (event.offer?.store) {
         const catId = event.offer.store.categoryId;
         const area = event.offer.store.area;

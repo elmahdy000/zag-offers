@@ -30,6 +30,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
 
 function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) => void }) {
   const cfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.EXPIRED;
+  // eslint-disable-next-line react-hooks/purity
   const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / 86_400_000);
   const isExpired = daysLeft <= 0;
 
@@ -124,18 +125,18 @@ export default function OffersListPage() {
 
   const filters = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'];
   const offersArray = Array.isArray(offers) ? offers : [];
-  const filtered = activeFilter === 'ALL' ? offersArray : offersArray.filter((o: any) => o.status === activeFilter);
+  const filtered = activeFilter === 'ALL' ? offersArray : offersArray.filter((o: Offer) => o.status === activeFilter);
 
-  const grouped = filtered ? filtered.reduce((acc: any, offer: any) => {
+  const grouped = filtered ? filtered.reduce((acc: Record<string, Offer[]>, offer: Offer) => {
     const cat = offer.store?.category?.name || 'عروض متنوعة';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(offer);
     return acc;
-  }, {}) : {};
+  }, {} as Record<string, Offer[]>) : {} as Record<string, Offer[]>;
 
   const counts: Record<string, number> = { ALL: offersArray.length };
-  filters.slice(1).forEach((s: any) => { 
-    counts[s] = offersArray.filter((o: any) => o.status === s).length; 
+  filters.slice(1).forEach((s: string) => { 
+    counts[s] = offersArray.filter((o: Offer) => o.status === s).length; 
   });
 
   return (
@@ -146,7 +147,7 @@ export default function OffersListPage() {
           <h1 className="text-3xl font-black text-text tracking-tight">قائمة العروض</h1>
           <p className="text-text-dim mt-2 font-bold flex items-center gap-2 text-xs">
             <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-            إجمالي {offers ? offers.length : 0} عرض — {offers ? offers.filter((o: any) => o.status === 'ACTIVE').length : 0} نشط حالياً
+            إجمالي {offers ? offers.length : 0} عرض — {offers ? offers.filter((o: Offer) => o.status === 'ACTIVE').length : 0} نشط حالياً
           </p>
         </div>
         <Link
@@ -196,8 +197,8 @@ export default function OffersListPage() {
           </p>
         </div>
       ) : (
-        Object.entries(grouped).map(([category, catOffers]: [string, any]) => {
-          const catOffersArray = Array.isArray(catOffers) ? catOffers : [];
+        (Object.entries(grouped) as [string, Offer[]][]).map(([category, catOffers]) => {
+          const catOffersArray = (Array.isArray(catOffers) ? catOffers : []) as Offer[];
           return (
             <div key={category} className="mb-14">
               {/* Section Header */}
@@ -213,7 +214,7 @@ export default function OffersListPage() {
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-                {catOffersArray.map((offer: any) => (
+                {catOffersArray.map((offer: Offer) => (
                   <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} />
                 ))}
               </div>

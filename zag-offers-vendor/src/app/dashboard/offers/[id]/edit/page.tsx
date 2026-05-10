@@ -138,7 +138,7 @@ export default function EditOfferPage() {
           return uploadRes.data.url;
         });
         imageUrls = await Promise.all(uploadPromises);
-      } catch (error: any) {
+      } catch (error: unknown) {
         return setSubmitError('فشل رفع الصور. حاول مرة أخرى.');
       }
     }
@@ -161,10 +161,11 @@ export default function EditOfferPage() {
         onSuccess: () => {
           router.push('/dashboard/offers');
         },
-        onError: (error: any) => {
+        onError: (error: unknown) => {
           console.error('Submit Error:', error);
-          const msg = error.response?.data?.message;
-          const status = error.response?.status;
+          const axiosErr = error as { response?: { data?: { message?: string | string[] }, status?: number } };
+          const msg = axiosErr.response?.data?.message;
+          const status = axiosErr.response?.status;
           
           if (status === 401) {
             setSubmitError('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى');

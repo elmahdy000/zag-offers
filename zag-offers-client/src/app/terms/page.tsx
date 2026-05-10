@@ -36,7 +36,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-black text-[#FF6B00] border-b border-white/10 pb-2">1. مقدمة</h2>
             <p className="text-sm font-semibold leading-relaxed">
-              أهلاً بك في منصة "عروض الزقازيق" (Zag Offers). باستخدامك لهذه المنصة، فإنك توافق على الالتزام بالشروط والأحكام الموضحة أدناه. يرجى قراءتها بعناية قبل استخدام خدماتنا.
+              أهلاً بك في منصة &quot;عروض الزقازيق&quot; (Zag Offers). باستخدامك لهذه المنصة، فإنك توافق على الالتزام بالشروط والأحكام الموضحة أدناه. يرجى قراءتها بعناية قبل استخدام خدماتنا.
             </p>
           </section>
 
@@ -61,7 +61,7 @@ export default function TermsPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-black text-[#FF6B00] border-b border-white/10 pb-2">4. حقوق الملكية</h2>
             <p className="text-sm font-semibold leading-relaxed">
-              جميع المحتويات الموجودة على المنصة (النصوص، التصاميم، الشعارات، الصور) هي ملكية حصرية لمنصة "عروض الزقازيق" ولا يجوز نسخها أو إعادة استخدامها دون إذن كتابي مسبق.
+              جميع المحتويات الموجودة على المنصة (النصوص، التصاميم، الشعارات، الصور) هي ملكية حصرية لمنصة &quot;عروض الزقازيق&quot; ولا يجوز نسخها أو إعادة استخدامها دون إذن كتابي مسبق.
             </p>
           </section>
 

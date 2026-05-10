@@ -9,8 +9,18 @@ import { resolveImageUrl } from '@/lib/utils';
 
 import { API_URL, BASE_URL } from '@/lib/constants';
 
+interface Store {
+  id: string;
+  name: string;
+  logo?: string;
+  area: string;
+  category?: {
+    name: string;
+  };
+}
+
 export default function StoresListPage() {
-  const [stores, setStores] = useState<any[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [search, setSearch] = useState('');
 
@@ -23,7 +33,7 @@ export default function StoresListPage() {
           // تحقق من صحة البيانات
           const storesData = Array.isArray(data) ? data : (data.items || []);
           // فلترة المتاجر غير الصالحة
-          const validStores = storesData.filter((s: any) => s && s.id && s.name);
+          const validStores = storesData.filter((s: Store) => s && s.id && s.name);
           setStores(validStores);
         }
       } catch (e) { 

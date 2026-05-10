@@ -11,6 +11,26 @@ const AREAS = [
   'الجامعة', 'القومية', 'وسط البلد', 'المحافظة', 'طلبة عويضة', 'منطقة الفيلات',
 ];
 
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Offer {
+  id: string;
+  title: string;
+  discount: string;
+  endDate: string;
+  createdAt: string;
+  store: {
+    id: string;
+    name: string;
+    area: string;
+    categoryId?: string;
+    category?: Category;
+  };
+}
+
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <Utensils size={14} />,
   'كافيهات':       <Coffee size={14} />,
@@ -29,8 +49,8 @@ function OffersPageContent() {
   const searchParams  = useSearchParams();
   const initialCat    = searchParams.get('categoryId') || '';
 
-  const [offers,     setOffers]     = useState<any[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
+  const [offers,     setOffers]     = useState<Offer[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [search,     setSearch]     = useState('');
   const [activeCat,  setActiveCat]  = useState(initialCat);
@@ -80,7 +100,7 @@ function OffersPageContent() {
 
   // Grouping logic
   const grouped = useMemo(() => {
-    const groups: Record<string, any[]> = {};
+    const groups: Record<string, Offer[]> = {};
     filtered.forEach(o => {
       const catName = o.store?.category?.name || 'عروض أخرى';
       if (!groups[catName]) groups[catName] = [];

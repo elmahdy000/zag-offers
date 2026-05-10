@@ -34,7 +34,10 @@ export class AuthController {
   @ApiOperation({ summary: 'تسجيل حساب جديد' })
   @ApiResponse({ status: 201, description: 'تم التسجيل بنجاح' })
   @ApiResponse({ status: 409, description: 'رقم الموبايل مسجل مسبقاً' })
-  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من محاولات التسجيل' })
+  @ApiResponse({
+    status: 429,
+    description: 'تجاوزت الحد المسموح من محاولات التسجيل',
+  })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
@@ -45,7 +48,10 @@ export class AuthController {
   @ApiOperation({ summary: 'تسجيل الدخول بالهاتف' })
   @ApiResponse({ status: 200, description: 'تم الدخول بنجاح ويرجع التوكن' })
   @ApiResponse({ status: 401, description: 'البيانات غير صحيحة' })
-  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من محاولات الدخول' })
+  @ApiResponse({
+    status: 429,
+    description: 'تجاوزت الحد المسموح من محاولات الدخول',
+  })
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
       loginDto.phone,
@@ -194,6 +200,10 @@ export class AuthController {
   resetPassword(
     @Body() body: { email: string; otp: string; newPassword: string },
   ) {
-    return this.authService.resetPassword(body.email, body.otp, body.newPassword);
+    return this.authService.resetPassword(
+      body.email,
+      body.otp,
+      body.newPassword,
+    );
   }
 }

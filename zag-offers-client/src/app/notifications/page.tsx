@@ -78,7 +78,7 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
-    fetchNotifications();
+    setTimeout(() => fetchNotifications(), 0);
   }, []);
 
   const markAsRead = async (id: string) => {

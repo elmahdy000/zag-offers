@@ -9,6 +9,30 @@ import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 
+interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  discount: string;
+  endDate: string;
+  images: string[];
+  originalPrice?: number;
+  status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | string;
+  store: {
+    id: string;
+    name: string;
+    logo?: string;
+    area: string;
+    category?: {
+      name: string;
+    };
+  };
+}
+
+interface Favorite {
+  offerId: string;
+}
+
 /* ─── Toast ─────────────────────────────────────────── */
 type ToastType = 'success' | 'error' | 'info';
 interface Toast { id: number; msg: string; type: ToastType; }
@@ -44,7 +68,7 @@ function ToastContainer({ toasts }: { toasts: Toast[] }) {
 export default function OfferDetailsPage() {
   const { id } = useParams();
   const router = useRouter();
-  const [offer, setOffer] = useState<any>(null);
+  const [offer, setOffer] = useState<Offer | null>(null);
   const [loading, setLoading] = useState(true);
   const [isCouponLoading, setIsCouponLoading] = useState(false); // separate state for coupon action
   const [showCoupon, setShowCoupon] = useState(false);
@@ -77,13 +101,13 @@ export default function OfferDetailsPage() {
               });
               if (favRes.ok) {
                 const favData = await favRes.json();
-                setIsFav(favData.some((fav: any) => fav.offerId === data.id));
+                setIsFav(favData.some((fav: Favorite) => fav.offerId === data.id));
               }
             } catch { /* silent */ }
           } else {
             // Fallback to localStorage if not logged in
             const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-            setIsFav(favs.some((f: any) => f.id === data.id));
+            setIsFav(favs.some((f: { id: string }) => f.id === data.id));
           }
         } else router.replace('/');
       } catch (e) { console.error(e); }
@@ -113,7 +137,7 @@ export default function OfferDetailsPage() {
     } else {
       // Fallback to localStorage if not logged in
       const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-      const updated = isFav ? favs.filter((f: any) => f.id !== offer.id) : [...favs, offer];
+      const updated = isFav ? favs.filter((f: { id: string }) => f.id !== offer?.id) : [...favs, offer];
       localStorage.setItem('favorites', JSON.stringify(updated));
       setIsFav(!isFav);
       showToast(isFav ? 'تم إزالة العرض من المفضلة' : 'تم إضافة العرض للمفضلة ❤️', isFav ? 'info' : 'success');
@@ -198,6 +222,7 @@ export default function OfferDetailsPage() {
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل العرض...</div>;
   if (!offer) return null;
 
+  // eslint-disable-next-line react-hooks/purity
   const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24));
   const logoUrl = resolveImageUrl(offer.store?.logo);
 
@@ -250,7 +275,7 @@ export default function OfferDetailsPage() {
                    </button>
                    
                    <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-                     {offer.images.map((_: any, i: number) => (
+                     {offer.images.map((_: string, i: number) => (
                        <button 
                          key={i} 
                          onClick={() => setActiveImg(i)}

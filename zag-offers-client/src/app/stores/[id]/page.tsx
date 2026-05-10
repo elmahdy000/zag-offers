@@ -10,10 +10,32 @@ import { API_URL, BASE_URL } from '@/lib/constants';
 import { OfferCard } from '@/components/offer-card';
 import { resolveImageUrl } from '@/lib/utils';
 
+interface Category {
+  name: string;
+}
+
+interface Store {
+  id: string;
+  name: string;
+  logo?: string;
+  area: string;
+  phone: string;
+  whatsapp?: string;
+  category?: Category;
+}
+
+interface Offer {
+  id: string;
+  title: string;
+  discount: string;
+  endDate: string;
+  store: Store;
+}
+
 export default function StoreDetailsPage() {
   const { id } = useParams();
-  const [store, setStore] = useState<any>(null);
-  const [offers, setOffers] = useState<any[]>([]);
+  const [store, setStore] = useState<Store | null>(null);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
@@ -125,7 +147,7 @@ export default function StoreDetailsPage() {
           <div className="text-center py-20 text-white/30 font-bold border-2 border-dashed border-white/5 rounded-3xl"> لا توجد عروض نشطة حالياً لهذا المتجر</div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {offers.map((offer: any) => (
+            {offers.map((offer: Offer) => (
               <Link key={offer.id} href={`/offers/${offer.id}`}>
                 <div className="glass p-6 rounded-3xl hover:border-[#FF6B00]/50 transition-all group">
                   <div className="flex justify-between items-start mb-4">

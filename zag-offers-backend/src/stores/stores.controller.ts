@@ -141,4 +141,3 @@ export class StoresController {
     return this.storesService.updateStatus(id, status);
   }
 }
-

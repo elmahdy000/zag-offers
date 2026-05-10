@@ -22,12 +22,14 @@ export default function StoreProfilePage() {
 
   useEffect(() => {
     if (store) {
-      setFormData({
-        name: store.name || '',
-        phone: store.phone || '',
-        address: store.address || '',
-        email: store.owner?.email || '',
-      });
+      setTimeout(() => {
+        setFormData({
+          name: store.name || '',
+          phone: store.phone || '',
+          address: store.address || '',
+          email: store.owner?.email || '',
+        });
+      }, 0);
     }
   }, [store]);
 

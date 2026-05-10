@@ -36,7 +36,7 @@ export default function PrivacyPage() {
           <section className="space-y-3">
             <h2 className="text-lg font-black text-[#FF6B00] border-b border-white/10 pb-2">1. جمع المعلومات</h2>
             <p className="text-sm font-semibold leading-relaxed">
-              نحن في "عروض الزقازيق" نجمع فقط المعلومات الضرورية لتقديم أفضل خدمة ممكنة، مثل:
+              نحن في &quot;عروض الزقازيق&quot; نجمع فقط المعلومات الضرورية لتقديم أفضل خدمة ممكنة، مثل:
             </p>
             <ul className="text-sm font-semibold leading-relaxed space-y-2 list-disc list-inside">
               <li>الاسم ورقم الهاتف والمنطقة الجغرافية عند التسجيل.</li>

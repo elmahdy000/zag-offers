@@ -18,7 +18,7 @@ export default function DashboardLayout({
     const storeId = getVendorStoreId();
     if (!storeId) {
       vendorApi().get('/stores/my-dashboard')
-        .then((res: any) => {
+        .then((res: { data?: { storeId?: string } }) => {
           if (res.data?.storeId && typeof window !== 'undefined') {
             localStorage.setItem('vendor_store_id', res.data.storeId);
             window.location.reload();

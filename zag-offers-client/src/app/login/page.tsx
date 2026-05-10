@@ -57,7 +57,7 @@ export default function LoginPage() {
       window.dispatchEvent(new Event('auth-change'));
 
       router.replace('/');
-    } catch (err: any) {
+    } catch (err) {
       setError('بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);

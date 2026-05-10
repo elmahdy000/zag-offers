@@ -36,7 +36,7 @@ export default function CouponsLogPage() {
 
   if (isLoading) return <DashboardSkeleton />;
 
-  const filteredLogs = logs ? logs.filter((log: any) => 
+  const filteredLogs = logs ? logs.filter((log: CouponLog) => 
     log.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.offer?.title?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -100,7 +100,7 @@ export default function CouponsLogPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
-                {filteredLogs.map((log: any, i: number) => (
+                {filteredLogs.map((log: CouponLog, i: number) => (
                   <motion.tr 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}

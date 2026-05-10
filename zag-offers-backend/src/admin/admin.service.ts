@@ -643,7 +643,9 @@ export class AdminService {
         store: {
           include: {
             category: { select: { id: true, name: true } },
-            owner: { select: { id: true, name: true, phone: true, fcmToken: true } },
+            owner: {
+              select: { id: true, name: true, phone: true, fcmToken: true },
+            },
           },
         },
         _count: { select: { coupons: true } },
@@ -851,10 +853,12 @@ export class AdminService {
           password: hashedPassword,
         },
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error creating user:', error);
       if (error instanceof BadRequestException) throw error;
-      throw new BadRequestException('Failed to create user: ' + error.message);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new BadRequestException('Failed to create user: ' + errorMessage);
     }
   }
 
@@ -872,7 +876,7 @@ export class AdminService {
       }
 
       const { password, ...updateData } = data;
-      const finalData: any = { ...updateData };
+      const finalData: Prisma.UserUpdateInput = { ...updateData };
 
       if (password) {
         finalData.password = await bcrypt.hash(password, 10);
@@ -882,14 +886,16 @@ export class AdminService {
         where: { id },
         data: finalData,
       });
-    } catch (error) {
+    } catch (error: unknown) {
       console.error('Error updating user:', error);
       if (
         error instanceof BadRequestException ||
         error instanceof NotFoundException
       )
         throw error;
-      throw new BadRequestException('Failed to update user: ' + error.message);
+      const errorMessage =
+        error instanceof Error ? error.message : 'Unknown error';
+      throw new BadRequestException('Failed to update user: ' + errorMessage);
     }
   }
 

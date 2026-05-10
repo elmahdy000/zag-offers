@@ -8,7 +8,6 @@ import {
   IsDateString,
   IsInt,
   IsNumber,
-  IsUrl,
 } from 'class-validator';
 
 export class CreateOfferDto {

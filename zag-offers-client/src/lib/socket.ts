@@ -14,11 +14,11 @@ export const useSocket = (token?: string | null) => {
 
   useEffect(() => {
     if (!token) {
-      setConnectionStatus('disconnected');
+      setTimeout(() => setConnectionStatus('disconnected'), 0);
       return;
     }
 
-    setConnectionStatus('connecting');
+    setTimeout(() => setConnectionStatus('connecting'), 0);
     reconnectAttempts.current = 0;
 
     const newSocket = io(SOCKET_URL, {
@@ -75,15 +75,18 @@ export const useSocket = (token?: string | null) => {
       setConnectionStatus('error');
     });
 
-    setSocket(newSocket);
+    setTimeout(() => setSocket(newSocket), 0);
+    const reconnectTimeout = reconnectTimeoutRef.current;
 
     return () => {
-      if (reconnectTimeoutRef.current) {
-        clearTimeout(reconnectTimeoutRef.current);
+      if (reconnectTimeout) {
+        clearTimeout(reconnectTimeout);
       }
       newSocket.disconnect();
-      setIsConnected(false);
-      setConnectionStatus('disconnected');
+      setTimeout(() => {
+        setIsConnected(false);
+        setConnectionStatus('disconnected');
+      }, 0);
     };
   }, [token]);
 

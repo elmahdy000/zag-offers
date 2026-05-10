@@ -9,9 +9,8 @@ import {
   Query,
   Request,
   UseGuards,
-  UseInterceptors,
 } from '@nestjs/common';
-import { CacheInterceptor } from '@nestjs/cache-manager';
+
 import {
   ApiBearerAuth,
   ApiBody,
@@ -137,7 +136,10 @@ export class AdminController {
 
   @Patch('stores/:id/approve')
   @ApiOperation({ summary: 'Approve a store' })
-  approveStore(@Param('id') id: string, @Request() req: any) {
+  approveStore(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
     return this.adminService.approveStore(id, req.user.id);
   }
 
@@ -147,7 +149,7 @@ export class AdminController {
   rejectStore(
     @Param('id') id: string,
     @Body('reason') reason: string,
-    @Request() req: any,
+    @Request() req: { user: { id: string } },
   ) {
     return this.adminService.rejectStore(id, req.user.id, reason);
   }
@@ -205,14 +207,17 @@ export class AdminController {
   updateOffer(
     @Param('id') id: string,
     @Body() body: UpdateOfferDto,
-    @Request() req: any,
+    @Request() req: { user: { id: string } },
   ) {
     return this.adminService.updateOffer(id, body, req.user.id);
   }
 
   @Patch('offers/:id/approve')
   @ApiOperation({ summary: 'Approve an offer' })
-  approveOffer(@Param('id') id: string, @Request() req: any) {
+  approveOffer(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
     return this.adminService.approveOffer(id, req.user.id);
   }
 
@@ -222,14 +227,17 @@ export class AdminController {
   rejectOffer(
     @Param('id') id: string,
     @Body('reason') reason: string,
-    @Request() req: any,
+    @Request() req: { user: { id: string } },
   ) {
     return this.adminService.rejectOffer(id, req.user.id, reason);
   }
 
   @Delete('offers/:id')
   @ApiOperation({ summary: 'Delete an offer' })
-  deleteOffer(@Param('id') id: string, @Request() req: any) {
+  deleteOffer(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
     return this.adminService.deleteOffer(id, req.user.id);
   }
 
@@ -299,7 +307,10 @@ export class AdminController {
   @Post('categories')
   @ApiOperation({ summary: 'Create category' })
   @ApiBody({ schema: { properties: { name: { type: 'string' } } } })
-  createCategory(@Body('name') name: string, @Request() req: any) {
+  createCategory(
+    @Body('name') name: string,
+    @Request() req: { user: { id: string } },
+  ) {
     return this.adminService.createCategory(name, req.user.id);
   }
 
@@ -308,14 +319,17 @@ export class AdminController {
   updateCategory(
     @Param('id') id: string,
     @Body('name') name: string,
-    @Request() req: any,
+    @Request() req: { user: { id: string } },
   ) {
     return this.adminService.updateCategory(id, name, req.user.id);
   }
 
   @Delete('categories/:id')
   @ApiOperation({ summary: 'Delete category' })
-  deleteCategory(@Param('id') id: string, @Request() req: any) {
+  deleteCategory(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
     return this.adminService.deleteCategory(id, req.user.id);
   }
 
@@ -367,7 +381,7 @@ export class AdminController {
     @Body('body') body: string,
     @Body('area') area: string,
     @Body('imageUrl') imageUrl: string,
-    @Request() req: any,
+    @Request() req: { user: { id: string } },
   ) {
     return this.adminService.broadcastAnnouncement({
       title,

@@ -9,9 +9,9 @@ import * as crypto from 'crypto';
 export class UploadService {
   private readonly allowedMimeTypes = [
     'image/jpeg',
-    'image/jpg', 
+    'image/jpg',
     'image/png',
-    'image/webp'
+    'image/webp',
   ];
 
   private readonly maxFileSize = 5 * 1024 * 1024; // 5MB
@@ -40,21 +40,26 @@ export class UploadService {
     }
 
     // Sanitize filename and add random hash for security
-    const nameWithoutExt = file.originalname.split('.').slice(0, -1).join('').replace(/[^a-zA-Z0-9]/g, '') || 'upload';
+    const nameWithoutExt =
+      file.originalname
+        .split('.')
+        .slice(0, -1)
+        .join('')
+        .replace(/[^a-zA-Z0-9]/g, '') || 'upload';
     const randomHash = crypto.randomBytes(8).toString('hex');
     const filename = `${Date.now()}-${randomHash}-${nameWithoutExt}.webp`;
     const path = join(uploadDir, filename);
 
     // Process image with security constraints
     await sharp(file.buffer)
-      .resize(1200, 1200, { 
-        fit: 'inside', 
+      .resize(1200, 1200, {
+        fit: 'inside',
         withoutEnlargement: true,
-        background: { r: 255, g: 255, b: 255, alpha: 1 }
+        background: { r: 255, g: 255, b: 255, alpha: 1 },
       })
-      .webp({ 
+      .webp({
         quality: 85,
-        effort: 4
+        effort: 4,
       })
       .toFile(path);
 
@@ -63,13 +68,17 @@ export class UploadService {
 
   async deleteImage(filename: string): Promise<void> {
     if (!filename) return;
-    
+
     // إزالة السوابق إذا وجدت (مثل /uploads/)
     const pureFilename = filename.split('/').pop();
     if (!pureFilename) return;
 
     // Validate filename to prevent path traversal
-    if (pureFilename.includes('..') || pureFilename.includes('/') || pureFilename.includes('\\')) {
+    if (
+      pureFilename.includes('..') ||
+      pureFilename.includes('/') ||
+      pureFilename.includes('\\')
+    ) {
       return;
     }
 

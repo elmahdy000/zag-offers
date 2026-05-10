@@ -7,8 +7,22 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
 
+interface Coupon {
+  id: string;
+  code: string;
+  isRedeemed: boolean;
+  offer?: {
+    id: string;
+    title: string;
+    discount: string;
+    store?: {
+      name: string;
+    };
+  };
+}
+
 export default function MyCouponsPage() {
-  const [coupons, setCoupons] = useState<any[]>([]);
+  const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = checking
 

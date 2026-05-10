@@ -1,5 +1,13 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsNotEmpty, IsString, MinLength, MaxLength, Matches, IsOptional, IsEmail } from 'class-validator';
+import {
+  IsNotEmpty,
+  IsString,
+  MinLength,
+  MaxLength,
+  Matches,
+  IsOptional,
+  IsEmail,
+} from 'class-validator';
 
 export class RegisterDto {
   @ApiProperty({ description: 'رقم الموبايل', example: '01012345678' })
@@ -18,8 +26,8 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   @MaxLength(128)
-  @Matches(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{6,}$/, { 
-    message: 'كلمة السر يجب أن تحتوي على حروف وأرقام' 
+  @Matches(/^(?=.*[a-zA-Z])(?=.*\d)[a-zA-Z\d@$!%*?&]{6,}$/, {
+    message: 'كلمة السر يجب أن تحتوي على حروف وأرقام',
   })
   password: string;
 
@@ -28,12 +36,16 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  @Matches(/^[\u0600-\u06FF\sa-zA-Z]+$/, { 
-    message: 'الاسم يجب أن يحتوي على حروف فقط' 
+  @Matches(/^[\u0600-\u06FF\sa-zA-Z]+$/, {
+    message: 'الاسم يجب أن يحتوي على حروف فقط',
   })
   name: string;
 
-  @ApiProperty({ description: 'البريد الإلكتروني', example: 'user@example.com', required: false })
+  @ApiProperty({
+    description: 'البريد الإلكتروني',
+    example: 'user@example.com',
+    required: false,
+  })
   @IsOptional()
   @IsEmail()
   @MaxLength(255)

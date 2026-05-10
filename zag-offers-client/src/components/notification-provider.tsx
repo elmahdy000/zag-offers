@@ -1,6 +1,6 @@
 'use client';
 
-import React, { createContext, useContext, useEffect, useState } from 'react';
+import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, Tag, CheckCircle2, X } from 'lucide-react';
 import { useSocket } from '@/lib/socket';
@@ -11,12 +11,23 @@ interface Notification {
   title: string;
   body: string;
   type?: 'NEW_OFFER' | 'COUPON_UPDATE' | 'GENERAL' | string;
-  data?: any;
+  data?: { url?: string };
   show?: boolean;
 }
 
+interface NewOfferEvent {
+  storeName: string;
+  title: string;
+  offerId: string;
+}
+
+interface CouponUpdateEvent {
+  offerTitle: string;
+  status: 'USED' | 'EXPIRED';
+}
+
 const NotificationContext = createContext<{
-  addNotification: (title: string, body: string, type?: string, data?: any) => void;
+  addNotification: (title: string, body: string, type?: string, data?: { url?: string }) => void;
 } | null>(null);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
@@ -40,7 +51,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     };
   }, []);
 
-  const addNotification = (title: string, body: string, type?: string, data?: any) => {
+  const addNotification = useCallback((title: string, body: string, type?: string, data?: { url?: string }) => {
     const notification = { id: Date.now().toString(), title, body, type, data, show: true };
     setNotifications((prev) => [...prev, notification]);
     setTimeout(() => {
@@ -49,12 +60,12 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         setNotifications((prev) => prev.filter((n) => n.id !== notification.id));
       }, 300);
     }, 8000); // 8 seconds
-  };
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('new_offer', (data: any) => {
+    socket.on('new_offer', (data: NewOfferEvent) => {
       addNotification(
         `🔥 عرض جديد!`,
         `${data.storeName}: ${data.title}`,
@@ -63,7 +74,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       );
     });
 
-    socket.on('coupon_update', (data: any) => {
+    socket.on('coupon_update', (data: CouponUpdateEvent) => {
       const statusText = data.status === 'USED' ? 'تم تفعيله بنجاح' : 'انتهت صلاحيته';
       addNotification(
         `🎫 تحديث للكوبون`,
@@ -77,7 +88,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       socket.off('new_offer');
       socket.off('coupon_update');
     };
-  }, [socket]);
+  }, [socket, addNotification]);
 
   const handleToastClick = (notif: Notification) => {
     if (notif.data?.url) {

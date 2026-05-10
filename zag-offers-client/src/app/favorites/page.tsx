@@ -7,14 +7,27 @@ import Link from 'next/link';
 import { OfferCard } from '@/components/offer-card';
 import { API_URL } from '@/lib/constants';
 
+interface Offer {
+  id: string;
+  title: string;
+  discount: string;
+  endDate: string;
+  store: {
+    id: string;
+    name: string;
+    logo?: string;
+    area: string;
+  };
+}
+
 export default function FavoritesPage() {
-  const [favorites, setFavorites] = useState<any[]>([]);
+  const [favorites, setFavorites] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
+    setTimeout(() => setIsLoggedIn(!!token), 0);
   }, []);
 
   const fetchFavorites = useCallback(async () => {
@@ -34,7 +47,7 @@ export default function FavoritesPage() {
       if (res.ok) {
         const data = await res.json();
         // Transform data to match offer structure
-        const offers = data.map((fav: any) => ({
+        const offers = data.map((fav: { offer: Offer }) => ({
           ...fav.offer,
           store: fav.offer.store
         }));
@@ -51,7 +64,7 @@ export default function FavoritesPage() {
   }, []);
 
   useEffect(() => {
-    fetchFavorites();
+    setTimeout(() => fetchFavorites(), 0);
   }, [fetchFavorites]);
 
   // Re-fetch when auth state changes

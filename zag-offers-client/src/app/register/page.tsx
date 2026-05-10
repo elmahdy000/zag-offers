@@ -73,8 +73,11 @@ export default function RegisterPage() {
       localStorage.setItem('token', res.data.access_token);
       localStorage.setItem('user', JSON.stringify(res.data.user));
       router.replace('/');
-    } catch (err: any) {
-      const msg = err.response?.data?.message;
+    } catch (err) {
+      let msg = null;
+      if (axios.isAxiosError(err)) {
+        msg = err.response?.data?.message;
+      }
       if (msg) {
         setError(Array.isArray(msg) ? msg.join(' | ') : msg);
       } else {

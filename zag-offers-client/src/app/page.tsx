@@ -21,9 +21,11 @@ function useDebounce<T>(value: T, delay: number): T {
 
 // ─── Analytics Hook ───────────────────────────────────
 function useAnalytics() {
-  const trackEvent = useCallback((event: string, params?: Record<string, any>) => {
+  const trackEvent = useCallback((event: string, params?: Record<string, unknown>) => {
     // Google Analytics 4
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     if (typeof window !== 'undefined' && (window as any).gtag) {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       (window as any).gtag('event', event, params);
     }
     // Custom analytics logging
@@ -34,21 +36,28 @@ function useAnalytics() {
 
 type SortOption = 'newest' | 'expiring' | 'popular' | 'discount';
 
+interface Category {
+  id: string;
+  name: string;
+}
+
+interface Store {
+  id: string;
+  name: string;
+  logo: string;
+  area: string;
+  categoryId?: string;
+  category?: Category;
+}
+
 interface Offer {
   id: string;
   title: string;
   discount: string;
   endDate: string;
-  createdAt?: string;   // returned by backend, used for "newest" sorting
+  createdAt?: string;
   featured: boolean;
-  store: {
-    id: string;
-    name: string;
-    logo: string;
-    area: string;
-    categoryId?: string;
-    category?: { id: string; name: string };
-  };
+  store: Store;
 }
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
@@ -74,8 +83,8 @@ function HomePageContent() {
   const { trackEvent } = useAnalytics();
 
   const [offers,     setOffers]     = useState<Offer[]>([]);
-  const [categories, setCategories] = useState<any[]>([]);
-  const [stores,     setStores]     = useState<any[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [stores,     setStores]     = useState<Store[]>([]);
   const [loading,    setLoading]    = useState(true);
   const [error,      setError]      = useState<string | null>(null);
   const [search,     setSearch]     = useState('');
@@ -92,10 +101,12 @@ function HomePageContent() {
       if (cached) {
         const { data, timestamp } = JSON.parse(cached);
         if (Date.now() - timestamp < CACHE_DURATION) {
-          setOffers(data.offers || []);
-          setCategories(data.categories || []);
-          setStores(data.stores || []);
-          setLoading(false);
+          setTimeout(() => {
+            setOffers(data.offers || []);
+            setCategories(data.categories || []);
+            setStores(data.stores || []);
+            setLoading(false);
+          }, 0);
           trackEvent('cache_hit', { source: 'localStorage' });
         }
       }
@@ -130,8 +141,8 @@ function HomePageContent() {
       ]);
 
       let newOffers: Offer[] = [];
-      let newCategories: any[] = [];
-      let newStores: any[] = [];
+      let newCategories: Category[] = [];
+      let newStores: Store[] = [];
 
       if (offRes.ok) {
         const data = await offRes.json();
@@ -165,8 +176,12 @@ function HomePageContent() {
     finally { setLoading(false); }
   }, [trackEvent]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
-  useEffect(() => { if (catIdParam) setActiveCat(catIdParam); }, [catIdParam]);
+  useEffect(() => { setTimeout(() => fetchData(), 0); }, [fetchData]);
+  useEffect(() => { 
+    if (catIdParam) {
+      setTimeout(() => setActiveCat(catIdParam), 0);
+    }
+  }, [catIdParam]);
 
   // Track search analytics (debounced) — compute count inline to avoid stale closure
   useEffect(() => {

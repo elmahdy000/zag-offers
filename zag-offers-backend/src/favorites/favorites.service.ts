@@ -23,14 +23,16 @@ export class FavoritesService {
       await this.prisma.favorite.create({
         data: { userId, offerId },
       });
-      
-      const offer = await this.prisma.offer.findUnique({ where: { id: offerId }});
+
+      const offer = await this.prisma.offer.findUnique({
+        where: { id: offerId },
+      });
       if (offer) {
         void this.analyticsService.logEvent({
           userId,
           offerId,
           storeId: offer.storeId,
-          eventType: 'OFFER_FAVORITE'
+          eventType: 'OFFER_FAVORITE',
         });
       }
 

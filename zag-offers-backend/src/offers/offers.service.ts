@@ -152,12 +152,12 @@ export class OffersService {
           },
         },
         _count: {
-          select: { 
+          select: {
             coupons: {
-              where: { status: 'USED' }
-            }
-          }
-        }
+              where: { status: 'USED' },
+            },
+          },
+        },
       },
     });
 
@@ -195,11 +195,11 @@ export class OffersService {
     return this.prisma.offer.findMany({
       where: { storeId: store.id },
       orderBy: { createdAt: 'desc' },
-      include: { 
+      include: {
         store: true,
         _count: {
-          select: { coupons: true }
-        }
+          select: { coupons: true },
+        },
       },
     });
   }
@@ -244,10 +244,12 @@ export class OffersService {
 
     // تنظيف الصور القديمة لو تم استبدالها
     if (data.images && Array.isArray(data.images)) {
-      const oldImages = offer.images as string[];
-      const newImages = data.images as string[];
-      
-      const imagesToDelete = oldImages.filter(img => !newImages.includes(img));
+      const oldImages = offer.images;
+      const newImages = data.images;
+
+      const imagesToDelete = oldImages.filter(
+        (img) => !newImages.includes(img),
+      );
       for (const img of imagesToDelete) {
         await this.uploadService.deleteImage(img);
       }

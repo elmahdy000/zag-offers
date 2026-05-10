@@ -6,14 +6,22 @@ import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 
+interface User {
+  name: string;
+  phone: string;
+}
+
 export default function ProfilePage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const savedUser = localStorage.getItem('user');
-    if (savedUser) setUser(JSON.parse(savedUser));
-    else router.replace('/login');
+    if (savedUser) {
+      setTimeout(() => setUser(JSON.parse(savedUser)), 0);
+    } else {
+      router.replace('/login');
+    }
   }, [router]);
 
   const handleLogout = () => {

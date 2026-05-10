@@ -23,10 +23,12 @@ export class RecommendationsService {
 
     // إضافة منطقة المستخدم الأساسية كعامل ترجيح إذا لم تكن موجودة
     if (user.area && !areaWeights[user.area]) {
-      areaWeights[user.area] = 2; 
+      areaWeights[user.area] = 2;
     }
 
-    const hasInterests = Object.keys(categoryWeights).length > 0 || Object.keys(areaWeights).length > 0;
+    const hasInterests =
+      Object.keys(categoryWeights).length > 0 ||
+      Object.keys(areaWeights).length > 0;
 
     // إذا كان مستخدم جديد تماماً وليس لديه سلوك مسجل، نعرض له العروض الشائعة (التريند)
     if (!hasInterests) {
@@ -70,7 +72,7 @@ export class RecommendationsService {
       if (categoryWeights[catId]) {
         score += categoryWeights[catId] * 2; // التصنيف له وزن أعلى
       }
-      
+
       if (area && areaWeights[area]) {
         score += areaWeights[area];
       }
@@ -82,7 +84,11 @@ export class RecommendationsService {
     scoredOffers.sort((a, b) => b._score - a._score);
 
     // إزالة حقل التقييم قبل الإرجاع
-    return scoredOffers.slice(0, 10).map(({ _score, ...offer }) => offer);
+    return scoredOffers.slice(0, 10).map((o) => {
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const { _score, ...offer } = o;
+      return offer;
+    });
   }
 
   async getTrendingOffers() {

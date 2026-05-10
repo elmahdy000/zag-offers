@@ -21,7 +21,7 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<any[]>([]);
+  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

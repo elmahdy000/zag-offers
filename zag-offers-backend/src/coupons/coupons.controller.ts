@@ -35,7 +35,10 @@ export class CouponsController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'استخراج كوبون جديد لعرض معين' })
   @ApiResponse({ status: 201, description: 'تم استخراج الكوبون بنجاح' })
-  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من طلبات الكوبونات (20/ساعة)' })
+  @ApiResponse({
+    status: 429,
+    description: 'تجاوزت الحد المسموح من طلبات الكوبونات (20/ساعة)',
+  })
   generate(
     @Body() generateCouponDto: GenerateCouponDto,
     @Request() req: { user: { id: string } },
@@ -63,7 +66,10 @@ export class CouponsController {
     status: 400,
     description: 'الكوبون منتهي أو مستخدم أو لا يخص هذا المحل',
   })
-  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من محاولات التفعيل (5/ثانية)' })
+  @ApiResponse({
+    status: 429,
+    description: 'تجاوزت الحد المسموح من محاولات التفعيل (5/ثانية)',
+  })
   redeem(
     @Request() req: { user: { id: string } },
     @Body() body: RedeemCouponDto,

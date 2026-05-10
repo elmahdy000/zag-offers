@@ -13,12 +13,19 @@ import {
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
+import { UpdateOfferDto } from './dto/update-offer.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role, OfferStatus } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
+import {
+  ApiTags,
+  ApiOperation,
+  ApiBearerAuth,
+  ApiResponse,
+} from '@nestjs/swagger';
 
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { UseInterceptors } from '@nestjs/common';
@@ -41,7 +48,10 @@ export class OffersController {
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new offer' })
   @ApiResponse({ status: 201, description: 'تم إنشاء العرض بنجاح' })
-  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من إنشاء العروض (10/ساعة)' })
+  @ApiResponse({
+    status: 429,
+    description: 'تجاوزت الحد المسموح من إنشاء العروض (10/ساعة)',
+  })
   async create(
     @Body() createOfferDto: CreateOfferDto,
     @Request() req: { user: { id: string } },
@@ -135,11 +145,15 @@ export class OffersController {
   }
 
   @Get(':id')
+  @UseGuards(OptionalJwtAuthGuard)
   @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get offer by ID' })
-  async findOne(@Param('id') id: string, @Request() req: any) {
+  async findOne(
+    @Param('id') id: string,
+    @Request() req: { user?: { id: string } },
+  ) {
     const offer = await this.offersService.findOne(id);
-    
+
     // تسجيل المشاهدة لو العميل مسجل دخول
     if (offer && req.user?.id) {
       void this.analyticsService.logEvent({
@@ -149,7 +163,7 @@ export class OffersController {
         eventType: 'OFFER_VIEW',
       });
     }
-    
+
     return offer;
   }
 
@@ -160,11 +174,11 @@ export class OffersController {
   @ApiOperation({ summary: 'Update an offer' })
   update(
     @Param('id') id: string,
-    @Body() data: any, // Using any here to handle incoming ISO strings before mapping
+    @Body() data: UpdateOfferDto,
     @Request() req: { user: { id: string } },
   ) {
-    const updateData: any = { ...data };
-    
+    const updateData: Prisma.OfferUpdateInput = { ...data };
+
     if (data.startDate) {
       updateData.startDate = new Date(data.startDate);
     }

@@ -80,6 +80,7 @@ export default function MerchantDashboard() {
 
   const playSuccessSound = () => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -100,6 +101,7 @@ export default function MerchantDashboard() {
 
   const playErrorSound = () => {
     try {
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       const audioContext = new (window.AudioContext || (window as any).webkitAudioContext)();
       const oscillator = audioContext.createOscillator();
       const gainNode = audioContext.createGain();
@@ -169,14 +171,12 @@ export default function MerchantDashboard() {
   const storeId = stats?.storeId;
 
   const socketRef = useSocket(merchantId);
-  const socket = socketRef.current;
-  
   useEffect(() => {
     // Load scan history from localStorage
     const savedHistory = localStorage.getItem('scan_history');
     if (savedHistory) {
       try {
-        setScanHistory(JSON.parse(savedHistory));
+        setTimeout(() => setScanHistory(JSON.parse(savedHistory)), 0);
       } catch (e) {
         console.error('Failed to load scan history:', e);
       }
@@ -191,9 +191,10 @@ export default function MerchantDashboard() {
   }, []);
 
   useEffect(() => {
+    const socket = socketRef.current;
     if (!socket) return;
 
-    socket.on('merchant_notification', (data: any) => {
+    socket.on('merchant_notification', (data: { type: string; storeName?: string; comment?: string; offerTitle?: string; message?: string }) => {
       let msg = '🔔 إشعار جديد';
       if (data.type === 'STORE_APPROVED') msg = `✅ تم قبول متجرك "${data.storeName}"!`;
       else if (data.type === 'STORE_REJECTED') msg = `❌ تم رفض متجرك "${data.storeName}".`;
@@ -220,7 +221,7 @@ export default function MerchantDashboard() {
     return () => {
       socket.off('merchant_notification');
     };
-  }, [socket, refetchStats]);
+  }, [socketRef, refetchStats]);
 
   const handleRedeem = async (codeToRedeem?: string) => {
     const targetCode = codeToRedeem || couponCode;
@@ -245,7 +246,7 @@ export default function MerchantDashboard() {
       redeemCoupon(
         { code: finalCode, storeId },
         {
-          onSuccess: (res: any) => {
+          onSuccess: (res: { offer?: { title: string }; customerName?: string }) => {
             setMessage({ type: 'success', text: '🎉 تم تفعيل الكوبون بنجاح!' });
             setCouponCode('');
 
@@ -267,7 +268,7 @@ export default function MerchantDashboard() {
           },
           onError: (err: unknown) => {
             const axiosErr = err as { response?: { data?: { message?: string } } };
-            let errorMessage = axiosErr.response?.data?.message ?? (err as Error).message ?? 'الكود غير صحيح أو منتهي الصلاحية';
+            const errorMessage = axiosErr.response?.data?.message ?? (err as Error).message ?? 'الكود غير صحيح أو منتهي الصلاحية';
 
             // Add helpful suggestions based on error type
             let suggestion = '';
@@ -384,7 +385,7 @@ export default function MerchantDashboard() {
           <div className="flex-1 overflow-y-auto">
             {stats?.recentCoupons && stats.recentCoupons.length > 0 ? (
               <div className="divide-y divide-white/5">
-                {stats.recentCoupons.map((coupon: any) => (
+                {stats.recentCoupons.map((coupon: { id: string; customerName: string; offerTitle: string; code: string; createdAt: string }) => (
                   <div key={coupon.id} className="p-5 flex items-center justify-between hover:bg-white/[0.01] transition-colors">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/5 font-black text-[15px] text-text-dimmer uppercase">

@@ -1,6 +1,22 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { API_URL } from '@/lib/constants';
 
+export interface Offer {
+  id: string;
+  title: string;
+  description: string;
+  images: string[];
+  discount: string;
+  startDate: string;
+  endDate: string;
+  storeId: string;
+  store: {
+    id: string;
+    name: string;
+    logo?: string;
+  };
+}
+
 // جلب العروض
 export function useOffers(params?: {
   categoryId?: string;
@@ -171,7 +187,7 @@ export function useFavorites() {
 
       if (!res.ok) throw new Error('Failed to fetch favorites');
       const data = await res.json();
-      return data.map((fav: any) => ({ ...fav.offer, store: fav.offer.store }));
+      return data.map((fav: { offer: Offer }) => ({ ...fav.offer, store: fav.offer.store }));
     },
     // SSR-safe: evaluate localStorage only in browser
     enabled: typeof window !== 'undefined' && !!localStorage.getItem('token'),

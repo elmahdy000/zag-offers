@@ -170,12 +170,22 @@ export class StoresService {
     if (!store) throw new NotFoundException('المحل غير موجود');
 
     // تنظيف اللوجو القديم
-    if (data.logo && typeof data.logo === 'string' && store.logo && data.logo !== store.logo) {
+    if (
+      data.logo &&
+      typeof data.logo === 'string' &&
+      store.logo &&
+      data.logo !== store.logo
+    ) {
       await this.uploadService.deleteImage(store.logo);
     }
-    
+
     // تنظيف صورة الغلاف القديمة
-    if (data.coverImage && typeof data.coverImage === 'string' && store.coverImage && data.coverImage !== store.coverImage) {
+    if (
+      data.coverImage &&
+      typeof data.coverImage === 'string' &&
+      store.coverImage &&
+      data.coverImage !== store.coverImage
+    ) {
       await this.uploadService.deleteImage(store.coverImage);
     }
 

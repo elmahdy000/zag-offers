@@ -149,6 +149,25 @@ function NotificationPortal({
   return createPortal(panel, document.body);
 }
 
+/* ─── NavLink Helper ────────────────────────────────────────── */
+const NavLink = ({ href, label, active }: { href: string; label: string; active: boolean }) => {
+  return (
+    <Link
+      href={href}
+      className={`relative text-sm font-bold transition-colors
+        ${active ? 'text-[#FF6B00]' : 'text-[#9A9A9A] hover:text-[#F0F0F0]'}`}
+    >
+      {label}
+      {active && (
+        <motion.div
+          layoutId="nav-underline"
+          className="absolute -bottom-1 right-0 left-0 h-[2px] bg-[#FF6B00] rounded-full"
+        />
+      )}
+    </Link>
+  );
+};
+
 /* ─── Navbar ─────────────────────────────────────────────── */
 export function Navbar() {
   const pathname = usePathname();
@@ -162,9 +181,9 @@ export function Navbar() {
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { setTimeout(() => setMounted(true), 0); }, []);
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -176,9 +195,9 @@ export function Navbar() {
         setNotifications(Array.isArray(data) ? data : []);
       }
     } catch { /* ignore */ }
-  };
+  }, []);
 
-  const markAllRead = async () => {
+  const markAllRead = useCallback(async () => {
     try {
       const token = localStorage.getItem('token');
       if (!token) return;
@@ -188,9 +207,9 @@ export function Navbar() {
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
     } catch { /* ignore */ }
-  };
+  }, []);
 
-  const handleNotifClick = async (n: ClientNotification) => {
+  const handleNotifClick = useCallback(async (n: ClientNotification) => {
     if (!n.isRead) {
       setNotifications((prev) =>
         prev.map((x) => (x.id === n.id ? { ...x, isRead: true } : x))
@@ -207,11 +226,11 @@ export function Navbar() {
     }
     setShowBell(false);
     router.push(getNotifRoute(n));
-  };
+  }, [router]);
 
   // Update login status
   useEffect(() => {
-    const checkAuth = () => setIsLoggedIn(!!localStorage.getItem('token'));
+    const checkAuth = () => setTimeout(() => setIsLoggedIn(!!localStorage.getItem('token')), 0);
     checkAuth();
     window.addEventListener('auth-change', checkAuth);
     window.addEventListener('storage', checkAuth);
@@ -223,11 +242,11 @@ export function Navbar() {
 
   // Fetch notifications
   useEffect(() => {
-    if (!isLoggedIn) { setNotifications([]); return; }
-    fetchNotifications();
+    if (!isLoggedIn) { setTimeout(() => setNotifications([]), 0); return; }
+    setTimeout(() => fetchNotifications(), 0);
     const interval = setInterval(fetchNotifications, 30_000);
     return () => clearInterval(interval);
-  }, [isLoggedIn]);
+  }, [isLoggedIn, fetchNotifications]);
 
   useEffect(() => {
     const onScroll = () => setIsScrolled(window.scrollY > 20);
@@ -235,26 +254,11 @@ export function Navbar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, []);
 
-  useEffect(() => { setIsMobileMenuOpen(false); }, [pathname]);
+  useEffect(() => { 
+    setTimeout(() => setIsMobileMenuOpen(false), 0); 
+  }, [pathname]);
 
-  const NavLink = ({ href, label }: { href: string; label: string }) => {
-    const active = pathname === href;
-    return (
-      <Link
-        href={href}
-        className={`relative text-sm font-bold transition-colors
-          ${active ? 'text-[#FF6B00]' : 'text-[#9A9A9A] hover:text-[#F0F0F0]'}`}
-      >
-        {label}
-        {active && (
-          <motion.div
-            layoutId="nav-underline"
-            className="absolute -bottom-1 right-0 left-0 h-[2px] bg-[#FF6B00] rounded-full"
-          />
-        )}
-      </Link>
-    );
-  };
+
 
   return (
     <>
@@ -288,10 +292,10 @@ export function Navbar() {
 
           {/* Desktop Links */}
           <div className="hidden md:flex items-center gap-8">
-            <NavLink href="/"           label="الرئيسية" />
-            <NavLink href="/categories" label="الأقسام" />
-            <NavLink href="/stores"     label="المحلات" />
-            <NavLink href="/offers"     label="أقوى العروض" />
+            <NavLink href="/"           label="الرئيسية" active={pathname === "/"} />
+            <NavLink href="/categories" label="الأقسام"  active={pathname === "/categories"} />
+            <NavLink href="/stores"     label="المحلات"  active={pathname === "/stores"} />
+            <NavLink href="/offers"     label="أقوى العروض" active={pathname === "/offers"} />
             <Link 
               href="https://vendor.zagoffers.online" 
               target="_blank"
