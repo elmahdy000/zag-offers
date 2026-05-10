@@ -38,53 +38,27 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
 
-    const trimmedName = name.trim();
     const trimmedPhone = phone.trim();
-
-    if (!trimmedName || trimmedName.length < 2) {
-      setError('يرجى إدخال اسم صحيح');
-      setLoading(false);
-      return;
-    }
-
     const phoneRegex = /^01[0-9]{9}$/;
     if (!phoneRegex.test(trimmedPhone)) {
-      setError('يرجى إدخال رقم موبايل مصري صحيح (11 رقم)');
-      setLoading(false);
-      return;
-    }
-
-    if (password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 خانات على الأقل');
+      setError('يرجى إدخال رقم موبايل مصري صحيح');
       setLoading(false);
       return;
     }
 
     try {
-      const regRes = await axios.post(`${API_URL}/auth/register`, {
-        name: trimmedName,
+      const res = await axios.post(`${API_URL}/auth/register`, {
         phone: trimmedPhone,
         password,
-      });
-      
-      if (regRes.data.user?.role === 'MERCHANT' || regRes.data.user?.role === 'ADMIN') {
-        setError('هذا الحساب مسجل كتاجر. يرجى الدخول من لوحة التاجر.');
-        setLoading(false);
-        return;
-      }
-      
-      const res = await axios.post(`${API_URL}/auth/login`, {
-        phone: trimmedPhone,
-        password,
+        name,
       });
       
       localStorage.setItem('token', res.data.access_token);
-      localStorage.setItem('user', JSON.stringify(res.data.user));
+      localStorage.setItem('user', JSON.stringify(res.data));
       window.dispatchEvent(new Event('auth-change'));
       router.replace('/');
     } catch (err: any) {
-      const msg = err.response?.data?.message;
-      setError(Array.isArray(msg) ? msg[0] : (msg || 'عذراً، هذا الرقم مسجل مسبقاً أو هناك خطأ في البيانات'));
+      setError(err.response?.data?.message || 'حدث خطأ أثناء التسجيل');
     } finally {
       setLoading(false);
     }
@@ -113,31 +87,33 @@ export default function RegisterPage() {
       });
       window.google.accounts.id.prompt();
     } catch (e) {
-      setError('يرجى ضبط إعدادات Google API Keys');
+      setError('يرجى التأكد من إعدادات Google API');
       setSocialLoading(null);
     }
   };
 
   const handleFacebookLogin = () => {
-    setError('تسجيل فيسبوك يتطلب App ID نشط');
+    setError('تسجيل فيسبوك يتطلب إضافة الـ App ID في الإعدادات');
   };
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
-      <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#FF6B00]/5 blur-[100px] rounded-full -z-10" />
+      <div className="absolute top/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[480px] glass p-8 sm:p-12 rounded-[3rem] shadow-2xl border border-white/5 relative"
+        className="w-full max-w-[450px] glass p-8 sm:p-12 rounded-[3rem] shadow-2xl border border-white/5 relative"
       >
         <div className="text-center mb-10">
-          <div className="w-16 h-16 bg-[#FF6B00] rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-900/40 mx-auto mb-6 rotate-3 hover:rotate-0 transition-transform duration-500">
-            <ShoppingBag className="text-white" size={32} />
-          </div>
-          <h1 className="text-3xl font-black mb-3 tracking-tight">ابدأ التوفير الآن</h1>
-          <p className="text-white/40 text-sm font-bold max-w-[280px] mx-auto">انضم لمجتمع زاج واستمتع بأقوى العروض في الزقازيق</p>
+          <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
+            <div className="w-16 h-16 bg-[#FF6B00] rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-900/40 group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+              <ShoppingBag className="text-white" size={32} />
+            </div>
+          </Link>
+          <h1 className="text-3xl font-black mb-3 tracking-tight">إنشاء حساب جديد</h1>
+          <p className="text-white/40 text-sm font-bold">انضم لعروض الزقازيق واستمتع بالخصومات</p>
         </div>
 
         {/* Social Login Buttons */}
