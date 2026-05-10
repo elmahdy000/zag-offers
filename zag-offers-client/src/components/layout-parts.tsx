@@ -552,20 +552,18 @@ export function Footer() {
             <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed">
               احصل على أفضل العروض والكوبونات مباشرة إلى بريدك الإلكتروني
             </p>
-            <form className="relative group flex flex-col" onSubmit={e => e.preventDefault()}>
-              <div className="relative">
+            <form className="space-y-3" onSubmit={e => e.preventDefault()}>
+              <div className="flex items-center gap-3 bg-[#1A1A1A] border border-white/10 rounded-2xl px-4 py-1 focus-within:border-[#FF6B00]/50 transition-all">
+                <Mail className="text-white/20" size={18} />
                 <input 
                   type="email" 
                   placeholder="ادخل بريدك الإلكتروني"
-                  className="w-full bg-[#1A1A1A] border border-white/10 rounded-2xl py-4 pr-12 pl-5
-                             text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF6B00]/50
-                             transition-all"
+                  className="w-full bg-transparent py-4 text-sm text-white placeholder:text-white/20 focus:outline-none transition-all"
                 />
-                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
               </div>
               <button 
                 type="submit"
-                className="mt-3 w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl
+                className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl
                            shadow-[0_8px_20px_rgba(255,107,0,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
               >
                 اشترك
