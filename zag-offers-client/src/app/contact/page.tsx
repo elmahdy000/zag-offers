@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 
 export default function ContactPage() {
   const handleWhatsApp = () => {
-    window.open('https://wa.me/201234567890', '_blank');
+    window.open('https://wa.me/201066711545', '_blank');
   };
 
   return (
@@ -72,7 +72,7 @@ export default function ContactPage() {
               </div>
               <div>
                 <p className="text-[11px] font-black text-white/30 uppercase tracking-widest mb-1">واتساب (مباشر)</p>
-                <p className="text-sm font-bold text-white" dir="ltr">+20 123 456 7890</p>
+                <p className="text-sm font-bold text-white" dir="ltr">+20 10 6671 1545</p>
               </div>
             </div>
           </div>
