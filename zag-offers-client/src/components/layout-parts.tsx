@@ -410,60 +410,68 @@ export function Navbar() {
 export function Footer() {
   return (
     <footer className="bg-[#151515] border-t border-white/[0.07] pt-14 pb-8 mt-20" dir="rtl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-1 md:grid-cols-4 gap-10">
-        <div className="col-span-1 md:col-span-2">
-          <Link href="/" className="flex items-center gap-2.5 mb-5">
-            <div className="w-9 h-9 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-xl
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-3 md:grid-cols-4 gap-4 sm:gap-10">
+        <div className="col-span-3 md:col-span-2 mb-4 md:mb-0">
+          <Link href="/" className="flex items-center gap-2 mb-4">
+            <div className="w-7 h-7 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-lg sm:rounded-xl
                             flex items-center justify-center shadow-[0_4px_12px_rgba(255,107,0,0.35)]">
-              <ShoppingBag className="text-white" size={18} />
+              <ShoppingBag className="text-white" size={14} />
             </div>
-            <span className="text-xl font-black">Zag<span className="text-[#FF6B00]">Offers</span></span>
+            <span className="text-lg sm:text-xl font-black">Zag<span className="text-[#FF6B00]">Offers</span></span>
           </Link>
-          <p className="text-[#9A9A9A] text-sm leading-relaxed max-w-sm mb-6">
+          <p className="text-[#9A9A9A] text-[10px] sm:text-sm leading-relaxed max-w-sm mb-5">
             وجهتك الأولى لأفضل العروض والخصومات في مدينة الزقازيق. كوبونات حصرية من أفضل المحلات والخدمات.
           </p>
-          <div className="flex gap-3">
-            {['f', '𝕏', 'ig'].map((s, i) => (
-              <div key={i}
-                className="w-9 h-9 rounded-full bg-white/[0.05] border border-white/[0.07]
-                           flex items-center justify-center text-sm text-[#9A9A9A] font-bold
+          <div className="flex gap-2">
+            {[
+              { icon: 'f', href: '#' },
+              { icon: '𝕏', href: '#' },
+              { icon: 'ig', href: '#' }
+            ].map((s, i) => (
+              <Link key={i} href={s.href}
+                className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/[0.05] border border-white/[0.07]
+                           flex items-center justify-center text-[10px] sm:text-sm text-[#9A9A9A] font-bold
                            hover:bg-[#FF6B00] hover:text-white hover:border-[#FF6B00]
                            transition-all cursor-pointer">
-                {s}
-              </div>
+                {s.icon}
+              </Link>
             ))}
           </div>
         </div>
+        
         <div>
-          <h4 className="text-[#F0F0F0] font-bold mb-5">روابط سريعة</h4>
-          <ul className="space-y-3 text-[#9A9A9A] text-sm font-semibold">
-            {['عن زقازيق أوفرز', 'كيفية استخدام الكوبونات', 'الأسئلة الشائعة', 'اتصل بنا'].map(t => (
-              <li key={t} className="hover:text-[#FF6B00] cursor-pointer transition-colors">{t}</li>
-            ))}
+          <h4 className="text-[#F0F0F0] text-[11px] sm:text-base font-bold mb-4 sm:mb-5">روابط سريعة</h4>
+          <ul className="space-y-2 sm:space-y-3 text-[#9A9A9A] text-[9px] sm:text-sm font-semibold">
+            <li><Link href="/contact" className="hover:text-[#FF6B00] transition-colors">اتصل بنا</Link></li>
+            <li><Link href="/privacy" className="hover:text-[#FF6B00] transition-colors">سياسة الخصوصية</Link></li>
+            <li><Link href="/terms" className="hover:text-[#FF6B00] transition-colors">شروط الاستخدام</Link></li>
+            <li><Link href="/offers" className="hover:text-[#FF6B00] transition-colors">أحدث العروض</Link></li>
           </ul>
         </div>
+
         <div>
-          <h4 className="text-[#F0F0F0] font-bold mb-5">لأصحاب المحلات</h4>
-          <ul className="space-y-3 text-[#9A9A9A] text-sm font-semibold">
+          <h4 className="text-[#F0F0F0] text-[11px] sm:text-base font-bold mb-4 sm:mb-5">للتجار</h4>
+          <ul className="space-y-2 sm:space-y-3 text-[#9A9A9A] text-[9px] sm:text-sm font-semibold">
             <li>
-              <Link href="https://vendor.zagoffers.online/register" className="hover:text-[#FF6B00] transition-colors">سجل محلك الآن</Link>
+              <Link href="https://vendor.zagoffers.online/register" target="_blank" className="hover:text-[#FF6B00] transition-colors">سجل محلك</Link>
             </li>
             <li>
-              <Link href="https://vendor.zagoffers.online" className="hover:text-[#FF6B00] transition-colors">دخول لوحة التاجر</Link>
+              <Link href="https://vendor.zagoffers.online" target="_blank" className="hover:text-[#FF6B00] transition-colors">لوحة التاجر</Link>
             </li>
-            {['دليل التجار', 'باقات الاشتراك', 'شروط الخدمة'].map(t => (
-              <li key={t} className="hover:text-[#FF6B00] cursor-pointer transition-colors">{t}</li>
-            ))}
+            <li><Link href="/terms#vendors" className="hover:text-[#FF6B00] transition-colors">شروط التجار</Link></li>
+            <li><Link href="/contact" className="hover:text-[#FF6B00] transition-colors">دعم التجار</Link></li>
           </ul>
         </div>
       </div>
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-12 pt-6 border-t border-white/[0.07]
-                      flex flex-col sm:flex-row justify-between items-center gap-3
-                      text-xs font-bold text-[#9A9A9A]">
+
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10 pt-6 border-t border-white/[0.07]
+                      flex flex-col sm:flex-row justify-between items-center gap-4
+                      text-[9px] sm:text-xs font-bold text-[#9A9A9A]">
         <p>© 2026 ZagOffers — جميع الحقوق محفوظة.</p>
-        <div className="flex gap-5">
-          <span className="hover:text-[#FF6B00] cursor-pointer transition-colors">سياسة الخصوصية</span>
-          <span className="hover:text-[#FF6B00] cursor-pointer transition-colors">شروط الاستخدام</span>
+        <div className="flex gap-4 sm:gap-6">
+          <Link href="/privacy" className="hover:text-[#FF6B00] transition-colors">سياسة الخصوصية</Link>
+          <Link href="/terms" className="hover:text-[#FF6B00] transition-colors">شروط الاستخدام</Link>
+          <Link href="/contact" className="hover:text-[#FF6B00] transition-colors">تواصل معنا</Link>
         </div>
       </div>
     </footer>
