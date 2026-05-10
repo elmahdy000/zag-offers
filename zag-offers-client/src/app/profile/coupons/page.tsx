@@ -1,3 +1,4 @@
+'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Ticket, Clock, CheckCircle2, ShoppingBag, ArrowRight, X, QrCode } from 'lucide-react';
