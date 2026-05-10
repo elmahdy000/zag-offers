@@ -15,7 +15,7 @@ import { UsersService } from '../users/users.service';
 
 type SanitizedUser = Omit<
   User,
-  'password' | 'googleId' | 'facebookId' | 'fcmToken'
+  'password' | 'googleId' | 'facebookId' | 'fcmToken' | 'resetOtp' | 'resetOtpExpiry'
 >;
 
 type LoginUser = Pick<
