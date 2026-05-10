@@ -212,7 +212,7 @@ export function Navbar() {
       const token = localStorage.getItem('token');
       if (!token) return;
       await fetch(`${API_URL}/notifications/read-all`, {
-        method: 'PATCH',
+        method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
       });
       setNotifications((prev) => prev.map((n) => ({ ...n, isRead: true })));
@@ -228,7 +228,7 @@ export function Navbar() {
         const token = localStorage.getItem('token');
         if (token) {
           fetch(`${API_URL}/notifications/${n.id}/read`, {
-            method: 'PATCH',
+            method: 'POST',
             headers: { Authorization: `Bearer ${token}` },
           }).catch(() => {});
         }
