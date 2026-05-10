@@ -17,6 +17,7 @@ git pull origin main
 # تحديث و بناء Backend
 echo "🔧 Building Backend..."
 cd zag-offers-backend
+npm install
 npx prisma generate
 npm run build
 pm2 restart zag-backend
