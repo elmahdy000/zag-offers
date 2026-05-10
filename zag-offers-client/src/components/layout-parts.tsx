@@ -3,7 +3,12 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
-import { ShoppingBag, User, Heart, Menu, X, Bell, CheckCheck } from 'lucide-react';
+import { 
+  ShoppingBag, User, Heart, Menu, X, Bell, CheckCheck, 
+  Ticket, Phone, Shield, FileText, Tag, Building2, 
+  LayoutDashboard, FileCheck, Headphones, Store, Mail,
+  Link as LinkIcon
+} from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
@@ -423,63 +428,155 @@ export function Navbar() {
 /* ─── Footer ─────────────────────────────────────────────── */
 export function Footer() {
   return (
-    <footer className="bg-[#151515] border-t border-white/[0.07] pt-14 pb-8 mt-20" dir="rtl">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 grid grid-cols-3 md:grid-cols-4 gap-4 sm:gap-10">
-        <div className="col-span-3 md:col-span-2 mb-4 md:mb-0">
-          <Link href="/" className="flex items-center gap-2 mb-4">
-            <div className="w-7 h-7 sm:w-9 sm:h-9 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-lg sm:rounded-xl
-                            flex items-center justify-center shadow-[0_4px_12px_rgba(255,107,0,0.35)]">
-              <ShoppingBag className="text-white" size={14} />
+    <footer className="bg-[#111111] border-t border-white/[0.05] mt-20" dir="rtl">
+      {/* Top Banner */}
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-10 mb-16">
+        <Link 
+          href="/offers" 
+          className="group block relative overflow-hidden rounded-[2rem] p-8 sm:p-10 text-center
+                     bg-gradient-to-r from-[#2A1B12] via-[#3D2618] to-[#2A1B12]
+                     border border-white/[0.08] shadow-2xl hover:scale-[1.01] transition-all duration-500"
+        >
+          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+          <div className="relative flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
+            <div className="w-14 h-14 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,107,0,0.3)] group-hover:rotate-12 transition-transform">
+              <Ticket className="text-white" size={28} />
             </div>
-            <span className="text-lg sm:text-xl font-black">Zag<span className="text-[#FF6B00]">Offers</span></span>
-          </Link>
-          <p className="text-[#9A9A9A] text-[10px] sm:text-sm leading-relaxed max-w-sm mb-5">
-            وجهتك الأولى لأفضل العروض والخصومات في مدينة الزقازيق. كوبونات حصرية من أفضل المحلات والخدمات.
-          </p>
-          <div className="flex gap-2">
-            {[
-              { icon: 'f', href: '#' },
-              { icon: '𝕏', href: '#' },
-              { icon: 'ig', href: '#' }
-            ].map((s, i) => (
-              <Link key={i} href={s.href}
-                className="w-7 h-7 sm:w-9 sm:h-9 rounded-full bg-white/[0.05] border border-white/[0.07]
-                           flex items-center justify-center text-[10px] sm:text-sm text-[#9A9A9A] font-bold
-                           hover:bg-[#FF6B00] hover:text-white hover:border-[#FF6B00]
-                           transition-all cursor-pointer">
-                {s.icon}
-              </Link>
-            ))}
+            <h2 className="text-2xl sm:text-3xl font-black text-[#F0F0F0] tracking-tight">
+              🎟️ احصل على <span className="text-[#FF6B00]">الكوبون</span>
+            </h2>
           </div>
-        </div>
-        
-        <div>
-          <h4 className="text-[#F0F0F0] text-[11px] sm:text-base font-bold mb-4 sm:mb-5">روابط سريعة</h4>
-          <ul className="space-y-2 sm:space-y-3 text-[#9A9A9A] text-[9px] sm:text-sm font-semibold">
-            <li><Link href="/contact" className="hover:text-[#FF6B00] transition-colors">اتصل بنا</Link></li>
-            <li><Link href="/privacy" className="hover:text-[#FF6B00] transition-colors">سياسة الخصوصية</Link></li>
-            <li><Link href="/terms" className="hover:text-[#FF6B00] transition-colors">شروط الاستخدام</Link></li>
-            <li><Link href="/offers" className="hover:text-[#FF6B00] transition-colors">أحدث العروض</Link></li>
-          </ul>
-        </div>
-
-        <div>
-          <h4 className="text-[#F0F0F0] text-[11px] sm:text-base font-bold mb-4 sm:mb-5">للتجار</h4>
-          <ul className="space-y-2 sm:space-y-3 text-[#9A9A9A] text-[9px] sm:text-sm font-semibold">
-            <li>
-              <Link href="https://vendor.zagoffers.online/register" target="_blank" className="hover:text-[#FF6B00] transition-colors">سجل محلك</Link>
-            </li>
-            <li>
-              <Link href="https://vendor.zagoffers.online" target="_blank" className="hover:text-[#FF6B00] transition-colors">لوحة التاجر</Link>
-            </li>
-            <li><Link href="/terms#vendors" className="hover:text-[#FF6B00] transition-colors">شروط التجار</Link></li>
-            <li><Link href="/contact" className="hover:text-[#FF6B00] transition-colors">دعم التجار</Link></li>
-          </ul>
-        </div>
+        </Link>
       </div>
 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 mt-10 pt-6 border-t border-white/[0.07]
-                      flex flex-col sm:flex-row justify-between items-center gap-4
+      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
+          {/* Brand Info */}
+          <div className="space-y-6">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-[#FF6B00] rounded-xl flex items-center justify-center shadow-lg">
+                <ShoppingBag className="text-white" size={20} />
+              </div>
+              <span className="text-2xl font-black text-white">Zag<span className="text-[#FF6B00]">Offers</span></span>
+            </Link>
+            <p className="text-[#9A9A9A] text-sm leading-relaxed font-medium">
+              وجهتك الأولى لأفضل العروض والخصومات في مدينة الزقازيق. كوبونات حصرية من أفضل المحلات والخدمات.
+            </p>
+            <div className="flex gap-3">
+              {[
+                { 
+                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, 
+                  href: 'https://facebook.com/zagoffers' 
+                },
+                { 
+                  icon: <XIcon size={18} />, 
+                  href: 'https://x.com/zagoffers' 
+                },
+                { 
+                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, 
+                  href: 'https://instagram.com/zagoffers' 
+                }
+              ].map((s, i) => (
+                <Link key={i} href={s.href} target="_blank"
+                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10
+                             flex items-center justify-center text-[#9A9A9A] hover:text-[#FF6B00]
+                             hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all">
+                  {s.icon}
+                </Link>
+              ))}
+            </div>
+          </div>
+
+          {/* Quick Links */}
+          <div className="lg:pr-8">
+            <div className="flex items-center gap-2 mb-8">
+              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
+                <LinkIcon size={16} className="text-blue-500" />
+              </div>
+              <h4 className="text-lg font-black text-white">روابط سريعة</h4>
+            </div>
+            <ul className="space-y-4">
+              {[
+                { label: 'اتصل بنا', href: '/contact', icon: <Phone size={14} /> },
+                { label: 'سياسة الخصوصية', href: '/privacy', icon: <Shield size={14} /> },
+                { label: 'شروط الاستخدام', href: '/terms', icon: <FileText size={14} /> },
+                { label: 'أحدث العروض', href: '/offers', icon: <Tag size={14} /> }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="group flex items-center gap-3 text-[#9A9A9A] hover:text-white transition-colors font-bold text-sm">
+                    <span className="w-6 h-6 rounded bg-white/5 flex items-center justify-center group-hover:bg-[#FF6B00]/10 group-hover:text-[#FF6B00] transition-colors">
+                      {link.icon}
+                    </span>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Merchant Links */}
+          <div>
+            <div className="flex items-center gap-2 mb-8">
+              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
+                <Store size={16} className="text-orange-500" />
+              </div>
+              <h4 className="text-lg font-black text-white">للتجار</h4>
+            </div>
+            <ul className="space-y-4">
+              {[
+                { label: 'سجل محلك', href: 'https://vendor.zagoffers.online/register', icon: <Building2 size={14} /> },
+                { label: 'لوحة التاجر', href: 'https://vendor.zagoffers.online', icon: <LayoutDashboard size={14} /> },
+                { label: 'شروط التجار', href: '/terms#vendors', icon: <FileCheck size={14} /> },
+                { label: 'دعم التجار', href: '/contact', icon: <Headphones size={14} /> }
+              ].map((link, i) => (
+                <li key={i}>
+                  <Link href={link.href} className="group flex items-center gap-3 text-[#9A9A9A] hover:text-white transition-colors font-bold text-sm">
+                    <span className="w-6 h-6 rounded bg-white/5 flex items-center justify-center group-hover:bg-[#FF6B00]/10 group-hover:text-[#FF6B00] transition-colors">
+                      {link.icon}
+                    </span>
+                    {link.label}
+                  </Link>
+                </li>
+              ))}
+            </ul>
+          </div>
+
+          {/* Subscribe */}
+          <div className="space-y-6">
+            <div className="flex items-center gap-2 mb-2">
+              <div className="w-10 h-10 rounded-2xl bg-[#FF6B00]/10 flex items-center justify-center">
+                <Mail size={20} className="text-[#FF6B00]" />
+              </div>
+              <h4 className="text-lg font-black text-white">اشترك ليصلك كل جديد</h4>
+            </div>
+            <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed">
+              احصل على أفضل العروض والكوبونات مباشرة إلى بريدك الإلكتروني
+            </p>
+            <form className="relative group" onSubmit={e => e.preventDefault()}>
+              <input 
+                type="email" 
+                placeholder="ادخل بريدك الإلكتروني"
+                className="w-full bg-[#1A1A1A] border border-white/10 rounded-2xl py-4 px-5 pr-12
+                           text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF6B00]/50
+                           transition-all"
+              />
+              <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+              <button 
+                type="submit"
+                className="mt-3 w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl
+                           shadow-[0_8px_20px_rgba(255,107,0,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
+              >
+                اشترك
+              </button>
+            </form>
+          </div>
+        </div>
+
+        {/* Bottom Bar */}
+        <div className="mt-20 pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-[#9A9A9A] text-xs font-black">
+            © 2024 <span className="text-[#FF6B00]">ZagOffers</span>. جميع الحقوق محفوظة
+          </p>
                       text-[9px] sm:text-xs font-bold text-[#9A9A9A]">
         <p>© 2026 ZagOffers — جميع الحقوق محفوظة.</p>
         <div className="flex gap-4 sm:gap-6">

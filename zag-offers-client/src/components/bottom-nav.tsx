@@ -15,33 +15,33 @@ export default function BottomNav() {
   const pathname = usePathname();
 
   return (
-    <nav className="md:hidden fixed bottom-0 left-0 right-0 z-[60] px-4 pb-6 pt-2">
-      <div className="glass rounded-[2rem] border border-white/5 bg-bg/80 backdrop-blur-2xl shadow-2xl flex items-center justify-around p-2">
+    <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-[90%] max-w-sm">
+      <div className="bg-[#1A1A1A]/80 backdrop-blur-2xl border border-white/10 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] flex items-center justify-around p-2">
         {navItems.map((item) => {
           const isActive = pathname === item.path;
           return (
             <Link 
               key={item.path} 
               href={item.path}
-              className="relative flex flex-col items-center justify-center p-3 transition-all"
+              className="relative flex flex-col items-center justify-center py-2 px-4 transition-all"
             >
-              <div className={`relative z-10 transition-all ${isActive ? 'text-primary scale-110' : 'text-text-dim hover:text-text'}`}>
-                <item.icon size={22} strokeWidth={isActive ? 2.5 : 2} />
-              </div>
-              
               {isActive && (
                 <motion.div 
-                  layoutId="client-bottom-nav-active"
-                  className="absolute inset-0 bg-primary/10 rounded-2xl -z-0"
+                  layoutId="bottom-nav-active"
+                  className="absolute inset-0 bg-[#FF6B00]/10 rounded-2xl"
                   transition={{ type: "spring", bounce: 0.2, duration: 0.6 }}
                 />
               )}
+
+              <div className={`relative z-10 transition-all duration-300 ${isActive ? 'text-[#FF6B00] -translate-y-1' : 'text-[#9A9A9A]'}`}>
+                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+              </div>
               
               {isActive && (
                 <motion.span 
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-[9px] font-black mt-1 text-primary"
+                  className="relative z-10 text-[9px] font-black mt-1 text-[#FF6B00]"
                 >
                   {item.label}
                 </motion.span>
