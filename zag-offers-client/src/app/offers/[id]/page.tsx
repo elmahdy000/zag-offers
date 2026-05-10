@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
+import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle, MessageCircle } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
@@ -23,6 +23,7 @@ interface Offer {
     name: string;
     logo?: string;
     area: string;
+    whatsapp?: string;
     category?: {
       name: string;
     };
@@ -274,15 +275,6 @@ export default function OfferDetailsPage() {
                      <ArrowRight size={20} />
                    </button>
                    
-                   <div className="absolute bottom-6 left-1/2 -translate-x-1/2 flex gap-1.5">
-                     {offer.images.map((_: string, i: number) => (
-                       <button 
-                         key={i} 
-                         onClick={() => setActiveImg(i)}
-                         className={`h-1.5 rounded-full transition-all ${i === activeImg ? 'w-6 bg-[#FF6B00]' : 'w-1.5 bg-white/30'}`} 
-                       />
-                     ))}
-                   </div>
                  </>
                )}
 
@@ -301,6 +293,25 @@ export default function OfferDetailsPage() {
                   <h1 className="text-xl sm:text-2xl font-black text-white leading-tight drop-shadow-lg">{offer.title}</h1>
                </div>
             </div>
+            
+            {/* Gallery Thumbnails */}
+            {offer.images && offer.images.length > 1 && (
+              <div className="px-8 pt-4 flex gap-3 overflow-x-auto pb-2 scrollbar-hide">
+                {offer.images.map((img: string, i: number) => (
+                  <button 
+                    key={i}
+                    onClick={() => setActiveImg(i)}
+                    className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0 transition-all ${i === activeImg ? 'border-[#FF6B00] scale-95' : 'border-white/5 opacity-50 hover:opacity-100'}`}
+                  >
+                    <img 
+                      src={resolveImageUrl(img)} 
+                      className="w-full h-full object-cover" 
+                      alt=""
+                    />
+                  </button>
+                ))}
+              </div>
+            )}
             
             <div className="p-8">
                <div className="flex flex-wrap gap-4 mb-8">
@@ -403,8 +414,18 @@ export default function OfferDetailsPage() {
                       {copied ? <><CheckCircle2 size={14} className="text-emerald-400" /> تم النسخ!</> : <><Copy size={14} /> نسخ الكود</>}
                     </div>
                   </button>
+
+                  <a 
+                    href={`https://wa.me/${offer.store?.whatsapp || '201066711545'}?text=${encodeURIComponent(`السلام عليكم، أريد تفعيل كود الخصم الخاص بعرض: ${offer.title}\nكود الكوبون: ${couponCode}`)}`}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="w-full py-4 bg-emerald-500 text-white font-black rounded-2xl shadow-xl hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
+                  >
+                    <MessageCircle size={20} /> إرسال الكود للمحل (واتساب)
+                  </a>
+
                   <p className="text-[10px] text-center text-white/80 font-bold leading-relaxed">
-                    أظهر هذا الكود للكاشير عند الدفع للحصول على الخصم فوراً.
+                    أظهر هذا الكود للكاشير أو أرسله عبر الواتساب للمحل للحصول على الخصم فوراً.
                   </p>
                 </motion.div>
               )}
