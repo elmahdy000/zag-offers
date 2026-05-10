@@ -15,6 +15,10 @@ export const metadata: Metadata = {
   title: 'ZAG Offers - Vendor',
   description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
   manifest: '/manifest.json',
+  icons: {
+    icon: '/icon-192.svg',
+    apple: '/icon-192.svg',
+  },
   appleWebApp: {
     capable: true,
     statusBarStyle: 'black-translucent',
