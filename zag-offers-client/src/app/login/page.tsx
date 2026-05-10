@@ -21,86 +21,107 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
-    // تحقق من صيغة رقم الموبايل المصري
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    if (!phoneRegex.test(phone.trim())) {
-      setError('يرجى إدخال رقم موبايل مصري صحيح');
-      setLoading(false);
-      return;
-    }
+    const trimmedPhone = phone.trim();
 
-    // تحقق من طول كلمة المرور
-    if (password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+    // تحقق من صيغة رقم الموبايل المصري بمرونة
+    const phoneRegex = /^01[0-9]{9}$/;
+    if (!phoneRegex.test(trimmedPhone)) {
+      setError('يرجى إدخال رقم موبايل مصري صحيح');
       setLoading(false);
       return;
     }
 
     try {
       const res = await axios.post(`${API_URL}/auth/login`, {
-        phone: phone.trim(),
+        phone: trimmedPhone,
         password,
       });
       const { access_token, user } = res.data;
       
-      // تحقق من نوع المستخدم
       if (user.role === 'MERCHANT' || user.role === 'ADMIN') {
-        setError('هذا الحساب لحساب تاجر. يرجى استخدام تطبيق التاجر.');
+        setError('هذا الحساب مسجل كتاجر. يرجى الدخول من لوحة التاجر.');
         setLoading(false);
         return;
       }
       
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
-
-      // Dispatch custom event to notify Navbar
       window.dispatchEvent(new Event('auth-change'));
-
       router.replace('/');
-    } catch (err) {
-      setError('بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.');
+    } catch (err: any) {
+      setError('رقم الموبايل أو كلمة المرور غير صحيحة');
     } finally {
       setLoading(false);
     }
   };
 
+  const handleSocialLogin = (platform: 'google' | 'facebook') => {
+    alert(`تسجيل الدخول عبر ${platform === 'google' ? 'جوجل' : 'فيسبوك'} قيد التفعيل حالياً`);
+  };
+
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4">
-      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
+    <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
+      {/* Dynamic Background Effects */}
+      <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
       
       <motion.div 
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-[400px] glass p-8 sm:p-10 rounded-[32px] shadow-2xl relative overflow-hidden"
+        initial={{ opacity: 0, y: 20 }}
+        animate={{ opacity: 1, y: 0 }}
+        className="w-full max-w-[450px] glass p-8 sm:p-12 rounded-[3rem] shadow-2xl border border-white/5 relative"
       >
-        {/* Glow effect */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF6B00]/20 blur-[60px] rounded-full" />
-        
         <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 mb-6 group">
-            <div className="w-12 h-12 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg group-hover:scale-105 transition-transform">
-              <ShoppingBag className="text-white" size={24} />
+          <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
+            <div className="w-16 h-16 bg-[#FF6B00] rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-900/40 group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+              <ShoppingBag className="text-white" size={32} />
             </div>
           </Link>
-          <h1 className="text-2xl font-black mb-2">مرحباً بك مجدداً!</h1>
-          <p className="text-white/40 text-sm font-bold">سجل دخولك لتتمكن من استخدام الكوبونات</p>
+          <h1 className="text-3xl font-black mb-3 tracking-tight">مرحباً بك مجدداً</h1>
+          <p className="text-white/40 text-sm font-bold">سجل دخولك لتتمكن من استخدام كوبوناتك</p>
+        </div>
+
+        {/* Social Login Buttons */}
+        <div className="grid grid-cols-2 gap-4 mb-8">
+          <button 
+            onClick={() => handleSocialLogin('google')}
+            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
+          >
+            <svg className="w-5 h-5" viewBox="0 0 24 24">
+              <path fill="#EA4335" d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.36-2.04 4.48-1.28 1.28-3.12 2.12-5.8 2.12-4.68 0-8.52-3.8-8.52-8.52s3.84-8.52 8.52-8.52c2.52 0 4.6 1 6.12 2.44l2.32-2.32C18.64 1.64 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.72 0 6.52-1.24 8.72-3.48 2.24-2.24 3.12-5.4 3.12-8.12 0-.84-.08-1.48-.2-2.12h-11.64z"/>
+            </svg>
+            <span className="text-xs font-black">جوجل</span>
+          </button>
+          <button 
+            onClick={() => handleSocialLogin('facebook')}
+            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
+          >
+            <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
+              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
+            </svg>
+            <span className="text-xs font-black">فيسبوك</span>
+          </button>
+        </div>
+
+        <div className="relative mb-8 text-center">
+          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
+          <span className="relative px-4 bg-transparent text-[10px] font-black text-white/20 uppercase tracking-widest">أو عبر الموبايل</span>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
           {error && (
-            <div className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-xs font-bold text-center">
+            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-bold text-center">
               {error}
-            </div>
+            </motion.div>
           )}
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-white/50 mr-2">رقم الموبايل</label>
-            <div className="relative">
-              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-wider">رقم الموبايل</label>
+            <div className="relative group">
+              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
               <input 
                 type="tel" 
                 placeholder="01xxxxxxxxx"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] outline-none transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] focus:bg-white/[0.08] outline-none transition-all text-left dir-ltr"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
                 required
@@ -109,27 +130,27 @@ export default function LoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-xs font-black text-white/50 mr-2">كلمة المرور</label>
-            <div className="relative">
-              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-wider">كلمة المرور</label>
+            <div className="relative group">
+              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
               <input 
                 type={showPassword ? 'text' : 'password'} 
                 placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] outline-none transition-all"
+                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] focus:bg-white/[0.08] outline-none transition-all text-left dir-ltr"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
                 required
               />
               <button 
                 type="button" 
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white"
+                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#FF6B00] transition-colors"
                 onClick={() => setShowPassword(!showPassword)}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
             </div>
-            <div className="flex justify-end pt-2">
-              <Link href="/forgot-password" className="text-[11px] font-black text-white/40 hover:text-[#FF6B00] transition-colors">
+            <div className="flex justify-end pt-1">
+              <Link href="/forgot-password" className="text-[10px] font-black text-white/20 hover:text-[#FF6B00] transition-colors">
                 نسيت كلمة المرور؟
               </Link>
             </div>
@@ -138,9 +159,9 @@ export default function LoginPage() {
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+            className="w-full py-4.5 bg-[#FF6B00] text-white font-black rounded-2xl shadow-2xl shadow-orange-900/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-base"
           >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : (
+            {loading ? <Loader2 className="animate-spin" size={24} /> : (
               <>
                 تسجيل الدخول
                 <ArrowRight size={20} />
@@ -149,9 +170,9 @@ export default function LoginPage() {
           </button>
         </form>
 
-        <div className="mt-8 text-center space-y-4">
+        <div className="mt-10 text-center">
           <p className="text-sm font-bold text-white/30">
-            ليس لديك حساب؟ <Link href="/register" className="text-[#FF6B00] hover:underline">أنشئ حساباً جديداً</Link>
+            ليس لديك حساب؟ <Link href="/register" className="text-[#FF6B00] hover:underline hover:text-white transition-colors">أنشئ حساباً جديداً</Link>
           </p>
         </div>
       </motion.div>
