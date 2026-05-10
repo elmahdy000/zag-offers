@@ -43,25 +43,16 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('coupon_shared', (data: { customerName: string, code: string }) => {
+    socket.on('merchant_notification', (data: { type: string, title: string, body: string, payload?: any }) => {
       addNotification(
-        '💬 عميل تواصل معك!',
-        `العميل ${data.customerName} شارك معك الكوبون ${data.code} عبر واتساب.`,
-        'COUPON_SHARED'
-      );
-    });
-
-    socket.on('coupon_generated', (data: { offerTitle: string, code: string }) => {
-      addNotification(
-        '🎟️ كوبون جديد!',
-        `عميل حصل على كوبون لعرض: ${data.offerTitle}`,
-        'COUPON_GENERATED'
+        data.title,
+        data.body,
+        data.type
       );
     });
 
     return () => {
-      socket.off('coupon_shared');
-      socket.off('coupon_generated');
+      socket.off('merchant_notification');
     };
   }, [socket, addNotification]);
 
