@@ -573,18 +573,21 @@ export function Footer() {
         </div>
 
         {/* Bottom Bar */}
-        <div className="mt-20 pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-[#9A9A9A] text-xs font-black">
-            © 2024 <span className="text-[#FF6B00]">ZagOffers</span>. جميع الحقوق محفوظة
-          </p>
-                      text-[9px] sm:text-xs font-bold text-[#9A9A9A]">
-        <p>© 2026 ZagOffers — جميع الحقوق محفوظة.</p>
-        <div className="flex gap-4 sm:gap-6">
-          <Link href="/privacy" className="hover:text-[#FF6B00] transition-colors">سياسة الخصوصية</Link>
-          <Link href="/terms" className="hover:text-[#FF6B00] transition-colors">شروط الاستخدام</Link>
-          <Link href="/contact" className="hover:text-[#FF6B00] transition-colors">تواصل معنا</Link>
+        <div className="mt-20 pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] sm:text-xs font-bold text-[#9A9A9A]">
+          <p>© 2026 <span className="text-[#FF6B00]">ZagOffers</span> — جميع الحقوق محفوظة.</p>
+          <div className="flex gap-4 sm:gap-8">
+            <Link href="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">شروط الاستخدام</Link>
+            <Link href="/contact" className="hover:text-white transition-colors">تواصل معنا</Link>
+          </div>
         </div>
       </div>
     </footer>
   );
 }
+
+const XIcon = ({ size }: { size: number }) => (
+  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
+    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.933zm-1.292 19.49h2.039L6.486 3.24H4.298l13.311 17.403z" />
+  </svg>
+);
