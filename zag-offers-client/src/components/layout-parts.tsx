@@ -524,7 +524,7 @@ export function Footer() {
             </div>
             <ul className="space-y-4">
               {[
-                { label: 'سجل محلك', href: 'https://vendor.zagoffers.online/register', icon: <Building2 size={14} /> },
+                { label: 'سجل محلك', href: '/contact', icon: <Building2 size={14} /> },
                 { label: 'لوحة التاجر', href: 'https://vendor.zagoffers.online', icon: <LayoutDashboard size={14} /> },
                 { label: 'شروط التجار', href: '/terms#vendors', icon: <FileCheck size={14} /> },
                 { label: 'دعم التجار', href: '/contact', icon: <Headphones size={14} /> }
