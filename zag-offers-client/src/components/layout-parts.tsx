@@ -552,15 +552,17 @@ export function Footer() {
             <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed">
               احصل على أفضل العروض والكوبونات مباشرة إلى بريدك الإلكتروني
             </p>
-            <form className="relative group" onSubmit={e => e.preventDefault()}>
-              <input 
-                type="email" 
-                placeholder="ادخل بريدك الإلكتروني"
-                className="w-full bg-[#1A1A1A] border border-white/10 rounded-2xl py-4 px-5 pr-12
-                           text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF6B00]/50
-                           transition-all"
-              />
-              <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+            <form className="relative group flex flex-col" onSubmit={e => e.preventDefault()}>
+              <div className="relative">
+                <input 
+                  type="email" 
+                  placeholder="ادخل بريدك الإلكتروني"
+                  className="w-full bg-[#1A1A1A] border border-white/10 rounded-2xl py-4 pr-12 pl-5
+                             text-sm text-white placeholder:text-white/20 focus:outline-none focus:border-[#FF6B00]/50
+                             transition-all"
+                />
+                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+              </div>
               <button 
                 type="submit"
                 className="mt-3 w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl
