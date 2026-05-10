@@ -23,7 +23,11 @@ interface ClientNotification {
 }
 
 function getNotifRoute(n: ClientNotification): string {
-  const d = n.data || {};
+  let d: any = n.data || {};
+  if (typeof d === 'string') {
+    try { d = JSON.parse(d); } catch { d = {}; }
+  }
+  
   switch (n.type) {
     case 'NEW_OFFER':
     case 'OFFER_APPROVED':
@@ -192,7 +196,13 @@ export function Navbar() {
       });
       if (res.ok) {
         const data = await res.json();
-        setNotifications(Array.isArray(data) ? data : []);
+        const normalized = (Array.isArray(data) ? data : []).map(n => {
+          if (typeof n.data === 'string') {
+            try { n.data = JSON.parse(n.data); } catch { /* ignore */ }
+          }
+          return n;
+        });
+        setNotifications(normalized);
       }
     } catch { /* ignore */ }
   }, []);
