@@ -108,6 +108,12 @@ export class AdminController {
     return this.adminService.getPendingStores();
   }
 
+  @Post('stores')
+  @ApiOperation({ summary: 'Create a new store as admin' })
+  createStore(@Body() body: any) {
+    return this.adminService.createStore(body);
+  }
+
   @Get('stores/:id')
   @ApiOperation({ summary: 'Get full store details for admin' })
   getStoreDetails(@Param('id') id: string) {

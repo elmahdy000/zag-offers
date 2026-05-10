@@ -30,6 +30,19 @@ type StoreUpdatePayload = {
   status?: StoreStatus;
 };
 
+type StoreCreatePayload = {
+  name: string;
+  categoryId: string;
+  ownerId: string;
+  address?: string;
+  area?: string;
+  phone?: string;
+  whatsapp?: string;
+  logo?: string;
+  coverImage?: string;
+  status?: StoreStatus;
+};
+
 type OfferUpdatePayload = {
   title?: string;
   description?: string;
@@ -1254,6 +1267,44 @@ export class AdminService {
         offers: {
           include: { _count: { select: { coupons: true, favorites: true } } },
         },
+      },
+    });
+  }
+
+  async createStore(payload: StoreCreatePayload) {
+    if (!payload.categoryId) {
+      throw new BadRequestException('Category is required');
+    }
+    if (!payload.ownerId) {
+      throw new BadRequestException('Owner is required');
+    }
+
+    const category = await this.prisma.category.findUnique({
+      where: { id: payload.categoryId },
+    });
+    if (!category) {
+      throw new BadRequestException('Category not found');
+    }
+
+    const owner = await this.prisma.user.findUnique({
+      where: { id: payload.ownerId },
+    });
+    if (!owner) {
+      throw new BadRequestException('Owner not found');
+    }
+
+    return this.prisma.store.create({
+      data: {
+        name: payload.name,
+        address: payload.address || '',
+        area: payload.area || '',
+        phone: payload.phone || '',
+        whatsapp: payload.whatsapp || '',
+        logo: payload.logo || null,
+        coverImage: payload.coverImage || null,
+        status: payload.status || StoreStatus.APPROVED,
+        category: { connect: { id: payload.categoryId } },
+        owner: { connect: { id: payload.ownerId } },
       },
     });
   }
