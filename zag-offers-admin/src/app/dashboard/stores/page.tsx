@@ -16,7 +16,8 @@ import {
   XCircle,
   Clock,
   MoreVertical,
-  Calendar
+  Calendar,
+  MessageCircle
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -38,6 +39,7 @@ interface StoreItem {
   ownerName?: string;
   createdAt: string;
   logo?: string | null;
+  whatsapp?: string;
 }
 
 interface StoreDetails extends StoreItem {
@@ -91,6 +93,7 @@ export default function StoresPage() {
     category: '',
     area: '',
     phone: '',
+    whatsapp: '',
     email: '',
     ownerId: '',
   });
@@ -197,12 +200,13 @@ export default function StoresPage() {
         category: store.category,
         area: store.area,
         phone: store.phone || '',
+        whatsapp: store.whatsapp || '',
         email: store.email || '',
         ownerId: store.ownerId,
       });
     } else {
       setEditingStore(null);
-      setFormData({ name: '', category: '', area: '', phone: '', email: '', ownerId: '' });
+      setFormData({ name: '', category: '', area: '', phone: '', whatsapp: '', email: '', ownerId: '' });
     }
     setFormErrors({});
     setIsUpsertOpen(true);
@@ -423,6 +427,7 @@ export default function StoresPage() {
                 <DetailItem label="الفئة" value={storeDetails.category} />
                 <DetailItem label="المنطقة" value={storeDetails.area} icon={MapPin} />
                 <DetailItem label="رقم الهاتف" value={storeDetails.phone || 'غير متوفر'} icon={Phone} colorClass={storeDetails.phone ? 'text-slate-900' : 'text-slate-400'} />
+                <DetailItem label="واتساب" value={storeDetails.whatsapp || 'غير متوفر'} icon={MessageCircle} colorClass={storeDetails.whatsapp ? 'text-slate-900' : 'text-slate-400'} />
                 <DetailItem label="البريد الإلكتروني" value={storeDetails.email || 'غير متوفر'} icon={Mail} colorClass={storeDetails.email ? 'text-slate-900' : 'text-slate-400'} />
                 <DetailItem label="اسم المالك" value={storeDetails.owner?.name || 'غير متوفر'} />
                 <DetailItem label="هاتف المالك" value={storeDetails.owner?.phone || 'غير متوفر'} icon={Phone} />
@@ -651,18 +656,30 @@ export default function StoresPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
-                      البريد الإلكتروني (اختياري)
+                      رقم الواتساب
                     </label>
                     <input 
-                      type="email"
-                      value={formData.email} 
-                      onChange={e => setFormData({...formData, email: e.target.value})} 
-                      className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${
-                        formErrors.email ? 'border-rose-500' : 'border-slate-100'
-                      } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
+                      value={formData.whatsapp} 
+                      onChange={e => setFormData({...formData, whatsapp: e.target.value})} 
+                      placeholder="2010XXXXXXXX"
+                      className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
                     />
-                    {formErrors.email && <p className="text-xs text-rose-600">{formErrors.email}</p>}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    البريد الإلكتروني (اختياري)
+                  </label>
+                  <input 
+                    type="email"
+                    value={formData.email} 
+                    onChange={e => setFormData({...formData, email: e.target.value})} 
+                    className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${
+                      formErrors.email ? 'border-rose-500' : 'border-slate-100'
+                    } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
+                  />
+                  {formErrors.email && <p className="text-xs text-rose-600">{formErrors.email}</p>}
                 </div>
 
                 <button 
