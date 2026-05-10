@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Smartphone, Lock, User, Loader2, ArrowRight, ShoppingBag, ShieldCheck } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -8,13 +8,30 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
 
+declare global {
+  interface Window {
+    google: any;
+  }
+}
+
 export default function RegisterPage() {
   const router = useRouter();
   const [name, setName] = useState('');
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize Google SDK
+  useEffect(() => {
+    const script = document.createElement('script');
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+    return () => { document.body.removeChild(script); };
+  }, []);
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -24,20 +41,12 @@ export default function RegisterPage() {
     const trimmedName = name.trim();
     const trimmedPhone = phone.trim();
 
-    // تحقق من البيانات - جعلناها أكثر مرونة
-    if (!trimmedName) {
-      setError('يرجى إدخال الاسم');
-      setLoading(false);
-      return;
-    }
-    
-    if (trimmedName.length < 2) {
-      setError('الاسم قصير جداً');
+    if (!trimmedName || trimmedName.length < 2) {
+      setError('يرجى إدخال اسم صحيح');
       setLoading(false);
       return;
     }
 
-    // تحقق من رقم الموبايل - نقبل الأرقام المصرية بمرونة أكثر (أو أي رقم 11 رقم يبدأ بـ 01)
     const phoneRegex = /^01[0-9]{9}$/;
     if (!phoneRegex.test(trimmedPhone)) {
       setError('يرجى إدخال رقم موبايل مصري صحيح (11 رقم)');
@@ -81,17 +90,42 @@ export default function RegisterPage() {
     }
   };
 
-  const handleSocialLogin = (platform: 'google' | 'facebook') => {
-    // سيتم ربطها بـ Passport.js أو OAuth لاحقاً
-    alert(`تسجيل الدخول عبر ${platform === 'google' ? 'جوجل' : 'فيسبوك'} قيد التفعيل حالياً`);
+  const handleGoogleLogin = () => {
+    setSocialLoading('google');
+    try {
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
+        scope: 'email profile openid',
+        callback: async (response: any) => {
+          if (response.access_token) {
+            try {
+              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.access_token });
+              localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('user', JSON.stringify(res.data.user));
+              window.dispatchEvent(new Event('auth-change'));
+              router.replace('/');
+            } catch (err) {
+              setError('تعذر التسجيل عبر جوجل حالياً');
+            }
+          }
+          setSocialLoading(null);
+        },
+      });
+      client.requestAccessToken();
+    } catch (e) {
+      setError('يرجى ضبط إعدادات Google API Keys');
+      setSocialLoading(null);
+    }
+  };
+
+  const handleFacebookLogin = () => {
+    setError('تسجيل فيسبوك يتطلب App ID نشط');
   };
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Dynamic Background */}
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
       <div className="absolute -top-24 -right-24 w-96 h-96 bg-[#FF6B00]/5 blur-[100px] rounded-full -z-10" />
-      <div className="absolute bottom-0 -left-24 w-72 h-72 bg-blue-500/5 blur-[100px] rounded-full -z-10" />
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
@@ -109,16 +143,19 @@ export default function RegisterPage() {
         {/* Social Login Buttons */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <button 
-            onClick={() => handleSocialLogin('google')}
-            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
+            onClick={handleGoogleLogin}
+            disabled={socialLoading === 'google'}
+            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group disabled:opacity-50"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.36-2.04 4.48-1.28 1.28-3.12 2.12-5.8 2.12-4.68 0-8.52-3.8-8.52-8.52s3.84-8.52 8.52-8.52c2.52 0 4.6 1 6.12 2.44l2.32-2.32C18.64 1.64 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.72 0 6.52-1.24 8.72-3.48 2.24-2.24 3.12-5.4 3.12-8.12 0-.84-.08-1.48-.2-2.12h-11.64z"/>
-            </svg>
+            {socialLoading === 'google' ? <Loader2 size={20} className="animate-spin" /> : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.36-2.04 4.48-1.28 1.28-3.12 2.12-5.8 2.12-4.68 0-8.52-3.8-8.52-8.52s3.84-8.52 8.52-8.52c2.52 0 4.6 1 6.12 2.44l2.32-2.32C18.64 1.64 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.72 0 6.52-1.24 8.72-3.48 2.24-2.24 3.12-5.4 3.12-8.12 0-.84-.08-1.48-.2-2.12h-11.64z"/>
+              </svg>
+            )}
             <span className="text-xs font-black">جوجل</span>
           </button>
           <button 
-            onClick={() => handleSocialLogin('facebook')}
+            onClick={handleFacebookLogin}
             className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
           >
             <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">

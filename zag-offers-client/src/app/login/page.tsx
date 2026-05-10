@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -8,13 +8,36 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
 
+declare global {
+  interface Window {
+    google: any;
+    fbAsyncInit: any;
+    FB: any;
+  }
+}
+
 export default function LoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
+
+  // Initialize Social SDKs
+  useEffect(() => {
+    // Google Identity Service
+    const script = document.createElement('script');
+    script.src = "https://accounts.google.com/gsi/client";
+    script.async = true;
+    script.defer = true;
+    document.body.appendChild(script);
+
+    return () => {
+      document.body.removeChild(script);
+    };
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -22,8 +45,6 @@ export default function LoginPage() {
     setLoading(true);
 
     const trimmedPhone = phone.trim();
-
-    // تحقق من صيغة رقم الموبايل المصري بمرونة
     const phoneRegex = /^01[0-9]{9}$/;
     if (!phoneRegex.test(trimmedPhone)) {
       setError('يرجى إدخال رقم موبايل مصري صحيح');
@@ -55,13 +76,40 @@ export default function LoginPage() {
     }
   };
 
-  const handleSocialLogin = (platform: 'google' | 'facebook') => {
-    alert(`تسجيل الدخول عبر ${platform === 'google' ? 'جوجل' : 'فيسبوك'} قيد التفعيل حالياً`);
+  const handleGoogleLogin = () => {
+    setSocialLoading('google');
+    try {
+      const client = window.google.accounts.oauth2.initTokenClient({
+        client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com', // Real Google Client ID
+        scope: 'email profile openid',
+        callback: async (response: any) => {
+          if (response.access_token) {
+            try {
+              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.access_token });
+              localStorage.setItem('token', res.data.access_token);
+              localStorage.setItem('user', JSON.stringify(res.data.user));
+              window.dispatchEvent(new Event('auth-change'));
+              router.replace('/');
+            } catch (err) {
+              setError('تعذر تسجيل الدخول عبر جوجل حالياً');
+            }
+          }
+          setSocialLoading(null);
+        },
+      });
+      client.requestAccessToken();
+    } catch (e) {
+      setError('يرجى التأكد من إعداد مفاتيح جوجل في الـ .env');
+      setSocialLoading(null);
+    }
+  };
+
+  const handleFacebookLogin = () => {
+    setError('تسجيل فيسبوك يتطلب إضافة الـ App ID في الإعدادات');
   };
 
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      {/* Dynamic Background Effects */}
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
       <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
       
@@ -83,16 +131,19 @@ export default function LoginPage() {
         {/* Social Login Buttons */}
         <div className="grid grid-cols-2 gap-4 mb-8">
           <button 
-            onClick={() => handleSocialLogin('google')}
-            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
+            onClick={handleGoogleLogin}
+            disabled={socialLoading === 'google'}
+            className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group disabled:opacity-50"
           >
-            <svg className="w-5 h-5" viewBox="0 0 24 24">
-              <path fill="#EA4335" d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.36-2.04 4.48-1.28 1.28-3.12 2.12-5.8 2.12-4.68 0-8.52-3.8-8.52-8.52s3.84-8.52 8.52-8.52c2.52 0 4.6 1 6.12 2.44l2.32-2.32C18.64 1.64 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.72 0 6.52-1.24 8.72-3.48 2.24-2.24 3.12-5.4 3.12-8.12 0-.84-.08-1.48-.2-2.12h-11.64z"/>
-            </svg>
+            {socialLoading === 'google' ? <Loader2 size={20} className="animate-spin" /> : (
+              <svg className="w-5 h-5" viewBox="0 0 24 24">
+                <path fill="#EA4335" d="M12.48 10.92v3.28h7.84c-.24 1.84-.92 3.36-2.04 4.48-1.28 1.28-3.12 2.12-5.8 2.12-4.68 0-8.52-3.8-8.52-8.52s3.84-8.52 8.52-8.52c2.52 0 4.6 1 6.12 2.44l2.32-2.32C18.64 1.64 15.84 0 12.48 0 5.6 0 0 5.6 0 12.48s5.6 12.48 12.48 12.48c3.72 0 6.52-1.24 8.72-3.48 2.24-2.24 3.12-5.4 3.12-8.12 0-.84-.08-1.48-.2-2.12h-11.64z"/>
+              </svg>
+            )}
             <span className="text-xs font-black">جوجل</span>
           </button>
           <button 
-            onClick={() => handleSocialLogin('facebook')}
+            onClick={handleFacebookLogin}
             className="flex items-center justify-center gap-3 py-3.5 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
           >
             <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
