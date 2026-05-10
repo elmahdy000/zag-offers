@@ -89,8 +89,9 @@ export default function LoginPage() {
               localStorage.setItem('user', JSON.stringify(res.data.user));
               window.dispatchEvent(new Event('auth-change'));
               router.replace('/');
-            } catch (err) {
-              setError('تعذر تسجيل الدخول عبر جوجل حالياً');
+            } catch (err: any) {
+              console.error('Google Auth Backend Error:', err.response?.data || err.message);
+              setError('تعذر تسجيل الدخول عبر جوجل حالياً: ' + (err.response?.data?.message || 'خطأ في السيرفر'));
             }
           }
           setSocialLoading(null);
