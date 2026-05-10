@@ -12,6 +12,7 @@ interface Offer {
   title: string;
   discount: string;
   endDate: string;
+  images: string[];
   store: {
     id: string;
     name: string;
