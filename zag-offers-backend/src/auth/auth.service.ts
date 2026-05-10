@@ -226,11 +226,14 @@ export class AuthService {
           [idField]: providerId,
         });
       } else {
+        // Create new user from social profile
         user = await this.usersService.create({
-          email,
-          name: name || 'مستخدم جديد',
-          avatar,
+          email: email || null,
+          name: name || 'مستخدم زاج',
+          avatar: avatar || null,
           role: 'CUSTOMER',
+          phone: null, // Explicitly null for social login to avoid conflicts
+          password: null, // No password for social login
           [idField]: providerId,
         });
       }
