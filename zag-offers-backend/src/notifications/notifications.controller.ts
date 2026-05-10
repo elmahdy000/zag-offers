@@ -114,6 +114,9 @@ export class NotificationsController {
   }
 
   @Post('test/public')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.ADMIN)
+  @ApiBearerAuth()
   @ApiOperation({ summary: 'إرسال إشعار للجميع لاختبار النظام' })
   @ApiBody({ type: SendNotificationDto })
   async sendTestPublic(@Body() body: SendNotificationDto) {
@@ -166,3 +169,5 @@ export class NotificationsController {
     };
   }
 }
+
+

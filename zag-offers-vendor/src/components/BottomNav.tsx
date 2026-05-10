@@ -1,7 +1,7 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Tag, Ticket, Settings, Bell } from 'lucide-react';
+import { LayoutDashboard, Tag, Ticket, Settings } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [

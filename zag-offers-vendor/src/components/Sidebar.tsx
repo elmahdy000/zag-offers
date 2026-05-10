@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, CheckCheck, ChevronLeft, TrendingUp } from 'lucide-react';
+import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCookie, deleteCookie } from '@/lib/api';
@@ -134,7 +134,9 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const [showBell, setShowBell] = useState(false);
   const [mounted, setMounted] = useState(false);
 
-  useEffect(() => { setMounted(true); }, []);
+  useEffect(() => { 
+    setMounted(true); 
+  }, []);
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
   const getToken = () => getCookie('auth_token');
@@ -173,19 +175,22 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   // Fetch notifications on mount
   useEffect(() => {
-    fetchNotifications();
-  }, []);
+    if (mounted) {
+      fetchNotifications();
+    }
+  }, [mounted]);
 
   // Listen for real-time notifications via WebSocket
   useEffect(() => {
     if (!socket.current) return;
 
-    socket.current.on('merchant_notification', (data: Notification) => {
+    const socketRef = socket.current;
+    socketRef.on('merchant_notification', (data: Notification) => {
       setNotifications((prev) => [data, ...prev].slice(0, 50));
     });
 
     return () => {
-      socket.current?.off('merchant_notification');
+      socketRef.off('merchant_notification');
     };
   }, [socket]);
 
@@ -329,7 +334,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                   </div>
                   <div className="flex items-center gap-2">
                      {unreadCount > 0 && <span className="text-[10px] font-black text-primary">{unreadCount}</span>}
-                     <ChevronLeft size={16} className="opacity-30" />
+                     <X size={16} className="opacity-30" />
                   </div>
                </button>
 

@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Heart, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { BASE_URL, API_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 
@@ -36,15 +37,36 @@ const CAT_GRADIENTS: Record<string, string> = {
 };
 
 export function OfferCard({ offer }: OfferCardProps) {
+  // ─── All hooks MUST be at the top before any early returns (Rules of Hooks) ───
   const [isFav, setIsFav] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
 
+  useEffect(() => {
+    if (!offer?.id) return;
+
+    // Read favorite status from localStorage only (avoids N+1 API calls per card)
+    try {
+      const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+      setIsFav(favs.some((f: any) => f.id === offer.id));
+    } catch { /* silent */ }
+  }, [offer?.id]);
+
+  // ─── Guard: render nothing for invalid data ───────────────────────────────
+  if (!offer || !offer.id) {
+    console.error('Invalid offer data:', offer);
+    return null;
+  }
+
+  if (!offer.store || !offer.store.id) {
+    console.error('Invalid store data:', offer.store);
+    return null;
+  }
+
+  // ─── Derived values ───────────────────────────────────────────────────────
   const daysLeft = Math.ceil(
     (new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
   );
 
   const logoUrl = resolveImageUrl(offer.store?.logo);
-
   const catName = offer.store?.category?.name || '';
   const catIcon = CAT_ICONS[catName] || CAT_ICONS.default;
   const catGrad = CAT_GRADIENTS[catName] || CAT_GRADIENTS.default;
@@ -57,53 +79,41 @@ export function OfferCard({ offer }: OfferCardProps) {
     : daysLeft <= 3  ? `⏰ ${daysLeft} أيام`
     : `📅 ${daysLeft} يوم`;
 
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setIsLoggedIn(!!token);
-
-    // Check favorite status
-    const checkFavoriteStatus = async () => {
-      if (token) {
-        try {
-          const res = await fetch(`${API_URL}/favorites`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (res.ok) {
-            const data = await res.json();
-            setIsFav(data.some((fav: any) => fav.offerId === offer.id));
-          }
-        } catch { /* silent */ }
-      } else {
-        // Fallback to localStorage if not logged in
-        try {
-          const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-          setIsFav(favs.some((f: any) => f.id === offer.id));
-        } catch { /* silent */ }
-      }
-    };
-    checkFavoriteStatus();
-  }, [offer.id, isLoggedIn]);
+  const discountDisplay = offer.discount ? offer.discount.trim() : '0%';
 
   const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
 
     const token = localStorage.getItem('token');
-    
+
     if (token) {
-      // Use API if logged in
+      // Use API if logged in — optimistic update
+      setIsFav(prev => !prev);
       try {
         const res = await fetch(`${API_URL}/favorites/toggle/${offer.id}`, {
           method: 'POST',
-          headers: { Authorization: `Bearer ${token}` }
+          headers: { Authorization: `Bearer ${token}` },
         });
         if (res.ok) {
           const data = await res.json();
           setIsFav(data.favorited);
+          // Sync localStorage
+          try {
+            const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
+            const updated = data.favorited
+              ? [...favs.filter((f: any) => f.id !== offer.id), offer]
+              : favs.filter((f: any) => f.id !== offer.id);
+            localStorage.setItem('favorites', JSON.stringify(updated));
+          } catch { /* silent */ }
+        } else {
+          setIsFav(prev => !prev); // revert on failure
         }
-      } catch { /* silent */ }
+      } catch {
+        setIsFav(prev => !prev); // revert on error
+      }
     } else {
-      // Fallback to localStorage if not logged in
+      // Fallback to localStorage
       try {
         const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
         const updated = isFav
@@ -118,6 +128,7 @@ export function OfferCard({ offer }: OfferCardProps) {
   const offerImage = offer.images && offer.images.length > 0
     ? resolveImageUrl(offer.images[0])
     : null;
+
 
   return (
     <motion.div
@@ -165,7 +176,7 @@ export function OfferCard({ offer }: OfferCardProps) {
                         bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
                         text-white text-base font-black rounded-xl
                         shadow-[0_4px_16px_rgba(255,107,0,0.5)]">
-          {offer.discount}
+          {discountDisplay}
         </div>
 
         {/* Fav */}
@@ -185,7 +196,18 @@ export function OfferCard({ offer }: OfferCardProps) {
                         bg-[#1E1E1E] overflow-hidden shadow-xl
                         flex items-center justify-center flex-shrink-0">
           {logoUrl
-            ? <img src={logoUrl} alt={offer.store?.name} className="w-full h-full object-cover" />
+            ? <Image
+                src={logoUrl}
+                alt={offer.store?.name || 'Store Logo'}
+                width={48}
+                height={48}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                sizes="48px"
+                quality={80}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
+              />
             : <div className="text-white/20">{catIcon}</div>
           }
         </div>

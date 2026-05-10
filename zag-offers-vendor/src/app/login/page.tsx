@@ -21,6 +21,21 @@ export default function LoginPage() {
     setLoading(true);
     setError(null);
 
+    // تحقق من صيغة رقم الموبايل المصري
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      setError('يرجى إدخال رقم موبايل مصري صحيح');
+      setLoading(false);
+      return;
+    }
+
+    // تحقق من طول كلمة المرور
+    if (password.length < 6) {
+      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await axios.post(`${API_URL}/auth/login`, { phone, password });
       const { access_token, user } = res.data as {
@@ -34,7 +49,7 @@ export default function LoginPage() {
         return;
       }
 
-      document.cookie = `auth_token=${encodeURIComponent(access_token)}; path=/; SameSite=Lax`;
+      document.cookie = `auth_token=${encodeURIComponent(access_token)}; path=/; SameSite=Strict${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
       localStorage.setItem('vendor_user', JSON.stringify(user));
 
       try {

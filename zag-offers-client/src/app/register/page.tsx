@@ -21,17 +21,52 @@ export default function RegisterPage() {
     setError(null);
     setLoading(true);
 
+    // تحقق من البيانات
+    if (!name.trim()) {
+      setError('الاسم مطلوب');
+      setLoading(false);
+      return;
+    }
+    
+    if (name.trim().length < 3) {
+      setError('الاسم يجب أن يكون 3 أحرف على الأقل');
+      setLoading(false);
+      return;
+    }
+
+    // تحقق من صيغة رقم الموبايل المصري
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      setError('يرجى إدخال رقم موبايل مصري صحيح');
+      setLoading(false);
+      return;
+    }
+
+    // تحقق من طول كلمة المرور
+    if (password.length < 6) {
+      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      setLoading(false);
+      return;
+    }
+
     try {
       // Step 1: Register
-      await axios.post(`${API_URL}/auth/register`, {
-        name,
-        phone,
+      const regRes = await axios.post(`${API_URL}/auth/register`, {
+        name: name.trim(),
+        phone: phone.trim(),
         password,
       });
       
+      // تحقق من نوع المستخدم في الاستجابة
+      if (regRes.data.user?.role === 'MERCHANT' || regRes.data.user?.role === 'ADMIN') {
+        setError('هذا الحساب لحساب تاجر. يرجى استخدام تطبيق التاجر.');
+        setLoading(false);
+        return;
+      }
+      
       // Step 2: Auto-login
       const res = await axios.post(`${API_URL}/auth/login`, {
-        phone,
+        phone: phone.trim(),
         password,
       });
       
@@ -39,7 +74,12 @@ export default function RegisterPage() {
       localStorage.setItem('user', JSON.stringify(res.data.user));
       router.replace('/');
     } catch (err: any) {
-      setError(err.response?.data?.message || 'حدث خطأ أثناء التسجيل. يرجى التأكد من البيانات.');
+      const msg = err.response?.data?.message;
+      if (msg) {
+        setError(Array.isArray(msg) ? msg.join(' | ') : msg);
+      } else {
+        setError('حدث خطأ أثناء التسجيل. يرجى التأكد من البيانات.');
+      }
     } finally {
       setLoading(false);
     }

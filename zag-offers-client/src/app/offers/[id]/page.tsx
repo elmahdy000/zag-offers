@@ -5,6 +5,7 @@ import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 
@@ -45,6 +46,7 @@ export default function OfferDetailsPage() {
   const router = useRouter();
   const [offer, setOffer] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isCouponLoading, setIsCouponLoading] = useState(false); // separate state for coupon action
   const [showCoupon, setShowCoupon] = useState(false);
   const [couponCode, setCouponCode] = useState('ZAG-XXXXXX');
   const [isFav, setIsFav] = useState(false);
@@ -125,8 +127,28 @@ export default function OfferDetailsPage() {
       setTimeout(() => router.push('/login'), 1500);
       return;
     }
+    
+    // تحقق من صحة العرض
+    if (!offer || !offer.id) {
+      showToast('العرض غير صالح', 'error');
+      return;
+    }
+    
+    // تحقق من حالة العرض
+    if (offer.status !== 'ACTIVE' && offer.status !== 'PENDING') {
+      showToast('هذا العرض غير متاح حالياً', 'error');
+      return;
+    }
+    
+    // تحقق من تاريخ الانتهاء
+    const endDate = new Date(offer.endDate);
+    if (isNaN(endDate.getTime()) || endDate <= new Date()) {
+      showToast('هذا العرض منتهي الصلاحية', 'error');
+      return;
+    }
+    
     try {
-      setLoading(true);
+      setIsCouponLoading(true);
       const res = await fetch(`${API_URL}/coupons/generate`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
@@ -134,17 +156,35 @@ export default function OfferDetailsPage() {
       });
       if (res.ok) {
         const data = await res.json();
+
+        // Warn if code format is unexpected but don't block the user
+        if (!data.code) {
+          showToast('كود الكوبون غير صالح', 'error');
+          return;
+        }
+
         setCouponCode(data.code);
         setShowCoupon(true);
         showToast('تم إنشاء الكوبون بنجاح! 🎉', 'success');
       } else {
         const err = await res.json();
-        showToast(err.message || 'فشل في الحصول على الكوبون', 'error');
+        const status = res.status;
+
+        if (status === 401) {
+          showToast('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى', 'error');
+          setTimeout(() => router.push('/login'), 1500);
+        } else if (status === 400) {
+          showToast(err.message || 'لا يمكن الحصول على هذا الكوبون', 'error');
+        } else if (status === 429) {
+          showToast('لقد تجاوزت الحد المسموح من طلبات الكوبونات', 'error');
+        } else {
+          showToast(err.message || 'فشل في الحصول على الكوبون', 'error');
+        }
       }
     } catch {
       showToast('حدث خطأ أثناء الاتصال بالسيرفر', 'error');
     } finally {
-      setLoading(false);
+      setIsCouponLoading(false);
     }
   };
 
@@ -280,7 +320,21 @@ export default function OfferDetailsPage() {
           <div className="glass p-6 rounded-[24px]">
             <div className="flex items-center gap-4 mb-6">
                <div className="w-14 h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden">
-                  {logoUrl ? <img src={logoUrl} alt="" className="w-full h-full object-cover" /> : <Store className="text-white/20" />}
+                  {logoUrl ? 
+                    <Image
+                      src={logoUrl}
+                      alt={offer.store?.name || 'Store Logo'}
+                      width={56}
+                      height={56}
+                      className="w-full h-full object-cover"
+                      loading="lazy"
+                      sizes="56px"
+                      quality={80}
+                      placeholder="blur"
+                      blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
+                    /> : 
+                    <Store className="text-white/20" />
+                  }
                </div>
                <div>
                   <h4 className="font-black text-white">{offer.store?.name}</h4>
@@ -300,10 +354,14 @@ export default function OfferDetailsPage() {
                 <motion.button 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   onClick={handleGetCoupon}
-                  className="w-full py-4 bg-white text-[#FF6B00] font-black rounded-2xl shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2"
+                  disabled={isCouponLoading}
+                  className="w-full py-4 bg-white text-[#FF6B00] font-black rounded-2xl shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  <Ticket size={20} />
-                  عرض الكوبون
+                  {isCouponLoading ? (
+                    <span className="animate-spin text-xl">⏳</span>
+                  ) : (
+                    <><Ticket size={20} /> عرض الكوبون</>
+                  )}
                 </motion.button>
               ) : (
                 <motion.div 

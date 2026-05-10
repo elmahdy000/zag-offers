@@ -1,0 +1,51 @@
+{
+  "name": "Zag Offers - أفضل عروض الزقازيق",
+  "short_name": "Zag Offers",
+  "description": "اكتشف أفضل الخصومات والكوبونات الحصرية في مدينة الزقازيق",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#141414",
+  "theme_color": "#FF6B00",
+  "orientation": "portrait",
+  "dir": "rtl",
+  "lang": "ar",
+  "icons": [
+    {
+      "src": "/icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "/icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ],
+  "categories": ["shopping", "deals", "coupons"],
+  "screenshots": [],
+  "shortcuts": [
+    {
+      "name": "العروض",
+      "short_name": "العروض",
+      "description": "تصفح جميع العروض",
+      "url": "/offers",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "المتاجر",
+      "short_name": "المتاجر",
+      "description": "تصفح المتاجر",
+      "url": "/stores",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    },
+    {
+      "name": "المفضلة",
+      "short_name": "المفضلة",
+      "description": "عرض المفضلة",
+      "url": "/favorites",
+      "icons": [{ "src": "/icon-192.svg", "sizes": "192x192" }]
+    }
+  ]
+}

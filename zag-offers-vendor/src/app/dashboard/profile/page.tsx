@@ -2,12 +2,11 @@
 import { useState, useEffect } from 'react';
 import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2 } from 'lucide-react';
 import { vendorApi, getVendorStoreId, resolveImageUrl } from '@/lib/api';
+import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
 export default function StoreProfilePage() {
-  const [store, setStore] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [formData, setFormData] = useState({
@@ -17,51 +16,66 @@ export default function StoreProfilePage() {
     email: '', // User's email from owner relation
   });
 
-  useEffect(() => {
-    const storeId = getVendorStoreId();
-    if (!storeId) {
-      // In case storeId is missing, let DashboardLayout fetch it
-      setLoading(false);
-      return;
-    }
+  // React Query hooks
+  const { data: store, isLoading } = useVendorStore();
+  const { mutate: updateStore, isPending: updating } = useUpdateStore();
 
-    vendorApi().get(`/stores/${storeId}`)
-      .then(res => {
-        const s = res.data;
-        setStore(s);
-        setFormData({
-          name: s.name || '',
-          phone: s.phone || '',
-          address: s.address || '',
-          email: s.owner?.email || '',
-        });
-      })
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  useEffect(() => {
+    if (store) {
+      setFormData({
+        name: store.name || '',
+        phone: store.phone || '',
+        address: store.address || '',
+        email: store.owner?.email || '',
+      });
+    }
+  }, [store]);
 
   const handleSave = async () => {
     if (!store) return;
+    
+    // تحقق من البيانات
+    if (!formData.name.trim()) {
+      alert('اسم المتجر مطلوب');
+      return;
+    }
+    
+    if (formData.phone && !/^[0-9]{10,}$/.test(formData.phone.replace(/\s/g, ''))) {
+      alert('رقم الهاتف غير صالح');
+      return;
+    }
+    
+    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
+      alert('البريد الإلكتروني غير صالح');
+      return;
+    }
+    
     setSaving(true);
     setSuccess(false);
 
-    try {
-      await vendorApi().patch(`/stores/${store.id}`, {
-        name: formData.name,
-        phone: formData.phone,
-        address: formData.address,
-      });
-      setSuccess(true);
-      setTimeout(() => setSuccess(false), 3000);
-    } catch (e) {
-      console.error(e);
-      alert('حدث خطأ أثناء حفظ التعديلات');
-    } finally {
-      setSaving(false);
-    }
+    // Use React Query mutation
+    updateStore(
+      {
+        name: formData.name.trim(),
+        phone: formData.phone.trim(),
+        address: formData.address.trim(),
+      },
+      {
+        onSuccess: () => {
+          setSuccess(true);
+          setTimeout(() => setSuccess(false), 3000);
+        },
+        onError: () => {
+          alert('حدث خطأ أثناء حفظ التعديلات');
+        },
+        onSettled: () => {
+          setSaving(false);
+        },
+      }
+    );
   };
 
-  if (loading) return <DashboardSkeleton />;
+  if (isLoading) return <DashboardSkeleton />;
   if (!store) return <div className="p-8 text-center text-text-dim">لم يتم العثور على بيانات المتجر.</div>;
 
   return (

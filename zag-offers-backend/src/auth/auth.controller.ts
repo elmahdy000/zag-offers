@@ -1,4 +1,4 @@
-﻿import {
+import {
   Controller,
   Post,
   Get,
@@ -30,10 +30,11 @@ export class AuthController {
   constructor(private authService: AuthService) {}
 
   @Post('register')
-  @Throttle({ medium: { limit: 10, ttl: 60000 } })
+  @Throttle({ strict: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'تسجيل حساب جديد' })
   @ApiResponse({ status: 201, description: 'تم التسجيل بنجاح' })
   @ApiResponse({ status: 409, description: 'رقم الموبايل مسجل مسبقاً' })
+  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من محاولات التسجيل' })
   async register(@Body() registerDto: RegisterDto) {
     return this.authService.register(registerDto);
   }
@@ -44,6 +45,7 @@ export class AuthController {
   @ApiOperation({ summary: 'تسجيل الدخول بالهاتف' })
   @ApiResponse({ status: 200, description: 'تم الدخول بنجاح ويرجع التوكن' })
   @ApiResponse({ status: 401, description: 'البيانات غير صحيحة' })
+  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من محاولات الدخول' })
   async login(@Body() loginDto: LoginDto) {
     const user = await this.authService.validateUser(
       loginDto.phone,
@@ -163,5 +165,35 @@ export class AuthController {
     @Body() body: { currentPassword?: string; newPassword?: string },
   ) {
     return this.authService.updatePassword(req.user.id, body);
+  }
+
+  @Post('forgot-password')
+  @ApiOperation({ summary: 'إرسال كود استعادة كلمة المرور عبر البريد' })
+  @ApiBody({
+    schema: {
+      properties: {
+        email: { type: 'string', example: 'user@example.com' },
+      },
+    },
+  })
+  forgotPassword(@Body('email') email: string) {
+    return this.authService.forgotPassword(email);
+  }
+
+  @Post('reset-password')
+  @ApiOperation({ summary: 'إعادة تعيين كلمة المرور باستخدام الكود' })
+  @ApiBody({
+    schema: {
+      properties: {
+        email: { type: 'string' },
+        otp: { type: 'string' },
+        newPassword: { type: 'string' },
+      },
+    },
+  })
+  resetPassword(
+    @Body() body: { email: string; otp: string; newPassword: string },
+  ) {
+    return this.authService.resetPassword(body.email, body.otp, body.newPassword);
   }
 }

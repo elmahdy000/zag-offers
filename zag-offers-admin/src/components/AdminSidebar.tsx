@@ -159,7 +159,8 @@ export default function AdminSidebar() {
   const { data: pendingCount = 0 } = useQuery<number>({
     queryKey: ['pending-count'],
     queryFn: fetchPendingCount,
-    staleTime: 30000,
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const handleLogout = () => {

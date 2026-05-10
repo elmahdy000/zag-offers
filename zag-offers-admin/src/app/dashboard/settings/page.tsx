@@ -41,6 +41,8 @@ export default function SettingsPage() {
       const response = await adminApi().get<ProfileData>('/auth/me');
       return response.data;
     },
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: healthData, isLoading: healthLoading, isError: healthError, dataUpdatedAt } = useQuery({
@@ -50,8 +52,9 @@ export default function SettingsPage() {
       return response.data as { status?: string; db?: string; version?: string };
     },
     retry: 1,
-    refetchInterval: 30_000, // refresh every 30 seconds
-    staleTime: 20_000,
+    refetchInterval: 60_000, // refresh every 60 seconds
+    staleTime: 30000,
+    refetchOnWindowFocus: false,
   });
 
   const updateProfileMutation = useMutation({

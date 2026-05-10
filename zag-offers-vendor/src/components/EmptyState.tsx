@@ -1,5 +1,5 @@
 import React from 'react';
-import { Tag, Plus, ArrowLeft } from 'lucide-react';
+import { Tag, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface EmptyStateProps {

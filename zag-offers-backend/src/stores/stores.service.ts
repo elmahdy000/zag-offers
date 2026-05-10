@@ -89,9 +89,14 @@ export class StoresService {
   }
 
   async findOne(id: string): Promise<Store | null> {
-    return this.prisma.store.findUnique({
-      where: { id },
-      include: { category: true, owner: true, offers: true },
+    return this.prisma.store.findFirst({
+      where: { id, status: StoreStatus.APPROVED },
+      include: {
+        category: true,
+        offers: {
+          where: { status: 'ACTIVE' },
+        },
+      },
     });
   }
 

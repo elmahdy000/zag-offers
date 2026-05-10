@@ -83,18 +83,37 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <h3 className="text-lg font-black mr-2 mb-4">الإعدادات</h3>
           
-          <div className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] opacity-50 cursor-not-allowed">
+          <Link href="/profile/edit" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/30"><Settings size={24} /></div>
+              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/80 group-hover:text-[#FF6B00] group-hover:scale-110 transition-transform"><Settings size={24} /></div>
               <div>
                 <h4 className="font-black text-white">تعديل البيانات</h4>
-                <p className="text-xs font-bold text-white/30 uppercase tracking-widest">قريباً</p>
+                <p className="text-xs font-bold text-white/50 uppercase tracking-widest">تحديث الملف الشخصي</p>
               </div>
             </div>
             <ChevronLeft className="text-white/20" />
+          </Link>
+
+          {/* Contact & Support */}
+          <Link href="/contact" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
+            <div className="flex items-center gap-4">
+              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/80 group-hover:text-[#FF6B00] group-hover:scale-110 transition-transform"><Smartphone size={24} /></div>
+              <div>
+                <h4 className="font-black text-white">تواصل معنا</h4>
+                <p className="text-xs font-bold text-white/50 uppercase tracking-widest">الدعم الفني والمساعدة</p>
+              </div>
+            </div>
+            <ChevronLeft className="text-white/20" />
+          </Link>
+
+          {/* Legal Links */}
+          <div className="flex items-center justify-between gap-4 px-2">
+            <Link href="/terms" className="text-xs font-bold text-white/40 hover:text-white transition-colors">الشروط والأحكام</Link>
+            <span className="w-1 h-1 rounded-full bg-white/20" />
+            <Link href="/privacy" className="text-xs font-bold text-white/40 hover:text-white transition-colors">سياسة الخصوصية</Link>
           </div>
 
-          <div className="p-6 bg-gradient-to-br from-orange-600/20 to-orange-900/20 border border-[#FF6B00]/20 rounded-[24px]">
+          <div className="p-6 bg-gradient-to-br from-orange-600/20 to-orange-900/20 border border-[#FF6B00]/20 rounded-[24px] mt-4">
              <h4 className="font-black text-white mb-2">انضم لبرنامج الولاء 🌟</h4>
              <p className="text-xs font-bold text-white/50 leading-relaxed">قريباً ستتمكن من جمع النقاط مع كل كوبون تستخدمه واستبدالها بهدايا قيمة.</p>
           </div>

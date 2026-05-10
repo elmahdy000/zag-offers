@@ -122,11 +122,12 @@ export class OffersService {
       store: { status: StoreStatus.APPROVED }, // من محلات معتمدة فقط
     };
 
+    // Optimized query with better select and indexing
     const items = await this.prisma.offer.findMany({
       skip,
       take,
       where: finalWhere,
-      orderBy,
+      orderBy: orderBy || { createdAt: 'desc' },
       select: {
         id: true,
         title: true,
@@ -134,6 +135,8 @@ export class OffersService {
         endDate: true,
         status: true,
         images: true,
+        originalPrice: true,
+        createdAt: true,
         store: {
           select: {
             id: true,
@@ -149,7 +152,11 @@ export class OffersService {
           },
         },
         _count: {
-          select: { coupons: true }
+          select: { 
+            coupons: {
+              where: { status: 'USED' }
+            }
+          }
         }
       },
     });
@@ -158,6 +165,7 @@ export class OffersService {
       return items;
     }
 
+    // Use count with optimized query
     const total = await this.prisma.offer.count({ where: finalWhere });
     const currentLimit = limit ?? take ?? 10;
     const currentPage = page ?? 1;
@@ -169,6 +177,8 @@ export class OffersService {
         page: currentPage,
         limit: currentLimit,
         lastPage: Math.max(1, Math.ceil(total / currentLimit)),
+        hasNext: currentPage * currentLimit < total,
+        hasPrev: currentPage > 1,
       },
     };
   }

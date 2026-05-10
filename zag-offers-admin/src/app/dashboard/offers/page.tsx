@@ -98,11 +98,13 @@ export default function OffersManagementPage() {
           search: debouncedSearch || undefined,
           status: statusFilter || undefined,
           page,
-          limit: 12,
+          limit: 20,
         },
       });
       return response.data as { items: OfferRow[]; meta: { total: number; lastPage: number } };
     },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: offerDetails, isLoading: detailsLoading } = useQuery({
@@ -121,6 +123,8 @@ export default function OffersManagementPage() {
       return response.data.items as { id: string; name: string }[];
     },
     enabled: isCreating || isEditing,
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const createOfferMutation = useMutation({

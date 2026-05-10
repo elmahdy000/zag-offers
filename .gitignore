@@ -3,6 +3,8 @@ node_modules
 *.json
 !package.json
 !tsconfig.json
+!manifest.json
+!service-worker.js
 .next
 dist
 build

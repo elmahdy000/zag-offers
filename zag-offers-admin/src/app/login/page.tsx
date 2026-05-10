@@ -47,6 +47,7 @@ export default function AdminLoginPage() {
       const isSecure = window.location.protocol === 'https:';
       document.cookie = `admin_token=${encodeURIComponent(access_token)}; path=/; SameSite=Strict${isSecure ? '; Secure' : ''}`;
       sessionStorage.setItem('admin_user', JSON.stringify(user));
+      localStorage.setItem('admin_user', JSON.stringify(user));
 
       router.replace('/dashboard');
     } catch (err: any) {

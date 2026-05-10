@@ -1,0 +1,11 @@
+<svg width="192" height="192" viewBox="0 0 192 192" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Background -->
+  <rect width="192" height="192" rx="48" fill="#FF6B00"/>
+  
+  <!-- Z Logo -->
+  <path d="M48 48H144V72H96V84H144V108H96V120H144V144H48V120H96V108H48V84H96V72H48V48Z" fill="white"/>
+  
+  <!-- Tag Icon -->
+  <path d="M120 24L168 72L72 168L24 120L120 24Z" fill="white" fill-opacity="0.2"/>
+  <circle cx="120" cy="72" r="12" fill="white"/>
+</svg>

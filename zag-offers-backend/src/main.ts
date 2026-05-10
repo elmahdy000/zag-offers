@@ -7,12 +7,32 @@ import compression from 'compression';
 import { join } from 'path';
 import * as express from 'express';
 
+function getAllowedOrigins(): string[] {
+  const rawOrigins = process.env.CORS_ORIGINS;
+  if (rawOrigins) {
+    return rawOrigins
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
+  // Safe local defaults for development environments.
+  return ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+}
+
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
+  const allowedOrigins = getAllowedOrigins();
 
   app.enableCors({
-    origin: (origin: any, callback: any) => callback(null, true),
+    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('CORS blocked'));
+    },
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept'],
     credentials: true,

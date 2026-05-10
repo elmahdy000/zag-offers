@@ -18,16 +18,16 @@ import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role, OfferStatus } from '@prisma/client';
 import { Prisma } from '@prisma/client';
-import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
+import { ApiTags, ApiOperation, ApiBearerAuth, ApiResponse } from '@nestjs/swagger';
 
 import { CacheInterceptor } from '@nestjs/cache-manager';
 import { UseInterceptors } from '@nestjs/common';
 
 import { AnalyticsService } from '../analytics/analytics.service';
+import { Throttle } from '@nestjs/throttler';
 
 @ApiTags('offers')
 @Controller('offers')
-@UseInterceptors(CacheInterceptor)
 export class OffersController {
   constructor(
     private readonly offersService: OffersService,
@@ -35,10 +35,13 @@ export class OffersController {
   ) {}
 
   @Post()
+  @Throttle({ hourly: { limit: 10, ttl: 3600000 } })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT, Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'Create a new offer' })
+  @ApiResponse({ status: 201, description: 'تم إنشاء العرض بنجاح' })
+  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من إنشاء العروض (10/ساعة)' })
   async create(
     @Body() createOfferDto: CreateOfferDto,
     @Request() req: { user: { id: string } },
@@ -66,6 +69,7 @@ export class OffersController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'List all active offers' })
   findAll(
     @Query('categoryId') categoryId?: string,
@@ -103,6 +107,7 @@ export class OffersController {
   }
 
   @Get('store/:storeId')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get offers by store ID' })
   findByStore(@Param('storeId') storeId: string) {
     return this.offersService.findAll({
@@ -115,6 +120,7 @@ export class OffersController {
   }
 
   @Get('search')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Search offers by keyword' })
   search(@Query('q') query: string) {
     return this.offersService.findAll({
@@ -129,6 +135,7 @@ export class OffersController {
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get offer by ID' })
   async findOne(@Param('id') id: string, @Request() req: any) {
     const offer = await this.offersService.findOne(id);

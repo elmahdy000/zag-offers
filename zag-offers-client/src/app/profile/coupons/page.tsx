@@ -10,11 +10,16 @@ import { API_URL } from '@/lib/constants';
 export default function MyCouponsPage() {
   const [coupons, setCoupons] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null); // null = checking
 
   useEffect(() => {
     const fetchCoupons = async () => {
       const token = localStorage.getItem('token');
-      if (!token) return;
+      setIsLoggedIn(!!token);
+      if (!token) {
+        setLoading(false);
+        return; // will show login prompt below
+      }
 
       try {
         const res = await axios.get(`${API_URL}/coupons/my`, {
@@ -42,6 +47,16 @@ export default function MyCouponsPage() {
       {loading ? (
         <div className="space-y-4">
           {[1,2,3].map(i => <div key={i} className="h-32 bg-white/5 rounded-[24px] animate-pulse" />)}
+        </div>
+      ) : isLoggedIn === false ? (
+        /* Not logged in — show login prompt instead of empty/stuck state */
+        <div className="text-center py-20 glass rounded-[32px]">
+          <Ticket className="mx-auto text-white/10 mb-4" size={64} />
+          <h3 className="text-xl font-black mb-2">يرجى تسجيل الدخول</h3>
+          <p className="text-white/40 text-sm font-bold mb-8">سجّل دخولك لترى كوبوناتك وخصوماتك</p>
+          <Link href="/login" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
+            تسجيل الدخول
+          </Link>
         </div>
       ) : coupons.length === 0 ? (
         <div className="text-center py-20 glass rounded-[32px]">

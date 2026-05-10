@@ -24,7 +24,6 @@ import { UseInterceptors } from '@nestjs/common';
 
 @ApiTags('stores (نظام المحلات)')
 @Controller('stores')
-@UseInterceptors(CacheInterceptor)
 export class StoresController {
   private readonly logger = new Logger(StoresController.name);
 
@@ -64,6 +63,7 @@ export class StoresController {
   }
 
   @Get()
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'عرض كل المحلات المعتمدة' })
   findAll(
     @Query('area') area?: string,
@@ -88,6 +88,7 @@ export class StoresController {
   }
 
   @Get('categories')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'عرض كل الأقسام' })
   getCategories() {
     return this.storesService.findCategories();
@@ -112,6 +113,7 @@ export class StoresController {
   }
 
   @Get(':id')
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'عرض بيانات محل معين' })
   findOne(@Param('id') id: string) {
     return this.storesService.findOne(id);
@@ -139,3 +141,4 @@ export class StoresController {
     return this.storesService.updateStatus(id, status);
   }
 }
+

@@ -113,7 +113,7 @@ export default function StoresPage() {
           status: statusFilter || undefined,
           category: categoryFilter || undefined,
           page,
-          limit: 12,
+          limit: 20,
         },
       });
       return response.data as { 
@@ -121,6 +121,8 @@ export default function StoresPage() {
         meta: { total: number; lastPage: number } 
       };
     },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: categories } = useQuery({
@@ -129,6 +131,8 @@ export default function StoresPage() {
       const response = await adminApi().get('/admin/categories');
       return response.data as { id: string; name: string }[];
     },
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: storeDetails, isLoading: detailsLoading } = useQuery({

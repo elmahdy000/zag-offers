@@ -21,12 +21,34 @@ export default function LoginPage() {
     setError(null);
     setLoading(true);
 
+    // تحقق من صيغة رقم الموبايل المصري
+    const phoneRegex = /^01[0125][0-9]{8}$/;
+    if (!phoneRegex.test(phone.trim())) {
+      setError('يرجى إدخال رقم موبايل مصري صحيح');
+      setLoading(false);
+      return;
+    }
+
+    // تحقق من طول كلمة المرور
+    if (password.length < 6) {
+      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+      setLoading(false);
+      return;
+    }
+
     try {
       const res = await axios.post(`${API_URL}/auth/login`, {
         phone: phone.trim(),
         password,
       });
       const { access_token, user } = res.data;
+      
+      // تحقق من نوع المستخدم
+      if (user.role === 'MERCHANT' || user.role === 'ADMIN') {
+        setError('هذا الحساب لحساب تاجر. يرجى استخدام تطبيق التاجر.');
+        setLoading(false);
+        return;
+      }
       
       localStorage.setItem('token', access_token);
       localStorage.setItem('user', JSON.stringify(user));
@@ -105,6 +127,11 @@ export default function LoginPage() {
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
+            </div>
+            <div className="flex justify-end pt-2">
+              <Link href="/forgot-password" className="text-[11px] font-black text-white/40 hover:text-[#FF6B00] transition-colors">
+                نسيت كلمة المرور؟
+              </Link>
             </div>
           </div>
 

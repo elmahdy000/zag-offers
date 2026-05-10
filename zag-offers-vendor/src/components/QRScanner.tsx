@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { X, Camera, RefreshCcw, AlertTriangle, Video, Settings } from 'lucide-react';
+import { X, Camera, RefreshCcw, AlertTriangle } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 
 interface QRScannerProps {
@@ -72,6 +72,20 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       }
     };
 
+    const switchCamera = async (id: string) => {
+      setActiveCam(id);
+      if (html5QrCode.current) {
+        try {
+          if (html5QrCode.current.isScanning) await html5QrCode.current.stop();
+          const scanner = new Html5Qrcode("qr-reader");
+          html5QrCode.current = scanner;
+          await scanner.start(id, { fps: 15, qrbox: { width: 250, height: 250 } }, (text) => {
+            scanner.stop().then(() => onScan(text));
+          }, () => {});
+        } catch (e) { setError("تعذر التبديل لهذه الكاميرا"); }
+      }
+    };
+
     const timer = setTimeout(initScanner, 1000);
 
     return () => {
@@ -81,20 +95,6 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       }
     };
   }, []);
-
-  const switchCamera = async (id: string) => {
-    setActiveCam(id);
-    if (html5QrCode.current) {
-      try {
-        if (html5QrCode.current.isScanning) await html5QrCode.current.stop();
-        const scanner = new Html5Qrcode("qr-reader");
-        html5QrCode.current = scanner;
-        await scanner.start(id, { fps: 15, qrbox: { width: 250, height: 250 } }, (text) => {
-          scanner.stop().then(() => onScan(text));
-        }, () => {});
-      } catch (e) { setError("تعذر التبديل لهذه الكاميرا"); }
-    }
-  };
 
   return (
     <motion.div 
@@ -146,7 +146,12 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
             {cameras.map((cam, idx) => (
               <button 
                 key={cam.id} 
-                onClick={() => switchCamera(cam.id)}
+                onClick={() => {
+                  const currentIndex = cameras.findIndex(c => c.id === activeCam);
+                  const nextIndex = (currentIndex + 1) % cameras.length;
+                  const nextCam = cameras[nextIndex];
+                  setActiveCam(nextCam.id);
+                }}
                 className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${activeCam === cam.id ? 'bg-primary text-white border-primary' : 'bg-white/5 text-text-dim border-white/5'}`}
               >
                 كاميرا {idx + 1}

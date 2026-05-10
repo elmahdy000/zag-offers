@@ -39,6 +39,7 @@ interface Offer {
   title: string;
   discount: string;
   endDate: string;
+  createdAt?: string;   // returned by backend, used for "newest" sorting
   featured: boolean;
   store: {
     id: string;
@@ -167,12 +168,16 @@ function HomePageContent() {
   useEffect(() => { fetchData(); }, [fetchData]);
   useEffect(() => { if (catIdParam) setActiveCat(catIdParam); }, [catIdParam]);
 
-  // Track search analytics (debounced)
+  // Track search analytics (debounced) — compute count inline to avoid stale closure
   useEffect(() => {
     if (debouncedSearch) {
-      trackEvent('search', { query: debouncedSearch, resultsCount: filteredOffers.length });
+      const q = debouncedSearch.toLowerCase();
+      const count = offers.filter(o =>
+        o.title.toLowerCase().includes(q) || o.store.name.toLowerCase().includes(q)
+      ).length;
+      trackEvent('search', { query: debouncedSearch, resultsCount: count });
     }
-  }, [debouncedSearch, trackEvent]);
+  }, [debouncedSearch, offers, trackEvent]);
 
   // Track category filter
   useEffect(() => {
@@ -196,7 +201,8 @@ function HomePageContent() {
     // Apply sorting
     switch (sortBy) {
       case 'newest':
-        result = result.sort((a, b) => new Date(b.endDate).getTime() - new Date(a.endDate).getTime());
+        // Sort by creation date DESC (most recently added first)
+        result = result.sort((a, b) => new Date(b.createdAt ?? b.endDate).getTime() - new Date(a.createdAt ?? a.endDate).getTime());
         break;
       case 'expiring':
         result = result.sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());

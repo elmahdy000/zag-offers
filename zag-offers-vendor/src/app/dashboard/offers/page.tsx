@@ -1,8 +1,9 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
+import { useVendorOffers, useDeleteOffer } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
 
@@ -40,30 +41,15 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
     >
       {/* Mini Image & Header */}
       <div className="relative h-28 bg-white/5 overflow-hidden">
-        {offer.images?.length > 0 ? (
+        {offer.images && offer.images.length > 0 ? (
           <img
             src={resolveImageUrl(offer.images[0])}
             alt={offer.title}
             className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100"
           />
         ) : (
-          <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-white/5 to-transparent">
-            <Tag size={24} className="text-white/10" />
-          </div>
-        )}
-        <div className="absolute inset-0 bg-gradient-to-t from-bg via-transparent to-transparent opacity-60" />
-
-        {/* Status Badge */}
-        <div className="absolute top-3 left-3">
-          <div className={`flex items-center gap-1.5 px-2 py-0.5 rounded-lg text-[8px] font-black border backdrop-blur-md uppercase tracking-wider ${cfg.color}`}>
-            {cfg.label}
-          </div>
-        </div>
-
-        {/* Discount Badge */}
-        {offer.discount && (
-          <div className="absolute bottom-3 right-3 bg-primary text-white text-[10px] font-black px-2 py-0.5 rounded-lg shadow-lg shadow-primary/20">
-            {offer.discount}
+          <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">
+            <Tag size={24} className="text-white/20" />
           </div>
         )}
       </div>
@@ -115,42 +101,42 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
 }
 
 export default function OffersListPage() {
-  const [offers, setOffers] = useState<Offer[]>([]);
-  const [loading, setLoading] = useState(true);
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
 
-  useEffect(() => {
-    vendorApi()
-      .get<Offer[]>('/offers/my')
-      .then((res) => setOffers(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  // React Query hooks
+  const { data: offers, isLoading, refetch } = useVendorOffers();
+  const { mutate: deleteOffer, isPending: deleting } = useDeleteOffer();
 
   const handleDelete = async (id: string) => {
     if (!confirm('هل تريد حذف هذا العرض؟')) return;
-    try {
-      await vendorApi().delete(`/offers/${id}`);
-      setOffers((prev) => prev.filter((o) => o.id !== id));
-    } catch {
-      alert('فشل الحذف، حاول مرة أخرى');
-    }
+    
+    deleteOffer(id, {
+      onSuccess: () => {
+        // Offers will be refetched automatically by React Query
+      },
+      onError: () => {
+        alert('فشل الحذف، حاول مرة أخرى');
+      },
+    });
   };
 
-  if (loading) return <DashboardSkeleton />;
+  if (isLoading) return <DashboardSkeleton />;
 
   const filters = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'];
-  const filtered = activeFilter === 'ALL' ? offers : offers.filter(o => o.status === activeFilter);
+  const offersArray = Array.isArray(offers) ? offers : [];
+  const filtered = activeFilter === 'ALL' ? offersArray : offersArray.filter((o: any) => o.status === activeFilter);
 
-  const grouped = filtered.reduce<Record<string, Offer[]>>((acc, offer) => {
+  const grouped = filtered ? filtered.reduce((acc: any, offer: any) => {
     const cat = offer.store?.category?.name || 'عروض متنوعة';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(offer);
     return acc;
-  }, {});
+  }, {}) : {};
 
-  const counts: Record<string, number> = { ALL: offers.length };
-  filters.slice(1).forEach(s => { counts[s] = offers.filter(o => o.status === s).length; });
+  const counts: Record<string, number> = { ALL: offersArray.length };
+  filters.slice(1).forEach((s: any) => { 
+    counts[s] = offersArray.filter((o: any) => o.status === s).length; 
+  });
 
   return (
     <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto">
@@ -160,7 +146,7 @@ export default function OffersListPage() {
           <h1 className="text-3xl font-black text-text tracking-tight">قائمة العروض</h1>
           <p className="text-text-dim mt-2 font-bold flex items-center gap-2 text-xs">
             <div className="w-1.5 h-1.5 bg-primary rounded-full" />
-            إجمالي {offers.length} عرض — {offers.filter(o => o.status === 'ACTIVE').length} نشط حالياً
+            إجمالي {offers ? offers.length : 0} عرض — {offers ? offers.filter((o: any) => o.status === 'ACTIVE').length : 0} نشط حالياً
           </p>
         </div>
         <Link
@@ -210,27 +196,30 @@ export default function OffersListPage() {
           </p>
         </div>
       ) : (
-        Object.entries(grouped).map(([category, catOffers]) => (
-          <div key={category} className="mb-14">
-            {/* Section Header */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
-                <Layers size={14} className="text-primary" />
+        Object.entries(grouped).map(([category, catOffers]: [string, any]) => {
+          const catOffersArray = Array.isArray(catOffers) ? catOffers : [];
+          return (
+            <div key={category} className="mb-14">
+              {/* Section Header */}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-primary/10 rounded-xl flex items-center justify-center border border-primary/20">
+                  <Layers size={14} className="text-primary" />
+                </div>
+                <h2 className="text-sm font-black text-text uppercase tracking-wider">{category}</h2>
+                <div className="flex-1 h-px bg-white/5" />
+                <span className="text-[10px] font-black text-text-dim bg-white/5 px-2 py-1 rounded-lg">
+                  {catOffersArray.length}
+                </span>
               </div>
-              <h2 className="text-sm font-black text-text uppercase tracking-wider">{category}</h2>
-              <div className="flex-1 h-px bg-white/5" />
-              <span className="text-[10px] font-black text-text-dim bg-white/5 px-2 py-1 rounded-lg">
-                {catOffers.length}
-              </span>
-            </div>
 
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
-              {catOffers.map((offer) => (
-                <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} />
-              ))}
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5 gap-4">
+                {catOffersArray.map((offer: any) => (
+                  <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} />
+                ))}
+              </div>
             </div>
-          </div>
-        ))
+          );
+        })
       )}
     </div>
   );

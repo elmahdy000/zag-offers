@@ -125,7 +125,7 @@ export default function NotificationsPage() {
     if (!token || selectedIds.size === 0) return;
 
     try {
-      await Promise.all(
+      const results = await Promise.allSettled(
         Array.from(selectedIds).map(id =>
           fetch(`${API_URL}/notifications/${id}`, {
             method: 'DELETE',
@@ -133,7 +133,12 @@ export default function NotificationsPage() {
           })
         )
       );
-      setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
+
+      // Only remove IDs whose request succeeded
+      const successfulIds = new Set(
+        Array.from(selectedIds).filter((_, i) => results[i].status === 'fulfilled')
+      );
+      setNotifications(prev => prev.filter(n => !successfulIds.has(n.id)));
       setSelectedIds(new Set());
     } catch { /* silent */ }
   };

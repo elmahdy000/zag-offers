@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
 
-const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online';
+const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online/api').replace(/\/api$/, '');
 
 export const useSocket = (token: string | null, userId: string | null, role: string | null) => {
   const [socket, setSocket] = useState<Socket | null>(null);

@@ -22,9 +22,20 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const [token, setToken] = useState<string | null>(null);
   const { socket, isConnected, connectionStatus } = useSocket(token);
 
+  // Read token from localStorage (not cookies — auth is stored in localStorage)
   useEffect(() => {
-    const t = document.cookie.split('; ').find(row => row.startsWith('auth_token='))?.split('=')[1];
-    setToken(t || null);
+    const updateToken = () => {
+      const t = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      setToken(t);
+    };
+    updateToken();
+    // Re-read on login / logout events
+    window.addEventListener('auth-change', updateToken);
+    window.addEventListener('storage', updateToken);
+    return () => {
+      window.removeEventListener('auth-change', updateToken);
+      window.removeEventListener('storage', updateToken);
+    };
   }, []);
 
   useEffect(() => {

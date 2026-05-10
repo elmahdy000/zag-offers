@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, NestModule, MiddlewareConsumer } from '@nestjs/common';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { PrismaModule } from './prisma/prisma.module';
@@ -26,6 +26,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { SecurityMiddleware } from './common/middleware/security.middleware';
 
 @Module({
   imports: [
@@ -52,6 +53,16 @@ import { AnalyticsModule } from './analytics/analytics.module';
         name: 'long',
         ttl: 60000,
         limit: 500,
+      },
+      {
+        name: 'strict',
+        ttl: 60000,
+        limit: 10,
+      },
+      {
+        name: 'hourly',
+        ttl: 3600000,
+        limit: 100,
       },
     ]),
     PrismaModule,
@@ -80,4 +91,10 @@ import { AnalyticsModule } from './analytics/analytics.module';
     RecommendationsService,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer
+      .apply(SecurityMiddleware)
+      .forRoutes('*');
+  }
+}

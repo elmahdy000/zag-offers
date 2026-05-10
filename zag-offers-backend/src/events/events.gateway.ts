@@ -12,6 +12,18 @@ import {
 } from '@nestjs/websockets';
 import { Server, Socket } from 'socket.io';
 
+function getAllowedOrigins(): string[] {
+  const rawOrigins = process.env.CORS_ORIGINS;
+  if (rawOrigins) {
+    return rawOrigins
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+  }
+
+  return ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+}
+
 export interface WsNewOffer {
   offerId: string;
   title: string;
@@ -92,7 +104,17 @@ interface JoinRoomPayload {
 
 @WebSocketGateway({
   cors: {
-    origin: (origin: any, callback: any) => callback(null, true),
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      const allowedOrigins = getAllowedOrigins();
+      if (!origin || allowedOrigins.includes(origin)) {
+        callback(null, true);
+        return;
+      }
+      callback(new Error('CORS blocked'));
+    },
     credentials: true,
   },
   namespace: '/',

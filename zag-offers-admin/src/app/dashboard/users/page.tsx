@@ -108,11 +108,13 @@ export default function UsersPage() {
           search: debouncedSearch || undefined,
           role: roleFilter || undefined,
           page,
-          limit: 12,
+          limit: 20,
         },
       });
       return response.data as { items: UserItem[]; meta: { total: number; lastPage: number } };
     },
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const deleteMutation = useMutation({

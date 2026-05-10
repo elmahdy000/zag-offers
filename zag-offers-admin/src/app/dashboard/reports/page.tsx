@@ -52,6 +52,8 @@ export default function ReportsPage() {
       });
       return response.data;
     },
+    staleTime: 120000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: topStores, isLoading: storesLoading } = useQuery({
@@ -60,6 +62,8 @@ export default function ReportsPage() {
       const response = await adminApi().get<TopStore[]>('/admin/stats/top-stores');
       return response.data;
     },
+    staleTime: 180000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: topCategories, isLoading: categoriesLoading } = useQuery({
@@ -68,6 +72,8 @@ export default function ReportsPage() {
       const response = await adminApi().get<TopCategory[]>('/admin/stats/top-categories');
       return response.data;
     },
+    staleTime: 180000,
+    refetchOnWindowFocus: false,
   });
 
   const StatCard = ({

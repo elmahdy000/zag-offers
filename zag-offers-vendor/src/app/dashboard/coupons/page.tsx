@@ -1,7 +1,8 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Download, Clock, Tag, Search, Filter, Calendar, ChevronLeft, User } from 'lucide-react';
 import { vendorApi } from '@/lib/api';
+import { useVendorCoupons } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
 
@@ -16,17 +17,10 @@ interface CouponLog {
 }
 
 export default function CouponsLogPage() {
-  const [logs, setLogs] = useState<CouponLog[]>([]);
-  const [loading, setLoading] = useState(true);
   const [searchTerm, setSearchTerm] = useState('');
 
-  useEffect(() => {
-    vendorApi()
-      .get<CouponLog[]>('/coupons/merchant')
-      .then((res) => setLogs(res.data))
-      .catch(console.error)
-      .finally(() => setLoading(false));
-  }, []);
+  // React Query hook
+  const { data: logs, isLoading } = useVendorCoupons();
 
   const getStatusLabel = (status: string) => {
     if (status === 'REDEEMED' || status === 'USED') return 'تم التفعيل';
@@ -40,13 +34,13 @@ export default function CouponsLogPage() {
     return 'bg-primary/10 text-primary border-primary/20';
   };
 
-  if (loading) return <DashboardSkeleton />;
+  if (isLoading) return <DashboardSkeleton />;
 
-  const filteredLogs = logs.filter(log => 
+  const filteredLogs = logs ? logs.filter((log: any) => 
     log.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.offer?.title?.toLowerCase().includes(searchTerm.toLowerCase())
-  );
+  ) : [];
 
   return (
     <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto">
@@ -56,7 +50,7 @@ export default function CouponsLogPage() {
           <h1 className="text-3xl font-black text-text tracking-tight">سجل الكوبونات</h1>
           <p className="text-text-dim mt-2 font-bold flex items-center gap-2 text-xs">
             <Clock size={14} className="text-primary" />
-            إجمالي {logs.length} عملية سجلت بالنظام
+            إجمالي {logs ? logs.length : 0} عملية سجلت بالنظام
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
@@ -106,7 +100,7 @@ export default function CouponsLogPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
-                {filteredLogs.map((log, i) => (
+                {filteredLogs.map((log: any, i: number) => (
                   <motion.tr 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}

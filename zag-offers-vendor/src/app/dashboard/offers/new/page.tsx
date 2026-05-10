@@ -4,6 +4,7 @@ import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, Layout
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, getVendorStoreId } from '@/lib/api';
+import { useCreateOffer } from '@/hooks/use-vendor-api';
 
 export default function NewOfferPage() {
   const router = useRouter();
@@ -16,8 +17,10 @@ export default function NewOfferPage() {
   });
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // React Query hook
+  const { mutate: createOffer, isPending: submitting } = useCreateOffer();
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -59,33 +62,80 @@ export default function NewOfferPage() {
 
   const handleSubmit = async () => {
     setSubmitError(null);
+    
+    // تحقق من البيانات
     if (!formData.title.trim()) return setSubmitError('برجاء إدخال عنوان العرض');
+    if (formData.title.trim().length < 5) return setSubmitError('عنوان العرض يجب أن يكون 5 أحرف على الأقل');
+    
     if (!formData.discount.trim()) return setSubmitError('برجاء إدخال نسبة الخصم');
+    
+    // تحقق من صيغة الخصم
+    const discountRegex = /^\d+(\.\d+)?%?$/;
+    if (!discountRegex.test(formData.discount.trim())) {
+      return setSubmitError('صيغة الخصم غير صحيحة. مثال: 50% أو 50');
+    }
+    
+    const discountValue = parseFloat(formData.discount.replace('%', ''));
+    if (discountValue <= 0 || discountValue > 100) {
+      return setSubmitError('نسبة الخصم يجب أن تكون بين 1% و 100%');
+    }
+    
     if (!formData.expiryDate) return setSubmitError('برجاء اختيار تاريخ انتهاء العرض');
+    
+    // تحقق من تاريخ الانتهاء
+    const expiryDate = new Date(formData.expiryDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (expiryDate <= today) {
+      return setSubmitError('تاريخ الانتهاء يجب أن يكون في المستقبل');
+    }
+    
+    // تحقق من السعر الأصلي
+    if (formData.originalPrice) {
+      const price = parseFloat(formData.originalPrice);
+      if (isNaN(price) || price <= 0) {
+        return setSubmitError('السعر الأصلي يجب أن يكون رقماً موجباً');
+      }
+    }
 
     const storeId = getVendorStoreId();
     if (!storeId) return setSubmitError('لم يتم ربط متجر بحسابك. تواصل مع الإدارة.');
 
-    setSubmitting(true);
-    try {
-      let imageUrls: string[] = [];
-      if (selectedFiles.length > 0) {
+    // تحقق من حجم الصور ورفعها
+    let imageUrls: string[] = [];
+    if (selectedFiles.length > 0) {
+      for (const file of selectedFiles) {
+        if (file.size > 5 * 1024 * 1024) {
+          return setSubmitError('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
+        }
+        if (!file.type.startsWith('image/')) {
+          return setSubmitError('يجب رفع صور فقط');
+        }
+      }
+      
+      try {
         const uploadPromises = selectedFiles.map(async (file) => {
           const uploadFormData = new FormData();
           uploadFormData.append('file', file);
           const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 30000,
           });
           return uploadRes.data.url;
         });
         imageUrls = await Promise.all(uploadPromises);
+      } catch (error: any) {
+        return setSubmitError('فشل رفع الصور. حاول مرة أخرى.');
       }
+    }
 
-      const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
-        ? `${formData.discount.trim()}%` 
-        : formData.discount.trim();
+    const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
+      ? `${formData.discount.trim()}%` 
+      : formData.discount.trim();
 
-      await vendorApi().post('/offers', {
+    // Use React Query mutation
+    createOffer(
+      {
         title: formData.title.trim(),
         description: formData.description.trim() || formData.title.trim(),
         discount: formattedDiscount,
@@ -94,24 +144,28 @@ export default function NewOfferPage() {
         storeId,
         images: imageUrls,
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      });
-
-      router.push('/dashboard/offers');
-    } catch (error: any) {
-      console.error('Full Submit Error:', error);
-      const msg = error.response?.data?.message;
-      const status = error.response?.status;
-      
-      if (status === 401) {
-        setSubmitError('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى');
-      } else if (msg) {
-        setSubmitError(Array.isArray(msg) ? msg.join(' | ') : msg);
-      } else {
-        setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
+      },
+      {
+        onSuccess: () => {
+          router.push('/dashboard/offers');
+        },
+        onError: (error: any) => {
+          console.error('Full Submit Error:', error);
+          const msg = error.response?.data?.message;
+          const status = error.response?.status;
+          
+          if (status === 401) {
+            setSubmitError('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى');
+          } else if (status === 413) {
+            setSubmitError('حجم الملفات كبير جداً');
+          } else if (msg) {
+            setSubmitError(Array.isArray(msg) ? msg.join(' | ') : msg);
+          } else {
+            setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
+          }
+        },
       }
-    } finally {
-      setSubmitting(false);
-    }
+    );
   };
 
   const isNumericDiscount = /^\d+(\.\d+)?%?$/.test(formData.discount);

@@ -77,7 +77,7 @@ export default function HomePage() {
 
   // Check Auth on Mount
   useEffect(() => {
-    const token = localStorage.getItem('token') || document.cookie.includes('auth');
+    const token = document.cookie.includes('admin_token');
     setIsLoggedIn(!!token);
   }, []);
 

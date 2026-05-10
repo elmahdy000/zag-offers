@@ -119,6 +119,8 @@ export default function ApprovalsPage() {
       const response = await adminApi().get<PendingStore[]>('/admin/stores/pending');
       return response.data;
     },
+    staleTime: 45000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: offers = [], isLoading: offersLoading } = useQuery({
@@ -127,6 +129,8 @@ export default function ApprovalsPage() {
       const response = await adminApi().get<PendingOffer[]>('/admin/offers/pending');
       return response.data;
     },
+    staleTime: 45000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: approvedStores = [] } = useQuery({
@@ -136,6 +140,8 @@ export default function ApprovalsPage() {
       return response.data.items;
     },
     enabled: activeTab === 'history',
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const { data: approvedOffers = [] } = useQuery({
@@ -145,6 +151,8 @@ export default function ApprovalsPage() {
       return response.data.items;
     },
     enabled: activeTab === 'history',
+    staleTime: 60000,
+    refetchOnWindowFocus: false,
   });
 
   const historyItems = useMemo(() => {

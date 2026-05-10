@@ -560,8 +560,9 @@ export default function AdminDashboard() {
       const response = await adminApi().get<GlobalStats>('/admin/stats/global');
       return response.data;
     },
-    staleTime: 60000,
+    staleTime: 120000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
+    refetchOnWindowFocus: false,
   });
 
   const { data: pStats, isLoading: pStatsLoading } = useQuery({
@@ -583,7 +584,9 @@ export default function AdminDashboard() {
       const response = await adminApi().get<TopStore[]>('/admin/stats/top-stores', { params: { limit: 5 } });
       return response.data;
     },
+    staleTime: 180000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
+    refetchOnWindowFocus: false,
   });
 
   const { data: topCategories = [], isLoading: topCategoriesLoading } = useQuery({
@@ -592,7 +595,9 @@ export default function AdminDashboard() {
       const response = await adminApi().get<TopCategory[]>('/admin/stats/top-categories');
       return response.data;
     },
+    staleTime: 180000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
+    refetchOnWindowFocus: false,
   });
 
   const { data: pendingData, isLoading: pendingLoading } = useQuery({
@@ -608,8 +613,9 @@ export default function AdminDashboard() {
         offers: offersResponse.data,
       };
     },
-    staleTime: 30000,
+    staleTime: 45000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
+    refetchOnWindowFocus: false,
   });
 
   const actionMutation = useMutation({

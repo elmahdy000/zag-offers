@@ -4,12 +4,12 @@ import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, Layout
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
+import { useUpdateOffer, useDeleteOffer } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 
 export default function EditOfferPage() {
   const router = useRouter();
   const { id } = useParams();
-  const [loading, setLoading] = useState(true);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -20,8 +20,11 @@ export default function EditOfferPage() {
   const [imagePreviews, setImagePreviews] = useState<string[]>([]);
   const [existingImages, setExistingImages] = useState<string[]>([]);
   const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
-  const [submitting, setSubmitting] = useState(false);
   const [submitError, setSubmitError] = useState<string | null>(null);
+
+  // React Query hooks
+  const { mutate: updateOffer, isPending: submitting } = useUpdateOffer();
+  const { mutate: deleteOffer } = useDeleteOffer();
 
   useEffect(() => {
     if (!id) return;
@@ -43,8 +46,7 @@ export default function EditOfferPage() {
       .catch(err => {
         console.error(err);
         setSubmitError('تعذر تحميل بيانات العرض');
-      })
-      .finally(() => setLoading(false));
+      });
   }, [id]);
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -75,53 +77,114 @@ export default function EditOfferPage() {
 
   const handleSubmit = async () => {
     setSubmitError(null);
+    
+    // تحقق من البيانات
     if (!formData.title.trim()) return setSubmitError('برجاء إدخال عنوان العرض');
+    if (formData.title.trim().length < 5) return setSubmitError('عنوان العرض يجب أن يكون 5 أحرف على الأقل');
+    
     if (!formData.discount.trim()) return setSubmitError('برجاء إدخال نسبة الخصم');
+    
+    // تحقق من صيغة الخصم
+    const discountRegex = /^\d+(\.\d+)?%?$/;
+    if (!discountRegex.test(formData.discount.trim())) {
+      return setSubmitError('صيغة الخصم غير صحيحة. مثال: 50% أو 50');
+    }
+    
+    const discountValue = parseFloat(formData.discount.replace('%', ''));
+    if (discountValue <= 0 || discountValue > 100) {
+      return setSubmitError('نسبة الخصم يجب أن تكون بين 1% و 100%');
+    }
+    
     if (!formData.expiryDate) return setSubmitError('برجاء اختيار تاريخ انتهاء العرض');
+    
+    // تحقق من تاريخ الانتهاء
+    const expiryDate = new Date(formData.expiryDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    if (expiryDate <= today) {
+      return setSubmitError('تاريخ الانتهاء يجب أن يكون في المستقبل');
+    }
+    
+    // تحقق من السعر الأصلي
+    if (formData.originalPrice) {
+      const price = parseFloat(formData.originalPrice);
+      if (isNaN(price) || price <= 0) {
+        return setSubmitError('السعر الأصلي يجب أن يكون رقماً موجباً');
+      }
+    }
 
-    setSubmitting(true);
-    try {
-      let imageUrls = [...existingImages];
+    // تحقق ورفع الصور
+    let imageUrls = [...existingImages];
+    
+    if (selectedFiles.length > 0) {
+      // تحقق من حجم الصور
+      for (const file of selectedFiles) {
+        if (file.size > 5 * 1024 * 1024) {
+          return setSubmitError('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
+        }
+        if (!file.type.startsWith('image/')) {
+          return setSubmitError('يجب رفع صور فقط');
+        }
+      }
       
-      if (selectedFiles.length > 0) {
+      try {
         const uploadPromises = selectedFiles.map(async (file) => {
           const uploadFormData = new FormData();
           uploadFormData.append('file', file);
           const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-            headers: { 'Content-Type': 'multipart/form-data' }
+            headers: { 'Content-Type': 'multipart/form-data' },
+            timeout: 30000,
           });
           return uploadRes.data.url;
         });
         imageUrls = await Promise.all(uploadPromises);
+      } catch (error: any) {
+        return setSubmitError('فشل رفع الصور. حاول مرة أخرى.');
       }
+    }
 
-      const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
-        ? `${formData.discount.trim()}%` 
-        : formData.discount.trim();
+    const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
+      ? `${formData.discount.trim()}%` 
+      : formData.discount.trim();
 
-      await vendorApi().patch(`/offers/${id}`, {
+    // Use React Query mutation
+    updateOffer(
+      { id: id as string, data: {
         title: formData.title.trim(),
         description: formData.description.trim() || formData.title.trim(),
         discount: formattedDiscount,
         endDate: new Date(formData.expiryDate).toISOString(),
         images: imageUrls,
         originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : null,
-      });
-
-      router.push('/dashboard/offers');
-    } catch (error: any) {
-      console.error('Submit Error:', error);
-      const msg = error.response?.data?.message;
-      setSubmitError(
-        Array.isArray(msg) ? msg.join(' | ') : 
-        msg || 'حدث خطأ في الخادم. تأكد من أن جميع الحقول صحيحة.'
-      );
-    } finally {
-      setSubmitting(false);
-    }
+      }},
+      {
+        onSuccess: () => {
+          router.push('/dashboard/offers');
+        },
+        onError: (error: any) => {
+          console.error('Submit Error:', error);
+          const msg = error.response?.data?.message;
+          const status = error.response?.status;
+          
+          if (status === 401) {
+            setSubmitError('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى');
+          } else if (status === 413) {
+            setSubmitError('حجم الملفات كبير جداً');
+          } else if (msg) {
+            setSubmitError(
+              Array.isArray(msg) ? msg.join(' | ') : 
+              msg || 'حدث خطأ في الخادم. تأكد من أن جميع الحقول صحيحة.'
+            );
+          } else {
+            setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
+          }
+        },
+      }
+    );
   };
 
-  if (loading) return <DashboardSkeleton />;
+  if (!id) return <div className="p-8 text-center text-text-dim">لم يتم تحديد العرض.</div>;
+  if (submitError && !formData.title) return <DashboardSkeleton />;
 
   const isNumericDiscount = /^\d+(\.\d+)?%?$/.test(formData.discount);
   const discountValue = parseFloat(formData.discount) || 0;

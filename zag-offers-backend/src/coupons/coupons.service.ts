@@ -24,8 +24,14 @@ export class CouponsService {
   ) {}
 
   async generate(offerId: string, customerId: string): Promise<Coupon> {
+    // Validate input parameters
+    if (!offerId || !customerId) {
+      throw new BadRequestException('بيانات غير كاملة');
+    }
+
     const offer = await this.prisma.offer.findUnique({
       where: { id: offerId },
+      include: { store: true }
     });
 
     if (!offer) {
@@ -55,6 +61,19 @@ export class CouponsService {
       }
     }
 
+    // Check if user has too many active coupons (prevent abuse)
+    const activeCouponCount = await this.prisma.coupon.count({
+      where: {
+        customerId,
+        status: CouponStatus.GENERATED,
+        expiresAt: { gt: new Date() },
+      },
+    });
+    
+    if (activeCouponCount >= 10) {
+      throw new BadRequestException('لديك الحد الأقصى من الكوبونات النشطة');
+    }
+
     // لو العميل عنده كوبون صالح بالفعل، نرجع نفس الكوبون بدل ما نعمل واحد جديد
     const existing = await this.prisma.coupon.findFirst({
       where: {
@@ -69,9 +88,9 @@ export class CouponsService {
       return existing;
     }
 
-    const code = `ZAG-${nanoid(6).toUpperCase()}`;
+    const code = `ZAG-${nanoid(8).toUpperCase()}`;
     const expiresAt = new Date();
-    expiresAt.setHours(expiresAt.getHours() + 2);
+    expiresAt.setHours(expiresAt.getHours() + 24); // Increased to 24 hours for better UX
 
     const newCoupon = await this.prisma.coupon.create({
       data: {
@@ -184,13 +203,13 @@ export class CouponsService {
       throw new BadRequestException('حالة الكوبون غير صالحة للتفعيل');
     }
 
-    // التحقق من انتهاء صلاحية الكوبون (ساعتين)
+    // التحقق من انتهاء صلاحية الكوبون (24 hours)
     if (new Date() > coupon.expiresAt) {
       await this.prisma.coupon.update({
         where: { id: coupon.id },
         data: { status: CouponStatus.EXPIRED },
       });
-      throw new BadRequestException('عفواً، صلاحية الكوبون ده انتهت (ساعتين)');
+      throw new BadRequestException('عفواً، صلاحية الكوبون ده انتهت (24 ساعة)');
     }
 
     const updatedCoupon = await this.prisma.coupon.update({
@@ -293,7 +312,12 @@ export class CouponsService {
     });
   }
 
-  async findByCode(code: string) {
+  async findByCode(code: string, requesterId: string) {
+    const requester = await this.prisma.user.findUnique({
+      where: { id: requesterId },
+      select: { role: true },
+    });
+
     const coupon = await this.prisma.coupon.findUnique({
       where: { code },
       include: {
@@ -303,6 +327,9 @@ export class CouponsService {
             title: true,
             status: true,
             endDate: true,
+            store: {
+              select: { id: true, ownerId: true, name: true },
+            },
           },
         },
       },
@@ -310,6 +337,12 @@ export class CouponsService {
 
     if (!coupon) {
       throw new NotFoundException('الكود غير صحيح');
+    }
+
+    const isAdmin = requester?.role === 'ADMIN';
+    const isStoreOwner = coupon.offer.store.ownerId === requesterId;
+    if (!isAdmin && !isStoreOwner) {
+      throw new BadRequestException('Ø¹ÙÙˆØ§Ù‹ØŒ Ø§Ù„ÙƒÙˆØ¨ÙˆÙ† Ø¯Ù‡ Ù…Ø´ Ø®Ø§Øµ Ø¨Ù…ØªØ¬Ø±Ùƒ');
     }
 
     return coupon;

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { io } from 'socket.io-client';
 import { vendorApi, getCookie, getVendorUser, getVendorStoreId } from '@/lib/api';
+import { useVendorStats, useRedeemCoupon } from '@/hooks/use-vendor-api';
 import QRScanner from '@/components/QRScanner';
 import EmptyState from '@/components/EmptyState';
 
@@ -50,9 +51,7 @@ interface ScannedCoupon {
 
 export default function MerchantDashboard() {
   const [loading, setLoading] = useState(true);
-  const [stats, setStats] = useState<DashboardStats | null>(null);
   const [couponCode, setCouponCode] = useState('');
-  const [redeeming, setRedeeming] = useState(false);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
   const [notification, setNotification] = useState<string | null>(null);
   const [showScanner, setShowScanner] = useState(false);
@@ -60,6 +59,10 @@ export default function MerchantDashboard() {
   const [showStoreSelector, setShowStoreSelector] = useState(false);
   const [scanHistory, setScanHistory] = useState<ScannedCoupon[]>([]);
   const [showHistory, setShowHistory] = useState(false);
+
+  // React Query hooks
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useVendorStats();
+  const { mutate: redeemCoupon, isPending: redeeming } = useRedeemCoupon();
 
   const handleScan = (decodedText: string) => {
     setShowScanner(false);
@@ -153,8 +156,9 @@ export default function MerchantDashboard() {
   };
 
   const handleStoreSelect = (store: MerchantStore) => {
-    setStats(prev => prev ? { ...prev, storeId: store.id, storeName: store.name } : null);
     localStorage.setItem('vendor_store_id', store.id);
+    // Stats will be refetched automatically by React Query
+    refetchStats();
     setShowStoreSelector(false);
   };
 
@@ -173,11 +177,6 @@ export default function MerchantDashboard() {
         console.error('Failed to load scan history:', e);
       }
     }
-
-    vendorApi()
-      .get<DashboardStats>('/stores/my-dashboard')
-      .then((res) => setStats(res.data))
-      .catch(console.error);
 
     // Load all stores for this merchant
     vendorApi()
@@ -203,13 +202,14 @@ export default function MerchantDashboard() {
       else if (data.type === 'OFFER_REJECTED') msg = `❌ تم رفض عرضك "${data.offerTitle}"`;
       else if (data.type === 'COUPON_GENERATED') {
         msg = `🎫 عميل جديد طلب كوبون لـ "${data.offerTitle || ''}"`;
-        setStats(prev => prev ? { ...prev, claimsToday: prev.claimsToday + 1, totalClaims: prev.totalClaims + 1 } : null);
+        // Stats will be updated automatically by React Query
+        refetchStats();
       }
       else if (data.type === 'COUPON_REDEEMED') {
         msg = `✅ تم تفعيل كوبون بنجاح!`;
-        setStats(prev => prev ? { ...prev, scansToday: prev.scansToday + 1 } : null);
+        // Stats will be updated automatically by React Query
         setTimeout(() => {
-          vendorApi().get<DashboardStats>('/stores/my-dashboard').then(res => setStats(res.data));
+          refetchStats();
         }, 2000);
       }
       else if (data.message) msg = `📢 ${data.message}`;
@@ -219,7 +219,7 @@ export default function MerchantDashboard() {
     });
 
     return () => { socket.disconnect(); };
-  }, [merchantId]);
+  }, [merchantId, refetchStats]);
 
   const handleRedeem = async (codeToRedeem?: string) => {
     const targetCode = codeToRedeem || couponCode;
@@ -229,7 +229,6 @@ export default function MerchantDashboard() {
       return;
     }
 
-    setRedeeming(true);
     setMessage(null);
 
     let finalCode = targetCode.toUpperCase().trim();
@@ -241,58 +240,70 @@ export default function MerchantDashboard() {
       // Pre-validate coupon before redeeming
       await validateCouponBeforeRedeem(finalCode);
 
-      const res = await vendorApi().post('/coupons/redeem', { code: finalCode, storeId });
-      setMessage({ type: 'success', text: '🎉 تم تفعيل الكوبون بنجاح!' });
-      setCouponCode('');
+      // Use React Query mutation
+      redeemCoupon(
+        { code: finalCode, storeId },
+        {
+          onSuccess: (res: any) => {
+            setMessage({ type: 'success', text: '🎉 تم تفعيل الكوبون بنجاح!' });
+            setCouponCode('');
 
-      // Play success sound and vibrate
-      playSuccessSound();
-      vibrate([100, 50, 100]);
+            // Play success sound and vibrate
+            playSuccessSound();
+            vibrate([100, 50, 100]);
 
-      // Save to scan history
-      saveToScanHistory({
-        code: finalCode,
-        offerTitle: res.data.offer?.title || 'عرض غير معروف',
-        customerName: res.data.customerName || 'غير معروف',
-        scannedAt: new Date().toISOString(),
-        status: 'success',
-      });
+            // Save to scan history
+            saveToScanHistory({
+              code: finalCode,
+              offerTitle: res.offer?.title || 'عرض غير معروف',
+              customerName: res.customerName || 'غير معروف',
+              scannedAt: new Date().toISOString(),
+              status: 'success',
+            });
 
-      const statsRes = await vendorApi().get<DashboardStats>('/stores/my-dashboard');
-      setStats(statsRes.data);
+            // Stats will be updated automatically by React Query
+            refetchStats();
+          },
+          onError: (err: unknown) => {
+            const axiosErr = err as { response?: { data?: { message?: string } } };
+            let errorMessage = axiosErr.response?.data?.message ?? (err as Error).message ?? 'الكود غير صحيح أو منتهي الصلاحية';
+
+            // Add helpful suggestions based on error type
+            let suggestion = '';
+            if (errorMessage.includes('منتهي')) {
+              suggestion = '\n💡 تواصل مع العميل للتأكد من صلاحية الكوبون';
+            } else if (errorMessage.includes('استخدامه')) {
+              suggestion = '\n💡 هذا الكوبون تم استخدامه من قبل';
+            } else if (errorMessage.includes('مش صحيح')) {
+              suggestion = '\n💡 تأكد من صحة الكود وحاول مرة أخرى';
+            } else if (errorMessage.includes('المحل')) {
+              suggestion = '\n💡 تأكد من اختيار المتجر الصحيح';
+            }
+
+            setMessage({ type: 'error', text: errorMessage + suggestion });
+
+            // Play error sound and vibrate
+            playErrorSound();
+            vibrate([200]);
+
+            // Save failed scan to history
+            saveToScanHistory({
+              code: finalCode,
+              offerTitle: 'غير معروف',
+              customerName: 'غير معروف',
+              scannedAt: new Date().toISOString(),
+              status: 'error',
+              errorMessage: errorMessage,
+            });
+          },
+        }
+      );
     } catch (err: unknown) {
-      const axiosErr = err as { response?: { data?: { message?: string } } };
-      let errorMessage = axiosErr.response?.data?.message ?? (err as Error).message ?? 'الكود غير صحيح أو منتهي الصلاحية';
-
-      // Add helpful suggestions based on error type
-      let suggestion = '';
-      if (errorMessage.includes('منتهي')) {
-        suggestion = '\n💡 تواصل مع العميل للتأكد من صلاحية الكوبون';
-      } else if (errorMessage.includes('استخدامه')) {
-        suggestion = '\n💡 هذا الكوبون تم استخدامه من قبل';
-      } else if (errorMessage.includes('مش صحيح')) {
-        suggestion = '\n💡 تأكد من صحة الكود وحاول مرة أخرى';
-      } else if (errorMessage.includes('المحل')) {
-        suggestion = '\n💡 تأكد من اختيار المتجر الصحيح';
-      }
-
-      setMessage({ type: 'error', text: errorMessage + suggestion });
-
-      // Play error sound and vibrate
+      // Pre-validation error
+      const errorMessage = (err as Error).message ?? 'حدث خطأ أثناء التحقق من الكوبون';
+      setMessage({ type: 'error', text: errorMessage });
       playErrorSound();
       vibrate([200]);
-
-      // Save failed scan to history
-      saveToScanHistory({
-        code: finalCode,
-        offerTitle: 'غير معروف',
-        customerName: 'غير معروف',
-        scannedAt: new Date().toISOString(),
-        status: 'error',
-        errorMessage: axiosErr.response?.data?.message ?? (err as Error).message ?? 'خطأ غير معروف',
-      });
-    } finally {
-      setRedeeming(false);
     }
   };
 
@@ -372,7 +383,7 @@ export default function MerchantDashboard() {
           <div className="flex-1 overflow-y-auto">
             {stats?.recentCoupons && stats.recentCoupons.length > 0 ? (
               <div className="divide-y divide-white/5">
-                {stats.recentCoupons.map((coupon) => (
+                {stats.recentCoupons.map((coupon: any) => (
                   <div key={coupon.id} className="p-5 flex items-center justify-between hover:bg-white/[0.01] transition-colors">
                     <div className="flex items-center gap-4">
                       <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center border border-white/5 font-black text-[15px] text-text-dimmer uppercase">

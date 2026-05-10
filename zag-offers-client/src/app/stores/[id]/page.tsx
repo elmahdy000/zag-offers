@@ -5,6 +5,7 @@ import { useParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { MapPin, Phone, MessageSquare, ExternalLink, Tag, Store } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
 import { OfferCard } from '@/components/offer-card';
 import { resolveImageUrl } from '@/lib/utils';
@@ -17,15 +18,42 @@ export default function StoreDetailsPage() {
 
   useEffect(() => {
     const fetchData = async () => {
+      // تحقق من صحة الـ ID
+      if (!id || typeof id !== 'string' || id.length === 0) {
+        console.error('Invalid store ID:', id);
+        setLoading(false);
+        return;
+      }
+      
       try {
         const [sRes, oRes] = await Promise.all([
           fetch(`${API_URL}/stores/${id}`),
           fetch(`${API_URL}/offers/store/${id}`)
         ]);
-        if (sRes.ok) setStore(await sRes.json());
-        if (oRes.ok) setOffers(await oRes.json());
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+        
+        if (sRes.ok) {
+          const storeData = await sRes.json();
+          // تحقق من صحة بيانات المتجر
+          if (!storeData || !storeData.id) {
+            console.error('Invalid store data:', storeData);
+            setLoading(false);
+            return;
+          }
+          setStore(storeData);
+        }
+        
+        if (oRes.ok) {
+          const offersData = await oRes.json();
+          // تحقق من صحة بيانات العروض
+          if (Array.isArray(offersData)) {
+            setOffers(offersData.filter(o => o && o.id));
+          }
+        }
+      } catch (e) { 
+        console.error('Failed to fetch store data:', e);
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchData();
   }, [id]);
@@ -43,7 +71,21 @@ export default function StoreDetailsPage() {
         
         <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-right">
           <div className="w-32 h-32 bg-[#141414] rounded-[32px] border-4 border-white/5 flex items-center justify-center overflow-hidden shadow-2xl">
-            {logoUrl ? <img src={logoUrl} alt="" className="w-full h-full object-cover" /> : <Store size={48} className="text-white/10" />}
+            {logoUrl ? 
+              <Image
+                src={logoUrl}
+                alt={store.name || 'Store Logo'}
+                width={128}
+                height={128}
+                className="w-full h-full object-cover"
+                loading="lazy"
+                sizes="128px"
+                quality={80}
+                placeholder="blur"
+                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzFFRTFFMSIvPjwvc3ZnPg=="
+              /> : 
+              <Store size={48} className="text-white/10" />
+            }
           </div>
           
           <div className="flex-1 space-y-3">
@@ -59,7 +101,16 @@ export default function StoreDetailsPage() {
 
           <div className="flex gap-3">
             <a href={`tel:${store.phone}`} className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-[#FF6B00] hover:text-white transition-all"><Phone size={24} /></a>
-            <a href={`https://wa.me/${store.whatsapp}`} className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-green-500 hover:text-white transition-all"><MessageSquare size={24} /></a>
+            {store.whatsapp && (
+              <a
+                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-green-500 hover:text-white transition-all"
+              >
+                <MessageSquare size={24} />
+              </a>
+            )}
           </div>
         </div>
       </div>

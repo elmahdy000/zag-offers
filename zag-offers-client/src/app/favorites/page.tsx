@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -17,7 +17,7 @@ export default function FavoritesPage() {
     setIsLoggedIn(!!token);
   }, []);
 
-  const fetchFavorites = async () => {
+  const fetchFavorites = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       // Fallback to localStorage if not logged in
@@ -48,27 +48,61 @@ export default function FavoritesPage() {
     } finally {
       setLoading(false);
     }
-  };
+  }, []);
 
   useEffect(() => {
     fetchFavorites();
-  }, [isLoggedIn]);
+  }, [fetchFavorites]);
+
+  // Re-fetch when auth state changes
+  useEffect(() => {
+    const handleAuthChange = () => {
+      setIsLoggedIn(!!localStorage.getItem('token'));
+      fetchFavorites();
+    };
+    window.addEventListener('auth-change', handleAuthChange);
+    return () => window.removeEventListener('auth-change', handleAuthChange);
+  }, [fetchFavorites]);
 
   const removeFavorite = async (id: string) => {
+    // تحقق من صحة الـ ID
+    if (!id || typeof id !== 'string' || id.length === 0) {
+      console.error('Invalid favorite ID:', id);
+      return;
+    }
+    
     const token = localStorage.getItem('token');
     if (!token) {
       // Fallback to localStorage if not logged in
       const updated = favorites.filter(f => f.id !== id);
       setFavorites(updated);
-      localStorage.setItem('favorites', JSON.stringify(updated));
+      try {
+        localStorage.setItem('favorites', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to update favorites in localStorage:', e);
+      }
       return;
     }
 
     try {
-      await fetch(`${API_URL}/favorites/toggle/${id}`, {
+      const res = await fetch(`${API_URL}/favorites/toggle/${id}`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` }
       });
+      
+      if (res.status === 401) {
+        // Token expired, clear it and redirect
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/login';
+        return;
+      }
+      
+      if (!res.ok) {
+        console.error('Failed to remove favorite:', res.status);
+        return;
+      }
+      
       // Refresh favorites list
       await fetchFavorites();
     } catch (e) {
@@ -76,7 +110,11 @@ export default function FavoritesPage() {
       // Fallback to localStorage on error
       const updated = favorites.filter(f => f.id !== id);
       setFavorites(updated);
-      localStorage.setItem('favorites', JSON.stringify(updated));
+      try {
+        localStorage.setItem('favorites', JSON.stringify(updated));
+      } catch (e) {
+        console.error('Failed to update favorites in localStorage:', e);
+      }
     }
   };
 

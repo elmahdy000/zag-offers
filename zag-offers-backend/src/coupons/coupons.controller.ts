@@ -29,11 +29,13 @@ export class CouponsController {
   constructor(private readonly couponsService: CouponsService) {}
 
   @Post('generate')
+  @Throttle({ hourly: { limit: 20, ttl: 3600000 } })
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.CUSTOMER)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'استخراج كوبون جديد لعرض معين' })
   @ApiResponse({ status: 201, description: 'تم استخراج الكوبون بنجاح' })
+  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من طلبات الكوبونات (20/ساعة)' })
   generate(
     @Body() generateCouponDto: GenerateCouponDto,
     @Request() req: { user: { id: string } },
@@ -61,6 +63,7 @@ export class CouponsController {
     status: 400,
     description: 'الكوبون منتهي أو مستخدم أو لا يخص هذا المحل',
   })
+  @ApiResponse({ status: 429, description: 'تجاوزت الحد المسموح من محاولات التفعيل (5/ثانية)' })
   redeem(
     @Request() req: { user: { id: string } },
     @Body() body: RedeemCouponDto,
@@ -95,7 +98,10 @@ export class CouponsController {
   @Roles(Role.MERCHANT, Role.ADMIN)
   @ApiBearerAuth()
   @ApiOperation({ summary: 'عرض بيانات كوبون بالكود (للتاجر)' })
-  findByCode(@Param('code') code: string) {
-    return this.couponsService.findByCode(code);
+  findByCode(
+    @Param('code') code: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.couponsService.findByCode(code, req.user.id);
   }
 }

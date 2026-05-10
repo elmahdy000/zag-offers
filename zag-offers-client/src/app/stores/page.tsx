@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { Store, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
 
 import { API_URL, BASE_URL } from '@/lib/constants';
@@ -17,14 +18,28 @@ export default function StoresListPage() {
     const fetchStores = async () => {
       try {
         const res = await fetch(`${API_URL}/stores?limit=100`);
-        if (res.ok) setStores((await res.json()).items || []);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+        if (res.ok) {
+          const data = await res.json();
+          // تحقق من صحة البيانات
+          const storesData = Array.isArray(data) ? data : (data.items || []);
+          // فلترة المتاجر غير الصالحة
+          const validStores = storesData.filter((s: any) => s && s.id && s.name);
+          setStores(validStores);
+        }
+      } catch (e) { 
+        console.error('Failed to fetch stores:', e); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchStores();
   }, []);
 
-  const filteredStores = stores.filter(s => s.name.toLowerCase().includes(search.toLowerCase()) || s.area.toLowerCase().includes(search.toLowerCase()));
+  const filteredStores = stores.filter(s => {
+    if (!s || !s.name || !s.area) return false;
+    const q = search.toLowerCase();
+    return s.name.toLowerCase().includes(q) || s.area.toLowerCase().includes(q);
+  });
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
@@ -60,7 +75,21 @@ export default function StoresListPage() {
                   className="glass p-6 rounded-[32px] flex flex-col items-center text-center hover:border-[#FF6B00]/50 transition-all cursor-pointer group"
                 >
                   <div className="w-20 h-20 bg-black/40 rounded-[24px] border-2 border-white/5 flex items-center justify-center overflow-hidden mb-4 shadow-xl">
-                    {logoUrl ? <img src={logoUrl} alt="" className="w-full h-full object-cover" /> : <Store size={32} className="text-white/10" />}
+                    {logoUrl ? 
+                      <Image
+                        src={logoUrl}
+                        alt={store.name || 'Store Logo'}
+                        width={80}
+                        height={80}
+                        className="w-full h-full object-cover"
+                        loading="lazy"
+                        sizes="80px"
+                        quality={80}
+                        placeholder="blur"
+                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
+                      /> : 
+                      <Store size={32} className="text-white/10" />
+                    }
                   </div>
                   <h3 className="font-black text-lg mb-1 group-hover:text-[#FF6B00] transition-colors">{store.name}</h3>
                   <p className="text-[10px] font-black text-[#FF6B00] bg-[#FF6B00]/10 px-3 py-1 rounded-full mb-4 uppercase tracking-widest">

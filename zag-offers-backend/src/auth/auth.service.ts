@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  InternalServerErrorException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,6 +9,7 @@ import { User } from '@prisma/client';
 import axios from 'axios';
 import * as bcrypt from 'bcrypt';
 import { OAuth2Client } from 'google-auth-library';
+import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
 
@@ -41,12 +43,22 @@ type FacebookResponse = {
 @Injectable()
 export class AuthService {
   private googleClient: OAuth2Client;
+  private transporter: nodemailer.Transporter;
 
   constructor(
     private usersService: UsersService,
     private jwtService: JwtService,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
+    
+    // Configure nodemailer transporter with Gmail
+    this.transporter = nodemailer.createTransport({
+      service: 'gmail',
+      auth: {
+        user: process.env.EMAIL_USER,
+        pass: process.env.EMAIL_PASS,
+      },
+    });
   }
 
   private sanitizeUser(user: User): SanitizedUser {
@@ -117,28 +129,26 @@ export class AuthService {
 
   async googleLogin(idToken: string) {
     try {
+      const clientId = process.env.GOOGLE_CLIENT_ID;
+      if (!clientId) {
+        throw new InternalServerErrorException(
+          'Google login is not configured on the server',
+        );
+      }
+
       let payload: SocialPayload | undefined;
 
-      if (process.env.GOOGLE_CLIENT_ID) {
-        const ticket = await this.googleClient.verifyIdToken({
-          idToken,
-          audience: process.env.GOOGLE_CLIENT_ID,
-        });
-        const googlePayload = ticket.getPayload();
-        if (googlePayload) {
-          payload = {
-            sub: googlePayload.sub,
-            email: googlePayload.email,
-            name: googlePayload.name,
-            picture: googlePayload.picture,
-          };
-        }
-      } else {
+      const ticket = await this.googleClient.verifyIdToken({
+        idToken,
+        audience: clientId,
+      });
+      const googlePayload = ticket.getPayload();
+      if (googlePayload) {
         payload = {
-          sub: 'mock_google_id',
-          email: 'test_google@gmail.com',
-          name: 'Google User',
-          picture: '',
+          sub: googlePayload.sub,
+          email: googlePayload.email,
+          name: googlePayload.name,
+          picture: googlePayload.picture,
         };
       }
 
@@ -153,7 +163,10 @@ export class AuthService {
         payload.name,
         payload.picture,
       );
-    } catch {
+    } catch (error) {
+      if (error instanceof InternalServerErrorException) {
+        throw error;
+      }
       throw new UnauthorizedException('فشل تسجيل الدخول باستخدام جوجل');
     }
   }
@@ -278,4 +291,83 @@ export class AuthService {
 
     return { success: true, message: 'تم تغيير كلمة السر بنجاح' };
   }
+
+  async forgotPassword(email: string) {
+    if (!email) throw new ConflictException('يجب إدخال البريد الإلكتروني');
+    
+    const user = await this.usersService.findByEmail(email);
+    if (!user) {
+      // Return success even if not found to prevent email enumeration
+      return { success: true, message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً' };
+    }
+
+    // Generate 6-digit OTP
+    const otp = Math.floor(100000 + Math.random() * 900000).toString();
+    const hashedOtp = await bcrypt.hash(otp, 10);
+    const expiry = new Date();
+    expiry.setMinutes(expiry.getMinutes() + 15); // 15 mins expiry
+
+    // Save to DB
+    await this.usersService.update(user.id, {
+      resetOtp: hashedOtp,
+      resetOtpExpiry: expiry,
+    });
+
+    // Send Email
+    try {
+      await this.transporter.sendMail({
+        from: `"Zag Offers" <${process.env.EMAIL_USER}>`,
+        to: email,
+        subject: 'كود استعادة كلمة المرور - Zag Offers',
+        html: `
+          <div dir="rtl" style="font-family: Arial, sans-serif; text-align: center; color: #333;">
+            <h2 style="color: #FF6B00;">عروض الزقازيق</h2>
+            <p>لقد طلبت استعادة كلمة المرور الخاصة بك.</p>
+            <p>كود التحقق الخاص بك هو:</p>
+            <h1 style="background: #eee; padding: 10px; letter-spacing: 5px;">${otp}</h1>
+            <p>هذا الكود صالح لمدة 15 دقيقة فقط.</p>
+            <p>إذا لم تطلب هذا الكود، يرجى تجاهل هذه الرسالة.</p>
+          </div>
+        `,
+      });
+    } catch (err) {
+      console.error('Failed to send OTP email:', err);
+      throw new InternalServerErrorException('حدث خطأ أثناء إرسال البريد الإلكتروني');
+    }
+
+    return { success: true, message: 'إذا كان البريد مسجلاً، فسيصلك كود التحقق قريباً' };
+  }
+
+  async resetPassword(email: string, otp: string, newPassword: string) {
+    if (!email || !otp || !newPassword) {
+      throw new ConflictException('الرجاء إدخال البريد الإلكتروني والكود وكلمة السر الجديدة');
+    }
+
+    const user = await this.usersService.findByEmail(email);
+    if (!user || !user.resetOtp || !user.resetOtpExpiry) {
+      throw new UnauthorizedException('الكود غير صحيح أو منتهي الصلاحية');
+    }
+
+    if (new Date() > user.resetOtpExpiry) {
+      throw new UnauthorizedException('الكود منتهي الصلاحية، يرجى طلب كود جديد');
+    }
+
+    const isMatch = await bcrypt.compare(otp, user.resetOtp);
+    if (!isMatch) {
+      throw new UnauthorizedException('الكود غير صحيح');
+    }
+
+    const hashedPassword = await bcrypt.hash(newPassword, 10);
+    
+    await this.usersService.update(user.id, {
+      password: hashedPassword,
+      resetOtp: null,
+      resetOtpExpiry: null,
+    });
+
+    return { success: true, message: 'تم تغيير كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول' };
+  }
 }
+
+
+
