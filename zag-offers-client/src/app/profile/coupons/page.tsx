@@ -192,12 +192,25 @@ export default function MyCouponsPage() {
                 
                 <div className="grid grid-cols-2 gap-3">
                   <button 
-                    onClick={() => {
+                    onClick={async () => {
+                      if (!selectedCoupon) return;
                       const text = `مرحباً، أود تفعيل كوبون خصم تطبيق عروض الزقازيق:\n\n🏷️ العرض: ${selectedCoupon.offer?.title}\n🏪 المحل: ${selectedCoupon.offer?.store?.name}\n🔑 الكود: ${selectedCoupon.code}\n\nشكراً لكم!`;
                       let phone = selectedCoupon.offer?.store?.whatsapp || selectedCoupon.offer?.store?.phone || '';
-                      // Fix Egyptian number format if needed
                       if (phone.startsWith('01')) phone = '2' + phone;
+                      
                       const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
+                      
+                      // Notify Merchant via API first
+                      try {
+                        const token = localStorage.getItem('token');
+                        if (token) {
+                          fetch(`${API_URL}/coupons/${selectedCoupon.id}/notify-share`, {
+                            method: 'POST',
+                            headers: { Authorization: `Bearer ${token}` }
+                          }).catch(() => {});
+                        }
+                      } catch { /* silent */ }
+
                       window.open(whatsappUrl, '_blank');
                     }}
                     className="flex items-center justify-center gap-2 py-4 bg-[#25D366] text-white font-black rounded-2xl hover:scale-[1.02] transition-all shadow-lg shadow-[#25D366]/20"

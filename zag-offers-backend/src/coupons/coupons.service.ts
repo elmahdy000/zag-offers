@@ -349,4 +349,35 @@ export class CouponsService {
 
     return coupon;
   }
+
+  async notifyShare(couponId: string, customerId: string) {
+    const coupon = await this.prisma.coupon.findUnique({
+      where: { id: couponId },
+      include: {
+        offer: { include: { store: true } },
+        customer: { select: { name: true } },
+      },
+    });
+
+    if (!coupon || coupon.customerId !== customerId) {
+      throw new NotFoundException('الكوبون غير موجود');
+    }
+
+    // إرسال تنبيه لحظي للتاجر لتنبيهه بوجود رسالة واتساب
+    this.eventsGateway.notifyMerchant(coupon.offer.store.ownerId, {
+      type: 'COUPON_SHARED',
+      title: 'محاولة تفعيل عبر واتساب 💬',
+      body: `العميل ${coupon.customer.name} شارك الكوبون ${coupon.code} معك.`,
+      payload: { code: coupon.code, customerName: coupon.customer.name },
+    });
+
+    // إرسال Push Notification للتاجر
+    void this.notificationsService.sendToUserId(coupon.offer.store.ownerId, {
+      title: '💬 كوبون شاركه عميل!',
+      body: `العميل ${coupon.customer.name} أرسل لك كوبوناً عبر واتساب.`,
+      data: { type: 'COUPON_SHARED', code: coupon.code },
+    });
+
+    return { success: true };
+  }
 }

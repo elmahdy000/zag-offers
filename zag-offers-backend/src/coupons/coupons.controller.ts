@@ -110,4 +110,16 @@ export class CouponsController {
   ) {
     return this.couponsService.findByCode(code, req.user.id);
   }
+
+  @Post(':id/notify-share')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CUSTOMER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'تنبيه التاجر بمشاركة الكوبون عبر الواتساب' })
+  notifyShare(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.couponsService.notifyShare(id, req.user.id);
+  }
 }

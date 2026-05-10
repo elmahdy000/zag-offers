@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from 'next';
 import './globals.css';
 import { ReactQueryProvider } from '@/lib/react-query-provider';
 import SWProvider from '@/components/sw-provider';
+import { NotificationProvider } from '@/components/notification-provider';
 
 export const viewport: Viewport = {
   themeColor: '#ff7e1a',
@@ -38,7 +39,9 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         <SWProvider>
           <ReactQueryProvider>
-            {children}
+            <NotificationProvider>
+              {children}
+            </NotificationProvider>
           </ReactQueryProvider>
         </SWProvider>
       </body>
