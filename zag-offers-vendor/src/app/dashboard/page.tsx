@@ -7,6 +7,7 @@ import { DashboardSkeleton } from '@/components/Skeleton';
 import { io } from 'socket.io-client';
 import { vendorApi, getCookie, getVendorUser, getVendorStoreId } from '@/lib/api';
 import { useVendorStats, useRedeemCoupon } from '@/hooks/use-vendor-api';
+import { useSocket } from '@/hooks/useSocket';
 import QRScanner from '@/components/QRScanner';
 import EmptyState from '@/components/EmptyState';
 
@@ -167,6 +168,9 @@ export default function MerchantDashboard() {
   const storeName = stats?.storeName ?? vendorUser?.name ?? 'متجرك';
   const storeId = stats?.storeId;
 
+  const socketRef = useSocket(merchantId);
+  const socket = socketRef.current;
+  
   useEffect(() => {
     // Load scan history from localStorage
     const savedHistory = localStorage.getItem('scan_history');
@@ -184,15 +188,10 @@ export default function MerchantDashboard() {
       .then((res) => setStores(res.data))
       .catch(console.error)
       .finally(() => setLoading(false));
+  }, []);
 
-    const token = getCookie('auth_token');
-    const socket = io(SOCKET_URL);
-
-    socket.on('connect', () => {
-      if (merchantId) {
-        socket.emit('join_room', { token, userId: merchantId });
-      }
-    });
+  useEffect(() => {
+    if (!socket) return;
 
     socket.on('merchant_notification', (data: any) => {
       let msg = '🔔 إشعار جديد';
@@ -218,8 +217,10 @@ export default function MerchantDashboard() {
       setTimeout(() => setNotification(null), 7000);
     });
 
-    return () => { socket.disconnect(); };
-  }, [merchantId, refetchStats]);
+    return () => {
+      socket.off('merchant_notification');
+    };
+  }, [socket, refetchStats]);
 
   const handleRedeem = async (codeToRedeem?: string) => {
     const targetCode = codeToRedeem || couponCode;

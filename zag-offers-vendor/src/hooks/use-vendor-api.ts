@@ -51,7 +51,7 @@ export const useVendorOffers = () => {
       if (!res.ok) throw new Error('Failed to fetch offers');
       return res.json();
     },
-    enabled: typeof window !== 'undefined' ? !!localStorage.getItem('auth_token') : false,
+    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 1000 * 60, // 1 minute
     gcTime: 1000 * 60 * 5, // 5 minutes
     retry: 3,
@@ -73,7 +73,7 @@ export function useVendorCoupons() {
       if (!res.ok) throw new Error('Failed to fetch coupons');
       return res.json();
     },
-    enabled: typeof window !== 'undefined' ? !!localStorage.getItem('auth_token') : false,
+    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 30 * 1000, // 30 ثانية
     gcTime: 2 * 60 * 1000, // 2 دقيقة
   });
@@ -93,7 +93,7 @@ export function useVendorStats() {
       if (!res.ok) throw new Error('Failed to fetch stats');
       return res.json();
     },
-    enabled: typeof window !== 'undefined' ? !!localStorage.getItem('auth_token') : false,
+    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 60 * 1000, // 1 دقيقة
     gcTime: 5 * 60 * 1000, // 5 دقائق
     refetchInterval: 60 * 1000, // تحديث كل دقيقة
@@ -114,7 +114,7 @@ export function useVendorStore() {
       if (!res.ok) throw new Error('Failed to fetch store');
       return res.json();
     },
-    enabled: typeof window !== 'undefined' ? !!localStorage.getItem('auth_token') : false,
+    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 10 * 60 * 1000, // 10 دقائق
     gcTime: 30 * 60 * 1000, // 30 دقيقة
   });

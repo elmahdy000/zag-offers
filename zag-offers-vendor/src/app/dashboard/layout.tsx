@@ -21,6 +21,7 @@ export default function DashboardLayout({
         .then((res: any) => {
           if (res.data?.storeId && typeof window !== 'undefined') {
             localStorage.setItem('vendor_store_id', res.data.storeId);
+            window.location.reload();
           }
         })
         .catch(() => {});
