@@ -15,8 +15,7 @@ export default function NewOfferPage() {
     originalPrice: '',
     expiryDate: '',
   });
-  const [imagePreviews, setImagePreviews] = useState<string[]>([]);
-  const [selectedFiles, setSelectedFiles] = useState<File[]>([]);
+  const [offerImages, setOfferImages] = useState<{ url: string; file?: File }[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // React Query hook
@@ -24,27 +23,18 @@ export default function NewOfferPage() {
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
-    if (selectedFiles.length + files.length > 5) {
+    if (offerImages.length + files.length > 5) {
       setSubmitError('الحد الأقصى هو 5 صور فقط');
       return;
     }
 
     if (files.length > 0) {
-      const newFiles = [...selectedFiles, ...files];
-      setSelectedFiles(newFiles);
-      
-      const filePreviews = new Array(files.length);
-      let loadedCount = 0;
-
-      files.forEach((file, index) => {
+      files.forEach((file) => {
         const reader = new FileReader();
         reader.onloadend = () => {
           if (typeof reader.result === 'string') {
-            filePreviews[index] = reader.result;
-            loadedCount++;
-            if (loadedCount === files.length) {
-              setImagePreviews(prev => [...prev, ...filePreviews]);
-            }
+            const newImage = { url: reader.result, file };
+            setOfferImages(prev => [...prev, newImage]);
           }
         };
         reader.readAsDataURL(file);
@@ -53,8 +43,7 @@ export default function NewOfferPage() {
   };
 
   const removeImage = (index: number) => {
-    setSelectedFiles(prev => prev.filter((_, i) => i !== index));
-    setImagePreviews(prev => prev.filter((_, i) => i !== index));
+    setOfferImages(prev => prev.filter((_, i) => i !== index));
     // Reset input value to allow re-selecting same file
     const input = document.getElementById('imageInput') as HTMLInputElement;
     if (input) input.value = '';
@@ -101,32 +90,37 @@ export default function NewOfferPage() {
     const storeId = getVendorStoreId();
     if (!storeId) return setSubmitError('لم يتم ربط متجر بحسابك. تواصل مع الإدارة.');
 
-    // تحقق من حجم الصور ورفعها
+    // تحقق ورفع الصور
     let imageUrls: string[] = [];
-    if (selectedFiles.length > 0) {
-      for (const file of selectedFiles) {
-        if (file.size > 5 * 1024 * 1024) {
-          return setSubmitError('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
-        }
-        if (!file.type.startsWith('image/')) {
-          return setSubmitError('يجب رفع صور فقط');
+    if (offerImages.length > 0) {
+      for (const img of offerImages) {
+        if (img.file) {
+          if (img.file.size > 5 * 1024 * 1024) {
+            return setSubmitError('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
+          }
         }
       }
       
       try {
-        const uploadPromises = selectedFiles.map(async (file) => {
-          const uploadFormData = new FormData();
-          uploadFormData.append('file', file);
-          const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-            headers: { 'Content-Type': 'multipart/form-data' },
-            timeout: 30000,
-          });
-          return uploadRes.data.url;
+        const uploadPromises = offerImages.map(async (img) => {
+          if (img.file) {
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', img.file);
+            const uploadRes = await vendorApi().post('/upload', uploadFormData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              timeout: 30000,
+            });
+            return uploadRes.data.url;
+          }
+          return null;
         });
-        imageUrls = await Promise.all(uploadPromises);
+        const results = await Promise.all(uploadPromises);
+        imageUrls = results.filter((url): url is string => url !== null);
       } catch (error: unknown) {
         return setSubmitError('فشل رفع الصور. حاول مرة أخرى.');
       }
+    } else {
+      return setSubmitError('يجب رفع صورة واحدة على الأقل');
     }
 
     const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
@@ -207,9 +201,9 @@ export default function NewOfferPage() {
             <div className="space-y-10">
                 <div className="flex items-center justify-between px-2">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
-                    <ImageIcon size={14} /> صور العرض (حتى 5 صور)
+                    <ImageIcon size={14} /> صور العرض (الصورة الأولى هي الرئيسية)
                   </label>
-                  <span className="text-[10px] font-bold text-primary/60">يفضل أبعاد 1:1</span>
+                  <span className="text-[10px] font-bold text-primary/60">يمكنك رفع حتى 5 صور</span>
                 </div>
                 
                 <div
@@ -217,25 +211,28 @@ export default function NewOfferPage() {
                   onClick={() => document.getElementById('imageInput')?.click()}
                 >
                   <AnimatePresence mode="popLayout">
-                    {imagePreviews.length > 0 ? (
-                      imagePreviews.map((preview, index) => (
+                    {offerImages.length > 0 ? (
+                      offerImages.map((img, index) => (
                         <motion.div 
                           key={index}
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
-                          className="relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border border-white/10 group/img shadow-xl"
+                          className={`relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border ${index === 0 ? 'border-primary shadow-lg shadow-primary/20' : 'border-white/10'} group/img shadow-xl`}
                         >
-                          <img src={preview} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                          <img src={img.url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
+                          {index === 0 && (
+                            <div className="absolute top-0 right-0 bg-primary text-white text-[8px] font-black px-2 py-0.5 rounded-bl-lg">رئيسية</div>
+                          )}
                           <button 
                             type="button"
                             onClick={(e) => {
                               e.stopPropagation();
                               removeImage(index);
                             }}
-                            className="absolute top-2 right-2 w-6 h-6 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600 shadow-lg"
+                            className="absolute top-1 left-1 w-5 h-5 bg-red-500 text-white rounded-full flex items-center justify-center opacity-0 group-hover/img:opacity-100 transition-opacity hover:bg-red-600 shadow-lg"
                           >
-                            <span className="text-xs font-black">×</span>
+                            <span className="text-[10px] font-black">×</span>
                           </button>
                         </motion.div>
                       ))
@@ -353,8 +350,8 @@ export default function NewOfferPage() {
 
            <div className="glass rounded-[3rem] p-6 border border-white/5 inner-shadow relative">
               <div className="aspect-[4/5] rounded-[2.5rem] bg-white/5 border border-white/5 overflow-hidden relative group">
-                 {imagePreviews.length > 0 ? (
-                    <img src={imagePreviews[0]} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Preview" />
+                 {offerImages.length > 0 ? (
+                    <img src={offerImages[0].url} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Preview" />
                   ) : (
                     <div className="w-full h-full flex flex-col items-center justify-center text-text-dimmer opacity-20">
                       <ImageIcon size={64} strokeWidth={1} />
@@ -366,6 +363,16 @@ export default function NewOfferPage() {
                     {formData.discount || '0%'} خصم
                   </div>
               </div>
+
+              {offerImages.length > 1 && (
+                <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
+                  {offerImages.map((img, i) => (
+                    <div key={i} className={`w-12 h-12 rounded-xl border-2 shrink-0 overflow-hidden ${i === 0 ? 'border-primary' : 'border-white/10'}`}>
+                      <img src={img.url} className="w-full h-full object-cover" />
+                    </div>
+                  ))}
+                </div>
+              )}
 
               <div className="mt-6 space-y-4">
                  <div>
