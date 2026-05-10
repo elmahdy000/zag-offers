@@ -268,7 +268,7 @@ function HomePageContent() {
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] to-[#FF8C35]">
               العروض والخصومات
             </span>
-            <br className="hidden sm:block" /> في مدينتك
+            <br className="hidden sm:block" /> في زاج
           </h1>
 
           <p className="text-[#9A9A9A] text-base sm:text-lg font-medium max-w-xl mx-auto leading-relaxed">

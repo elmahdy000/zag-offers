@@ -460,7 +460,7 @@ export function Footer() {
               <span className="text-2xl font-black text-white">Zag<span className="text-[#FF6B00]">Offers</span></span>
             </Link>
             <p className="text-[#9A9A9A] text-sm leading-relaxed font-medium">
-              وجهتك الأولى لأفضل العروض والخصومات في مدينة الزقازيق. كوبونات حصرية من أفضل المحلات والخدمات.
+              وجهتك الأولى لأفضل العروض والخصومات في زاج. كوبونات حصرية من أفضل المحلات والخدمات.
             </p>
             <div className="flex gap-3">
               {[

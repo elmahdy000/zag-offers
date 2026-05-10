@@ -9,7 +9,7 @@ import ClientInit from "@/components/client-init";
 
 export const metadata: Metadata = {
   title: "Zag Offers | أفضل عروض الزقازيق",
-  description: "اكتشف أفضل الخصومات والكوبونات الحصرية في مدينة الزقازيق. وفر أكثر مع زقازيق أوفرز.",
+  description: "اكتشف أفضل الخصومات والكوبونات الحصرية في زاج. وفر أكثر مع زقازيق أوفرز.",
   icons: {
     icon: '/icon-192.svg',
     apple: '/icon-192.svg',
