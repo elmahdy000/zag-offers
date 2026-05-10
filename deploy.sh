@@ -19,6 +19,7 @@ echo "🔧 Building Backend..."
 cd zag-offers-backend
 npm install
 npx prisma generate
+npx prisma migrate deploy
 npm run build
 pm2 restart zag-backend
 echo "✅ Backend deployed successfully"
