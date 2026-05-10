@@ -311,7 +311,7 @@ export class AuthService {
     await this.usersService.update(user.id, {
       resetOtp: hashedOtp,
       resetOtpExpiry: expiry,
-    });
+    } as any);
 
     // Send Email
     try {
@@ -363,7 +363,7 @@ export class AuthService {
       password: hashedPassword,
       resetOtp: null,
       resetOtpExpiry: null,
-    });
+    } as any);
 
     return { success: true, message: 'تم تغيير كلمة المرور بنجاح، يمكنك الآن تسجيل الدخول' };
   }
