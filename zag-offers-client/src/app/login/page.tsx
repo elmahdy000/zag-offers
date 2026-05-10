@@ -79,13 +79,12 @@ export default function LoginPage() {
   const handleGoogleLogin = () => {
     setSocialLoading('google');
     try {
-      const client = window.google.accounts.oauth2.initTokenClient({
-        client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com', // Real Google Client ID
-        scope: 'email profile openid',
+      window.google.accounts.id.initialize({
+        client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
         callback: async (response: any) => {
-          if (response.access_token) {
+          if (response.credential) {
             try {
-              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.access_token });
+              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.credential });
               localStorage.setItem('token', res.data.access_token);
               localStorage.setItem('user', JSON.stringify(res.data.user));
               window.dispatchEvent(new Event('auth-change'));
@@ -97,9 +96,9 @@ export default function LoginPage() {
           setSocialLoading(null);
         },
       });
-      client.requestAccessToken();
+      window.google.accounts.id.prompt(); // Opens the "One Tap" or selection UI
     } catch (e) {
-      setError('يرجى التأكد من إعداد مفاتيح جوجل في الـ .env');
+      setError('يرجى التأكد من إعدادات Google API');
       setSocialLoading(null);
     }
   };

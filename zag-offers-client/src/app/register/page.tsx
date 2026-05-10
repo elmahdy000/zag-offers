@@ -93,13 +93,12 @@ export default function RegisterPage() {
   const handleGoogleLogin = () => {
     setSocialLoading('google');
     try {
-      const client = window.google.accounts.oauth2.initTokenClient({
+      window.google.accounts.id.initialize({
         client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
-        scope: 'email profile openid',
         callback: async (response: any) => {
-          if (response.access_token) {
+          if (response.credential) {
             try {
-              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.access_token });
+              const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.credential });
               localStorage.setItem('token', res.data.access_token);
               localStorage.setItem('user', JSON.stringify(res.data.user));
               window.dispatchEvent(new Event('auth-change'));
@@ -111,7 +110,7 @@ export default function RegisterPage() {
           setSocialLoading(null);
         },
       });
-      client.requestAccessToken();
+      window.google.accounts.id.prompt();
     } catch (e) {
       setError('يرجى ضبط إعدادات Google API Keys');
       setSocialLoading(null);
