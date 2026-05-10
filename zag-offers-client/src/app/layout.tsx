@@ -3,6 +3,7 @@ import "./globals.css";
 import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
 import BottomNav from "@/components/bottom-nav";
+import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
 import ClientInit from "@/components/client-init";
 
@@ -44,6 +45,7 @@ export default function RootLayout({
             </main>
             <Footer />
             <BottomNav />
+            <PWAInstallPrompt />
           </NotificationProvider>
         </ReactQueryProvider>
       </body>

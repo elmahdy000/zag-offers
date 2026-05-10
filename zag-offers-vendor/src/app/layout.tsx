@@ -3,6 +3,7 @@ import './globals.css';
 import { ReactQueryProvider } from '@/lib/react-query-provider';
 import SWProvider from '@/components/sw-provider';
 import { NotificationProvider } from '@/components/notification-provider';
+import PWAInstallPrompt from '@/components/pwa-install-prompt';
 
 export const viewport: Viewport = {
   themeColor: '#ff7e1a',
@@ -41,6 +42,7 @@ export default function RootLayout({
           <ReactQueryProvider>
             <NotificationProvider>
               {children}
+              <PWAInstallPrompt />
             </NotificationProvider>
           </ReactQueryProvider>
         </SWProvider>
