@@ -1,4 +1,3 @@
 
 cd /var/www/zag-offers
-git pull origin main
-./deploy.sh
+git checkout deploy.sh && git pull origin main && chmod +x deploy.sh && ./deploy.sh

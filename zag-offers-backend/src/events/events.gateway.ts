@@ -13,7 +13,7 @@ import {
 import { Server, Socket } from 'socket.io';
 
 function getAllowedOrigins(): string[] {
-  const rawOrigins = process.env.CORS_ORIGINS;
+  const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGINS;
   if (rawOrigins) {
     return rawOrigins
       .split(',')
@@ -21,7 +21,16 @@ function getAllowedOrigins(): string[] {
       .filter(Boolean);
   }
 
-  return ['http://localhost:3000', 'http://localhost:3001', 'http://localhost:5173'];
+  // Safe defaults including production domains
+  return [
+    'http://localhost:3000',
+    'http://localhost:3001',
+    'http://localhost:3002',
+    'https://zagoffers.online',
+    'https://www.zagoffers.online',
+    'https://vendor.zagoffers.online',
+    'https://admin.zagoffers.online'
+  ];
 }
 
 export interface WsNewOffer {

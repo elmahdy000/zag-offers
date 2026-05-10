@@ -80,16 +80,28 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   return (
     <NotificationContext.Provider value={{ addNotification }}>
       {/* Connection Status Indicator */}
-      {connectionStatus === 'error' && (
-        <div className="fixed bottom-20 left-4 z-50 px-4 py-2 bg-red-500/20 border border-red-500/40 text-red-400 text-xs font-black rounded-xl">
-          ⚠️ مشكلة في الاتصال
-        </div>
-      )}
-      {connectionStatus === 'connecting' && (
-        <div className="fixed bottom-20 left-4 z-50 px-4 py-2 bg-yellow-500/20 border border-yellow-500/40 text-yellow-400 text-xs font-black rounded-xl">
-          🔄 جاري الاتصال...
-        </div>
-      )}
+      <AnimatePresence>
+        {(connectionStatus === 'error' || connectionStatus === 'connecting') && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -20 }}
+            className="fixed top-20 left-1/2 -translate-x-1/2 z-[60] pointer-events-none"
+          >
+            <div className={`px-4 py-1.5 rounded-full text-[10px] font-black border backdrop-blur-md shadow-lg flex items-center gap-2
+              ${connectionStatus === 'error' 
+                ? 'bg-red-500/10 border-red-500/20 text-red-400' 
+                : 'bg-yellow-500/10 border-yellow-500/20 text-yellow-400'
+              }`}
+            >
+              <div className={`w-1.5 h-1.5 rounded-full animate-pulse
+                ${connectionStatus === 'error' ? 'bg-red-500' : 'bg-yellow-500'}
+              `} />
+              {connectionStatus === 'error' ? 'مشكلة في الاتصال المباشر' : 'جاري الاتصال بالخادم...'}
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       {children}
 
