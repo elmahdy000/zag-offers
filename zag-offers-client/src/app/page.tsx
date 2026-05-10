@@ -57,6 +57,7 @@ interface Offer {
   endDate: string;
   createdAt?: string;
   featured: boolean;
+  images: string[];
   store: Store;
 }
 
