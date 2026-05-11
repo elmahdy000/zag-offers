@@ -12,6 +12,7 @@ import {
   LogOut,
   Megaphone,
   Menu,
+  MessageSquare,
   Settings,
   ShieldCheck,
   ShoppingBag,
