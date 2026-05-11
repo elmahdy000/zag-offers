@@ -7,7 +7,7 @@ import { UsersModule } from './users/users.module';
 import { StoresModule } from './stores/stores.module';
 import { OffersModule } from './offers/offers.module';
 import { CouponsModule } from './coupons/coupons.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { ReviewsModule } from './reviews/reviews.module';
 import { FavoritesModule } from './favorites/favorites.module';
 import { AdminModule } from './admin/admin.module';
@@ -28,43 +28,44 @@ import { CacheModule } from '@nestjs/cache-manager';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ChatModule } from './chat/chat.module';
 import { SecurityMiddleware } from './common/middleware/security.middleware';
+import { redisStore } from 'cache-manager-redis-yet';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
-    CacheModule.register({
-      ttl: 60 * 1000, // الكاش الافتراضي لمدة دقيقة
-      max: 100, // أقصى عدد للعناصر في الكاش
+    CacheModule.registerAsync({
       isGlobal: true,
+      imports: [ConfigModule],
+      useFactory: async (configService: ConfigService) => {
+        // إذا كان هناك رابط Redis في الـ ENV سنستخدمه، وإلا سنستخدم المحلى
+        const redisUrl = configService.get('REDIS_URL') || 'redis://localhost:6379';
+        
+        try {
+          const store = await redisStore({
+            url: redisUrl,
+            ttl: 60000, // دقيقة واحدة افتراضياً
+          });
+          
+          console.log('Redis Cache Store initialized successfully!');
+          return { store };
+        } catch (e) {
+          console.error('Failed to initialize Redis Cache Store, falling back to memory:', e);
+          return {
+            ttl: 60000,
+            max: 100,
+          };
+        }
+      },
+      inject: [ConfigService],
     }),
     ScheduleModule.forRoot(),
     TerminusModule,
     ThrottlerModule.forRoot([
-      {
-        name: 'short',
-        ttl: 1000,
-        limit: 30,
-      },
-      {
-        name: 'medium',
-        ttl: 10000,
-        limit: 100,
-      },
-      {
-        name: 'long',
-        ttl: 60000,
-        limit: 500,
-      },
-      {
-        name: 'strict',
-        ttl: 60000,
-        limit: 10,
-      },
-      {
-        name: 'hourly',
-        ttl: 3600000,
-        limit: 100,
-      },
+      { name: 'short', ttl: 1000, limit: 30 },
+      { name: 'medium', ttl: 10000, limit: 100 },
+      { name: 'long', ttl: 60000, limit: 500 },
+      { name: 'strict', ttl: 60000, limit: 10 },
+      { name: 'hourly', ttl: 3600000, limit: 100 },
     ]),
     PrismaModule,
     AuthModule,

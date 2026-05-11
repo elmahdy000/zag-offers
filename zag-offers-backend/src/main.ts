@@ -6,6 +6,7 @@ import { GlobalExceptionFilter } from './common/filters/global-exception.filter'
 import compression from 'compression';
 import { join } from 'path';
 import * as express from 'express';
+import { RedisIoAdapter } from './common/adapters/redis-io.adapter';
 
 function getAllowedOrigins(): string[] {
   const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGINS;
@@ -16,7 +17,6 @@ function getAllowedOrigins(): string[] {
       .filter(Boolean);
   }
 
-  // Safe defaults including production domains
   return [
     'http://localhost:3000',
     'http://localhost:3001',
@@ -31,6 +31,17 @@ function getAllowedOrigins(): string[] {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
+  
+  // تفعيل Redis Adapter للشات
+  const redisIoAdapter = new RedisIoAdapter(app);
+  try {
+    await redisIoAdapter.connectToRedis();
+    app.useWebSocketAdapter(redisIoAdapter);
+    console.log('Socket.io is now using Redis Adapter!');
+  } catch (e) {
+    console.error('Failed to initialize Socket.io Redis Adapter:', e);
+  }
+
   const allowedOrigins = getAllowedOrigins();
 
   app.enableCors({
@@ -79,7 +90,5 @@ async function bootstrap() {
   const host = process.env.HOST || '0.0.0.0';
   await app.listen(port, host);
   console.log(`Server running on: http://localhost:${port}`);
-  console.log(`Network URL: http://${host}:${port}`);
-  console.log(`Swagger docs: http://localhost:${port}/api`);
 }
 void bootstrap();
