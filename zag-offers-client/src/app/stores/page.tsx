@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { Store, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
+import { Store as StoreIcon, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
@@ -90,7 +90,7 @@ export default function StoresListPage() {
                         placeholder="blur"
                         blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
                       /> : 
-                      <Store size={32} className="text-white/10" />
+                      <StoreIcon size={32} className="text-white/10" />
                     }
                   </div>
                   <h3 className="font-black text-lg mb-1 group-hover:text-[#FF6B00] transition-colors">{store.name}</h3>
