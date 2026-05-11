@@ -87,6 +87,8 @@ function HomePageContent() {
       const [oRes, cRes, sRes, rRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=100`),
         fetch(`${API_URL}/stores/categories`),
+        fetch(`${API_URL}/stores?limit=12`),
+        fetch(`${API_URL}/recommendations`)
       ]);
 
       const [oData, cData, sData, rData] = await Promise.all([
