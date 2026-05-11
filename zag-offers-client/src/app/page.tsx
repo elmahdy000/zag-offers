@@ -61,19 +61,21 @@ interface Offer {
   store: Store;
 }
 
-const CAT_ICONS: Record<string, React.ReactNode> = {
-  'دلع كرشك 🍔':         <Utensils size={14} />,
-  'روقان ☕':           <Coffee size={14} />,
-  'شياكة 👔':           <Shirt size={14} />,
-  'فورمة 🦾':            <Dumbbell size={14} />,
-  'دلع بنات 💄':         <Sparkles size={14} />,
-  'صحتك بالدنيا 🏥':     <Hospital size={14} />,
-  'ثقف نفسك 💡':         <BookOpen size={14} />,
-  'على الزيرو 🏎️':      <Car size={14} />,
-  'عروستى 👰':          <Sparkles size={14} />,
-  'خطفة ⚡':            <Flame size={14} />,
-  'بيتك ومطرحك 🏠':      <ShoppingCart size={14} />,
-  'default':            <Sparkles size={14} />,
+const CAT_ASSETS: Record<string, string> = {
+  'دلع كرشك':         '/categories/food.png',
+  'روقان':           '/categories/cafe.png',
+  'حلي بؤك':         '/categories/sweets.png',
+  'دلع بنات':         '/categories/beauty.png',
+  'شياكة':           '/categories/barber.png',
+  'فورمة':           '/categories/gym.png',
+  'بيتك ومطرحك':     '/categories/home.png',
+  'تكنولوجى':         '/categories/tech.png',
+  'على الزيرو':      '/categories/car.png',
+  'صحتك بالدنيا':    '/categories/medical.png',
+  'على نور':         '/categories/education.png',
+  'ليلة العمر':       '/categories/wedding.png',
+  'غيّر جو':         '/categories/travel.png',
+  'default':         '/categories/food.png',
 };
 
 const CACHE_KEY = 'zag_offers_home_cache';
@@ -84,15 +86,15 @@ function HomePageContent() {
   const catIdParam = searchParams.get('categoryId');
   const { trackEvent } = useAnalytics();
 
-  const [offers,         setOffers]     = useState<Offer[]>([]);
-  const [recommended,    setRecommended] = useState<Offer[]>([]);
-  const [categories,     setCategories] = useState<Category[]>([]);
-  const [stores,         setStores]     = useState<Store[]>([]);
-  const [loading,        setLoading]    = useState(true);
-  const [error,          setError]      = useState<string | null>(null);
-  const [search,         setSearch]     = useState('');
-  const [activeCat,      setActiveCat]  = useState(catIdParam || '');
-  const [sortBy,         setSortBy]     = useState<SortOption>('newest');
+  const [offers, setOffers] = useState<Offer[]>([]);
+  const [recommended, setRecommended] = useState<Offer[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [stores, setStores] = useState<Store[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
+  const [search, setSearch] = useState('');
+  const [activeCat, setActiveCat] = useState(catIdParam || '');
+  const [sortBy, setSortBy] = useState<SortOption>('newest');
 
   // Debounced search for analytics (reduces tracking events)
   const debouncedSearch = useDebounce(search, 500);
@@ -178,11 +180,11 @@ function HomePageContent() {
       // Save to cache
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data: { 
-            offers: newOffers, 
+          data: {
+            offers: newOffers,
             recommended: newRecommended,
-            categories: newCategories, 
-            stores: newStores 
+            categories: newCategories,
+            stores: newStores
           },
           timestamp: Date.now()
         }));
@@ -198,7 +200,7 @@ function HomePageContent() {
   }, [trackEvent]);
 
   useEffect(() => { setTimeout(() => fetchData(), 0); }, [fetchData]);
-  useEffect(() => { 
+  useEffect(() => {
     if (catIdParam) {
       setTimeout(() => setActiveCat(catIdParam), 0);
     }
@@ -329,7 +331,7 @@ function HomePageContent() {
           {/* quick stats */}
           <div className="flex justify-center gap-8 pt-2 flex-wrap">
             {[
-              { value: offers.length  || '…', label: 'عرض نشط' },
+              { value: offers.length || '…', label: 'عرض نشط' },
               { value: [...new Set(offers.map(o => o.store?.id))].length || '…', label: 'متجر معتمد' },
               { value: categories.length || '…', label: 'فئة متنوعة' },
             ].map((s, i) => (
@@ -356,17 +358,20 @@ function HomePageContent() {
           </button>
 
           {categories.map(c => {
-            const Icon = CAT_ICONS[c.name] || CAT_ICONS.default;
+            const imgPath = CAT_ASSETS[c.name] || CAT_ASSETS.default;
             return (
               <button
                 key={c.id}
                 onClick={() => setActiveCat(c.id)}
-                className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-sm font-black whitespace-nowrap transition-all flex items-center gap-2 border
+                className={`flex-shrink-0 px-4 py-2 rounded-xl text-sm font-black whitespace-nowrap transition-all flex items-center gap-2.5 border
                   ${activeCat === c.id
                     ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)]'
                     : 'bg-[#252525] border-white/[0.05] text-[#9A9A9A] hover:border-[#FF6B00]/40 hover:text-[#FF6B00]'}`}
               >
-                {Icon} {c.name}
+                <div className="w-6 h-6 rounded-full overflow-hidden border border-white/10 flex-shrink-0">
+                  <img src={imgPath} alt="" className="w-full h-full object-cover" />
+                </div>
+                {c.name}
               </button>
             );
           })}
@@ -391,7 +396,7 @@ function HomePageContent() {
           <div className="flex gap-6 overflow-x-auto no-scrollbar pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
             {stores.map((s) => (
               <Link key={s.id} href={`/stores/${s.id}`} className="flex-shrink-0 group">
-                <motion.div 
+                <motion.div
                   whileHover={{ y: -8 }}
                   className="w-32 sm:w-40 flex flex-col items-center text-center gap-3"
                 >
@@ -399,9 +404,9 @@ function HomePageContent() {
                                   flex items-center justify-center overflow-hidden shadow-lg
                                   group-hover:border-[#FF6B00]/50 transition-all">
                     {s.logo ? (
-                      <img 
-                        src={resolveImageUrl(s.logo)} 
-                        alt={s.name} 
+                      <img
+                        src={resolveImageUrl(s.logo)}
+                        alt={s.name}
                         className="w-full h-full object-cover"
                       />
                     ) : (
@@ -437,7 +442,7 @@ function HomePageContent() {
 
           <div className="flex gap-5 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
             {recommended.map((offer, i) => (
-              <motion.div 
+              <motion.div
                 key={offer.id}
                 initial={{ opacity: 0, x: 20 }}
                 animate={{ opacity: 1, x: 0 }}
@@ -451,112 +456,152 @@ function HomePageContent() {
         </section>
       )}
 
-      {/* ─── Offers Grid ───────────────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4">
-        {/* section header */}
-        <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
-          <div className="flex items-center gap-3">
-            <div className="w-9 h-9 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-              <Flame size={18} />
-            </div>
-            <div>
-              <h2 className="text-xl font-black">أحدث العروض الحصرية</h2>
-              {!loading && (
-                <p className="text-xs text-[#9A9A9A] font-semibold mt-0.5">
-                  {filteredOffers.length} عرض متاح
-                </p>
-              )}
-            </div>
-          </div>
+      {/* ─── Offers by Category (Mutaqa'a Sections) ─────────── */}
+      {!activeCat && !search && categories.map(cat => {
+        const catOffers = offers.filter(o => o.store.categoryId === cat.id || o.store.category?.id === cat.id).slice(0, 8);
+        if (catOffers.length === 0) return null;
 
-          <div className="flex items-center gap-3">
-            {/* Sort Dropdown */}
-            <div className="relative">
-              <select
-                value={sortBy}
-                onChange={(e) => {
-                  const newSort = e.target.value as SortOption;
-                  setSortBy(newSort);
-                  trackEvent('sort_change', { sortBy: newSort });
-                }}
-                className="appearance-none bg-[#252525] border border-white/[0.07] text-[#F0F0F0] text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-[#FF6B00]/50 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+        const imgPath = CAT_ASSETS[cat.name] || CAT_ASSETS.default;
+
+        return (
+          <section key={cat.id} className="max-w-7xl mx-auto px-4 mb-16">
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-12 h-12 rounded-2xl overflow-hidden border border-white/10 shadow-lg">
+                  <img src={imgPath} alt={cat.name} className="w-full h-full object-cover" />
+                </div>
+                <div>
+                  <h2 className="text-2xl font-black">{cat.name}</h2>
+                  <p className="text-xs text-[#9A9A9A] font-bold mt-0.5">أقوى عروض الـ {cat.name.split(' ')[0]}</p>
+                </div>
+              </div>
+              <button
+                onClick={() => setActiveCat(cat.id)}
+                className="text-sm font-bold text-[#FF6B00] hover:underline"
               >
-                <option value="newest">📅 الأحدث</option>
-                <option value="expiring">⏰ ينتهي قريباً</option>
-                <option value="discount">🏷️ الأعلى خصماً</option>
-                <option value="popular">🔥 الأشهر</option>
-              </select>
-              <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none" />
+                عرض الكل ←
+              </button>
             </div>
 
-            <Link
-              href="/offers"
-              className="text-sm font-bold text-[#FF6B00] hover:underline flex items-center gap-1"
-            >
-              عرض الكل ←
-            </Link>
-          </div>
-        </div>
-
-        {/* grid */}
-        {error ? (
-          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
-            <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-4xl">⚠️</div>
-            <h3 className="text-lg font-bold text-[#F0F0F0]">حدث خطأ</h3>
-            <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">{error}</p>
-            <button
-              onClick={() => fetchData(true)}
-              className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full hover:opacity-90 transition-opacity"
-            >
-              🔄 إعادة المحاولة
-            </button>
-          </div>
-        ) : loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
-          </div>
-        ) : filteredOffers.length === 0 ? (
-          <div className="flex flex-col items-center justify-content py-24 gap-4 text-center">
-            <div className="w-20 h-20 bg-[#252525] rounded-full flex items-center justify-center text-4xl">🔍</div>
-            <h3 className="text-lg font-bold text-[#F0F0F0]">لا توجد عروض مطابقة</h3>
-            <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">
-              جرّب تغيير كلمة البحث أو اختر فئة مختلفة
-            </p>
-            <button
-              onClick={() => { setSearch(''); setActiveCat(''); }}
-              className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full
-                         hover:opacity-90 transition-opacity"
-            >
-              🔄 إعادة ضبط الفلاتر
-            </button>
-          </div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
-            <AnimatePresence mode="popLayout">
-              {filteredOffers.map((offer, i) => (
-                <motion.div
-                  key={offer.id}
-                  layout
-                  initial={{ opacity: 0, y: 12 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0 }}
-                  transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                  onClick={() => trackEvent('offer_click', {
-                    offerId: offer.id,
-                    offerTitle: offer.title,
-                    storeId: offer.store.id,
-                    storeName: offer.store.name,
-                    position: i,
-                    source: 'homepage'
-                  })}
-                >
+            <div className="flex gap-5 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {catOffers.map((offer) => (
+                <div key={offer.id} className="w-[280px] sm:w-[320px] flex-shrink-0">
                   <OfferCard offer={offer} />
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
+            </div>
+          </section>
+        );
+      })}
+
+      {/* ─── Offers Grid ───────────────────────────────────── */}
+      {(activeCat || search) && (
+        <section className="max-w-7xl mx-auto px-4">
+          {/* section header */}
+          <div className="flex items-center justify-between mb-6 flex-wrap gap-4">
+            <div className="flex items-center gap-3">
+              <div className="w-9 h-9 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+                <Flame size={18} />
+              </div>
+              <div>
+                <h2 className="text-xl font-black">أحدث العروض الحصرية</h2>
+                {!loading && (
+                  <p className="text-xs text-[#9A9A9A] font-semibold mt-0.5">
+                    {filteredOffers.length} عرض متاح
+                  </p>
+                )}
+              </div>
+            </div>
+
+            <div className="flex items-center gap-3">
+              {/* Sort Dropdown */}
+              <div className="relative">
+                <select
+                  value={sortBy}
+                  onChange={(e) => {
+                    const newSort = e.target.value as SortOption;
+                    setSortBy(newSort);
+                    trackEvent('sort_change', { sortBy: newSort });
+                  }}
+                  className="appearance-none bg-[#252525] border border-white/[0.07] text-[#F0F0F0] text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-[#FF6B00]/50 cursor-pointer hover:bg-[#2a2a2a] transition-colors"
+                >
+                  <option value="newest">📅 الأحدث</option>
+                  <option value="expiring">⏰ ينتهي قريباً</option>
+                  <option value="discount">🏷️ الأعلى خصماً</option>
+                  <option value="popular">🔥 الأشهر</option>
+                </select>
+                <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none" />
+              </div>
+
+              <Link
+                href="/offers"
+                className="text-sm font-bold text-[#FF6B00] hover:underline flex items-center gap-1"
+              >
+                عرض الكل ←
+              </Link>
+            </div>
           </div>
-        )}
-      </section>
+
+          {/* grid */}
+          {error ? (
+            <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+              <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center text-4xl">⚠️</div>
+              <h3 className="text-lg font-bold text-[#F0F0F0]">حدث خطأ</h3>
+              <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">{error}</p>
+              <button
+                onClick={() => fetchData(true)}
+                className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full hover:opacity-90 transition-opacity"
+              >
+                🔄 إعادة المحاولة
+              </button>
+            </div>
+          ) : loading ? (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+            </div>
+          ) : filteredOffers.length === 0 ? (
+            <div className="flex flex-col items-center justify-content py-24 gap-4 text-center">
+              <div className="w-20 h-20 bg-[#252525] rounded-full flex items-center justify-center text-4xl">🔍</div>
+              <h3 className="text-lg font-bold text-[#F0F0F0]">لا توجد عروض مطابقة</h3>
+              <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">
+                جرّب تغيير كلمة البحث أو اختر فئة مختلفة
+              </p>
+              <button
+                onClick={() => { setSearch(''); setActiveCat(''); }}
+                className="mt-2 px-6 py-2.5 bg-[#FF6B00] text-white text-sm font-bold rounded-full
+                         hover:opacity-90 transition-opacity"
+              >
+                🔄 إعادة ضبط الفلاتر
+              </button>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+              <AnimatePresence mode="popLayout">
+                {filteredOffers.map((offer, i) => (
+                  <motion.div
+                    key={offer.id}
+                    layout
+                    initial={{ opacity: 0, y: 12 }}
+                    animate={{ opacity: 1, y: 0 }}
+                    exit={{ opacity: 0 }}
+                    transition={{ delay: Math.min(i * 0.04, 0.3) }}
+                    onClick={() => trackEvent('offer_click', {
+                      offerId: offer.id,
+                      offerTitle: offer.title,
+                      storeId: offer.store.id,
+                      storeName: offer.store.name,
+                      position: i,
+                      source: 'homepage'
+                    })}
+                  >
+                    <OfferCard offer={offer} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            </div>
+          )}
+        </section>
+      )}
     </div>
   );
 }
