@@ -163,10 +163,14 @@ export default function OfferDetailsPage() {
   }, [id, router, offer]);
 
   const toggleFav = async () => {
+    if (!navigator.onLine) {
+      showToast('هذا الإجراء يحتاج اتصال بالإنترنت', 'error');
+      return;
+    }
     const token = localStorage.getItem('token');
     
     if (token) {
-      // Use API if logged in
+      // ... existing API toggle code ...
       try {
         const res = await fetch(`${API_URL}/favorites/toggle/${id}`, {
           method: 'POST',
@@ -191,6 +195,10 @@ export default function OfferDetailsPage() {
   };
 
   const handleGetCoupon = async () => {
+    if (!navigator.onLine) {
+      showToast('هذا الإجراء يحتاج اتصال بالإنترنت', 'error');
+      return;
+    }
     const token = localStorage.getItem('token');
     if (!token) {
       showToast('يرجى تسجيل الدخول أولاً للحصول على الكوبون', 'info');

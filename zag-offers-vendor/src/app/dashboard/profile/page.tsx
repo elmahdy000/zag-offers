@@ -272,12 +272,12 @@ export default function StoreProfilePage() {
           </div>
 
           <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
-            {(store.images || []).map((img, idx) => (
+            {(store.images || []).map((img: string, idx: number) => (
               <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group shadow-lg">
                 <img src={resolveImageUrl(img)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
                 <button 
                   onClick={() => {
-                    const filtered = (store.images || []).filter((_, i) => i !== idx);
+                    const filtered = (store.images || []).filter((_: string, i: number) => i !== idx);
                     updateStore({ images: filtered });
                   }}
                   className="absolute top-2 left-2 bg-red-500/80 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"

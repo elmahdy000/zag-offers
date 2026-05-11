@@ -1,4 +1,4 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
@@ -6,21 +6,35 @@ import BottomNav from "@/components/bottom-nav";
 import PWAInstallPrompt from "@/components/pwa-install-prompt";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
 import ClientInit from "@/components/client-init";
+import OnlineStatusBanner from "@/components/online-status-banner";
 
 export const metadata: Metadata = {
   title: "Zag Offers | أفضل عروض الزقازيق",
   description: "اكتشف أفضل الخصومات والكوبونات الحصرية في زاج. وفر أكثر مع زقازيق أوفرز.",
-  icons: {
-    icon: '/icon-192.svg',
-    apple: '/icon-192.svg',
+  manifest: "/manifest.json",
+  appleWebApp: {
+    capable: true,
+    statusBarStyle: "black-translucent",
+    title: "Zag Offers",
   },
-  manifest: '/manifest.json',
+  icons: {
+    icon: [
+      { url: "/icons/icon-192.png", sizes: "192x192", type: "image/png" },
+    ],
+    apple: [
+      { url: "/icons/icon-192.png" },
+      { url: "/icons/icon-192.png", sizes: "152x152" },
+      { url: "/icons/icon-192.png", sizes: "180x180" },
+      { url: "/icons/icon-192.png", sizes: "167x167" },
+    ],
+  },
 };
 
-export const viewport = {
+export const viewport: Viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
+  themeColor: "#1A1A1A",
 };
 
 export default function RootLayout({
@@ -28,29 +42,12 @@ export default function RootLayout({
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-
   return (
     <html lang="ar" dir="rtl">
-      <head>
-        <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#1A1A1A" />
-        
-        {/* iOS Specific Meta Tags */}
-        <meta name="apple-mobile-web-app-capable" content="yes" />
-        <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <meta name="apple-mobile-web-app-title" content="Zag Offers" />
-        
-        {/* Apple Touch Icons */}
-        <link rel="apple-touch-icon" href="/icon-192.svg" />
-        <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.svg" />
-        <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.svg" />
-        <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.svg" />
-        
-        <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
-      </head>
       <body className="antialiased bg-[#1A1A1A] text-[#F0F0F0] selection:bg-[#FF6B00]/30 overflow-x-hidden">
         <ReactQueryProvider>
           <NotificationProvider>
+            <OnlineStatusBanner />
             <ClientInit />
             <Navbar />
             <main className="min-h-screen pt-16 sm:pt-20 pb-24 sm:pb-12 md:pb-0 overflow-x-hidden">

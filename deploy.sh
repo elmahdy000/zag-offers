@@ -29,7 +29,7 @@ echo "✅ Backend deployed and seeded successfully"
 echo "🎨 Building Client..."
 cd ../zag-offers-client
 npm install --legacy-peer-deps
-npm run build
+npm run build -- --webpack
 pm2 restart zag-client
 echo "✅ Client deployed successfully"
 
@@ -37,7 +37,7 @@ echo "✅ Client deployed successfully"
 echo "🏪 Building Vendor..."
 cd ../zag-offers-vendor
 npm install
-npm run build
+npm run build -- --webpack
 pm2 restart zag-vendor
 echo "✅ Vendor deployed successfully"
 
@@ -45,7 +45,7 @@ echo "✅ Vendor deployed successfully"
 echo "👨‍💼 Building Admin..."
 cd ../zag-offers-admin
 npm install
-npm run build
+npm run build -- --webpack
 pm2 restart zag-admin
 echo "✅ Admin deployed successfully"
 

@@ -25,6 +25,8 @@ export default function LoginPage() {
   const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
+  const [googleLoaded, setGoogleLoaded] = useState(false);
+
   useEffect(() => {
     const script = document.createElement('script');
     script.src = "https://accounts.google.com/gsi/client";
@@ -33,11 +35,12 @@ export default function LoginPage() {
     script.onload = () => {
       try {
         if (window.google) {
+          setGoogleLoaded(true);
           window.google.accounts.id.initialize({
             client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
             callback: handleGoogleResponse,
             auto_select: false,
-            ux_mode: 'popup', // Standard for web, but we'll handle fallback
+            ux_mode: 'popup', 
           });
           window.google.accounts.id.renderButton(
             document.getElementById('google-login-btn'),
@@ -53,7 +56,12 @@ export default function LoginPage() {
   }, []);
 
   const handleGoogleResponse = async (response: any) => {
+    if (!navigator.onLine) {
+      setError('هذا الإجراء يحتاج اتصال بالإنترنت');
+      return;
+    }
     setSocialLoading('google');
+    // ... rest of code
     if (response.credential) {
       try {
         const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.credential });
@@ -71,6 +79,10 @@ export default function LoginPage() {
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!navigator.onLine) {
+      setError('هذا الإجراء يحتاج اتصال بالإنترنت');
+      return;
+    }
     setError(null);
     setLoading(true);
 
@@ -152,7 +164,7 @@ export default function LoginPage() {
           </button>
 
           {/* Optional: Add a subtle hint if Google button fails to show */}
-          {!window.google && (
+          {!googleLoaded && (
              <p className="text-[10px] text-white/20 text-center font-bold">
                إذا لم يظهر زر جوجل، يرجى الدخول من المتصفح العادي (Safari)
              </p>

@@ -223,7 +223,10 @@ export class OffersService {
 
     if (offer) {
       // 1. زيادة عداد المشاهدات في العرض (Asynchronous)
-      // ملاحظة: قمنا بتعطيل الـ Increment المباشر هنا واستخدام Analytics ليكون أكثر دقة
+      void this.prisma.offer.update({
+        where: { id: offer.id },
+        data: { views: { increment: 1 } }
+      }).catch(err => console.error('Failed to increment view counter:', err));
       
       // 2. تسجيل حدث التحليل (Analytics Event)
       void this.prisma.analyticsEvent.create({

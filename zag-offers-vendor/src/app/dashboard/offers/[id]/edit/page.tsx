@@ -77,6 +77,10 @@ export default function EditOfferPage() {
   };
 
   const handleSubmit = async () => {
+    if (!navigator.onLine) {
+      setSubmitError('هذا الإجراء يحتاج اتصال بالإنترنت لتعديل العرض');
+      return;
+    }
     setSubmitError(null);
     
     // تحقق من البيانات

@@ -96,30 +96,16 @@ export default function ScanPage() {
 
   const validateCoupon = async (code: string) => {
     if (!code) return;
+    if (!navigator.onLine) {
+      setStatus('error');
+      setMessage('هذا الإجراء يحتاج اتصال بالإنترنت للتحقق من الكوبون');
+      playErrorSound();
+      return;
+    }
+
     setLoading(true);
     setStatus('idle');
     setMessage('');
-
-    const isOffline = !navigator.onLine;
-
-    if (isOffline) {
-      // التحقق من الكاش المحلي
-      const cachedCoupons = JSON.parse(localStorage.getItem('cache_vendor_coupons') || '[]');
-      const found = cachedCoupons.find((c: any) => c.code === code.trim());
-      
-      if (found) {
-        setCouponData(found);
-        setResult(code.trim());
-        setMessage('تم التحقق (وضع الأوفلاين)');
-        playSuccessSound();
-      } else {
-        setStatus('error');
-        setMessage('الكود غير موجود في السجلات المحلية (أوفلاين)');
-        playErrorSound();
-      }
-      setLoading(false);
-      return;
-    }
 
     try {
       const api = vendorApi();
@@ -141,37 +127,10 @@ export default function ScanPage() {
     const code = result || manualCode;
     if (!code) return;
 
-    const isOffline = !navigator.onLine;
-
-    if (isOffline) {
-      // إضافة لطابور التفعيل الأوفلاين
-      const queue = JSON.parse(localStorage.getItem('pending_redemptions') || '[]');
-      const alreadyInQueue = queue.some((q: any) => q.code === code.trim());
-      
-      if (!alreadyInQueue) {
-        queue.push({ 
-          code: code.trim(), 
-          timestamp: Date.now(),
-          offerTitle: couponData?.offer?.title || 'خصم مباشر'
-        });
-        localStorage.setItem('pending_redemptions', JSON.stringify(queue));
-      }
-
-      setStatus('success');
-      setMessage('تم حفظ التفعيل أوفلاين! سيتم المزامنة فور عودة الإنترنت.');
-      playSuccessSound();
-
-      // إضافة للسجل السريع
-      const newScan = {
-        id: Date.now(),
-        code: code.trim(),
-        offerTitle: couponData?.offer?.title || 'خصم مباشر',
-        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
-        isOffline: true
-      };
-      const updatedRecent = [newScan, ...recentScans.slice(0, 2)];
-      setRecentScans(updatedRecent);
-      localStorage.setItem('vendor_recent_scans', JSON.stringify(updatedRecent));
+    if (!navigator.onLine) {
+      setStatus('error');
+      setMessage('هذا الإجراء يحتاج اتصال بالإنترنت لتفعيل الخصم');
+      playErrorSound();
       return;
     }
 

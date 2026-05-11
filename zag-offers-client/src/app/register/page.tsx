@@ -35,6 +35,10 @@ export default function RegisterPage() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!navigator.onLine) {
+      setError('هذا الإجراء يحتاج اتصال بالإنترنت');
+      return;
+    }
     setError(null);
     setLoading(true);
 
@@ -65,6 +69,10 @@ export default function RegisterPage() {
   };
 
   const handleGoogleLogin = () => {
+    if (!navigator.onLine) {
+      setError('هذا الإجراء يحتاج اتصال بالإنترنت');
+      return;
+    }
     setSocialLoading('google');
     try {
       window.google.accounts.id.initialize({
@@ -99,7 +107,7 @@ export default function RegisterPage() {
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
-      <div className="absolute top/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
+      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
       
       <motion.div 
         initial={{ opacity: 0, y: 20 }}
