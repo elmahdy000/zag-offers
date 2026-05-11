@@ -103,8 +103,14 @@ export class RecommendationsService {
         offerId: { not: null },
         createdAt: { gte: lastWeek }
       },
-      _count: { _all: true },
-      orderBy: { _count: { _all: 'desc' } },
+      _count: {
+        offerId: true
+      },
+      orderBy: {
+        _count: {
+          offerId: 'desc'
+        }
+      },
       take: 20
     });
 
