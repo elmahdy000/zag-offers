@@ -7,7 +7,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
-import { useVendorStats } from '@/hooks/use-vendor-api';
+import { useVendorStats, useVendorOffers } from '@/hooks/use-vendor-api';
 import { useSocket } from '@/hooks/useSocket';
 
 // تحسين: استخدام مكونات ثابتة لتقليل إعادة الرندر
