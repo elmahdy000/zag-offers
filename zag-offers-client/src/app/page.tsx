@@ -84,14 +84,15 @@ function HomePageContent() {
   const catIdParam = searchParams.get('categoryId');
   const { trackEvent } = useAnalytics();
 
-  const [offers,     setOffers]     = useState<Offer[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [stores,     setStores]     = useState<Store[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState<string | null>(null);
-  const [search,     setSearch]     = useState('');
-  const [activeCat,  setActiveCat]  = useState(catIdParam || '');
-  const [sortBy,     setSortBy]     = useState<SortOption>('newest');
+  const [offers,         setOffers]     = useState<Offer[]>([]);
+  const [recommended,    setRecommended] = useState<Offer[]>([]);
+  const [categories,     setCategories] = useState<Category[]>([]);
+  const [stores,         setStores]     = useState<Store[]>([]);
+  const [loading,        setLoading]    = useState(true);
+  const [error,          setError]      = useState<string | null>(null);
+  const [search,         setSearch]     = useState('');
+  const [activeCat,      setActiveCat]  = useState(catIdParam || '');
+  const [sortBy,         setSortBy]     = useState<SortOption>('newest');
 
   // Debounced search for analytics (reduces tracking events)
   const debouncedSearch = useDebounce(search, 500);
@@ -105,6 +106,7 @@ function HomePageContent() {
         if (Date.now() - timestamp < CACHE_DURATION) {
           setTimeout(() => {
             setOffers(data.offers || []);
+            setRecommended(data.recommended || []);
             setCategories(data.categories || []);
             setStores(data.stores || []);
             setLoading(false);
@@ -124,6 +126,7 @@ function HomePageContent() {
           const { data, timestamp } = JSON.parse(cached);
           if (Date.now() - timestamp < CACHE_DURATION) {
             setOffers(data.offers || []);
+            setRecommended(data.recommended || []);
             setCategories(data.categories || []);
             setStores(data.stores || []);
             setLoading(false);
@@ -136,13 +139,20 @@ function HomePageContent() {
     setLoading(true);
     setError(null);
     try {
-      const [offRes, catRes, storeRes] = await Promise.all([
+      // Get token for personalized recommendations
+      const token = typeof window !== 'undefined' ? localStorage.getItem('token') : null;
+      const headers: Record<string, string> = {};
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+
+      const [offRes, catRes, storeRes, recRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=100`),
         fetch(`${API_URL}/stores/categories`),
         fetch(`${API_URL}/stores?limit=12`),
+        fetch(`${API_URL}/recommendations`, { headers }),
       ]);
 
       let newOffers: Offer[] = [];
+      let newRecommended: Offer[] = [];
       let newCategories: Category[] = [];
       let newStores: Store[] = [];
 
@@ -150,6 +160,10 @@ function HomePageContent() {
         const data = await offRes.json();
         newOffers = Array.isArray(data) ? data : (data.items || []);
         setOffers(newOffers);
+      }
+      if (recRes.ok) {
+        newRecommended = await recRes.json();
+        setRecommended(newRecommended);
       }
       if (catRes.ok) {
         newCategories = await catRes.json();
@@ -164,7 +178,12 @@ function HomePageContent() {
       // Save to cache
       try {
         localStorage.setItem(CACHE_KEY, JSON.stringify({
-          data: { offers: newOffers, categories: newCategories, stores: newStores },
+          data: { 
+            offers: newOffers, 
+            recommended: newRecommended,
+            categories: newCategories, 
+            stores: newStores 
+          },
           timestamp: Date.now()
         }));
         trackEvent('cache_save', { offersCount: newOffers.length });
@@ -398,6 +417,35 @@ function HomePageContent() {
                   </div>
                 </motion.div>
               </Link>
+            ))}
+          </div>
+        </section>
+      )}
+
+      {/* ─── Recommended Section ────────────────────────────── */}
+      {!activeCat && !search && recommended.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 mb-16">
+          <div className="flex items-center gap-3 mb-8">
+            <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-2xl flex items-center justify-center text-[#FF6B00]">
+              <Sparkles size={22} className="animate-pulse" />
+            </div>
+            <div>
+              <h2 className="text-2xl font-black">مختارات لك</h2>
+              <p className="text-xs text-[#9A9A9A] font-bold mt-0.5">بناءً على اهتماماتك ومنطقتك</p>
+            </div>
+          </div>
+
+          <div className="flex gap-5 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {recommended.map((offer, i) => (
+              <motion.div 
+                key={offer.id}
+                initial={{ opacity: 0, x: 20 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: i * 0.1 }}
+                className="w-[280px] sm:w-[320px] flex-shrink-0"
+              >
+                <OfferCard offer={offer} />
+              </motion.div>
             ))}
           </div>
         </section>
