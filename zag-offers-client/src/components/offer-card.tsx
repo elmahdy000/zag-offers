@@ -3,6 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { MapPin, Heart, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
+import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BASE_URL, API_URL } from '@/lib/constants';
@@ -58,7 +59,7 @@ const CAT_GRADIENTS: Record<string, string> = {
 };
 
 export function OfferCard({ offer }: OfferCardProps) {
-  // ─── All hooks MUST be at the top before any early returns (Rules of Hooks) ───
+  const router = useRouter();
   const [isFav, setIsFav] = useState(false);
 
   useEffect(() => {
@@ -154,9 +155,10 @@ export function OfferCard({ offer }: OfferCardProps) {
   return (
     <motion.div
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      onClick={() => router.push(`/offers/${offer.id}`)}
       className="group relative bg-[#252525] border border-white/[0.06] rounded-xl overflow-hidden
                  hover:border-[#FF6B00]/30 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)]
-                 transition-all duration-200 flex flex-col h-full"
+                 transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
       <div className={`relative h-32 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
@@ -262,16 +264,15 @@ export function OfferCard({ offer }: OfferCardProps) {
         </div>
 
         {/* CTA */}
-        <Link
-          href={`/offers/${offer.id}`}
+        <div
           className="mt-1 w-full py-1.5 text-center text-[11px] font-black text-[#FF6B00]
                      bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-lg
-                     hover:bg-[#FF6B00] hover:text-white hover:border-[#FF6B00]
-                     hover:shadow-[0_4px_12px_rgba(255,107,0,0.3)]
-                     transition-all duration-200 block"
+                     group-hover:bg-[#FF6B00] group-hover:text-white group-hover:border-[#FF6B00]
+                     group-hover:shadow-[0_4px_12px_rgba(255,107,0,0.3)]
+                     transition-all duration-200"
         >
           🏷️ احصل على العرض
-        </Link>
+        </div>
       </div>
     </motion.div>
   );

@@ -12,6 +12,8 @@ export interface Store {
   area: string;
   address?: string;
   phone?: string;
+  whatsapp?: string;
+  locationUrl?: string;
   categoryId?: string;
   category?: Category;
 }

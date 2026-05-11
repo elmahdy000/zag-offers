@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle, MessageCircle, Star } from 'lucide-react';
+import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle, MessageCircle, Star, Building2 } from 'lucide-react';
 import { ReviewSection } from '@/components/ReviewSection';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -25,7 +25,9 @@ interface Offer {
     name: string;
     logo?: string;
     area: string;
+    address?: string;
     whatsapp?: string;
+    locationUrl?: string;
     category?: {
       name: string;
     };
@@ -75,6 +77,8 @@ export default function OfferDetailsPage() {
   const [loading, setLoading] = useState(true);
   const [isCouponLoading, setIsCouponLoading] = useState(false); // separate state for coupon action
   const [showCoupon, setShowCoupon] = useState(false);
+  const [showLocations, setShowLocations] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [couponCode, setCouponCode] = useState('ZAG-XXXXXX');
   const [isFav, setIsFav] = useState(false);
   const [copied, setCopied] = useState(false);
@@ -123,9 +127,13 @@ export default function OfferDetailsPage() {
             const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
             setIsFav(favs.some((f: { id: string }) => f.id === data.id));
           }
-        } else router.replace('/');
+        } else {
+          console.error('Fetch offer failed:', res.status);
+          setError('فشل في تحميل بيانات العرض');
+        }
       } catch (e) { 
-        console.error('Offline or error:', e); 
+        console.error('Fetch error:', e); 
+        setError('خطأ في الاتصال بالسيرفر');
       } finally { 
         setLoading(false); 
       }
@@ -160,7 +168,7 @@ export default function OfferDetailsPage() {
     const handleOnline = () => fetchOffer();
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [id, router, offer]);
+  }, [id, router]);
 
   const toggleFav = async () => {
     if (!navigator.onLine) {
@@ -274,6 +282,7 @@ export default function OfferDetailsPage() {
   };
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل العرض...</div>;
+  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500 font-black">{error}</div>;
   if (!offer) return null;
 
   // eslint-disable-next-line react-hooks/purity
@@ -372,10 +381,13 @@ export default function OfferDetailsPage() {
                     <Clock size={16} className="text-[#FF6B00]" />
                     <span className="text-xs font-bold">{daysLeft <= 0 ? 'منتهي' : `باقي ${daysLeft} يوم`}</span>
                   </div>
-                  <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
+                  <button 
+                    onClick={() => setShowLocations(true)}
+                    className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 hover:border-[#FF6B00]/40 hover:bg-[#FF6B00]/5 transition-all"
+                  >
                     <MapPin size={16} className="text-[#FF6B00]" />
                     <span className="text-xs font-bold">{offer.store?.area}</span>
-                  </div>
+                  </button>
                   <button
                     onClick={() => { navigator.share?.({ title: offer.title, url: window.location.href }); }}
                     className="mr-auto p-2 text-white/40 hover:text-white transition-colors"
@@ -524,6 +536,72 @@ export default function OfferDetailsPage() {
             .then(data => setReviews(data));
         }}
       />
+
+      {/* ─── Locations Modal ─────────────────────────────────── */}
+      <AnimatePresence>
+        {showLocations && (
+          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              className="absolute inset-0 bg-black/80 backdrop-blur-md"
+              onClick={() => setShowLocations(false)}
+            />
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-[#1A1A1A] p-8 w-full max-w-sm border border-white/10 rounded-[32px] overflow-hidden shadow-2xl shadow-black"
+              dir="rtl"
+            >
+              {/* Background Glow */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#FF6B00]/20 blur-[60px] -z-10" />
+
+              <div className="flex flex-col items-center text-center">
+                <div className="w-16 h-16 bg-[#FF6B00]/10 rounded-2xl flex items-center justify-center text-[#FF6B00] mb-6">
+                  <MapPin size={32} />
+                </div>
+                
+                <h3 className="text-2xl font-black text-white mb-2">موقع المحل</h3>
+                <p className="text-white/40 text-[10px] font-black uppercase tracking-[2px] mb-8">زورونا في فرع الزقازيق</p>
+
+                <div className="w-full bg-white/5 p-6 rounded-2xl border border-white/5 mb-8 text-right">
+                  <div className="flex items-center gap-3 mb-3">
+                    <div className="w-8 h-8 bg-[#FF6B00]/20 rounded-lg flex items-center justify-center text-[#FF6B00]">
+                      <Building2 size={16} />
+                    </div>
+                    <span className="text-white font-black text-sm">{offer.store?.area}</span>
+                  </div>
+                  <p className="text-[#9A9A9A] font-bold text-xs leading-relaxed mr-11">
+                    {offer.store?.address}
+                  </p>
+                </div>
+
+                <div className="flex flex-col gap-3 w-full">
+                  {offer.store?.locationUrl && (
+                    <a 
+                      href={offer.store.locationUrl}
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      className="w-full py-4 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black rounded-xl shadow-lg shadow-[#FF6B00]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                    >
+                      <MapPin size={18} />
+                      فتح في خرائط جوجل
+                    </a>
+                  )}
+                  <button 
+                    onClick={() => setShowLocations(false)}
+                    className="w-full py-4 bg-white/5 text-white/40 font-black rounded-xl hover:text-white transition-all text-xs"
+                  >
+                    إغلاق النافذة
+                  </button>
+                </div>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
     </div>
   );
 }
