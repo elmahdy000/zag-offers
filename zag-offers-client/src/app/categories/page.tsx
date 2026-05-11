@@ -81,7 +81,7 @@ export default function CategoriesPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {categories.map((cat, i) => (
-            <Link key={cat.id} href={`/?categoryId=${cat.id}`}>
+            <Link key={cat.id} href={`/offers?categoryId=${cat.id}`}>
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
