@@ -126,6 +126,7 @@ model Offer {
   usageLimit  Int?
   status      OfferStatus @default(PENDING)
   isNotified  Boolean     @default(false)
+  views       Int         @default(0)
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
