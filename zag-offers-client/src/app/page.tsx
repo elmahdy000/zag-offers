@@ -268,66 +268,66 @@ function HomePageContent() {
   }
 
   return (
-    <div className="pb-20 bg-[#1A1A1A] overflow-hidden" dir="rtl">
+    <div className="pb-16 bg-[#1A1A1A] overflow-x-hidden" dir="rtl">
       {/* Background Decorative Elements */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
-      <div className="absolute top-[20%] right-[-5%] w-[30%] h-[30%] bg-[#FF8C35]/5 blur-[100px] rounded-full -z-10" />
+      <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[40%] bg-[#FF6B00]/5 blur-[100px] rounded-full -z-10" />
+      <div className="absolute top-[15%] right-[-10%] w-[50%] h-[30%] bg-[#FF8C35]/5 blur-[80px] rounded-full -z-10" />
 
       {/* Hero Section */}
-      <section className="relative pt-16 pb-24 px-4 text-center overflow-hidden">
+      <section className="relative pt-10 sm:pt-16 pb-16 sm:pb-24 px-4 text-center overflow-hidden">
         {/* Animated Background Pattern */}
-        <div className="absolute inset-0 -z-10 opacity-[0.03]" 
-             style={{ backgroundImage: 'radial-gradient(#FF6B00 1px, transparent 1px)', backgroundSize: '40px 40px' }} />
+        <div className="absolute inset-0 -z-10 opacity-[0.02]" 
+             style={{ backgroundImage: 'radial-gradient(#FF6B00 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
         
-        <div className="max-w-5xl mx-auto relative">
+        <div className="max-w-4xl mx-auto relative">
           <motion.div 
-            initial={{ opacity: 0, y: 20 }}
+            initial={{ opacity: 0, y: 10 }}
             animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-3 px-5 py-2 mb-8 bg-gradient-to-r from-[#FF6B00]/10 to-transparent border border-[#FF6B00]/20 rounded-full text-[#FF6B00] text-[13px] font-black shadow-[0_0_20px_rgba(255,107,0,0.05)]"
+            className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full text-[#FF6B00] text-[11px] sm:text-[13px] font-black shadow-[0_0_20px_rgba(255,107,0,0.05)]"
           >
             <span className="relative flex h-2 w-2">
               <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
               <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]"></span>
             </span>
-            عروض حية وحصرية الآن في الزقازيق
+            عروض حصرية الآن في الزقازيق
           </motion.div>
 
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-[1.1] text-[#F0F0F0] tracking-tight"
+            className="text-3xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight sm:leading-[1.1] text-[#F0F0F0] tracking-tight"
           >
-            وفر أكتر مع <br/>
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] drop-shadow-sm">أقوى خصومات</span> زاج
+            وفر أكتر مع <br className="sm:hidden" />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] drop-shadow-sm">أقوى الخصومات</span>
           </motion.h1>
 
           <motion.p 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-[#9A9A9A] text-lg sm:text-2xl font-medium max-w-3xl mx-auto leading-relaxed"
+            className="text-[#9A9A9A] text-sm sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed px-2"
           >
-            من مطاعمك المفضلة لمحلات الموضة والجمال، كل اللي تحتاجه في الزقازيق بخصومات حصرية وكوبونات فورية.
+            خصومات حصرية وكوبونات فورية من أفضل مطاعم ومحلات الزقازيق في مكان واحد.
           </motion.p>
 
           <motion.div 
             initial={{ opacity: 0, scale: 0.95 }}
             animate={{ opacity: 1, scale: 1 }}
             transition={{ delay: 0.3 }}
-            className="mt-14 max-w-3xl mx-auto group relative"
+            className="mt-10 max-w-2xl mx-auto group relative"
           >
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] rounded-3xl blur-xl opacity-20 group-hover:opacity-30 transition duration-1000 group-hover:duration-200"></div>
-            <div className="relative flex items-center bg-[#242424]/80 backdrop-blur-md p-2.5 rounded-[2rem] border border-white/[0.08] shadow-2xl focus-within:border-[#FF6B00]/40 transition-all duration-300">
-              <Search className="text-[#FF6B00] mx-4 flex-shrink-0" size={24} />
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] rounded-3xl blur-lg opacity-10 group-hover:opacity-20 transition duration-1000"></div>
+            <div className="relative flex items-center bg-[#242424]/90 backdrop-blur-md p-1.5 sm:p-2.5 rounded-2xl sm:rounded-[2.5rem] border border-white/[0.08] shadow-2xl focus-within:border-[#FF6B00]/40 transition-all duration-300">
+              <Search className="text-[#FF6B00] mx-3 sm:mx-5 flex-shrink-0" size={18} />
               <input
                 type="text"
-                placeholder="ابحث عن مطعم، كافيه، أو عرض معين..."
-                className="flex-1 bg-transparent border-none outline-none text-[#F0F0F0] text-lg font-bold py-4 placeholder:text-[#9A9A9A]/50"
+                placeholder="ابحث عن عرض أو محل..."
+                className="flex-1 bg-transparent border-none outline-none text-[#F0F0F0] text-sm sm:text-lg font-bold py-3 sm:py-4 placeholder:text-[#9A9A9A]/40"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <button className="hidden sm:block px-12 py-4 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] text-white font-black text-base rounded-[1.5rem] hover:shadow-[0_8px_25px_rgba(255,107,0,0.4)] hover:scale-[1.02] active:scale-95 transition-all duration-300">
+              <button className="hidden sm:block px-10 py-4 bg-[#FF6B00] text-white font-black text-sm rounded-[1.8rem] hover:bg-[#FF8C35] transition-all duration-300 mr-2">
                 ابحث الآن
               </button>
             </div>
@@ -336,11 +336,11 @@ function HomePageContent() {
       </section>
 
       {/* Categories Bar */}
-      <section className="px-4 mb-12 sticky top-[64px] sm:top-[80px] z-40 bg-[#1A1A1A]/90 backdrop-blur-2xl py-4 border-b border-white/[0.04]">
-        <div className="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth">
+      <section className="px-4 mb-10 sticky top-[64px] sm:top-[80px] z-40 bg-[#1A1A1A]/95 backdrop-blur-xl py-3 border-b border-white/[0.05]">
+        <div className="max-w-7xl mx-auto flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth">
           <button
             onClick={() => handleCatChange('', 'All')}
-            className={`flex-shrink-0 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black border transition-all duration-300 ${activeCat === '' ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)] scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a] hover:border-white/20'}`}
+            className={`flex-shrink-0 px-5 py-2 sm:px-8 sm:py-3 rounded-xl text-[11px] sm:text-sm font-black border transition-all duration-300 ${activeCat === '' ? 'bg-[#FF6B00] text-white border-transparent shadow-lg scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a]'}`}
           >
             ✨ الكل
           </button>
@@ -348,11 +348,9 @@ function HomePageContent() {
             <button
               key={c.id}
               onClick={() => handleCatChange(c.id, c.name)}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black flex items-center gap-2.5 border transition-all duration-300 ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)] scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a] hover:border-white/20'}`}
+              className={`flex-shrink-0 px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[11px] sm:text-sm font-black flex items-center gap-2 border transition-all duration-300 ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent shadow-lg scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a]'}`}
             >
-              <div className="w-6 h-6 rounded-lg overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center text-[10px]">
-                <span>🏷️</span>
-              </div>
+              <span className="text-xs">🏷️</span>
               {c.name}
             </button>
           ))}
@@ -468,17 +466,16 @@ function HomePageContent() {
             </div>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-8">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
             {loading ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />) : (
               <AnimatePresence mode="popLayout">
                 {filteredOffers.slice(0, 48).map((offer, i) => (
                   <motion.div 
                     key={offer.id} 
                     layout 
-                    initial={{ opacity: 0, y: 30 }} 
+                    initial={{ opacity: 0, y: 20 }} 
                     animate={{ opacity: 1, y: 0 }} 
-                    exit={{ opacity: 0, scale: 0.9 }}
-                    transition={{ duration: 0.4, delay: i * 0.05 < 0.6 ? i * 0.05 : 0 }}
+                    transition={{ duration: 0.3, delay: i < 12 ? i * 0.05 : 0 }}
                   >
                     <OfferCard offer={offer} />
                   </motion.div>
