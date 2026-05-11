@@ -16,6 +16,15 @@ async function main() {
 
   console.log('Seeding database with Zagazig offers...');
 
+  // Cleanup unwanted categories
+  await prisma.category.deleteMany({
+    where: {
+      name: {
+        in: ['سوبرماركت', 'خدمات محلية', 'عيادات']
+      }
+    }
+  });
+
   // 1. Create Admin
   const admin = await prisma.user.upsert({
     where: { phone: '01000000000' },

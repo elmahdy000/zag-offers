@@ -82,7 +82,11 @@ export default function CategoriesPage() {
   });
 
   const filteredCategories = Array.isArray(categories)
-    ? categories.filter(c => c.name.toLowerCase().includes(search.toLowerCase()))
+    ? categories.filter(c => 
+        c.name.toLowerCase().includes(search.toLowerCase()) && 
+        c.name !== 'سوبرماركت' && 
+        c.name !== 'خدمات محلية'
+      )
     : [];
 
   const openModal = (category?: Category) => {

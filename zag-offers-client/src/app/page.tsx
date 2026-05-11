@@ -75,7 +75,7 @@ function HomePageContent() {
       // Filter out clinics and duplicates by display name
       const seenNames = new Set<string>();
       const uniqueCats = cData
-        .filter((c: Category) => c.name !== 'عيادات')
+        .filter((c: Category) => !['عيادات', 'سوبرماركت', 'خدمات محلية'].includes(c.name))
         .filter((c: Category) => {
           const dispName = getCatName(c.name);
           if (seenNames.has(dispName)) return false;
