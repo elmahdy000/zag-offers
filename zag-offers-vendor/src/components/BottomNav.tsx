@@ -8,7 +8,7 @@ const navItems = [
   { icon: LayoutDashboard, label: 'الرئيسية', path: '/dashboard' },
   { icon: Tag, label: 'عروضي', path: '/dashboard/offers' },
   { icon: Scan, label: 'امسح 🤳', path: '/dashboard/scan' },
-  { icon: Ticket, label: 'تذاكري', path: '/dashboard/coupons' },
+  { icon: Ticket, label: 'الكوبونات', path: '/dashboard/coupons' },
   { icon: Settings, label: 'المتجر', path: '/dashboard/profile' },
 ];
 

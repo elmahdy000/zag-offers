@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Download, Clock, Tag, Search, Filter, Calendar, ChevronLeft, User } from 'lucide-react';
 import { vendorApi } from '@/lib/api';
 import { useVendorCoupons } from '@/hooks/use-vendor-api';
@@ -18,9 +18,31 @@ interface CouponLog {
 
 export default function CouponsLogPage() {
   const [searchTerm, setSearchTerm] = useState('');
+  const [cachedLogs, setCachedLogs] = useState<CouponLog[]>([]);
 
   // React Query hook
-  const { data: logs, isLoading } = useVendorCoupons();
+  const { data: logs, isLoading, refetch } = useVendorCoupons();
+
+  // تحسين: منطق الكاش للأوفلاين
+  useEffect(() => {
+    const cached = localStorage.getItem('cache_vendor_coupons');
+    if (cached) setCachedLogs(JSON.parse(cached));
+  }, []);
+
+  // تحديث الكاش عند النجاح
+  useEffect(() => {
+    if (logs) {
+      localStorage.setItem('cache_vendor_coupons', JSON.stringify(logs));
+      setCachedLogs(logs);
+    }
+  }, [logs]);
+
+  // تحديث تلقائي عند عودة النت
+  useEffect(() => {
+    const handleOnline = () => refetch();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [refetch]);
 
   const getStatusLabel = (status: string) => {
     if (status === 'REDEEMED' || status === 'USED') return 'تم التفعيل';
@@ -34,9 +56,35 @@ export default function CouponsLogPage() {
     return 'bg-primary/10 text-primary border-primary/20';
   };
 
-  if (isLoading) return <DashboardSkeleton />;
+  const displayLogs = logs || cachedLogs;
 
-  const filteredLogs = logs ? logs.filter((log: CouponLog) => 
+  const exportToCSV = () => {
+    if (!displayLogs?.length) return;
+    
+    const headers = ['الكود', 'العميل', 'العرض', 'الحالة', 'تاريخ التفعيل'];
+    const rows = displayLogs.map(log => [
+      log.code,
+      log.customer?.name || 'عميل مجهول',
+      log.offer?.title,
+      getStatusLabel(log.status),
+      new Date(log.redeemedAt || log.createdAt).toLocaleString('ar-EG')
+    ]);
+
+    const csvContent = "\uFEFF" + [headers, ...rows].map(e => e.join(",")).join("\n");
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement("a");
+    const url = URL.createObjectURL(blob);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `zag-offers-coupons-${new Date().toLocaleDateString()}.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (isLoading && displayLogs.length === 0) return <DashboardSkeleton />;
+
+  const filteredLogs = displayLogs ? displayLogs.filter((log: CouponLog) => 
     log.code.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.offer?.title?.toLowerCase().includes(searchTerm.toLowerCase())
@@ -54,7 +102,10 @@ export default function CouponsLogPage() {
           </p>
         </div>
         <div className="flex gap-3 w-full md:w-auto">
-          <button className="flex-1 md:flex-none glass px-5 py-3.5 rounded-xl flex items-center justify-center gap-2 text-text font-black text-[11px] uppercase tracking-wider hover:bg-white/5 transition-all">
+          <button 
+            onClick={exportToCSV}
+            className="flex-1 md:flex-none glass px-5 py-3.5 rounded-xl flex items-center justify-center gap-2 text-text font-black text-[11px] uppercase tracking-wider hover:bg-white/5 transition-all"
+          >
              <Download size={16} className="text-primary" /> تصدير CSV
           </button>
         </div>

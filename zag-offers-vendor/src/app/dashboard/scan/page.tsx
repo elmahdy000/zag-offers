@@ -19,6 +19,25 @@ export default function ScanPage() {
   const [manualCode, setManualCode] = useState('');
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
+  const [recentScans, setRecentScans] = useState<any[]>([]);
+
+  // Sound effects
+  const playSuccessSound = () => {
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
+      audio.play().catch(() => {});
+      if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
+    } catch (e) {}
+  };
+
+  const playErrorSound = () => {
+    try {
+      const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
+      audio.play().catch(() => {});
+      if (navigator.vibrate) navigator.vibrate(300);
+    } catch (e) {}
+  };
+
   const startScanner = async () => {
     try {
       setIsManual(false);
@@ -27,11 +46,15 @@ export default function ScanPage() {
       setMessage('');
       setResult(null);
 
+      // Load recent scans from cache
+      const cached = localStorage.getItem('vendor_recent_scans');
+      if (cached) setRecentScans(JSON.parse(cached));
+
       setTimeout(async () => {
         try {
           const html5QrCode = new Html5Qrcode("reader");
           scannerRef.current = html5QrCode;
-          const config = { fps: 10, qrbox: { width: 250, height: 250 } };
+          const config = { fps: 15, qrbox: { width: 250, height: 250 } };
           await html5QrCode.start(
             { facingMode: "environment" }, 
             config,
@@ -77,16 +100,38 @@ export default function ScanPage() {
     setStatus('idle');
     setMessage('');
 
+    const isOffline = !navigator.onLine;
+
+    if (isOffline) {
+      // التحقق من الكاش المحلي
+      const cachedCoupons = JSON.parse(localStorage.getItem('cache_vendor_coupons') || '[]');
+      const found = cachedCoupons.find((c: any) => c.code === code.trim());
+      
+      if (found) {
+        setCouponData(found);
+        setResult(code.trim());
+        setMessage('تم التحقق (وضع الأوفلاين)');
+        playSuccessSound();
+      } else {
+        setStatus('error');
+        setMessage('الكود غير موجود في السجلات المحلية (أوفلاين)');
+        playErrorSound();
+      }
+      setLoading(false);
+      return;
+    }
+
     try {
       const api = vendorApi();
-      // محاولة الحصول على بيانات الكوبون للتحقق منه قبل التفعيل
       const res = await api.get(`/coupons/by-code/${code.trim()}`);
       setCouponData(res.data);
-      setResult(code.trim()); // حفظ الكود للخطوة التالية
+      setResult(code.trim()); 
+      playSuccessSound();
     } catch (err: any) {
       setStatus('error');
       setMessage(err.response?.data?.message || 'الكود غير صحيح أو منتهي الصلاحية');
       setCouponData(null);
+      playErrorSound();
     } finally {
       setLoading(false);
     }
@@ -96,6 +141,40 @@ export default function ScanPage() {
     const code = result || manualCode;
     if (!code) return;
 
+    const isOffline = !navigator.onLine;
+
+    if (isOffline) {
+      // إضافة لطابور التفعيل الأوفلاين
+      const queue = JSON.parse(localStorage.getItem('pending_redemptions') || '[]');
+      const alreadyInQueue = queue.some((q: any) => q.code === code.trim());
+      
+      if (!alreadyInQueue) {
+        queue.push({ 
+          code: code.trim(), 
+          timestamp: Date.now(),
+          offerTitle: couponData?.offer?.title || 'خصم مباشر'
+        });
+        localStorage.setItem('pending_redemptions', JSON.stringify(queue));
+      }
+
+      setStatus('success');
+      setMessage('تم حفظ التفعيل أوفلاين! سيتم المزامنة فور عودة الإنترنت.');
+      playSuccessSound();
+
+      // إضافة للسجل السريع
+      const newScan = {
+        id: Date.now(),
+        code: code.trim(),
+        offerTitle: couponData?.offer?.title || 'خصم مباشر',
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' }),
+        isOffline: true
+      };
+      const updatedRecent = [newScan, ...recentScans.slice(0, 2)];
+      setRecentScans(updatedRecent);
+      localStorage.setItem('vendor_recent_scans', JSON.stringify(updatedRecent));
+      return;
+    }
+
     setLoading(true);
     try {
       const api = vendorApi();
@@ -103,9 +182,23 @@ export default function ScanPage() {
       
       setStatus('success');
       setMessage(res.data?.message || 'تم تفعيل الخصم بنجاح!');
+      playSuccessSound();
+
+      // Add to recent scans
+      const newScan = {
+        id: Date.now(),
+        code: code.trim(),
+        offerTitle: couponData?.offer?.title || 'خصم مباشر',
+        time: new Date().toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })
+      };
+      const updatedRecent = [newScan, ...recentScans.slice(0, 2)];
+      setRecentScans(updatedRecent);
+      localStorage.setItem('vendor_recent_scans', JSON.stringify(updatedRecent));
+
     } catch (err: any) {
       setStatus('error');
       setMessage(err.response?.data?.message || 'فشل في تفعيل الكوبون');
+      playErrorSound();
     } finally {
       setLoading(false);
     }
@@ -166,6 +259,31 @@ export default function ScanPage() {
                 <h3 className="text-lg font-black text-text">وجه الكاميرا نحو الكود</h3>
                 <p className="text-text-dim text-xs font-bold leading-relaxed mt-1">سيقوم النظام بالتعرف على الكود تلقائياً</p>
               </div>
+
+              {/* Recent Scans Overlay */}
+              {recentScans.length > 0 && (
+                <div className="mt-8 space-y-3">
+                  <p className="text-[10px] font-black text-text-dimmer uppercase tracking-widest text-center">آخر العمليات</p>
+                  <div className="space-y-2">
+                    {recentScans.map((scan) => (
+                      <div key={scan.id} className="glass p-3 rounded-2xl border border-white/5 flex items-center justify-between">
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
+                            <CheckCircle2 size={16} />
+                          </div>
+                          <div>
+                            <p className="text-[11px] font-black text-text line-clamp-1">{scan.offerTitle}</p>
+                            <p className="text-[9px] font-bold text-text-dimmer uppercase tracking-tighter">{scan.time}</p>
+                          </div>
+                        </div>
+                        <span className="font-mono font-black text-primary text-[11px] bg-primary/5 px-2 py-1 rounded-lg">
+                          {scan.code}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
             </motion.div>
           ) : isManual && !result ? (
             <motion.div key="manual-ui" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm mt-8">

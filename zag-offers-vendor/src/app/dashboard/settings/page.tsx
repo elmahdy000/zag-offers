@@ -17,10 +17,9 @@ export default function SettingsPage() {
       title: 'الأمان والحساب',
       description: 'تغيير كلمة المرور وإعدادات تسجيل الدخول',
       icon: Lock,
-      href: '#',
+      href: '/dashboard/settings/security',
       color: 'text-blue-500',
       bg: 'bg-blue-500/10',
-      tag: 'قريباً'
     },
     {
       title: 'التنبيهات',

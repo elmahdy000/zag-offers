@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
@@ -103,10 +103,32 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
 
 export default function OffersListPage() {
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
+  const [cachedOffers, setCachedOffers] = useState<Offer[]>([]);
 
   // React Query hooks
   const { data: offers, isLoading, refetch } = useVendorOffers();
   const { mutate: deleteOffer, isPending: deleting } = useDeleteOffer();
+
+  // تحسين: منطق الكاش للأوفلاين
+  useEffect(() => {
+    const cached = localStorage.getItem('cache_vendor_offers_list');
+    if (cached) setCachedOffers(JSON.parse(cached));
+  }, []);
+
+  // تحديث الكاش عند النجاح
+  useEffect(() => {
+    if (offers) {
+      localStorage.setItem('cache_vendor_offers_list', JSON.stringify(offers));
+      setCachedOffers(offers);
+    }
+  }, [offers]);
+
+  // تحديث تلقائي عند عودة النت
+  useEffect(() => {
+    const handleOnline = () => refetch();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [refetch]);
 
   const handleDelete = async (id: string) => {
     if (!confirm('هل تريد حذف هذا العرض؟')) return;
@@ -121,10 +143,12 @@ export default function OffersListPage() {
     });
   };
 
-  if (isLoading) return <DashboardSkeleton />;
+  const displayOffers = Array.isArray(offers) ? offers : cachedOffers;
+
+  if (isLoading && displayOffers.length === 0) return <DashboardSkeleton />;
 
   const filters = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'];
-  const offersArray = Array.isArray(offers) ? offers : [];
+  const offersArray = Array.isArray(displayOffers) ? displayOffers : [];
   const filtered = activeFilter === 'ALL' ? offersArray : offersArray.filter((o: Offer) => o.status === activeFilter);
 
   const grouped = filtered ? filtered.reduce((acc: Record<string, Offer[]>, offer: Offer) => {

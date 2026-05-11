@@ -28,28 +28,63 @@ const StatCard = ({ card, index }: { card: any, index: number }) => (
 
 export default function MerchantDashboard() {
   const { data: stats, isLoading: statsLoading, refetch } = useVendorStats();
+  const [cachedStats, setCachedStats] = useState<any>(null);
   const [recentOffers, setRecentOffers] = useState<any[]>([]);
   const [notification, setNotification] = useState<{ title: string; body: string } | null>(null);
 
   const vendorUser = useMemo(() => {
+    if (typeof window === 'undefined') return {};
     try { return JSON.parse(localStorage.getItem('vendor_user') || '{}'); } catch { return {}; }
   }, []);
   
   const merchantId = vendorUser?.id ?? '';
   const storeName = stats?.storeName ?? vendorUser?.name ?? 'متجرك';
-  const socketRef = useSocket(merchantId);
 
-  // تحسين: تحميل العروض مرة واحدة مع الكاش
+  // تحسين: تحميل العروض والإحصائيات مع الكاش للأوفلاين
   useEffect(() => {
-    const fetchRecent = async () => {
+    const fetchDashboardData = async () => {
+      // كاش العروض
+      const offersKey = 'cache_vendor_dashboard_recent';
+      const cachedOffers = localStorage.getItem(offersKey);
+      if (cachedOffers && recentOffers.length === 0) {
+        setRecentOffers(JSON.parse(cachedOffers));
+      }
+
+      // كاش الإحصائيات
+      const statsKey = 'cache_vendor_stats';
+      const cachedS = localStorage.getItem(statsKey);
+      if (cachedS) {
+        setCachedStats(JSON.parse(cachedS));
+      }
+
       try {
         const r = await vendorApi().get('/offers/my-offers');
         const arr = Array.isArray(r.data) ? r.data : r.data?.items ?? [];
-        setRecentOffers(arr.slice(0, 3));
+        const top3 = arr.slice(0, 3);
+        setRecentOffers(top3);
+        localStorage.setItem(offersKey, JSON.stringify(top3));
       } catch (e) {}
     };
-    fetchRecent();
-  }, []);
+    fetchDashboardData();
+
+    // Revalidate when back online
+    const handleOnline = () => {
+      fetchDashboardData();
+      refetch();
+    };
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [refetch]);
+
+  // تحديث الكاش عند نجاح جلب الإحصائيات من السيرفر
+  useEffect(() => {
+    if (stats) {
+      localStorage.setItem('cache_vendor_stats', JSON.stringify(stats));
+      setCachedStats(stats);
+    }
+  }, [stats]);
+
+  const socketRef = useSocket(merchantId);
 
   useEffect(() => {
     const socket = socketRef.current;
@@ -70,12 +105,14 @@ export default function MerchantDashboard() {
     return () => { socket.off('merchant_notification', handleNotify); };
   }, [socketRef, refetch]);
 
+  const displayStats = stats || cachedStats;
+
   const statCards = useMemo(() => [
-    { label: 'طلبات اليوم',      value: stats?.claimsToday ?? 0,  icon: Bell,         color: 'text-orange-400',  bg: 'bg-orange-400/10',  border: 'border-orange-400/20' },
-    { label: 'مسح اليوم',        value: stats?.scansToday ?? 0,   icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
-    { label: 'عروض نشطة',        value: stats?.activeOffers ?? 0, icon: Sparkles,     color: 'text-blue-400',    bg: 'bg-blue-400/10',    border: 'border-blue-400/20' },
-    { label: 'إجمالي الكوبونات', value: stats?.totalClaims ?? 0,  icon: Users,        color: 'text-purple-400',  bg: 'bg-purple-400/10',  border: 'border-purple-400/20' },
-  ], [stats]);
+    { label: 'طلبات اليوم',      value: displayStats?.claimsToday ?? 0,  icon: Bell,         color: 'text-orange-400',  bg: 'bg-orange-400/10',  border: 'border-orange-400/20' },
+    { label: 'مسح اليوم',        value: displayStats?.scansToday ?? 0,   icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20' },
+    { label: 'عروض نشطة',        value: displayStats?.activeOffers ?? 0, icon: Sparkles,     color: 'text-blue-400',    bg: 'bg-blue-400/10',    border: 'border-blue-400/20' },
+    { label: 'إجمالي الكوبونات', value: displayStats?.totalClaims ?? 0,  icon: Users,        color: 'text-purple-400',  bg: 'bg-purple-400/10',  border: 'border-purple-400/20' },
+  ], [displayStats]);
 
   return (
     <div className="p-4 sm:p-6 lg:p-8 dir-rtl max-w-5xl mx-auto pb-28">
@@ -108,7 +145,7 @@ export default function MerchantDashboard() {
 
       {/* Stats Grid - Optimized rendering */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 mb-6">
-        {statsLoading ? (
+        {statsLoading && !cachedStats ? (
           Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-28 glass rounded-[1.8rem] animate-pulse" />)
         ) : (
           statCards.map((card, i) => <StatCard key={card.label} card={card} index={i} />)

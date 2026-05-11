@@ -36,6 +36,8 @@ interface UpdateStoreData {
   phone?: string;
   address?: string;
   whatsapp?: string;
+  locationUrl?: string;
+  logo?: string;
 }
 
 // جلب عروض المتجر
@@ -269,6 +271,32 @@ export function useUpdateStore() {
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-store'] });
+    },
+  });
+}
+
+// تغيير كلمة المرور
+export function useChangePassword() {
+  return useMutation({
+    mutationFn: async (data: any) => {
+      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
+      if (!token) throw new Error('Not authenticated');
+
+      const res = await fetch(`${API_URL}/auth/change-password`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify(data),
+      });
+
+      if (!res.ok) {
+        const error = await res.json();
+        throw new Error(error.message || 'فشل تغيير كلمة المرور');
+      }
+
+      return res.json();
     },
   });
 }

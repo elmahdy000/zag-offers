@@ -1,5 +1,5 @@
 'use client';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, LayoutDashboard, Sparkles, Image as ImageIcon, ChevronLeft, ShieldCheck } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -18,6 +18,38 @@ export default function NewOfferPage() {
   });
   const [offerImages, setOfferImages] = useState<{ url: string; file?: File }[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
+
+  // تحميل المسودة عند فتح الصفحة
+  useEffect(() => {
+    const savedDraft = localStorage.getItem('cache_new_offer_draft');
+    if (savedDraft) {
+      const draft = JSON.parse(savedDraft);
+      if (draft.title || draft.description) {
+        setShowDraftPrompt(true);
+      }
+    }
+  }, []);
+
+  // حفظ المسودة تلقائياً
+  useEffect(() => {
+    if (formData.title || formData.description) {
+      localStorage.setItem('cache_new_offer_draft', JSON.stringify(formData));
+    }
+  }, [formData]);
+
+  const restoreDraft = () => {
+    const savedDraft = localStorage.getItem('cache_new_offer_draft');
+    if (savedDraft) {
+      setFormData(JSON.parse(savedDraft));
+      setShowDraftPrompt(false);
+    }
+  };
+
+  const clearDraft = () => {
+    localStorage.removeItem('cache_new_offer_draft');
+    setShowDraftPrompt(false);
+  };
 
   // React Query hook
   const { mutate: createOffer, isPending: submittingQuery } = useCreateOffer();
@@ -166,6 +198,7 @@ export default function NewOfferPage() {
       {
         onSuccess: () => {
           setIsUploading(false);
+          localStorage.removeItem('cache_new_offer_draft');
           router.push('/dashboard/offers');
         },
         onError: (error: unknown) => {
@@ -214,6 +247,31 @@ export default function NewOfferPage() {
           </div>
         </div>
       </div>
+
+      <AnimatePresence>
+        {showDraftPrompt && (
+          <motion.div
+            initial={{ opacity: 0, y: -20 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, scale: 0.95 }}
+            className="mb-8 p-6 glass border border-primary/20 bg-primary/5 rounded-3xl flex flex-col sm:flex-row items-center justify-between gap-6"
+          >
+            <div className="flex items-center gap-4 text-center sm:text-right">
+              <div className="w-12 h-12 bg-primary/10 rounded-2xl flex items-center justify-center text-primary shrink-0">
+                <Info size={24} />
+              </div>
+              <div>
+                <h3 className="text-sm font-black text-text">لقد وجدنا مسودة غير مكتملة!</h3>
+                <p className="text-[11px] font-bold text-text-dim mt-1">هل تود إكمال العمل على العرض الأخير؟</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3 w-full sm:w-auto">
+              <button onClick={clearDraft} className="flex-1 sm:flex-none px-6 py-3 text-[11px] font-black text-text-dimmer hover:text-red-500 transition-colors">تجاهل</button>
+              <button onClick={restoreDraft} className="flex-1 sm:flex-none px-8 py-3 bg-primary text-white text-[11px] font-black rounded-xl shadow-lg shadow-primary/20 hover:scale-105 transition-all">استعادة البيانات</button>
+            </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
 
       <div className="grid grid-cols-1 xl:grid-cols-12 gap-8 items-start">
         <div className="xl:col-span-8 space-y-6">

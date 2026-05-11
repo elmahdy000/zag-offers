@@ -62,8 +62,14 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const handleLogout = () => {
     deleteCookie('auth_token');
-    localStorage.removeItem('vendor_user');
-    localStorage.removeItem('vendor_store_id');
+    // مسح كافة الكاشات عند تسجيل الخروج
+    const cacheKeys = [
+      'vendor_user', 'vendor_store_id', 'cache_vendor_stats', 
+      'cache_vendor_coupons', 'cache_vendor_offers_list', 
+      'cache_vendor_dashboard_recent', 'pending_redemptions',
+      'vendor_recent_scans'
+    ];
+    cacheKeys.forEach(k => localStorage.removeItem(k));
     window.location.href = '/login';
   };
 
@@ -73,9 +79,10 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     { name: 'الكوبونات', icon: History, href: '/dashboard/coupons' },
     { name: 'مسح الكود', icon: Scan, href: '/dashboard/scan' },
     { name: 'ملف المتجر', icon: Store, href: '/dashboard/profile' },
-    { name: 'دعم ومساعدة', icon: MessageSquare, href: '/dashboard/chat' },
+    { name: 'معاينة المتجر', icon: MessageSquare, href: `https://zagoffers.online/stores/${userId}`, external: true },
+    { name: 'الدعم الفني', icon: Bell, href: 'https://wa.me/201091428238', external: true },
     { name: 'الإعدادات', icon: Settings, href: '/dashboard/settings' },
-  ], []);
+  ], [userId]);
 
   if (!mounted) return null;
 
@@ -114,20 +121,36 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         <nav className="flex-1 px-4 py-6 flex flex-col gap-1.5 overflow-y-auto scrollbar-none">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
+            const content = (
+              <>
+                <item.icon size={19} className={isActive ? 'text-white' : 'group-hover:text-primary transition-colors'} />
+                <span className={`text-[13px] tracking-tight ${isActive ? 'font-black' : 'font-bold'}`}>{item.name}</span>
+              </>
+            );
+
+            const className = `
+              group flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200
+              ${isActive 
+                ? 'bg-primary text-white shadow-lg shadow-primary/10' 
+                : 'text-text-dim hover:text-text hover:bg-white/5'}
+            `;
+
+            if (item.external) {
+              return (
+                <a key={item.href} href={item.href} target="_blank" rel="noopener noreferrer" className={className}>
+                  {content}
+                </a>
+              );
+            }
+
             return (
               <Link 
                 key={item.href}
                 href={item.href}
                 onClick={() => onClose?.()}
-                className={`
-                  group flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200
-                  ${isActive 
-                    ? 'bg-primary text-white shadow-lg shadow-primary/10' 
-                    : 'text-text-dim hover:text-text hover:bg-white/5'}
-                `}
+                className={className}
               >
-                <item.icon size={19} className={isActive ? 'text-white' : 'group-hover:text-primary transition-colors'} />
-                <span className={`text-[13px] tracking-tight ${isActive ? 'font-black' : 'font-bold'}`}>{item.name}</span>
+                {content}
               </Link>
             );
           })}

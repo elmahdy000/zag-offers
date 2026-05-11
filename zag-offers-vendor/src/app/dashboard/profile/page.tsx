@@ -14,7 +14,8 @@ export default function StoreProfilePage() {
     phone: '',
     whatsapp: '',
     address: '',
-    email: '', // User's email from owner relation
+    locationUrl: '',
+    email: '',
   });
 
   // React Query hooks
@@ -29,41 +30,58 @@ export default function StoreProfilePage() {
           phone: store.phone || '',
           whatsapp: store.whatsapp || '',
           address: store.address || '',
+          locationUrl: store.locationUrl || '',
           email: store.owner?.email || '',
         });
       }, 0);
     }
   }, [store]);
 
+  const handleLogoUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setSaving(true);
+    const uploadFormData = new FormData();
+    uploadFormData.append('file', file);
+
+    try {
+      const res = await vendorApi().post('/upload', uploadFormData, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+      if (res.data?.url) {
+        updateStore({ logo: res.data.url }, {
+          onSuccess: () => {
+            setSuccess(true);
+            setTimeout(() => setSuccess(false), 3000);
+          }
+        });
+      }
+    } catch (error) {
+      alert('فشل رفع اللوجو، حاول مرة أخرى');
+    } finally {
+      setSaving(false);
+    }
+  };
+
   const handleSave = async () => {
     if (!store) return;
     
-    // تحقق من البيانات
     if (!formData.name.trim()) {
       alert('اسم المتجر مطلوب');
-      return;
-    }
-    
-    if (formData.phone && !/^[0-9]{10,}$/.test(formData.phone.replace(/\s/g, ''))) {
-      alert('رقم الهاتف غير صالح');
-      return;
-    }
-    
-    if (formData.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) {
-      alert('البريد الإلكتروني غير صالح');
       return;
     }
     
     setSaving(true);
     setSuccess(false);
 
-    // Use React Query mutation
     updateStore(
       {
         name: formData.name.trim(),
         phone: formData.phone.trim(),
         whatsapp: formData.whatsapp.trim(),
         address: formData.address.trim(),
+        locationUrl: formData.locationUrl.trim(),
       },
       {
         onSuccess: () => {
@@ -102,7 +120,17 @@ export default function StoreProfilePage() {
                 <Store size={48} className="text-white/10" />
               )}
             </div>
-            <button className="absolute -bottom-2 -left-2 bg-primary text-white p-3 rounded-2xl shadow-xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all">
+            <input 
+              type="file" 
+              id="logo-input" 
+              className="hidden" 
+              accept="image/*"
+              onChange={handleLogoUpload}
+            />
+            <button 
+              onClick={() => document.getElementById('logo-input')?.click()}
+              className="absolute -bottom-2 -left-2 bg-primary text-white p-3 rounded-2xl shadow-xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
+            >
               <Camera size={20} />
             </button>
           </div>
@@ -137,21 +165,35 @@ export default function StoreProfilePage() {
                   onChange={e => setFormData({ ...formData, phone: e.target.value })}
                   className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
                 />
-                </div>
-          
-          <div className="space-y-2.5">
-            <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">رقم الواتساب (لإرسال الكوبونات)</label>
-            <div className="relative group">
-              <MessageCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={18} />
-              <input 
-                type="tel" 
-                value={formData.whatsapp}
-                onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
-                placeholder="2010XXXXXXXX"
-                className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
-              />
+              </div>
             </div>
-          </div>
+
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">رقم الواتساب (لإرسال الكوبونات)</label>
+              <div className="relative group">
+                <MessageCircle className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={18} />
+                <input 
+                  type="tel" 
+                  value={formData.whatsapp}
+                  onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
+                  placeholder="2010XXXXXXXX"
+                  className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2.5">
+              <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">رابط جوجل ماب (الموقع)</label>
+              <div className="relative group">
+                <MapPin className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={18} />
+                <input 
+                  type="url" 
+                  value={formData.locationUrl}
+                  onChange={e => setFormData({ ...formData, locationUrl: e.target.value })}
+                  placeholder="https://maps.google.com/..."
+                  className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
+                />
+              </div>
             </div>
           </div>
 
@@ -188,10 +230,10 @@ export default function StoreProfilePage() {
         <div className="flex flex-col gap-4">
           <button 
             onClick={handleSave}
-            disabled={saving}
+            disabled={saving || updating}
             className="w-full bg-primary text-white py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-primary/40 hover:bg-primary-lt active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
-            {saving ? <Loader2 className="animate-spin" size={24} /> : <Save size={24} />}
+            {(saving || updating) ? <Loader2 className="animate-spin" size={24} /> : <Save size={24} />}
             حفظ التغييرات
           </button>
           
