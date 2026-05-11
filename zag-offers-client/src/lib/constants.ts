@@ -18,6 +18,7 @@ export const CAT_ASSETS: Record<string, string> = {
   'ألعاب':         '/categories/games.png',
   'أطفال':         '/categories/kids.png',
   'أدوات منزلية':  '/categories/home.png',
+  'كورسات':       '/categories/education.png',
   'default':       '/categories/food.png',
 };
 
@@ -34,4 +35,5 @@ export const DISPLAY_NAMES: Record<string, string> = {
   'ألعاب': 'اون فاير',
   'أطفال': 'عيالنا',
   'أدوات منزلية': 'ست البيت',
+  'كورسات': 'طور نفسك',
 };
