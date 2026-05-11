@@ -18,7 +18,7 @@ interface Message {
   isOptimistic?: boolean;
 }
 
-// مكون الرسالة المنفصل لتحسين الأداء ومنع إعادة الرندر غير الضروري
+// 1. مكون الرسالة (معزول تماماً)
 const MessageBubble = memo(({ msg, isMe }: { msg: Message, isMe: boolean }) => {
   const time = new Date(msg.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
   return (
@@ -41,20 +41,50 @@ const MessageBubble = memo(({ msg, isMe }: { msg: Message, isMe: boolean }) => {
     </div>
   );
 });
-
 MessageBubble.displayName = 'MessageBubble';
+
+// 2. مكون الإدخال (معزول تماماً عن الصفحة لضمان سرعة الكتابة القصوى)
+const ChatInput = memo(({ onSend }: { onSend: (text: string) => void }) => {
+  const [inputValue, setInputValue] = useState('');
+
+  const handleAction = () => {
+    const t = inputValue.trim();
+    if (!t) return;
+    onSend(t);
+    setInputValue('');
+  };
+
+  return (
+    <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-2xl p-1 focus-within:border-primary/30 transition-all">
+      <input
+        type="text"
+        value={inputValue}
+        onChange={e => setInputValue(e.target.value)}
+        onKeyDown={e => { if (e.key === 'Enter') handleAction(); }}
+        placeholder="اكتب هنا..."
+        className="flex-1 bg-transparent px-4 py-3 text-[14px] font-bold text-text outline-none placeholder:text-text-dimmer/50"
+      />
+      <button
+        onClick={handleAction}
+        disabled={!inputValue.trim()}
+        className="h-11 w-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all disabled:opacity-20 shrink-0"
+      >
+        <Send size={18} className="rotate-180" />
+      </button>
+    </div>
+  );
+});
+ChatInput.displayName = 'ChatInput';
 
 export default function VendorChatPage() {
   const router = useRouter();
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
-  const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [userId, setUserId] = useState('');
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
 
-  // تحميل بيانات المستخدم مرة واحدة
   useEffect(() => {
     if (typeof localStorage !== 'undefined') {
       try {
@@ -64,66 +94,47 @@ export default function VendorChatPage() {
     }
   }, []);
 
-  // تهيئة المحادثة والرسائل
   useEffect(() => {
     if (!userId) return;
-
     const initChat = async () => {
       try {
         const api = vendorApi();
         const convsRes = await api.get('/chat/conversations');
         let conv = convsRes.data?.[0];
-
         if (!conv) {
           const startRes = await api.post('/chat/start', { participantId: userId, type: 'MERCHANT_SUPPORT' });
           conv = startRes.data;
         }
-
         setConversationId(conv.id);
         const msgsRes = await api.get(`/chat/messages/${conv.id}`);
         setMessages(Array.isArray(msgsRes.data) ? msgsRes.data : []);
-      } catch (e) {
-        console.error('Chat error', e);
-      } finally {
-        setLoading(false);
-      }
+      } catch (e) {} finally { setLoading(false); }
     };
     initChat();
   }, [userId]);
 
-  // WebSocket Sync
   useEffect(() => {
     if (!userId) return;
     const token = getCookie('auth_token');
     if (!token) return;
-
     const s = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
     socketRef.current = s;
     s.emit('join', userId);
-
     s.on('new_message', (msg: Message) => {
       setMessages(prev => {
         if (prev.some(m => m.id === msg.id)) return prev;
-        // حذف الرسالة التفاؤلية إذا كانت موجودة (بناءً على النص)
         const filtered = prev.filter(m => !(m.isOptimistic && m.text === msg.text));
         return [...filtered, msg];
       });
     });
-
     return () => { s.disconnect(); };
   }, [userId]);
 
-  // التمرير لأسفل عند وصول رسالة جديدة (بدون أنيميشن ثقيل)
   useEffect(() => {
-    if (scrollRef.current) {
-      scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-    }
+    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
   }, [messages]);
 
-  const handleSend = async () => {
-    const msgText = text.trim();
-    if (!msgText) return;
-
+  const handleSend = useCallback(async (msgText: string) => {
     const tmpId = `tmp-${Date.now()}`;
     const optimisticMsg: Message = {
       id: tmpId,
@@ -134,9 +145,7 @@ export default function VendorChatPage() {
       isOptimistic: true
     };
 
-    // تحديث فوري للواجهة
     setMessages(prev => [...prev, optimisticMsg]);
-    setText('');
 
     try {
       const api = vendorApi();
@@ -144,17 +153,15 @@ export default function VendorChatPage() {
         conversationId: conversationId,
         text: msgText,
       });
-      // استبدال الرسالة المؤقتة بالأصلية
       setMessages(prev => prev.map(m => m.id === tmpId ? res.data : m));
     } catch (e) {
       setMessages(prev => prev.filter(m => m.id !== tmpId));
-      setText(msgText);
     }
-  };
+  }, [userId, conversationId]);
 
   return (
     <div className="fixed inset-0 bg-bg z-[100] flex flex-col overflow-hidden" dir="rtl">
-      {/* Header - ثابت لا يتأثر بالرندر */}
+      {/* Header */}
       <div className="px-5 py-4 flex items-center gap-4 z-10 border-b border-white/5 bg-bg/80 backdrop-blur-xl shrink-0">
         <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-white/5">
           <ChevronRight size={20} />
@@ -170,7 +177,7 @@ export default function VendorChatPage() {
         </div>
       </div>
 
-      {/* Messages View - تم تحسينه ليكون سريعاً جداً */}
+      {/* Messages */}
       <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 scrollbar-none">
         {loading ? (
           <div className="flex justify-center pt-10"><Loader2 className="animate-spin text-primary" size={24} /></div>
@@ -179,25 +186,9 @@ export default function VendorChatPage() {
         )}
       </div>
 
-      {/* Input Area - معزول عن رندر الرسائل */}
+      {/* Input - Isolated Component */}
       <div className="px-4 py-4 bg-bg border-t border-white/5 shrink-0">
-        <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-2xl p-1 focus-within:border-primary/30 transition-all">
-          <input
-            type="text"
-            value={text}
-            onChange={e => setText(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
-            placeholder="اكتب هنا..."
-            className="flex-1 bg-transparent px-4 py-3 text-[14px] font-bold text-text outline-none placeholder:text-text-dimmer/50"
-          />
-          <button
-            onClick={handleSend}
-            disabled={!text.trim()}
-            className="h-11 w-11 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all disabled:opacity-20 shrink-0"
-          >
-            <Send size={18} className="rotate-180" />
-          </button>
-        </div>
+        <ChatInput onSend={handleSend} />
       </div>
     </div>
   );
