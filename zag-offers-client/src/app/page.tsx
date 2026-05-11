@@ -35,18 +35,29 @@ function useAnalytics() {
 import { Offer, Category, Store, SortOption } from '@/lib/types';
 
 const CAT_ASSETS: Record<string, string> = {
+  'الكل':          '/categories/all.png',
   'مطاعم':         '/categories/food.png',
   'كافيهات':       '/categories/cafe.png',
   'ملابس':         '/categories/fashion.png',
   'جيم':           '/categories/gym.png',
   'تجميل':         '/categories/beauty.png',
-  'عيادات':        '/categories/medical.png',
   'سوبرماركت':    '/categories/grocery.png',
   'دورات':         '/categories/education.png',
   'خدمات سيارات': '/categories/car.png',
   'خدمات محلية':  '/categories/services.png',
   'default':       '/categories/food.png',
 };
+
+const DISPLAY_NAMES: Record<string, string> = {
+  'مطاعم': 'دلع كرشك',
+  'دورات': 'طور نفسك',
+  'تجميل': 'دلع بنات',
+  'جيم': 'فورمة',
+  'خدمات سيارات': 'دلع عربيتك',
+  'ملابس': 'شياكة',
+};
+
+const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
 
 
@@ -76,16 +87,17 @@ function HomePageContent() {
       const [oRes, cRes, sRes, rRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=100`),
         fetch(`${API_URL}/stores/categories`),
-        fetch(`${API_URL}/stores?limit=12`),
-        fetch(`${API_URL}/recommendations`)
       ]);
 
       const [oData, cData, sData, rData] = await Promise.all([
         oRes.json(), cRes.json(), sRes.json(), rRes.json()
       ]);
 
+      // Filter out clinics
+      const filteredCats = cData.filter((c: Category) => c.name !== 'عيادات');
+
       setOffers(oData);
-      setCategories(cData);
+      setCategories(filteredCats);
       setStores(sData);
       setRecommended(rData);
     } catch (e) {
@@ -211,7 +223,9 @@ function HomePageContent() {
             className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-3xl overflow-hidden border transition-all duration-300
               ${!activeCat ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20' : 'border-white/5 opacity-60 hover:opacity-100'}`}
           >
-            <div className="absolute inset-0 bg-[#252525]" />
+            <div className="absolute inset-0 bg-[#252525]">
+               <img src={CAT_ASSETS['الكل']} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" alt="الكل" />
+            </div>
             <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
             <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 z-20">
               <span className={`text-[11px] font-black tracking-widest ${!activeCat ? 'text-[#FF6B00]' : 'text-white/60'}`}>الكل</span>
@@ -234,7 +248,9 @@ function HomePageContent() {
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
               <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 z-20">
-                <span className={`text-[11px] font-black tracking-widest ${activeCat === c.id ? 'text-[#FF6B00]' : 'text-white'}`}>{c.name}</span>
+                <span className={`text-[11px] font-black tracking-widest ${activeCat === c.id ? 'text-[#FF6B00]' : 'text-white'}`}>
+                  {getCatName(c.name)}
+                </span>
               </div>
             </button>
           ))}
@@ -301,7 +317,7 @@ function HomePageContent() {
               <Flame size={20} />
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white">
-              {activeCat ? `عروض ${categories.find(c => c.id === activeCat)?.name}` : 'أحدث العروض'}
+              {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
             </h2>
           </div>
           
