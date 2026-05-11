@@ -11,26 +11,11 @@ const AREAS = [
   'الجامعة', 'القومية', 'وسط البلد', 'المحافظة', 'طلبة عويضة', 'منطقة الفيلات',
 ];
 
-interface Category {
-  id: string;
-  name: string;
-}
+import { Offer, Category, SortOption } from '@/lib/types';
 
-interface Offer {
-  id: string;
-  title: string;
-  discount: string;
-  endDate: string;
-  createdAt: string;
-  images: string[];
-  store: {
-    id: string;
-    name: string;
-    area: string;
-    categoryId?: string;
-    category?: Category;
-  };
-}
+const AREAS = [
+  'الجامعة', 'القومية', 'وسط البلد', 'المحافظة', 'طلبة عويضة', 'منطقة الفيلات',
+];
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <Utensils size={14} />,
@@ -56,26 +41,28 @@ function OffersPageContent() {
   const [search,     setSearch]     = useState('');
   const [activeCat,  setActiveCat]  = useState(initialCat);
   const [area,       setArea]       = useState('');
-  const [sort,       setSort]       = useState('newest');
+  const [sort,       setSort]       = useState<SortOption>('newest');
 
-  useEffect(() => {
-    const fetchData = async () => {
-      setLoading(true);
-      try {
-        const [offRes, catRes] = await Promise.all([
-          fetch(`${API_URL}/offers?limit=200`),
-          fetch(`${API_URL}/stores/categories`),
-        ]);
-        if (offRes.ok) {
-          const data = await offRes.json();
-          setOffers(Array.isArray(data) ? data : (data.items || []));
-        }
-        if (catRes.ok) setCategories(await catRes.json());
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
-    };
-    fetchData();
+  const fetchData = useCallback(async () => {
+    setLoading(true);
+    try {
+      const [offRes, catRes] = await Promise.all([
+        fetch(`${API_URL}/offers?limit=200`),
+        fetch(`${API_URL}/stores/categories`),
+      ]);
+      if (offRes.ok) {
+        const data = await offRes.json();
+        setOffers(Array.isArray(data) ? data : (data.items || []));
+      }
+      if (catRes.ok) setCategories(await catRes.json());
+    } catch (e) { 
+      console.error(e); 
+    } finally { 
+      setLoading(false); 
+    }
   }, []);
+
+  useEffect(() => { fetchData(); }, [fetchData]);
 
   const filtered = useMemo(() => {
     let list = offers.filter(o => {
@@ -88,10 +75,11 @@ function OffersPageContent() {
       return matchSearch && matchCat && matchArea;
     });
 
-    if (sort === 'expiry') {
+    if (sort === 'expiring') {
       list = [...list].sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
     } else if (sort === 'discount') {
-      list = [...list].sort((a, b) => (parseInt(b.discount) || 0) - (parseInt(a.discount) || 0));
+      const getVal = (d: string) => parseInt(d?.replace(/[^0-9]/g, '') || '0');
+      list = [...list].sort((a, b) => getVal(b.discount) - getVal(a.discount));
     } else {
       list = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
     }
@@ -99,7 +87,6 @@ function OffersPageContent() {
     return list;
   }, [offers, search, activeCat, area, sort]);
 
-  // Grouping logic
   const grouped = useMemo(() => {
     const groups: Record<string, Offer[]> = {};
     filtered.forEach(o => {

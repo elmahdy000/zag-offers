@@ -9,15 +9,7 @@ import { resolveImageUrl } from '@/lib/utils';
 
 import { API_URL, BASE_URL } from '@/lib/constants';
 
-interface Store {
-  id: string;
-  name: string;
-  logo?: string;
-  area: string;
-  category?: {
-    name: string;
-  };
-}
+import { Store } from '@/lib/types';
 
 export default function StoresListPage() {
   const [stores, setStores] = useState<Store[]>([]);

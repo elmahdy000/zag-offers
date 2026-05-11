@@ -6,6 +6,8 @@ import { Tag, ArrowLeft, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, 
 import Link from 'next/link';
 import { API_URL } from '@/lib/constants';
 
+import { Category } from '@/lib/types';
+
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <Utensils size={40} />,
   'كافيهات':       <Coffee size={40} />,
@@ -21,7 +23,7 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 };
 
 export default function CategoriesPage() {
-  const [categories, setCategories] = useState<{ id: string; name: string }[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

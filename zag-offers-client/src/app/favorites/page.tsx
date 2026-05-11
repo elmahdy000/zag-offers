@@ -7,19 +7,7 @@ import Link from 'next/link';
 import { OfferCard } from '@/components/offer-card';
 import { API_URL } from '@/lib/constants';
 
-interface Offer {
-  id: string;
-  title: string;
-  discount: string;
-  endDate: string;
-  images: string[];
-  store: {
-    id: string;
-    name: string;
-    logo?: string;
-    area: string;
-  };
-}
+import { Offer } from '@/lib/types';
 
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Offer[]>([]);
