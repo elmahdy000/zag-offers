@@ -177,10 +177,10 @@ function OffersPageContent() {
                        pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
                        focus:border-[#FF6B00] transition-all appearance-none"
             value={sort}
-            onChange={e => setSort(e.target.value)}
+            onChange={e => setSort(e.target.value as SortOption)}
           >
             <option value="newest">🕐 الأحدث أولاً</option>
-            <option value="expiry">⏰ ينتهي قريباً</option>
+            <option value="expiring">⏰ ينتهي قريباً</option>
             <option value="discount">💰 أعلى خصم</option>
           </select>
         </div>
