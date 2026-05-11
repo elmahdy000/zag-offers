@@ -159,7 +159,9 @@ export default function AdminChatPage() {
     if (!token) return;
     const s = io(API_URL, { auth: { token }, transports: ['websocket'] });
     socketRef.current = s;
-    s.emit('join', adminId);
+    s.on('connect', () => {
+      s.emit('join_room', { token, userId: adminId });
+    });
 
     s.on('new_message', (msg: ConversationMessage & { conversationId: string }) => {
       if (msg.conversationId === selectedConvId) {

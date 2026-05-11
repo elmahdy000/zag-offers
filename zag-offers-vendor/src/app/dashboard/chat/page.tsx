@@ -119,7 +119,9 @@ export default function VendorChatPage() {
     if (!token) return;
     const s = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
     socketRef.current = s;
-    s.emit('join', userId);
+    s.on('connect', () => {
+      s.emit('join_room', { token, userId });
+    });
     s.on('new_message', (msg: Message) => {
       setMessages(prev => {
         if (prev.some(m => m.id === msg.id)) return prev;

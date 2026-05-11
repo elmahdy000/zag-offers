@@ -9,13 +9,21 @@ export class ChatService {
     private eventsGateway: EventsGateway,
   ) {}
 
+  private get conversation() {
+    return (this.prisma as any).conversation;
+  }
+
+  private get message() {
+    return (this.prisma as any).message;
+  }
+
   async getConversations(userId: string, role: string) {
     const where =
       role === 'ADMIN'
         ? { adminId: userId }
         : { participantId: userId };
 
-    return this.prisma.conversation.findMany({
+    return this.conversation.findMany({
       where,
       include: {
         admin: { select: { id: true, name: true, avatar: true } },
@@ -30,7 +38,7 @@ export class ChatService {
   }
 
   async getMessages(conversationId: string) {
-    return this.prisma.message.findMany({
+    return this.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: 'asc' },
     });
@@ -38,15 +46,15 @@ export class ChatService {
 
   async sendMessage(conversationId: string, senderId: string, text: string) {
     // Verify conversation exists
-    const conversation = await this.prisma.conversation.findUnique({
+    const conv = await this.conversation.findUnique({
       where: { id: conversationId },
     });
 
-    if (!conversation) {
+    if (!conv) {
       throw new NotFoundException('Conversation not found');
     }
 
-    const message = await this.prisma.message.create({
+    const msg = await this.message.create({
       data: {
         text,
         senderId,
@@ -54,46 +62,38 @@ export class ChatService {
       },
     });
 
-    await this.prisma.conversation.update({
+    await this.conversation.update({
       where: { id: conversationId },
       data: { lastMessageAt: new Date() },
     });
 
-    // Notify the other participant via Socket.io
-    const otherId =
-      conversation.adminId === senderId
-        ? conversation.participantId
-        : conversation.adminId;
+    // Notify the other participant via EventsGateway
+    const otherId = conv.adminId === senderId ? conv.participantId : conv.adminId;
 
-    this.eventsGateway.server.to(otherId).emit('new_message', {
-      ...message,
+    this.eventsGateway.notifyUser(otherId, 'new_message', {
+      ...msg,
       conversationId,
     });
 
-    return message;
+    return msg;
   }
 
   async startConversation(adminId: string, participantId: string, type: string) {
-    // Find existing or create
-    let conversation = await this.prisma.conversation.findFirst({
+    let conv = await this.conversation.findFirst({
       where: { adminId, participantId, type },
     });
 
-    if (!conversation) {
-      conversation = await this.prisma.conversation.create({
+    if (!conv) {
+      conv = await this.conversation.create({
         data: { adminId, participantId, type },
       });
     }
 
-    return conversation;
+    return conv;
   }
 
-  /**
-   * For non-admin users: find or create a conversation with any admin in the system.
-   */
   async startConversationWithAnyAdmin(participantId: string, type: string) {
-    // First check if there's already a conversation for this participant
-    const existing = await this.prisma.conversation.findFirst({
+    const existing = await this.conversation.findFirst({
       where: { participantId, type },
       include: {
         admin: { select: { id: true, name: true, avatar: true } },
@@ -104,17 +104,16 @@ export class ChatService {
 
     if (existing) return existing;
 
-    // Find first admin user
-    const admin = await this.prisma.user.findFirst({
+    const admin = await (this.prisma as any).user.findFirst({
       where: { role: 'ADMIN' },
       select: { id: true },
     });
 
     if (!admin) {
-      throw new NotFoundException('No admin found in the system');
+      throw new NotFoundException('No admin found');
     }
 
-    const conversation = await this.prisma.conversation.create({
+    const conv = await this.conversation.create({
       data: {
         adminId: admin.id,
         participantId,
@@ -127,6 +126,6 @@ export class ChatService {
       },
     });
 
-    return conversation;
+    return conv;
   }
 }
