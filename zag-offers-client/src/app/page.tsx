@@ -45,6 +45,9 @@ const CAT_ASSETS: Record<string, string> = {
   'دورات':         '/categories/education.png',
   'خدمات سيارات': '/categories/car.png',
   'خدمات محلية':  '/categories/services.png',
+  'حلاقين':       '/categories/barber.png',
+  'حلويات':       '/categories/sweets.png',
+  'مناسبات':       '/categories/wedding.png',
   'default':       '/categories/food.png',
 };
 
@@ -55,6 +58,9 @@ const DISPLAY_NAMES: Record<string, string> = {
   'جيم': 'فورمة',
   'خدمات سيارات': 'دلع عربيتك',
   'ملابس': 'شياكة',
+  'حلاقين': 'ظبط اللوك',
+  'حلويات': 'حلى بوقك',
+  'مناسبات': 'عروستي',
 };
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
