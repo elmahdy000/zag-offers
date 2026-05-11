@@ -140,6 +140,8 @@ model Offer {
   @@index([status])
   @@index([storeId])
   @@index([createdAt])
+  @@index([endDate])
+  @@index([status, endDate])
 }
 
 model Favorite {
@@ -173,6 +175,7 @@ model Coupon {
   @@index([status])
   @@index([customerId])
   @@index([offerId])
+  @@index([customerId, status])
 }
 
 model Review {
@@ -234,6 +237,7 @@ model Message {
   @@index([conversationId])
   @@index([senderId])
   @@index([createdAt])
+  @@index([conversationId, createdAt])
 }
 
 model AuditLog {
@@ -287,5 +291,7 @@ model AnalyticsEvent {
   @@index([offerId])
   @@index([eventType])
   @@index([createdAt])
+  @@index([userId, eventType])
+  @@index([storeId, eventType])
 }
 
