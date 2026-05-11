@@ -22,6 +22,7 @@ export const CAT_ASSETS: Record<string, string> = {
 
 export const DISPLAY_NAMES: Record<string, string> = {
   'مطاعم': 'دلع كرشك',
+  'كافيهات': 'روقان',
   'دورات': 'طور نفسك',
   'تجميل': 'دلع بنات',
   'جيم': 'فورمة',
