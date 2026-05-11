@@ -98,6 +98,7 @@ export class StoresController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT)
   @ApiBearerAuth()
+  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'إحصائيات لوحة تحكم التاجر' })
   async getDashboardStats(@Request() req: { user: { id: string } }) {
     return this.storesService.getVendorDashboardStats(req.user.id);

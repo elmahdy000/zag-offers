@@ -112,6 +112,8 @@ export class StoresService {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
+    // Optimization: Pre-fetch storeId once (already done above)
+    // Then run counts. Consider adding an index on Coupon(offerId) if slow.
     const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons] =
       await Promise.all([
         this.prisma.offer.count({
@@ -141,7 +143,15 @@ export class StoresService {
           },
           orderBy: { createdAt: 'desc' },
           take: 5,
-          include: { customer: true, offer: true },
+          select: {
+            id: true,
+            code: true,
+            status: true,
+            createdAt: true,
+            redeemedAt: true,
+            offer: { select: { title: true } },
+            customer: { select: { name: true } },
+          },
         }),
       ]);
 
