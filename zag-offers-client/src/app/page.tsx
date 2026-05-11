@@ -178,24 +178,33 @@ function HomePageContent() {
           </motion.p>
 
           {/* Search Box - Premium Style */}
+          {/* Search Box - Premium Style */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="max-w-2xl mx-auto relative group"
           >
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] rounded-[2rem] blur-md opacity-20 group-focus-within:opacity-40 transition-all duration-500" />
-            <div className="relative flex items-center bg-[#252525]/80 backdrop-blur-2xl border border-white/10 p-2 rounded-[2rem] shadow-2xl">
-              <Search className="text-[#9A9A9A] mx-4" size={20} />
+            {/* Pulsing Aura */}
+            <div className="absolute -inset-1.5 bg-gradient-to-r from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] rounded-[2.5rem] blur-xl opacity-0 group-focus-within:opacity-30 transition-all duration-700 animate-pulse" />
+            
+            <div className="relative flex items-center bg-[#1E1E1E]/90 backdrop-blur-3xl border border-white/5 p-2 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
+              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 mx-2">
+                <Search className="text-[#FF6B00]" size={20} />
+              </div>
               <input 
                 type="text" 
                 placeholder="ابحث عن عرض، محل، أو صنف..."
-                className="flex-1 bg-transparent py-4 text-sm sm:text-base font-bold text-white outline-none placeholder:text-[#9A9A9A]/50"
+                className="flex-1 bg-transparent py-4 text-sm sm:text-lg font-black text-white outline-none placeholder:text-[#9A9A9A]/30 pr-2"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <button className="hidden sm:block px-8 py-4 bg-[#FF6B00] text-white font-black text-sm rounded-[1.5rem] hover:bg-[#FF8C35] transition-all shadow-lg">
-                ابحث الآن
+              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-2xl mr-2 text-[10px] font-black text-[#5A5A5A] uppercase tracking-[0.2em]">
+                <span>CTRL</span>
+                <span>K</span>
+              </div>
+              <button className="px-10 py-4 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black text-sm rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,107,0,0.3)]">
+                بحث
               </button>
             </div>
           </motion.div>
@@ -203,39 +212,63 @@ function HomePageContent() {
       </section>
 
       {/* ─── Categories Bento/Ribbon ──────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 mb-20 overflow-hidden">
-        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+      <section className="max-w-7xl mx-auto px-4 mb-20">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-1.5 h-6 bg-[#FF6B00] rounded-full" />
+            <h2 className="text-xl sm:text-2xl font-black text-white">الأقسام</h2>
+          </div>
+          
+          <div className="flex items-center gap-4">
+            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs font-black text-[#9A9A9A] hover:text-white transition-all">
+              <ArrowUpDown size={14} className="text-[#FF6B00]" />
+              <span>ترتيب حسب: الأحدث</span>
+            </button>
+          </div>
+        </div>
+
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
           <button 
             onClick={() => setActiveCat('')}
-            className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-3xl overflow-hidden border transition-all duration-300
-              ${!activeCat ? 'border-[#FF6B00] bg-[#FF6B00]/5 ring-2 ring-[#FF6B00]/20' : 'border-white/5 bg-[#252525] opacity-60 hover:opacity-100'}`}
+            className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+              ${!activeCat 
+                ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
+                : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
           >
             <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-              <span className={`text-sm sm:text-base font-black tracking-widest ${!activeCat ? 'text-[#FF6B00]' : 'text-white/60 group-hover:text-white'}`}>الكل</span>
+              <span className={`text-sm sm:text-base font-black tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
+              {!activeCat && <div className="absolute bottom-6 w-1 h-1 bg-[#FF6B00] rounded-full" />}
             </div>
           </button>
 
-          {categories.map(c => (
-            <button 
+          {categories.map((c, idx) => (
+            <motion.button 
               key={c.id}
+              initial={{ opacity: 0, x: 20 }}
+              animate={{ opacity: 1, x: 0 }}
+              transition={{ delay: 0.1 + idx * 0.05 }}
               onClick={() => setActiveCat(c.id)}
-              className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-3xl overflow-hidden border transition-all duration-300
-                ${activeCat === c.id ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20' : 'border-white/5 opacity-60 hover:opacity-100'}`}
+              className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+                ${activeCat === c.id 
+                  ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
+                  : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
             >
-              <div className="absolute inset-0 bg-[#252525]">
+              <div className="absolute inset-0 bg-[#151515]">
                 <img 
                   src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
                   alt={c.name} 
-                  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" 
+                  className={`w-full h-full object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
                 />
               </div>
-              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-              <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 z-20">
-                <span className={`text-[11px] font-black tracking-widest ${activeCat === c.id ? 'text-[#FF6B00]' : 'text-white'}`}>
+              <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
+              
+              <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 z-20">
+                <span className={`text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
                   {getCatName(c.name)}
                 </span>
+                {activeCat === c.id && <div className="absolute bottom-2.5 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />}
               </div>
-            </button>
+            </motion.button>
           ))}
         </div>
       </section>
