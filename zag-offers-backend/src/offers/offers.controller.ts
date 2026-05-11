@@ -152,19 +152,7 @@ export class OffersController {
     @Param('id') id: string,
     @Request() req: { user?: { id: string } },
   ) {
-    const offer = await this.offersService.findOne(id);
-
-    // تسجيل المشاهدة لو العميل مسجل دخول
-    if (offer && req.user?.id) {
-      void this.analyticsService.logEvent({
-        userId: req.user.id,
-        offerId: id,
-        storeId: offer.storeId,
-        eventType: 'OFFER_VIEW',
-      });
-    }
-
-    return offer;
+    return this.offersService.findOne(id, req.user?.id);
   }
 
   @Patch(':id')

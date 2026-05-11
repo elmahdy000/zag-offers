@@ -204,16 +204,39 @@ export class OffersService {
     });
   }
 
-  async findOne(id: string): Promise<Offer | null> {
+  async findOne(id: string, userId?: string): Promise<Offer | null> {
     // نعرض العرض بس لو ACTIVE من محل APPROVED
-    return this.prisma.offer.findFirst({
+    const offer = await this.prisma.offer.findFirst({
       where: {
         id,
         status: OfferStatus.ACTIVE,
         store: { status: StoreStatus.APPROVED },
       },
-      include: { store: true },
+      include: { 
+        store: {
+          include: {
+            category: true
+          }
+        }
+      },
     });
+
+    if (offer) {
+      // 1. زيادة عداد المشاهدات في العرض (Asynchronous)
+      // ملاحظة: قمنا بتعطيل الـ Increment المباشر هنا واستخدام Analytics ليكون أكثر دقة
+      
+      // 2. تسجيل حدث التحليل (Analytics Event)
+      void this.prisma.analyticsEvent.create({
+        data: {
+          offerId: offer.id,
+          storeId: offer.storeId,
+          userId: userId || null,
+          eventType: 'OFFER_VIEW',
+        }
+      }).catch(err => console.error('Failed to log analytics event:', err));
+    }
+
+    return offer;
   }
 
   async update(
