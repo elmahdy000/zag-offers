@@ -153,138 +153,124 @@ export function OfferCard({ offer }: OfferCardProps) {
 
   return (
     <motion.div
-      whileHover={{ y: -5, transition: { duration: 0.2 } }}
-      className="group relative bg-[#252525] border border-white/[0.07] rounded-2xl overflow-hidden
-                 hover:border-[#FF6B00]/40 hover:shadow-[0_16px_40px_rgba(0,0,0,0.5)]
+      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      className="group relative bg-[#252525] border border-white/[0.06] rounded-xl overflow-hidden
+                 hover:border-[#FF6B00]/30 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)]
                  transition-all duration-200 flex flex-col h-full"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className={`relative h-40 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+      <div className={`relative h-32 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
         
         {/* Background Image if exists */}
         {offerImage && (
           <img 
             src={offerImage} 
             alt={offer.title} 
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-110 transition-transform duration-500 opacity-60" 
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60" 
           />
         )}
 
         {/* Overlay gradient to ensure text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/20" />
-
-        {/* dot pattern */}
-        {!offerImage && (
-          <div
-            className="absolute inset-0 opacity-[0.04]"
-            style={{
-              backgroundImage: 'radial-gradient(circle, #fff 1px, transparent 1px)',
-              backgroundSize: '32px 32px',
-            }}
-          />
-        )}
+        <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/10" />
 
         {/* Featured */}
         {offer.featured && (
-          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-gradient-to-r from-yellow-400 to-orange-400
-                          text-[#1a1a1a] text-[11px] font-black rounded-full shadow-lg">
+          <div className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
+                          text-[#1a1a1a] text-[9px] font-black rounded-lg shadow-lg">
             ⭐ مميز
           </div>
         )}
 
         {/* Discount */}
-        <div className="absolute top-3 right-3 z-10 px-3 py-1.5
+        <div className="absolute top-2 right-2 z-10 px-2.5 py-1
                         bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
-                        text-white text-base font-black rounded-xl
-                        shadow-[0_4px_16px_rgba(255,107,0,0.5)]">
+                        text-white text-[13px] font-black rounded-lg
+                        shadow-[0_4px_12px_rgba(255,107,0,0.4)]">
           {discountDisplay}
         </div>
 
         {/* Fav */}
         <button
           onClick={toggleFav}
-          className={`absolute bottom-3 left-3 z-10 p-2 rounded-xl backdrop-blur-sm border transition-all
+          className={`absolute bottom-2 left-2 z-10 p-1.5 rounded-lg backdrop-blur-sm border transition-all
             ${isFav
               ? 'bg-red-500/20 border-red-500/50 text-red-400'
               : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
         >
-          <Heart size={14} fill={isFav ? 'currentColor' : 'none'} />
+          <Heart size={12} fill={isFav ? 'currentColor' : 'none'} />
         </button>
 
         {/* Store Logo */}
-        <div className="absolute -bottom-5 right-4 z-20
-                        w-12 h-12 rounded-xl border-2 border-[#252525]
+        <div className="absolute -bottom-4 right-3 z-20
+                        w-10 h-10 rounded-lg border-2 border-[#252525]
                         bg-[#1E1E1E] overflow-hidden shadow-xl
                         flex items-center justify-center flex-shrink-0">
           {logoUrl
             ? <Image
                 src={logoUrl}
                 alt={offer.store?.name || 'Store Logo'}
-                width={48}
-                height={48}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
                 loading="lazy"
-                sizes="48px"
+                sizes="40px"
                 quality={80}
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNDgiIGhlaWdodD0iNDgiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjQ4IiBoZWlnaHQ9IjQ4IiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
               />
-            : <div className="text-white/20">{catIcon}</div>
+            : <div className="text-white/20 scale-75">{catIcon}</div>
           }
         </div>
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-4 pt-8 pb-4 gap-2">
+      <div className="flex flex-col flex-1 px-3 pt-6 pb-3 gap-1.5">
 
         {/* Category */}
         {catName && (
-          <span className="text-[11px] font-black text-[#FF6B00] uppercase tracking-wider flex items-center gap-1.5">
-            {catIcon} {catName}
+          <span className="text-[10px] font-black text-[#FF6B00] uppercase tracking-wider flex items-center gap-1">
+            <span className="scale-75">{catIcon}</span> {catName}
           </span>
         )}
 
         {/* Title */}
-        <h3 className="text-sm font-bold text-[#F0F0F0] leading-snug line-clamp-2
-                       group-hover:text-[#FF6B00] transition-colors min-h-[40px]">
+        <h3 className="text-[13px] font-bold text-[#F0F0F0] leading-snug line-clamp-2
+                       group-hover:text-[#FF6B00] transition-colors min-h-[36px]">
           {offer.title}
         </h3>
 
         {/* Store & Social Proof */}
         <div className="flex items-center justify-between">
-          <p className="text-[12px] text-[#9A9A9A] font-semibold flex items-center gap-1.5">
-            <span className="text-[10px]">🏪</span>
+          <p className="text-[11px] text-[#9A9A9A] font-semibold flex items-center gap-1">
+            <span className="text-[9px]">🏪</span>
             {offer.store?.name}
           </p>
           {(offer._count?.coupons || 0) > 0 && (
-            <span className="text-[10px] font-black text-orange-400 bg-orange-500/10 px-1.5 py-0.5 rounded-md flex items-center gap-1">
-              <span>🔥</span>
+            <span className="text-[9px] font-black text-orange-400 bg-orange-500/10 px-1 py-0.5 rounded flex items-center gap-1">
               {offer._count?.coupons} طلب
             </span>
           )}
         </div>
 
         {/* Meta */}
-        <div className="mt-auto pt-3 border-t border-white/[0.07] flex items-center justify-between gap-2">
+        <div className="mt-auto pt-2.5 border-t border-white/[0.05] flex items-center justify-between gap-1">
           <div className="flex items-center gap-1 text-[#9A9A9A]">
-            <MapPin size={12} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-[11px] font-bold truncate max-w-[90px]">
+            <MapPin size={10} className="text-[#FF6B00] flex-shrink-0" />
+            <span className="text-[10px] font-bold truncate max-w-[80px]">
               {offer.store?.area || '—'}
             </span>
           </div>
-          <span className={`text-[11px] font-bold ${expiryColor}`}>{expiryText}</span>
+          <span className={`text-[10px] font-bold ${expiryColor}`}>{expiryText}</span>
         </div>
 
         {/* CTA */}
         <Link
           href={`/offers/${offer.id}`}
-          className="mt-2 w-full py-2.5 text-center text-[13px] font-bold text-[#FF6B00]
-                     bg-[#FF6B00]/10 border border-[#FF6B00]/25 rounded-xl
+          className="mt-1.5 w-full py-2 text-center text-[12px] font-black text-[#FF6B00]
+                     bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-lg
                      hover:bg-[#FF6B00] hover:text-white hover:border-[#FF6B00]
-                     hover:shadow-[0_4px_14px_rgba(255,107,0,0.4)]
+                     hover:shadow-[0_4px_12px_rgba(255,107,0,0.3)]
                      transition-all duration-200 block"
         >
-          🎟️ احصل على الكوبون
+          🏷️ احصل على العرض
         </Link>
       </div>
     </motion.div>
@@ -293,14 +279,14 @@ export function OfferCard({ offer }: OfferCardProps) {
 
 /* ─── Skeleton ──────────────────────────────────── */
 export const SkeletonCard = () => (
-  <div className="bg-[#252525] border border-white/[0.07] rounded-2xl overflow-hidden">
-    <div className="h-40 skeleton-shimmer" />
-    <div className="px-4 pt-8 pb-4 space-y-3">
-      <div className="h-2.5 w-1/3 skeleton-shimmer rounded-full" />
-      <div className="h-4 w-full skeleton-shimmer rounded-full" />
-      <div className="h-4 w-3/4 skeleton-shimmer rounded-full" />
-      <div className="h-3 w-1/2 skeleton-shimmer rounded-full" />
-      <div className="h-10 w-full skeleton-shimmer rounded-xl mt-2" />
+  <div className="bg-[#252525] border border-white/[0.07] rounded-xl overflow-hidden">
+    <div className="h-32 skeleton-shimmer" />
+    <div className="px-3 pt-6 pb-3 space-y-2.5">
+      <div className="h-2 w-1/3 skeleton-shimmer rounded-full" />
+      <div className="h-3.5 w-full skeleton-shimmer rounded-full" />
+      <div className="h-3.5 w-3/4 skeleton-shimmer rounded-full" />
+      <div className="h-2.5 w-1/2 skeleton-shimmer rounded-full" />
+      <div className="h-8 w-full skeleton-shimmer rounded-lg mt-1.5" />
     </div>
   </div>
 );

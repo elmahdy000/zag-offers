@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Flame, Sparkles, Store, ArrowUpDown, MapPin } from 'lucide-react';
+import { Search, Flame, Sparkles, Store as StoreIcon, ArrowUpDown, MapPin } from 'lucide-react';
 import Link from 'next/link';
 import { useSearchParams } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
@@ -32,93 +32,23 @@ function useAnalytics() {
   return { trackEvent };
 }
 
-interface Store {
-  id: string;
-  name: string;
-  logo?: string;
-  area: string;
-  categoryId: string;
-  category?: Category;
-}
+import { Offer, Category, Store, SortOption } from '@/lib/types';
 
-interface Category {
-  id: string;
-  name: string;
-}
-
-interface Offer {
-  id: string;
-  title: string;
-  discount: string;
-  description: string;
-  expiryDate: string;
-  endDate: string;
-  createdAt: string;
-  images: string[];
-  views?: number;
-  featured?: boolean;
-  store: Store;
-  _count?: {
-    coupons?: number;
-  };
-}
-
-type SortOption = 'newest' | 'expiring' | 'popular' | 'discount';
-
-const CAT_ASSETS = {
-  'food': '/categories/food.png',
-  'cafe': '/categories/cafe.png',
-  'sweets': '/categories/sweets.png',
-  'beauty': '/categories/beauty.png',
-  'barber': '/categories/barber.png',
-  'gym': '/categories/gym.png',
-  'home': '/categories/home.png',
-  'tech': '/categories/tech.png',
-  'car': '/categories/car.png',
-  'medical': '/categories/medical.png',
-  'education': '/categories/education.png',
-  'wedding': '/categories/wedding.png',
-  'travel': '/categories/travel.png',
-  'default': '/categories/food.png',
+const CAT_ASSETS: Record<string, string> = {
+  'مطاعم':         '/categories/food.png',
+  'كافيهات':       '/categories/cafe.png',
+  'ملابس':         '/categories/fashion.png',
+  'جيم':           '/categories/gym.png',
+  'تجميل':         '/categories/beauty.png',
+  'عيادات':        '/categories/medical.png',
+  'سوبرماركت':    '/categories/grocery.png',
+  'دورات':         '/categories/education.png',
+  'خدمات سيارات': '/categories/car.png',
+  'خدمات محلية':  '/categories/services.png',
+  'default':       '/categories/food.png',
 };
 
-const normalizeArabic = (value: string) =>
-  value
-    .toLowerCase()
-    .normalize('NFKC')
-    .replace(/[\u064B-\u0652\u0670]/g, '') // Remove Tashkeel
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/ى/g, 'ي')
-    .replace(/[^\p{L}\p{N}\s]/gu, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
 
-const CATEGORY_KEYWORDS: Array<{ asset: string; keywords: string[] }> = [
-  { asset: CAT_ASSETS.food, keywords: ['اكل', 'مطعم', 'كرشك', 'وجبات'] },
-  { asset: CAT_ASSETS.cafe, keywords: ['كافيه', 'قهوه', 'روقان', 'مشروبات'] },
-  { asset: CAT_ASSETS.sweets, keywords: ['حلو', 'حلي', 'حلويات'] },
-  { asset: CAT_ASSETS.beauty, keywords: ['بنات', 'تجميل', 'مكياج', 'شياكه'] },
-  { asset: CAT_ASSETS.barber, keywords: ['حلاق', 'حلاقه', 'شياكه'] },
-  { asset: CAT_ASSETS.gym, keywords: ['لياقه', 'جيم', 'رياضه', 'فورمه'] },
-  { asset: CAT_ASSETS.home, keywords: ['منزل', 'اثاث', 'بيت', 'ديكور'] },
-  { asset: CAT_ASSETS.tech, keywords: ['تكنولوجيا', 'تكنولوجى', 'موبايلات', 'كمبيوتر'] },
-  { asset: CAT_ASSETS.car, keywords: ['سيارات', 'غسيل', 'زيوت', 'الزيرو'] },
-  { asset: CAT_ASSETS.medical, keywords: ['صحه', 'طب', 'عيادة', 'صحتك'] },
-  { asset: CAT_ASSETS.education, keywords: ['علم', 'دراسه', 'كتب', 'نور'] },
-  { asset: CAT_ASSETS.wedding, keywords: ['فرح', 'مناسبات', 'العمر', 'زفاف'] },
-  { asset: CAT_ASSETS.travel, keywords: ['سفر', 'رحله', 'فسحه', 'جو'] },
-];
-
-const resolveCatAsset = (name: string) => {
-  const normalized = normalizeArabic(name);
-  for (const entry of CATEGORY_KEYWORDS) {
-    if (entry.keywords.some((keyword) => normalized.includes(normalizeArabic(keyword)))) {
-      return entry.asset;
-    }
-  }
-  return CAT_ASSETS.default;
-};
 
 const CACHE_KEY = 'zag_offers_home_cache_v2';
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -235,8 +165,8 @@ function HomePageContent() {
             transition={{ delay: 0.1 }}
             className="text-4xl sm:text-6xl md:text-7xl font-black text-[#F0F0F0] leading-tight tracking-tight"
           >
-            وفر أكتر في <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">كل مشوار</span>
+            اكتشف أفضل <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات</span>
           </motion.h1>
 
           <motion.p 
@@ -273,24 +203,39 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* ─── Categories Ribbon ──────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 mb-16">
-        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-4">
+      {/* ─── Categories Bento/Ribbon ──────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 mb-20 overflow-hidden">
+        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
           <button 
             onClick={() => setActiveCat('')}
-            className={`flex-shrink-0 px-6 py-3 rounded-2xl text-xs sm:text-sm font-black border transition-all duration-300
-              ${!activeCat ? 'bg-[#FF6B00] border-transparent text-white shadow-xl' : 'bg-[#252525] border-white/5 text-[#9A9A9A] hover:border-white/10'}`}
+            className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-3xl overflow-hidden border transition-all duration-300
+              ${!activeCat ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20' : 'border-white/5 opacity-60 hover:opacity-100'}`}
           >
-            الكل
+            <div className="absolute inset-0 bg-[#252525]" />
+            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+            <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 z-20">
+              <span className={`text-[11px] font-black tracking-widest ${!activeCat ? 'text-[#FF6B00]' : 'text-white/60'}`}>الكل</span>
+            </div>
           </button>
+
           {categories.map(c => (
             <button 
               key={c.id}
               onClick={() => setActiveCat(c.id)}
-              className={`flex-shrink-0 px-6 py-3 rounded-2xl text-xs sm:text-sm font-black border transition-all duration-300
-                ${activeCat === c.id ? 'bg-[#FF6B00] border-transparent text-white shadow-xl' : 'bg-[#252525] border-white/5 text-[#9A9A9A] hover:border-white/10'}`}
+              className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-3xl overflow-hidden border transition-all duration-300
+                ${activeCat === c.id ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20' : 'border-white/5 opacity-60 hover:opacity-100'}`}
             >
-              {c.name}
+              <div className="absolute inset-0 bg-[#252525]">
+                <img 
+                  src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
+                  alt={c.name} 
+                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
+                />
+              </div>
+              <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
+              <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 z-20">
+                <span className={`text-[11px] font-black tracking-widest ${activeCat === c.id ? 'text-[#FF6B00]' : 'text-white'}`}>{c.name}</span>
+              </div>
             </button>
           ))}
         </div>
@@ -374,7 +319,7 @@ function HomePageContent() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filteredOffers.length === 0 ? (
@@ -388,7 +333,7 @@ function HomePageContent() {
             <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm hover:underline">عرض كل العروض</button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
+          <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
             <AnimatePresence mode="popLayout">
               {filteredOffers.slice(0, 48).map((offer, i) => (
                 <motion.div 
