@@ -5,7 +5,7 @@ import { useSearchParams } from 'next/navigation';
 import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
-import { API_URL } from '@/lib/constants';
+import { API_URL, DISPLAY_NAMES } from '@/lib/constants';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
@@ -50,7 +50,10 @@ function OffersPageContent() {
         const data = await offRes.json();
         setOffers(Array.isArray(data) ? data : (data.items || []));
       }
-      if (catRes.ok) setCategories(await catRes.json());
+      if (catRes.ok) {
+        const cats = await catRes.json();
+        setCategories(cats.filter((c: Category) => c.name !== 'عيادات'));
+      }
     } catch (e) { 
       console.error(e); 
     } finally { 
@@ -86,7 +89,8 @@ function OffersPageContent() {
   const grouped = useMemo(() => {
     const groups: Record<string, Offer[]> = {};
     filtered.forEach(o => {
-      const catName = o.store?.category?.name || 'عروض أخرى';
+      const rawName = o.store?.category?.name || 'عروض أخرى';
+      const catName = DISPLAY_NAMES[rawName] || rawName;
       if (!groups[catName]) groups[catName] = [];
       groups[catName].push(o);
     });
@@ -135,28 +139,27 @@ function OffersPageContent() {
         <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth -mx-1 px-1">
           <button
             onClick={() => setActiveCat('')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all border
-                       ${!activeCat 
-                         ? 'bg-[#FF6B00] border-transparent text-white shadow-lg' 
-                         : 'bg-[#1E1E1E] border-white/[0.05] text-[#9A9A9A] hover:border-white/20'}`}
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap font-black transition-all text-xs sm:text-sm ${
+              !activeCat 
+              ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
+              : 'bg-[#252525] text-white/60 hover:bg-[#252525] hover:text-white border border-white/5'
+            }`}
           >
-            <Sparkles size={14} /> الكل
+            <Layers size={14} /> الكل
           </button>
-          {categories.map(c => {
-            const isActive = activeCat === c.id;
-            return (
-              <button
-                key={c.id}
-                onClick={() => setActiveCat(c.id)}
-                className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all border
-                           ${isActive 
-                             ? 'bg-[#FF6B00] border-[#FF6B00] text-white shadow-[0_8px_20px_rgba(255,107,0,0.3)]' 
-                             : 'bg-[#1E1E1E] border-white/[0.07] text-[#9A9A9A] hover:border-white/20'}`}
-              >
-                {CAT_ICONS[c.name] || CAT_ICONS.default} {c.name}
-              </button>
-            );
-          })}
+          {categories.map(cat => (
+            <button
+              key={cat.id}
+              onClick={() => setActiveCat(cat.id)}
+              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap font-black transition-all text-xs sm:text-sm ${
+                activeCat === cat.id 
+                ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
+                : 'bg-[#252525] text-white/60 hover:bg-[#252525] hover:text-white border border-white/5'
+              }`}
+            >
+              {CAT_ICONS[cat.name] || CAT_ICONS.default} {DISPLAY_NAMES[cat.name] || cat.name}
+            </button>
+          ))}
         </div>
 
         {/* Filters Grid */}
