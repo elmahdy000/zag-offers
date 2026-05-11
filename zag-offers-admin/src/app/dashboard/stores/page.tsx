@@ -22,6 +22,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi } from '@/lib/api';
+import { ZAGAZIG_AREAS, DISPLAY_NAMES } from '@/lib/constants';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -330,7 +331,7 @@ export default function StoresPage() {
               </div>
               
               <h3 className="text-lg font-bold text-slate-900 mb-1 truncate">{store.name}</h3>
-              <p className="text-xs font-medium text-slate-500 mb-3">{store.category}</p>
+              <p className="text-xs font-medium text-slate-500 mb-3">{DISPLAY_NAMES[store.category] || store.category}</p>
               
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-xs text-slate-600">
@@ -424,7 +425,7 @@ export default function StoresPage() {
 
               {/* Info Grid */}
               <div className="grid gap-4 sm:grid-cols-2 mb-8">
-                <DetailItem label="الفئة" value={storeDetails.category} />
+                <DetailItem label="الفئة" value={DISPLAY_NAMES[storeDetails.category] || storeDetails.category} />
                 <DetailItem label="المنطقة" value={storeDetails.area} icon={MapPin} />
                 <DetailItem label="رقم الهاتف" value={storeDetails.phone || 'غير متوفر'} icon={Phone} colorClass={storeDetails.phone ? 'text-slate-900' : 'text-slate-400'} />
                 <DetailItem label="واتساب" value={storeDetails.whatsapp || 'غير متوفر'} icon={MessageCircle} colorClass={storeDetails.whatsapp ? 'text-slate-900' : 'text-slate-400'} />
@@ -603,8 +604,8 @@ export default function StoresPage() {
                       } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer`}
                     >
                       <option value="">اختر الفئة</option>
-                      {categories?.map((cat) => (
-                        <option key={cat.id} value={cat.name}>{cat.name}</option>
+                      {categories?.filter(c => c.name !== 'سوبرماركت' && c.name !== 'خدمات محلية').map((cat) => (
+                        <option key={cat.id} value={cat.name}>{DISPLAY_NAMES[cat.name] || cat.name}</option>
                       ))}
                     </select>
                     {formErrors.category && <p className="text-xs text-rose-600">{formErrors.category}</p>}
@@ -613,14 +614,19 @@ export default function StoresPage() {
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
                       المنطقة
                     </label>
-                    <input 
+                    <select 
                       required
                       value={formData.area} 
                       onChange={e => setFormData({...formData, area: e.target.value})} 
                       className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${
                         formErrors.area ? 'border-rose-500' : 'border-slate-100'
-                      } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
-                    />
+                      } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer`}
+                    >
+                      <option value="">اختر المنطقة</option>
+                      {ZAGAZIG_AREAS.map(area => (
+                        <option key={area} value={area}>{area}</option>
+                      ))}
+                    </select>
                     {formErrors.area && <p className="text-xs text-rose-600">{formErrors.area}</p>}
                   </div>
                 </div>

@@ -16,6 +16,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi } from '@/lib/api';
+import { DISPLAY_NAMES } from '@/lib/constants';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -166,7 +167,7 @@ export default function CategoriesPage() {
             >
               <div className="flex items-start justify-between">
                 <div className="flex flex-col">
-                  <h3 className="text-lg font-bold text-slate-900 leading-tight">{category.name}</h3>
+                  <h3 className="text-lg font-bold text-slate-900 leading-tight">{DISPLAY_NAMES[category.name] || category.name}</h3>
                   <p className="text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-wider flex items-center gap-1.5">
                     <LayoutGrid size={12} className="text-orange-500" /> {category._count?.stores || 0} متجر مشترك
                   </p>
@@ -200,7 +201,7 @@ export default function CategoriesPage() {
           <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl">
               <div className="flex items-center justify-between mb-8">
-                <h2 className="text-xl font-bold text-slate-900">{editingCategory ? 'تعديل التصنيف' : 'إضافة تصنيف جديد'}</h2>
+                <h2 className="text-xl font-bold text-slate-900">{editingCategory ? `تعديل تصنيف ${DISPLAY_NAMES[editingCategory.name] || editingCategory.name}` : 'إضافة تصنيف جديد'}</h2>
                 <button onClick={closeModal} className="rounded-xl bg-slate-50 p-2 text-slate-400 hover:text-slate-900 transition-colors"><X size={20} /></button>
               </div>
 
