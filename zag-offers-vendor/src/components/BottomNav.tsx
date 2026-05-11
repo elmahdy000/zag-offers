@@ -1,14 +1,15 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { LayoutDashboard, Tag, Ticket, Settings } from 'lucide-react';
+import { LayoutDashboard, Tag, Ticket, Settings, Scan } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
   { icon: LayoutDashboard, label: 'الرئيسية', path: '/dashboard' },
-  { icon: Tag, label: 'العروض', path: '/dashboard/offers' },
-  { icon: Ticket, label: 'الكوبونات', path: '/dashboard/coupons' },
-  { icon: Settings, label: 'الإعدادات', path: '/dashboard/settings' },
+  { icon: Tag, label: 'عروضي', path: '/dashboard/offers' },
+  { icon: Scan, label: 'امسح 🤳', path: '/dashboard/scan' },
+  { icon: Ticket, label: 'تذاكري', path: '/dashboard/coupons' },
+  { icon: Settings, label: 'المتجر', path: '/dashboard/profile' },
 ];
 
 export default function BottomNav() {

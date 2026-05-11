@@ -62,17 +62,18 @@ interface Offer {
 }
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
-  'مطاعم':         <Utensils size={14} />,
-  'كافيهات':       <Coffee size={14} />,
-  'ملابس':         <Shirt size={14} />,
-  'جيم':           <Dumbbell size={14} />,
-  'تجميل':         <Sparkles size={14} />,
-  'عيادات':        <Hospital size={14} />,
-  'سوبرماركت':    <ShoppingCart size={14} />,
-  'دورات':         <BookOpen size={14} />,
-  'خدمات سيارات': <Car size={14} />,
-  'خدمات محلية':  <Wrench size={14} />,
-  'default':       <Sparkles size={14} />,
+  'دلع كرشك 🍔':         <Utensils size={14} />,
+  'روقان ☕':           <Coffee size={14} />,
+  'شياكة 👔':           <Shirt size={14} />,
+  'فورمة 🦾':            <Dumbbell size={14} />,
+  'دلع بنات 💄':         <Sparkles size={14} />,
+  'صحتك بالدنيا 🏥':     <Hospital size={14} />,
+  'ثقف نفسك 💡':         <BookOpen size={14} />,
+  'على الزيرو 🏎️':      <Car size={14} />,
+  'عروستى 👰':          <Sparkles size={14} />,
+  'خطفة ⚡':            <Flame size={14} />,
+  'بيتك ومطرحك 🏠':      <ShoppingCart size={14} />,
+  'default':            <Sparkles size={14} />,
 };
 
 const CACHE_KEY = 'zag_offers_home_cache';

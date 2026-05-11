@@ -27,17 +27,17 @@ import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 
 const menuItems = [
-  { name: 'نظرة عامة', icon: Grid2X2, href: '/dashboard' },
-  { name: 'مركز الموافقات', icon: ShieldCheck, href: '/dashboard/approvals' },
-  { name: 'المحادثات والدعم', icon: MessageSquare, href: '/dashboard/chat' },
-  { name: 'إدارة المتاجر', icon: ShoppingBag, href: '/dashboard/merchants' },
-  { name: 'إدارة العروض', icon: Sparkles, href: '/dashboard/offers' },
-  { name: 'إدارة التصنيفات', icon: ListFilter, href: '/dashboard/categories' },
-  { name: 'قائمة الكوبونات', icon: TicketPercent, href: '/dashboard/coupons' },
-  { name: 'إدارة المستخدمين', icon: Users2, href: '/dashboard/users' },
-  { name: 'إرسال تنبيهات عامة', icon: Megaphone, href: '/dashboard/broadcast' },
-  { name: 'سجل العمليات', icon: ListFilter, href: '/dashboard/audit-logs' },
-  { name: 'إعدادات المنصة', icon: Settings, href: '/dashboard/settings' },
+  { name: 'كشف حساب المنصة 📈', icon: Grid2X2, href: '/dashboard' },
+  { name: 'غرفة العمليات ✅', icon: ShieldCheck, href: '/dashboard/approvals' },
+  { name: 'ركن الدردشة 💬', icon: MessageSquare, href: '/dashboard/chat' },
+  { name: 'دليل التجار 🏪', icon: ShoppingBag, href: '/dashboard/merchants' },
+  { name: 'سوق العروض 🏷️', icon: Sparkles, href: '/dashboard/offers' },
+  { name: 'ترتيب الأقسام 🗂️', icon: ListFilter, href: '/dashboard/categories' },
+  { name: 'دفتر الخصومات 🎫', icon: TicketPercent, href: '/dashboard/coupons' },
+  { name: 'عيلة زاج 👥', icon: Users2, href: '/dashboard/users' },
+  { name: 'ميكروفون زاج 📢', icon: Megaphone, href: '/dashboard/broadcast' },
+  { name: 'صندوق الأسرار 🕵️', icon: ListFilter, href: '/dashboard/audit-logs' },
+  { name: 'ترزي المنصة ⚙️', icon: Settings, href: '/dashboard/settings' },
 ] as const;
 
 async function fetchPendingCount() {

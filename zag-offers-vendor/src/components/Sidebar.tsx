@@ -242,11 +242,11 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   };
 
   const menuItems = [
-    { name: 'الرئيسية', icon: LayoutDashboard, href: '/dashboard' },
-    { name: 'عروضي', icon: Tag, href: '/dashboard/offers' },
-    { name: 'سجل الكوبونات', icon: History, href: '/dashboard/coupons' },
-    { name: 'تحقق من كود', icon: Scan, href: '/dashboard/scan' },
-    { name: 'إعدادات المتجر', icon: Store, href: '/dashboard/profile' },
+    { name: 'لوحة التحكم 📊', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'محل العروض 🏷️', icon: Tag, href: '/dashboard/offers' },
+    { name: 'تذاكر الزبائن 🎫', icon: History, href: '/dashboard/coupons' },
+    { name: 'ماكينة المسح 🤳', icon: Scan, href: '/dashboard/scan' },
+    { name: 'ملف المحل 🏪', icon: Store, href: '/dashboard/profile' },
   ];
 
   return (
