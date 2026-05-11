@@ -296,7 +296,7 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-5xl sm:text-8xl font-black mb-8 leading-[1] text-[#F0F0F0] tracking-tight"
+            className="text-4xl sm:text-6xl md:text-7xl font-black mb-6 leading-[1.1] text-[#F0F0F0] tracking-tight"
           >
             وفر أكتر مع <br/>
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] drop-shadow-sm">أقوى خصومات</span> زاج
@@ -336,11 +336,11 @@ function HomePageContent() {
       </section>
 
       {/* Categories Bar */}
-      <section className="px-4 mb-16 sticky top-[64px] sm:top-[80px] z-40 bg-[#1A1A1A]/90 backdrop-blur-2xl py-6 border-b border-white/[0.04]">
-        <div className="max-w-7xl mx-auto flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth">
+      <section className="px-4 mb-12 sticky top-[64px] sm:top-[80px] z-40 bg-[#1A1A1A]/90 backdrop-blur-2xl py-4 border-b border-white/[0.04]">
+        <div className="max-w-7xl mx-auto flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth">
           <button
             onClick={() => handleCatChange('', 'All')}
-            className={`flex-shrink-0 px-8 py-3 rounded-2xl text-sm font-black border transition-all duration-300 ${activeCat === '' ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)] scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a] hover:border-white/20'}`}
+            className={`flex-shrink-0 px-6 py-2.5 rounded-xl text-xs sm:text-sm font-black border transition-all duration-300 ${activeCat === '' ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)] scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a] hover:border-white/20'}`}
           >
             ✨ الكل
           </button>
@@ -348,10 +348,10 @@ function HomePageContent() {
             <button
               key={c.id}
               onClick={() => handleCatChange(c.id, c.name)}
-              className={`flex-shrink-0 px-6 py-3 rounded-2xl text-sm font-black flex items-center gap-3 border transition-all duration-300 ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)] scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a] hover:border-white/20'}`}
+              className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black flex items-center gap-2.5 border transition-all duration-300 ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent shadow-[0_8px_20px_rgba(255,107,0,0.3)] scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a] hover:border-white/20'}`}
             >
-              <div className="w-7 h-7 rounded-lg overflow-hidden border border-white/10 flex-shrink-0 bg-white/5">
-                <img src={resolveCatAsset(c.name)} alt="" className="w-full h-full object-cover" />
+              <div className="w-6 h-6 rounded-lg overflow-hidden flex-shrink-0 bg-white/10 flex items-center justify-center text-[10px]">
+                <span>🏷️</span>
               </div>
               {c.name}
             </button>
