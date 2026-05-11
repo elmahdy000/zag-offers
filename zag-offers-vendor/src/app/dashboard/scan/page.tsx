@@ -127,12 +127,12 @@ export default function ScanPage() {
       <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-primary/5 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Modern Top Header */}
-      <div className="relative px-6 pt-8 pb-4 flex items-center justify-between z-50">
+      <div className="relative px-6 pt-4 pb-2 flex items-center justify-between z-50">
         <button 
           onClick={() => router.back()}
-          className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5 active:scale-90"
+          className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5 active:scale-90"
         >
-          <ChevronRight size={24} />
+          <ChevronRight size={20} />
         </button>
         <div className="flex flex-col items-center">
           <h1 className="text-lg font-black text-text tracking-tight">تفعيل العروض</h1>
@@ -151,14 +151,14 @@ export default function ScanPage() {
               setIsManual(true);
             }
           }}
-          className={`w-12 h-12 rounded-2xl flex items-center justify-center transition-all border border-white/5 active:scale-90 ${isManual ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'glass text-text-dim'}`}
+          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/5 active:scale-90 ${isManual ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'glass text-text-dim'}`}
         >
-          {isManual ? <Scan size={22} /> : <Keyboard size={22} />}
+          {isManual ? <Scan size={18} /> : <Keyboard size={18} />}
         </button>
       </div>
 
       {/* Main Content Area - Scrollable but optimized for view */}
-      <div className="flex-1 flex flex-col items-center px-6 overflow-y-auto pb-10">
+      <div className="flex-1 flex flex-col items-center px-6 overflow-y-auto pb-4">
         <AnimatePresence mode="wait">
           {(!result && !isManual) ? (
             <motion.div 
@@ -166,9 +166,9 @@ export default function ScanPage() {
               initial={{ opacity: 0, scale: 0.95 }}
               animate={{ opacity: 1, scale: 1 }}
               exit={{ opacity: 0, scale: 1.05 }}
-              className="w-full max-w-sm mt-4 space-y-8"
+              className="w-full max-w-sm mt-2 space-y-4"
             >
-              <div className="relative aspect-square w-full bg-black rounded-[3rem] overflow-hidden border-2 border-white/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]">
+              <div className="relative aspect-square w-full bg-black rounded-[2.5rem] overflow-hidden border-2 border-white/5 shadow-[0_30px_60px_-15px_rgba(0,0,0,0.5)]">
                 <div id="reader" className="w-full h-full" />
                 
                 {/* Scanner Viewport Decoration */}
@@ -206,14 +206,14 @@ export default function ScanPage() {
                 )}
               </div>
 
-              <div className="text-center space-y-3 px-4">
-                <div className="inline-flex items-center gap-2 px-4 py-1.5 bg-white/5 rounded-full border border-white/5">
-                  <RefreshCw size={14} className="text-primary animate-spin-slow" />
-                  <span className="text-[10px] font-black text-text-dim uppercase tracking-widest">بحث تلقائي نشط</span>
+              <div className="text-center space-y-2 px-4">
+                <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/5 rounded-full border border-white/5">
+                  <RefreshCw size={12} className="text-primary animate-spin-slow" />
+                  <span className="text-[9px] font-black text-text-dim uppercase tracking-widest">بحث تلقائي نشط</span>
                 </div>
-                <h3 className="text-xl font-black text-text">وجه الكاميرا نحو الكود</h3>
-                <p className="text-text-dim text-sm font-bold leading-relaxed">
-                  سيقوم النظام بقراءة كود العميل <br/> وتفعيل الخصم في ثوانٍ معدودة.
+                <h3 className="text-lg font-black text-text">وجه الكاميرا نحو الكود</h3>
+                <p className="text-text-dim text-xs font-bold leading-relaxed">
+                  سيقوم النظام بقراءة كود العميل وتفعيل الخصم.
                 </p>
               </div>
             </motion.div>

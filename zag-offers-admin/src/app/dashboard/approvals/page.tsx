@@ -105,6 +105,7 @@ export default function ApprovalsPage() {
   const [selectedOfferId, setSelectedOfferId] = useState<string | null>(null);
   const [storeLoadingId, setStoreLoadingId] = useState<string | null>(null);
   const [offerLoadingId, setOfferLoadingId] = useState<string | null>(null);
+  const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -202,6 +203,7 @@ export default function ApprovalsPage() {
     onSuccess: (_, v) => {
       queryClient.invalidateQueries({ queryKey: ['pending-stores'] });
       queryClient.invalidateQueries({ queryKey: ['approved-stores'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-count'] });
       showToast(v.action === 'approve' ? 'تم تفعيل المتجر بنجاح' : 'تم رفض المتجر');
       setRejectModal(null);
       setRejectReason('');
@@ -216,6 +218,7 @@ export default function ApprovalsPage() {
     onSuccess: (_, v) => {
       queryClient.invalidateQueries({ queryKey: ['pending-offers'] });
       queryClient.invalidateQueries({ queryKey: ['approved-offers'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-count'] });
       showToast(v.action === 'approve' ? 'تم تفعيل العرض بنجاح' : 'تم رفض العرض');
       setRejectModal(null);
       setRejectReason('');
@@ -460,16 +463,41 @@ export default function ApprovalsPage() {
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={32} /></div>
               ) : (
                 <div className="space-y-8">
-                  <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100">
-                    <div className="h-24 w-24 overflow-hidden rounded-2xl bg-white border border-slate-200 shadow-sm flex items-center justify-center">
-                      {offerDetails?.images?.[0] ? <img src={resolveImageUrl(offerDetails.images[0])} alt="offer" className="h-full w-full object-cover" /> : <Tag size={40} className="text-slate-200" />}
+                  <div className="space-y-6">
+                    <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100">
+                      <div className="flex-1">
+                        <h3 className="text-2xl font-bold text-slate-900 leading-tight">{offerDetails?.title}</h3>
+                        <p className="text-lg font-bold text-orange-600 mt-2">{offerDetails?.discount}</p>
+                        <div className="flex items-center gap-3 mt-3">
+                          <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-lg flex items-center gap-1.5"><Store size={14} /> {offerDetails?.store.name}</span>
+                          <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5"><Clock size={14} /> أُرسل في {formatDate(offerDetails?.createdAt)}</span>
+                        </div>
+                      </div>
                     </div>
-                    <div className="flex-1">
-                      <h3 className="text-2xl font-bold text-slate-900 leading-tight">{offerDetails?.title}</h3>
-                      <p className="text-lg font-bold text-orange-600 mt-2">{offerDetails?.discount}</p>
-                      <div className="flex items-center gap-3 mt-3">
-                        <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-100 px-3 py-1 rounded-lg flex items-center gap-1.5"><Store size={14} /> {offerDetails?.store.name}</span>
-                        <span className="text-xs font-medium text-slate-400 flex items-center gap-1.5"><Clock size={14} /> أُرسل في {formatDate(offerDetails?.createdAt)}</span>
+
+                    <div className="space-y-4">
+                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">صور العرض ({offerDetails?.images?.length || 0})</p>
+                      <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
+                        {offerDetails?.images?.map((img, idx) => (
+                          <motion.div 
+                            key={idx}
+                            whileHover={{ scale: 1.02 }}
+                            onClick={() => setFullscreenImage(resolveImageUrl(img))}
+                            className="aspect-square rounded-2xl overflow-hidden border border-slate-200 bg-slate-100 cursor-zoom-in relative group"
+                          >
+                            <img src={resolveImageUrl(img)} alt={`offer-${idx}`} className="h-full w-full object-cover" />
+                            <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
+                              <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={24} />
+                            </div>
+                            {idx === 0 && <span className="absolute top-2 right-2 bg-orange-600 text-white text-[8px] font-black px-2 py-0.5 rounded-lg shadow-lg">الرئيسية</span>}
+                          </motion.div>
+                        ))}
+                        {(!offerDetails?.images || offerDetails.images.length === 0) && (
+                          <div className="col-span-full h-32 rounded-2xl border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-slate-300">
+                            <Tag size={32} strokeWidth={1} />
+                            <p className="text-[10px] font-bold mt-2">لا توجد صور متوفرة</p>
+                          </div>
+                        )}
                       </div>
                     </div>
                   </div>
@@ -536,8 +564,26 @@ export default function ApprovalsPage() {
               </div>
             </motion.div>
           </div>
-        )}
       </AnimatePresence>
+
+      {fullscreenImage && (
+        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 lg:p-12" onClick={() => setFullscreenImage(null)}>
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }} 
+            animate={{ opacity: 1, scale: 1 }} 
+            className="relative max-w-5xl w-full h-full flex items-center justify-center"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <img src={fullscreenImage} className="max-w-full max-h-full object-contain rounded-lg shadow-2xl" alt="Fullscreen" />
+            <button 
+              onClick={() => setFullscreenImage(null)}
+              className="absolute top-4 right-4 lg:-right-12 lg:-top-12 h-12 w-12 rounded-2xl bg-white/10 text-white hover:bg-white/20 transition-all flex items-center justify-center"
+            >
+              <X size={28} />
+            </button>
+          </motion.div>
+        </div>
+      )}
     </div>
   );
 }

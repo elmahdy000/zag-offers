@@ -22,7 +22,9 @@ export default function EditOfferPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // React Query hooks
-  const { mutate: updateOffer, isPending: submitting } = useUpdateOffer();
+  const { mutate: updateOffer, isPending: submittingQuery } = useUpdateOffer();
+  const [isUploading, setIsUploading] = useState(false);
+  const submitting = submittingQuery || isUploading;
   const { mutate: deleteOffer } = useDeleteOffer();
 
   useEffect(() => {
@@ -114,6 +116,7 @@ export default function EditOfferPage() {
 
     // تحقق ورفع الصور
     let imageUrls: string[] = [];
+    setIsUploading(true);
     
     try {
       const uploadPromises = offerImages.map(async (img) => {
@@ -158,10 +161,12 @@ export default function EditOfferPage() {
       const results = await Promise.all(uploadPromises);
       imageUrls = results.filter((url): url is string => url !== null);
     } catch (error: unknown) {
+      setIsUploading(false);
       return setSubmitError('فشل معالجة الصور. حاول مرة أخرى.');
     }
 
     if (imageUrls.length === 0) {
+      setIsUploading(false);
       return setSubmitError('يجب وجود صورة واحدة على الأقل للعرض');
     }
 
@@ -181,6 +186,7 @@ export default function EditOfferPage() {
       }},
       {
         onSuccess: () => {
+          setIsUploading(false);
           router.push('/dashboard/offers');
         },
         onError: (error: unknown) => {
@@ -201,6 +207,7 @@ export default function EditOfferPage() {
           } else {
             setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
           }
+          setIsUploading(false);
         },
       }
     );

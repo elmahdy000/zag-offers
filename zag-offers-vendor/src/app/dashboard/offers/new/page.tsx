@@ -20,7 +20,9 @@ export default function NewOfferPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   // React Query hook
-  const { mutate: createOffer, isPending: submitting } = useCreateOffer();
+  const { mutate: createOffer, isPending: submittingQuery } = useCreateOffer();
+  const [isUploading, setIsUploading] = useState(false);
+  const submitting = submittingQuery || isUploading;
 
   const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
@@ -93,45 +95,54 @@ export default function NewOfferPage() {
 
     // تحقق ورفع الصور
     let imageUrls: string[] = [];
-    if (offerImages.length > 0) {
-      setSubmitError(null);
-      
-      try {
-        const uploadPromises = offerImages.map(async (img) => {
-          if (img.file) {
-            let fileToUpload = img.file;
-            
-            // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
-            if (fileToUpload.size > 1 * 1024 * 1024) {
-              try {
-                fileToUpload = await compressImage(fileToUpload);
-              } catch (e) {
-                console.error('Compression failed, using original', e);
+    setIsUploading(true);
+    
+    try {
+      if (offerImages.length > 0) {
+        setSubmitError(null);
+        
+        try {
+          const uploadPromises = offerImages.map(async (img) => {
+            if (img.file) {
+              let fileToUpload = img.file;
+              
+              // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
+              if (fileToUpload.size > 1 * 1024 * 1024) {
+                try {
+                  fileToUpload = await compressImage(fileToUpload);
+                } catch (e) {
+                  console.error('Compression failed, using original', e);
+                }
               }
-            }
 
-            // إذا بعد الضغط لسه أكبر من 5 ميجا (صعبة جداً)، نرفضها
-            if (fileToUpload.size > 5 * 1024 * 1024) {
-              throw new Error(`حجم الصورة ${fileToUpload.name} كبير جداً حتى بعد الضغط`);
-            }
+              // إذا بعد الضغط لسه أكبر من 5 ميجا (صعبة جداً)، نرفضها
+              if (fileToUpload.size > 5 * 1024 * 1024) {
+                throw new Error(`حجم الصورة ${fileToUpload.name} كبير جداً حتى بعد الضغط`);
+              }
 
-            const uploadFormData = new FormData();
-            uploadFormData.append('file', fileToUpload);
-            const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-              headers: { 'Content-Type': 'multipart/form-data' },
-              timeout: 30000,
-            });
-            return uploadRes.data.url;
-          }
-          return null;
-        });
-        const results = await Promise.all(uploadPromises);
-        imageUrls = results.filter((url): url is string => url !== null);
-      } catch (error: any) {
-        return setSubmitError(error.message || 'فشل رفع الصور. حاول مرة أخرى.');
+              const uploadFormData = new FormData();
+              uploadFormData.append('file', fileToUpload);
+              const uploadRes = await vendorApi().post('/upload', uploadFormData, {
+                headers: { 'Content-Type': 'multipart/form-data' },
+                timeout: 30000,
+              });
+              return uploadRes.data.url;
+            }
+            return img.url; // Already uploaded URL
+          });
+          const results = await Promise.all(uploadPromises);
+          imageUrls = results.filter((url): url is string => url !== null);
+        } catch (error: any) {
+          setIsUploading(false);
+          return setSubmitError(error.message || 'فشل رفع الصور. حاول مرة أخرى.');
+        }
+      } else {
+        setIsUploading(false);
+        return setSubmitError('يجب رفع صورة واحدة على الأقل');
       }
-    } else {
-      return setSubmitError('يجب رفع صورة واحدة على الأقل');
+    } catch (error: unknown) {
+      setIsUploading(false);
+      return setSubmitError('فشل معالجة الصور. حاول مرة أخرى.');
     }
 
     const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
@@ -152,6 +163,7 @@ export default function NewOfferPage() {
       },
       {
         onSuccess: () => {
+          setIsUploading(false);
           router.push('/dashboard/offers');
         },
         onError: (error: unknown) => {
@@ -169,6 +181,7 @@ export default function NewOfferPage() {
           } else {
             setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
           }
+          setIsUploading(false);
         },
       }
     );

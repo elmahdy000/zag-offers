@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X } from 'lucide-react';
+import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, MessageSquare } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCookie, deleteCookie } from '@/lib/api';
@@ -242,11 +242,12 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   };
 
   const menuItems = [
-    { name: 'لوحة التحكم 📊', icon: LayoutDashboard, href: '/dashboard' },
-    { name: 'محل العروض 🏷️', icon: Tag, href: '/dashboard/offers' },
-    { name: 'تذاكر الزبائن 🎫', icon: History, href: '/dashboard/coupons' },
-    { name: 'ماكينة المسح 🤳', icon: Scan, href: '/dashboard/scan' },
-    { name: 'ملف المحل 🏪', icon: Store, href: '/dashboard/profile' },
+    { name: 'لوحة التحكم', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'العروض', icon: Tag, href: '/dashboard/offers' },
+    { name: 'الكوبونات', icon: History, href: '/dashboard/coupons' },
+    { name: 'مسح الكود', icon: Scan, href: '/dashboard/scan' },
+    { name: 'ملف المتجر', icon: Store, href: '/dashboard/profile' },
+    { name: 'دعم ومساعدة', icon: MessageSquare, href: '/dashboard/chat' },
   ];
 
   return (
