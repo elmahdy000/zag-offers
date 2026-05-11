@@ -10,34 +10,36 @@ export class RecommendationsService {
     private analyticsService: AnalyticsService,
   ) {}
 
-  async getRecommendedOffers(userId: string) {
+  async getRecommendedOffers(userId?: string) {
+    // 1. إذا كان زائر، نعرض له التريند بناءً على منطقته (إذا كانت معروفة من الـ IP مستقبلاً) أو عامة
+    if (!userId) {
+      return this.getTrendingOffers();
+    }
+
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
     });
 
-    if (!user) return [];
+    if (!user) return this.getTrendingOffers();
 
-    // 1. حساب اهتمامات المستخدم بناءً على سلوكه (المشاهدات، المفضلة، الكوبونات)
+    // 2. حساب اهتمامات المستخدم بناءً على سلوكه
     const interests = await this.analyticsService.getUserInterests(userId);
     const { categoryWeights, areaWeights } = interests;
 
-    // إضافة منطقة المستخدم الأساسية كعامل ترجيح إذا لم تكن موجودة
+    // إضافة منطقة المستخدم الأساسية كعامل ترجيح
     if (user.area && !areaWeights[user.area]) {
-      areaWeights[user.area] = 2;
+      areaWeights[user.area] = 3; // وزن مرتفع لمنطقة السكن
     }
 
     const hasInterests =
       Object.keys(categoryWeights).length > 0 ||
       Object.keys(areaWeights).length > 0;
 
-    // إذا كان مستخدم جديد تماماً وليس لديه سلوك مسجل، نعرض له العروض الشائعة (التريند)
     if (!hasInterests) {
       return this.getTrendingOffers();
     }
 
-    // 2. جلب مجموعة من العروض النشطة لتقييمها (مثلاً أحدث 100 عرض)
-    // في التطبيقات الضخمة جداً، يمكن استخدام Elasticsearch أو محرك توصيات متخصص،
-    // لكن هذه الطريقة ممتازة للمستوى الحالي.
+    // 3. جلب pool من العروض النشطة
     const pool = await this.prisma.offer.findMany({
       where: {
         status: OfferStatus.ACTIVE,
@@ -48,6 +50,9 @@ export class RecommendationsService {
         title: true,
         discount: true,
         endDate: true,
+        images: true,
+        originalPrice: true,
+        createdAt: true,
         store: {
           select: {
             id: true,
@@ -59,66 +64,86 @@ export class RecommendationsService {
           },
         },
       },
-      take: 100,
+      take: 50, // نأخذ أحدث 50 عرض للمفاضلة بينهم
       orderBy: { createdAt: 'desc' },
     });
 
-    // 3. تقييم (Scoring) كل عرض بناءً على مدى تطابقه مع اهتمامات المستخدم
+    // 4. نظام النقاط (Scoring System)
     const scoredOffers = pool.map((offer) => {
       let score = 0;
       const catId = offer.store.categoryId;
       const area = offer.store.area;
 
+      // نقاط التصنيف (Category Match)
       if (categoryWeights[catId]) {
-        score += categoryWeights[catId] * 2; // التصنيف له وزن أعلى
+        score += categoryWeights[catId] * 2.5;
       }
 
+      // نقاط المنطقة (Area Match)
       if (area && areaWeights[area]) {
-        score += areaWeights[area];
+        score += areaWeights[area] * 1.5;
       }
+
+      // بونص للعروض الجديدة جداً (Recency Bonus)
+      const hoursSinceCreated = (Date.now() - new Date(offer.createdAt).getTime()) / 3600000;
+      if (hoursSinceCreated < 24) score += 2;
 
       return { ...offer, _score: score };
     });
 
-    // 4. ترتيب العروض حسب النقاط، وعرض أفضل 10
+    // 5. الترتيب والإرجاع
     scoredOffers.sort((a, b) => b._score - a._score);
 
-    // إزالة حقل التقييم قبل الإرجاع
-    return scoredOffers.slice(0, 10).map((o) => {
-      // eslint-disable-next-line @typescript-eslint/no-unused-vars
-      const { _score, ...offer } = o;
-      return offer;
-    });
+    return scoredOffers.slice(0, 10).map(({ _score, ...offer }) => offer);
   }
 
   async getTrendingOffers() {
-    return this.prisma.offer.findMany({
+    // العروض الرائجة بناءً على عدد مرات التفاعل (Analytics Events) في آخر 7 أيام
+    const lastWeek = new Date();
+    lastWeek.setDate(lastWeek.getDate() - 7);
+
+    // نأخذ أكثر 10 عروض عليها تفاعل (مشاهدة أو كوبون)
+    const topEvents = await this.prisma.analyticsEvent.groupBy({
+      by: ['offerId'],
       where: {
-        status: OfferStatus.ACTIVE,
-        store: { status: StoreStatus.APPROVED },
+        offerId: { not: null },
+        createdAt: { gte: lastWeek }
       },
-      select: {
-        id: true,
-        title: true,
-        discount: true,
-        endDate: true,
-        store: {
-          select: {
-            name: true,
-            logo: true,
-            area: true,
-          },
-        },
-        _count: {
-          select: { coupons: true },
-        },
+      _count: {
+        _all: true
       },
       orderBy: {
-        coupons: {
-          _count: 'desc',
-        },
+        _count: {
+          _all: 'desc'
+        }
       },
-      take: 10,
+      take: 12
+    });
+
+    const offerIds = topEvents.map(e => e.offerId as string);
+
+    // إذا لم يكن هناك تفاعل كافٍ، نعود لأحدث العروض
+    if (offerIds.length === 0) {
+      return this.prisma.offer.findMany({
+        where: { status: OfferStatus.ACTIVE, store: { status: StoreStatus.APPROVED } },
+        include: { store: true },
+        orderBy: { createdAt: 'desc' },
+        take: 10
+      });
+    }
+
+    return this.prisma.offer.findMany({
+      where: {
+        id: { in: offerIds },
+        status: OfferStatus.ACTIVE,
+        store: { status: StoreStatus.APPROVED }
+      },
+      include: {
+        store: {
+          include: { category: true }
+        }
+      },
+      take: 10
     });
   }
 }
