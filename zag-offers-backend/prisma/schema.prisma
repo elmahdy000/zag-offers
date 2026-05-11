@@ -59,6 +59,11 @@ model User {
   auditLogs AuditLog[] @relation("AdminLogs")
   notifications Notification[]
   points    Int        @default(0)
+  
+  adminConversations Conversation[] @relation("AdminConversations")
+  participantConversations Conversation[] @relation("ParticipantConversations")
+  messages Message[]
+
   createdAt DateTime   @default(now())
   updatedAt DateTime   @updatedAt
 
@@ -174,6 +179,7 @@ model Review {
   id      String  @id @default(uuid())
   rating  Int
   comment String?
+  images  String[] // لدعم صور التقييم للمصداقية
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
@@ -191,6 +197,45 @@ model Review {
   @@index([rating])
   @@index([createdAt])
 }
+
+model Conversation {
+  id            String    @id @default(uuid())
+  type          String    // 'ADMIN_CUSTOMER' | 'ADMIN_MERCHANT'
+  
+  adminId       String
+  admin         User      @relation("AdminConversations", fields: [adminId], references: [id])
+  
+  participantId String
+  participant   User      @relation("ParticipantConversations", fields: [participantId], references: [id])
+  
+  messages      Message[]
+  
+  lastMessageAt DateTime @default(now())
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  @@index([adminId])
+  @@index([participantId])
+  @@index([type])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  text           String
+  senderId       String
+  sender         User         @relation(fields: [senderId], references: [id])
+  
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id])
+  
+  isRead         Boolean      @default(false)
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId])
+  @@index([senderId])
+  @@index([createdAt])
+}
+
 model AuditLog {
   id        String   @id @default(uuid())
   action    String   // e.g. "APPROVE_STORE", "REJECT_OFFER", "SEND_BROADCAST"
@@ -243,3 +288,4 @@ model AnalyticsEvent {
   @@index([eventType])
   @@index([createdAt])
 }
+

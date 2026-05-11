@@ -26,6 +26,7 @@ import { NotificationsModule } from './notifications/notifications.module';
 import { AuditLogModule } from './audit-log/audit-log.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AnalyticsModule } from './analytics/analytics.module';
+import { ChatModule } from './chat/chat.module';
 import { SecurityMiddleware } from './common/middleware/security.middleware';
 
 @Module({
@@ -79,6 +80,7 @@ import { SecurityMiddleware } from './common/middleware/security.middleware';
     NotificationsModule,
     AuditLogModule,
     AnalyticsModule,
+    ChatModule,
   ],
   controllers: [AppController, HealthController, RecommendationsController],
   providers: [

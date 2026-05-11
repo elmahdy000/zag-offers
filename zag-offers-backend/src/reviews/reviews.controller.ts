@@ -33,12 +33,14 @@ export class ReviewsController {
       offerId?: string;
       rating: number;
       comment?: string;
+      images?: string[];
     },
     @Request() req: { user: { id: string } },
   ) {
     return this.reviewsService.create({
       rating: createReviewDto.rating,
       comment: createReviewDto.comment,
+      images: createReviewDto.images || [],
       customer: { connect: { id: req.user.id } },
       store: createReviewDto.storeId
         ? { connect: { id: createReviewDto.storeId } }
@@ -47,6 +49,12 @@ export class ReviewsController {
         ? { connect: { id: createReviewDto.offerId } }
         : undefined,
     } as Prisma.ReviewCreateInput);
+  }
+
+  @Get('offer/:offerId')
+  @ApiOperation({ summary: 'عرض كل التقييمات الخاصة بعرض معين' })
+  findAllByOffer(@Param('offerId') offerId: string) {
+    return this.reviewsService.findAllByOffer(offerId);
   }
 
   @Get('store/:storeId')

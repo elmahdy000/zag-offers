@@ -122,4 +122,16 @@ export class CouponsController {
   ) {
     return this.couponsService.notifyShare(id, req.user.id);
   }
+
+  @Get('check-verification/:offerId')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.CUSTOMER)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'التحقق مما إذا كان المستخدم يمتلك كوبون لهذا العرض (للمصداقية)' })
+  checkVerification(
+    @Param('offerId') offerId: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.couponsService.checkVerification(offerId, req.user.id);
+  }
 }

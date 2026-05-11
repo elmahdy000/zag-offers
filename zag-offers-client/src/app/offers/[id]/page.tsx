@@ -3,7 +3,8 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle, MessageCircle } from 'lucide-react';
+import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle, MessageCircle, Star } from 'lucide-react';
+import { ReviewSection } from '@/components/ReviewSection';
 import Link from 'next/link';
 import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
@@ -78,6 +79,8 @@ export default function OfferDetailsPage() {
   const [copied, setCopied] = useState(false);
   const [toasts, setToasts] = useState<Toast[]>([]);
   const [activeImg, setActiveImg] = useState(0);
+  const [reviews, setReviews] = useState([]);
+  const [isVerifiedForReview, setIsVerifiedForReview] = useState(false);
 
   const showToast = (msg: string, type: ToastType = 'info') => {
     const t = { id: Date.now(), msg, type };
@@ -115,6 +118,31 @@ export default function OfferDetailsPage() {
       finally { setLoading(false); }
     };
     fetchOffer();
+    
+    // Fetch reviews and verification status
+    const fetchReviews = async () => {
+      try {
+        const res = await fetch(`${API_URL}/reviews/offer/${id}`);
+        if (res.ok) setReviews(await res.json());
+      } catch (e) { console.error(e); }
+    };
+
+    const checkVerification = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) return;
+      try {
+        const res = await fetch(`${API_URL}/coupons/check-verification/${id}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const data = await res.json();
+          setIsVerifiedForReview(data.isVerified);
+        }
+      } catch { /* silent */ }
+    };
+
+    fetchReviews();
+    checkVerification();
   }, [id, router]);
 
   const toggleFav = async () => {
@@ -433,6 +461,19 @@ export default function OfferDetailsPage() {
           </div>
         </div>
       </div>
+
+      {/* Review Section */}
+      <ReviewSection 
+        offerId={offer.id} 
+        reviews={reviews} 
+        isVerifiedUser={isVerifiedForReview}
+        onReviewAdded={() => {
+          // Re-fetch reviews after adding
+          fetch(`${API_URL}/reviews/offer/${id}`)
+            .then(res => res.json())
+            .then(data => setReviews(data));
+        }}
+      />
     </div>
   );
 }

@@ -380,4 +380,17 @@ export class CouponsService {
 
     return { success: true };
   }
+
+  async checkVerification(offerId: string, customerId: string) {
+    const coupon = await this.prisma.coupon.findFirst({
+      where: {
+        offerId,
+        customerId,
+        // Any status means they have "experienced" the offer flow
+        status: { in: [CouponStatus.GENERATED, CouponStatus.USED] },
+      },
+    });
+
+    return { isVerified: !!coupon };
+  }
 }
