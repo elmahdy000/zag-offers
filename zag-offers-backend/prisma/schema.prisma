@@ -89,6 +89,7 @@ model Store {
   lng        Float?
   phone      String
   whatsapp   String?
+  locationUrl String?
   status     StoreStatus @default(PENDING)
 
   categoryId String
