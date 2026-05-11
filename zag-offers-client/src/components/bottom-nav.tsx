@@ -1,13 +1,13 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, Heart, User } from 'lucide-react';
+import { Home, LayoutGrid, Ticket, User } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 const navItems = [
-  { icon: Home, label: 'الرئيسية', path: '/offers' },
+  { icon: Home, label: 'الرئيسية', path: '/' },
   { icon: LayoutGrid, label: 'الأقسام', path: '/categories' },
-  { icon: Heart, label: 'المفضلة', path: '/favorites' },
+  { icon: Ticket, label: 'كوبوناتي', path: '/coupons' },
   { icon: User, label: 'حسابي', path: '/profile' },
 ];
 

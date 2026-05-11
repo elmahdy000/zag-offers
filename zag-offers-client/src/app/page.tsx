@@ -59,7 +59,20 @@ function HomePageContent() {
 
   const { trackEvent } = useAnalytics();
 
+  const [isOffline, setIsOffline] = useState(false);
+
   const fetchData = useCallback(async (force = false) => {
+    // Try to load from cache first
+    const cachedData = localStorage.getItem('home_cache_v2');
+    if (cachedData && offers.length === 0) {
+      const parsed = JSON.parse(cachedData);
+      setOffers(parsed.offers || []);
+      setCategories(parsed.categories || []);
+      setStores(parsed.stores || []);
+      setRecommended(parsed.recommended || []);
+      setLoading(false);
+    }
+
     try {
       setLoading(true);
       const [oRes, cRes, sRes, rRes] = await Promise.all([
@@ -88,15 +101,40 @@ function HomePageContent() {
       setCategories(uniqueCats);
       setStores(sData);
       setRecommended(rData);
+      
+      // Save to cache
+      localStorage.setItem('home_cache_v2', JSON.stringify({
+        offers: oData,
+        categories: uniqueCats,
+        stores: sData,
+        recommended: rData,
+        timestamp: Date.now()
+      }));
+      setIsOffline(false);
     } catch (e) {
-      console.error(e);
-      setError('فشل تحميل البيانات. يرجى المحاولة مرة أخرى.');
+      console.error('Fetch error:', e);
+      setIsOffline(true);
+      if (!localStorage.getItem('home_cache_v2')) {
+        setError('فشل تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت.');
+      }
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [offers.length]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Monitor online status
+  useEffect(() => {
+    const handleOnline = () => { setIsOffline(false); fetchData(); };
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [fetchData]);
 
   const filteredOffers = useMemo(() => {
     let result = [...offers];
@@ -133,7 +171,7 @@ function HomePageContent() {
     });
   }, [offers, activeCat, debouncedSearch, sortBy]);
 
-  if (error) {
+  if (error && !loading && offers.length === 0) {
     return (
       <div className="min-h-screen flex items-center justify-center p-4 text-center">
         <div>
@@ -236,8 +274,8 @@ function HomePageContent() {
             </div>
 
             <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-              <button 
-                onClick={() => setActiveCat('')}
+              <Link 
+                href="/offers"
                 className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
                   ${!activeCat 
                     ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
@@ -247,36 +285,39 @@ function HomePageContent() {
                   <span className={`text-sm sm:text-base font-black tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
                   {!activeCat && <div className="absolute bottom-6 w-1 h-1 bg-[#FF6B00] rounded-full" />}
                 </div>
-              </button>
+              </Link>
 
               {categories.map((c, idx) => (
-                <motion.button 
+                <motion.div
                   key={c.id}
                   initial={{ opacity: 0, x: 20 }}
                   animate={{ opacity: 1, x: 0 }}
                   transition={{ delay: 0.1 + idx * 0.05 }}
-                  onClick={() => setActiveCat(c.id)}
-                  className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
-                    ${activeCat === c.id 
-                      ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
-                      : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
                 >
-                  <div className="absolute inset-0 bg-[#151515]">
-                    <img 
-                      src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
-                      alt={c.name} 
-                      className={`w-full h-full object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
-                    />
-                  </div>
-                  <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
-                  
-                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 z-20">
-                    <span className={`text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
-                      {getCatName(c.name)}
-                    </span>
-                    {activeCat === c.id && <div className="absolute bottom-2.5 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />}
-                  </div>
-                </motion.button>
+                  <Link 
+                    href={`/offers?category=${c.id}`}
+                    className={`flex-shrink-0 group relative block w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+                      ${activeCat === c.id 
+                        ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
+                        : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
+                  >
+                    <div className="absolute inset-0 bg-[#151515]">
+                      <img 
+                        src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
+                        alt={c.name} 
+                        className={`w-full h-full object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
+                      />
+                    </div>
+                    <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
+                    
+                    <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 z-20">
+                      <span className={`text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
+                        {getCatName(c.name)}
+                      </span>
+                      {activeCat === c.id && <div className="absolute bottom-2.5 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />}
+                    </div>
+                  </Link>
+                </motion.div>
               ))}
             </div>
           </div>

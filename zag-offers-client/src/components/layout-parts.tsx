@@ -7,7 +7,7 @@ import {
   ShoppingBag, User, Heart, Menu, X, Bell, CheckCheck, 
   Ticket, Phone, Shield, FileText, Tag, Building2, 
   LayoutDashboard, FileCheck, Headphones, Store, Mail,
-  Link as LinkIcon
+  Link as LinkIcon, ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
@@ -437,157 +437,141 @@ export function Footer() {
   if (isAuthPage) return null;
 
   return (
-    <footer className="bg-[#111111] border-t border-white/[0.05] mt-20" dir="rtl">
-      {/* Top Banner */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 -mt-10 mb-16">
-        <Link 
-          href="/offers" 
-          className="group block relative overflow-hidden rounded-[2rem] p-8 sm:p-10 text-center
-                     bg-gradient-to-r from-[#2A1B12] via-[#3D2618] to-[#2A1B12]
-                     border border-white/[0.08] shadow-2xl hover:scale-[1.01] transition-all duration-500"
-        >
-          <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-          <div className="relative flex flex-col sm:flex-row items-center justify-center gap-4 sm:gap-6">
-            <div className="w-14 h-14 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-[0_0_30px_rgba(255,107,0,0.3)] group-hover:rotate-12 transition-transform">
-              <Ticket className="text-white" size={28} />
-            </div>
-            <h2 className="text-2xl sm:text-3xl font-black text-[#F0F0F0] tracking-tight">
-              🎟️ احصل على <span className="text-[#FF6B00]">الكوبون</span>
-            </h2>
-          </div>
-        </Link>
-      </div>
-
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 pb-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-8">
-          {/* Brand Info */}
-          <div className="space-y-6">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-10 h-10 bg-[#FF6B00] rounded-xl flex items-center justify-center shadow-lg">
-                <ShoppingBag className="text-white" size={20} />
+    <footer className="relative bg-[#121212] border-t border-white/5 pt-20 pb-32 sm:pb-20 overflow-hidden">
+      <div className="container mx-auto px-6 relative z-10">
+        {/* Marketing Banner */}
+        <div className="mb-20">
+          <Link 
+            href="/offers" 
+            className="group relative block p-8 sm:p-12 rounded-[32px] overflow-hidden bg-gradient-to-br from-[#FF6B00] to-[#D95A00] hover:shadow-[0_20px_50px_rgba(255,107,0,0.3)] transition-all duration-500"
+          >
+            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
+            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
+            
+            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8 text-center sm:text-right">
+              <div className="flex flex-col sm:flex-row items-center gap-6">
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 group-hover:rotate-12 transition-all duration-500 shadow-2xl">
+                  <Ticket className="text-white" size={32} />
+                </div>
+                <div>
+                  <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
+                    عروض حصرية بانتظارك!
+                  </h2>
+                  <p className="text-white/80 font-bold text-sm sm:text-lg">تصفح أقوى الكوبونات ووفر فلوسك دلوقتي</p>
+                </div>
               </div>
-              <span className="text-2xl font-black text-white">Zag<span className="text-[#FF6B00]">Offers</span></span>
+              <div className="px-8 py-3 bg-white text-[#FF6B00] font-black rounded-full shadow-xl group-hover:scale-105 transition-transform">
+                اكتشف الآن
+              </div>
+            </div>
+          </Link>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
+          {/* Brand Info */}
+          <div className="space-y-8 flex flex-col items-center sm:items-start text-center sm:text-right">
+            <Link href="/" className="flex items-center gap-3">
+              <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-2xl flex items-center justify-center shadow-xl shadow-orange-950/20">
+                <ShoppingBag className="text-white" size={24} />
+              </div>
+              <span className="text-3xl font-black text-white tracking-tighter">Zag<span className="text-[#FF6B00]">Offers</span></span>
             </Link>
-            <p className="text-[#9A9A9A] text-sm leading-relaxed font-medium">
-              وجهتك الأولى لأفضل العروض والخصومات في زاج. كوبونات حصرية من أفضل المحلات والخدمات.
+            <p className="text-[#9A9A9A] text-sm leading-relaxed font-bold max-w-xs text-right">
+              المنصة رقم #1 في الزقازيق لاكتشاف أفضل العروض. بنجمعلك كل الخصومات في مكان واحد عشان نسهل عليك حياتك.
             </p>
-            <div className="flex gap-3">
+            <div className="flex gap-4">
               {[
-                { 
-                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, 
-                  href: 'https://facebook.com/zagoffers' 
-                },
-                { 
-                  icon: <XIcon size={18} />, 
-                  href: 'https://x.com/zagoffers' 
-                },
-                { 
-                  icon: <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, 
-                  href: 'https://instagram.com/zagoffers' 
-                }
+                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, href: '#' },
+                { icon: <XIcon size={20} />, href: '#' },
+                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, href: '#' }
               ].map((s, i) => (
-                <Link key={i} href={s.href} target="_blank"
-                  className="w-10 h-10 rounded-full bg-white/5 border border-white/10
-                             flex items-center justify-center text-[#9A9A9A] hover:text-[#FF6B00]
-                             hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all">
+                <Link key={i} href={s.href} className="w-11 h-11 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-[#9A9A9A] hover:text-white hover:bg-[#FF6B00] hover:border-[#FF6B00] transition-all duration-300">
                   {s.icon}
                 </Link>
               ))}
             </div>
           </div>
 
-          {/* Quick Links */}
-          <div className="lg:pr-8">
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 rounded-lg bg-blue-500/10 flex items-center justify-center">
-                <LinkIcon size={16} className="text-blue-500" />
-              </div>
-              <h4 className="text-lg font-black text-white">روابط سريعة</h4>
+          {/* Links Grid */}
+          <div className="grid grid-cols-2 gap-8 md:col-span-2 lg:col-span-2">
+            <div className="text-right">
+              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-end sm:justify-start">
+                روابط هامة
+                <span className="w-1.5 h-4 bg-[#FF6B00] rounded-full" />
+              </h4>
+              <ul className="space-y-4">
+                {[
+                  { label: 'أحدث العروض', href: '/offers' },
+                  { label: 'المتاجر', href: '/stores' },
+                  { label: 'تواصل معنا', href: '/contact' },
+                  { label: 'من نحن', href: '/about' }
+                ].map((l, i) => (
+                  <li key={i}>
+                    <Link href={l.href} className="text-[#9A9A9A] hover:text-[#FF6B00] font-bold text-sm transition-colors flex items-center justify-end sm:justify-start gap-2 group">
+                      <ChevronLeft size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
             </div>
-            <ul className="space-y-4">
-              {[
-                { label: 'اتصل بنا', href: '/contact', icon: <Phone size={14} /> },
-                { label: 'سياسة الخصوصية', href: '/privacy', icon: <Shield size={14} /> },
-                { label: 'شروط الاستخدام', href: '/terms', icon: <FileText size={14} /> },
-                { label: 'أحدث العروض', href: '/offers', icon: <Tag size={14} /> }
-              ].map((link, i) => (
-                <li key={i}>
-                  <Link href={link.href} className="group flex items-center gap-3 text-[#9A9A9A] hover:text-white transition-colors font-bold text-sm">
-                    <span className="w-6 h-6 rounded bg-white/5 flex items-center justify-center group-hover:bg-[#FF6B00]/10 group-hover:text-[#FF6B00] transition-colors">
-                      {link.icon}
-                    </span>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
+            <div className="text-right">
+              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-end sm:justify-start">
+                للتجار
+                <span className="w-1.5 h-4 bg-blue-500 rounded-full" />
+              </h4>
+              <ul className="space-y-4">
+                {[
+                  { label: 'سجل محلك', href: '/contact' },
+                  { label: 'لوحة التحكم', href: 'https://vendor.zagoffers.online' },
+                  { label: 'الأسئلة الشائعة', href: '/faq' },
+                  { label: 'الدعم الفني', href: '/support' }
+                ].map((l, i) => (
+                  <li key={i}>
+                    <Link href={l.href} className="text-[#9A9A9A] hover:text-blue-500 font-bold text-sm transition-colors flex items-center justify-end sm:justify-start gap-2 group">
+                      <ChevronLeft size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
+                      {l.label}
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </div>
           </div>
 
-          {/* Merchant Links */}
-          <div>
-            <div className="flex items-center gap-2 mb-8">
-              <div className="w-8 h-8 rounded-lg bg-orange-500/10 flex items-center justify-center">
-                <Store size={16} className="text-orange-500" />
-              </div>
-              <h4 className="text-lg font-black text-white">للتجار</h4>
-            </div>
-            <ul className="space-y-4">
-              {[
-                { label: 'سجل محلك', href: '/contact', icon: <Building2 size={14} /> },
-                { label: 'لوحة التاجر', href: 'https://vendor.zagoffers.online', icon: <LayoutDashboard size={14} /> },
-                { label: 'شروط التجار', href: '/terms#vendors', icon: <FileCheck size={14} /> },
-                { label: 'دعم التجار', href: '/contact', icon: <Headphones size={14} /> }
-              ].map((link, i) => (
-                <li key={i}>
-                  <Link href={link.href} className="group flex items-center gap-3 text-[#9A9A9A] hover:text-white transition-colors font-bold text-sm">
-                    <span className="w-6 h-6 rounded bg-white/5 flex items-center justify-center group-hover:bg-[#FF6B00]/10 group-hover:text-[#FF6B00] transition-colors">
-                      {link.icon}
-                    </span>
-                    {link.label}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Subscribe */}
-          <div className="space-y-6">
-            <div className="flex items-center gap-2 mb-2">
-              <div className="w-10 h-10 rounded-2xl bg-[#FF6B00]/10 flex items-center justify-center">
-                <Mail size={20} className="text-[#FF6B00]" />
-              </div>
-              <h4 className="text-lg font-black text-white">اشترك ليصلك كل جديد</h4>
-            </div>
-            <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed">
-              احصل على أفضل العروض والكوبونات مباشرة إلى بريدك الإلكتروني
+          {/* Subscription */}
+          <div className="space-y-6 flex flex-col items-center sm:items-start text-center sm:text-right">
+            <h4 className="text-base font-black text-white flex items-center gap-2">
+              النشرة البريدية
+              <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
+            </h4>
+            <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed max-w-[200px] text-right">
+              اشترك عشان نبعتلك أقوى العروض الحصرية أول بأول على إيميلك.
             </p>
-            <form className="space-y-3" onSubmit={e => e.preventDefault()}>
-              <div className="flex items-center gap-3 bg-[#1A1A1A] border border-white/10 rounded-2xl px-4 py-1 focus-within:border-[#FF6B00]/50 transition-all">
-                <Mail className="text-white/20" size={18} />
+            <div className="space-y-3 w-full max-w-xs">
+              <div className="relative">
+                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
                 <input 
                   type="email" 
-                  placeholder="ادخل بريدك الإلكتروني"
-                  className="w-full bg-transparent py-4 text-sm text-white placeholder:text-white/20 focus:outline-none transition-all"
+                  placeholder="بريدك الإلكتروني"
+                  className="w-full bg-[#1A1A1A] border border-white/5 rounded-2xl py-4 pr-12 pl-4 text-xs font-bold text-white focus:outline-none focus:border-[#FF6B00]/50 transition-all text-right"
                 />
               </div>
-              <button 
-                type="submit"
-                className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl
-                           shadow-[0_8px_20px_rgba(255,107,0,0.2)] hover:scale-[1.02] active:scale-95 transition-all"
-              >
-                اشترك
+              <button className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 hover:scale-[1.02] active:scale-95 transition-all text-xs">
+                اشترك الآن
               </button>
-            </form>
+            </div>
           </div>
         </div>
 
-        {/* Bottom Bar */}
-        <div className="mt-20 pt-8 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6 text-[10px] sm:text-xs font-bold text-[#9A9A9A]">
-          <p>© 2026 <span className="text-[#FF6B00]">ZagOffers</span> — جميع الحقوق محفوظة.</p>
-          <div className="flex gap-4 sm:gap-8">
-            <Link href="/privacy" className="hover:text-white transition-colors">سياسة الخصوصية</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">شروط الاستخدام</Link>
-            <Link href="/contact" className="hover:text-white transition-colors">تواصل معنا</Link>
+        {/* Bottom Section */}
+        <div className="mt-20 pt-10 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6">
+          <p className="text-xs font-bold text-[#9A9A9A]">
+            © 2026 <span className="text-white">ZagOffers</span>. صنع بكل ❤️ في الزقازيق.
+          </p>
+          <div className="flex gap-6 text-[10px] sm:text-xs font-black text-[#9A9A9A] uppercase tracking-widest">
+            <Link href="/privacy" className="hover:text-white transition-colors">الخصوصية</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">الشروط</Link>
+            <Link href="/cookies" className="hover:text-white transition-colors">الكوكيز</Link>
           </div>
         </div>
       </div>

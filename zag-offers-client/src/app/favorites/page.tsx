@@ -21,10 +21,19 @@ export default function FavoritesPage() {
 
   const fetchFavorites = useCallback(async () => {
     const token = localStorage.getItem('token');
+    
+    // Load from cache first for instant UI
+    const cached = localStorage.getItem('cache_favorites_v2');
+    if (cached && favorites.length === 0) {
+      setFavorites(JSON.parse(cached));
+      setLoading(false);
+    }
+
     if (!token) {
-      // Fallback to localStorage if not logged in
       const saved = localStorage.getItem('favorites');
-      if (saved) setFavorites(JSON.parse(saved));
+      const localFavs = saved ? JSON.parse(saved) : [];
+      setFavorites(localFavs);
+      localStorage.setItem('cache_favorites_v2', JSON.stringify(localFavs));
       setLoading(false);
       return;
     }
@@ -35,25 +44,25 @@ export default function FavoritesPage() {
       });
       if (res.ok) {
         const data = await res.json();
-        // Transform data to match offer structure
         const offers = data.map((fav: { offer: Offer }) => ({
           ...fav.offer,
           store: fav.offer.store
         }));
         setFavorites(offers);
+        localStorage.setItem('cache_favorites_v2', JSON.stringify(offers));
       }
     } catch (e) {
       console.error('Failed to fetch favorites:', e);
-      // Fallback to localStorage on error
-      const saved = localStorage.getItem('favorites');
-      if (saved) setFavorites(JSON.parse(saved));
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [favorites.length]);
 
   useEffect(() => {
-    setTimeout(() => fetchFavorites(), 0);
+    fetchFavorites();
+    const handleOnline = () => fetchFavorites();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
   }, [fetchFavorites]);
 
   // Re-fetch when auth state changes

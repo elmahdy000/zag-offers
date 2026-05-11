@@ -40,49 +40,44 @@ export default function MerchantDashboard() {
   const merchantId = vendorUser?.id ?? '';
   const storeName = stats?.storeName ?? vendorUser?.name ?? 'متجرك';
 
-  // تحسين: تحميل العروض والإحصائيات مع الكاش للأوفلاين
+  // تحسين: الاعتماد على React Query وإدارة الكاش بشكل أنظف
   useEffect(() => {
-    const fetchDashboardData = async () => {
-      // كاش العروض
+    // تحديث الكاش عند نجاح جلب الإحصائيات من السيرفر
+    if (stats) {
+      localStorage.setItem('cache_vendor_stats', JSON.stringify(stats));
+      setCachedStats(stats);
+      
+      // تحديث العروض الأخيرة من الإحصائيات (إذا كانت موجودة)
+      if (stats.recentCoupons) {
+        // يمكننا جلب العروض من مكان آخر أو الاعتماد على useVendorOffers
+      }
+    }
+  }, [stats]);
+
+  // جلب العروض بشكل منفصل باستخدام Hook مخصص إذا لزم الأمر أو يدوياً مرة واحدة
+  useEffect(() => {
+    const fetchOffers = async () => {
       const offersKey = 'cache_vendor_dashboard_recent';
-      const cachedOffers = localStorage.getItem(offersKey);
-      if (cachedOffers && recentOffers.length === 0) {
-        setRecentOffers(JSON.parse(cachedOffers));
-      }
-
-      // كاش الإحصائيات
-      const statsKey = 'cache_vendor_stats';
-      const cachedS = localStorage.getItem(statsKey);
-      if (cachedS) {
-        setCachedStats(JSON.parse(cachedS));
-      }
-
       try {
         const r = await vendorApi().get('/offers/my-offers');
         const arr = Array.isArray(r.data) ? r.data : r.data?.items ?? [];
         const top3 = arr.slice(0, 3);
         setRecentOffers(top3);
         localStorage.setItem(offersKey, JSON.stringify(top3));
-      } catch (e) {}
+      } catch (e) {
+        const cached = localStorage.getItem(offersKey);
+        if (cached) setRecentOffers(JSON.parse(cached));
+      }
     };
-    fetchDashboardData();
+    fetchOffers();
 
-    // Revalidate when back online
     const handleOnline = () => {
-      fetchDashboardData();
+      fetchOffers();
       refetch();
     };
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
   }, [refetch]);
-
-  // تحديث الكاش عند نجاح جلب الإحصائيات من السيرفر
-  useEffect(() => {
-    if (stats) {
-      localStorage.setItem('cache_vendor_stats', JSON.stringify(stats));
-      setCachedStats(stats);
-    }
-  }, [stats]);
 
   const socketRef = useSocket(merchantId);
 

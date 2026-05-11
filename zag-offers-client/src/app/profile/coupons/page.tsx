@@ -30,6 +30,8 @@ export default function MyCouponsPage() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
+  const [isOffline, setIsOffline] = useState(false);
+
   useEffect(() => {
     const fetchCoupons = async () => {
       const token = localStorage.getItem('token');
@@ -39,16 +41,37 @@ export default function MyCouponsPage() {
         return;
       }
 
+      // Load from cache first
+      const cached = localStorage.getItem('cache_my_coupons');
+      if (cached && coupons.length === 0) {
+        setCoupons(JSON.parse(cached));
+        setLoading(false);
+      }
+
       try {
         const res = await axios.get(`${API_URL}/coupons/my`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         setCoupons(res.data);
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+        localStorage.setItem('cache_my_coupons', JSON.stringify(res.data));
+        setIsOffline(false);
+      } catch (e) { 
+        console.error('Offline or server error:', e); 
+        setIsOffline(true);
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchCoupons();
-  }, []);
+
+    // Re-fetch when coming back online
+    const handleOnline = () => { setIsOffline(false); fetchCoupons(); };
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', () => setIsOffline(true));
+    return () => {
+      window.removeEventListener('online', handleOnline);
+    };
+  }, [coupons.length]);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">

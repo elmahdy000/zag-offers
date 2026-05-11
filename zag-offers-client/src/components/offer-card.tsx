@@ -264,7 +264,7 @@ export function OfferCard({ offer }: OfferCardProps) {
         {/* CTA */}
         <Link
           href={`/offers/${offer.id}`}
-          className="mt-1.5 w-full py-2 text-center text-[12px] font-black text-[#FF6B00]
+          className="mt-1 w-full py-1.5 text-center text-[11px] font-black text-[#FF6B00]
                      bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-lg
                      hover:bg-[#FF6B00] hover:text-white hover:border-[#FF6B00]
                      hover:shadow-[0_4px_12px_rgba(255,107,0,0.3)]

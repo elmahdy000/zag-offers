@@ -112,8 +112,13 @@ export class StoresService {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    // Optimization: Pre-fetch storeId once (already done above)
-    // Then run counts. Consider adding an index on Coupon(offerId) if slow.
+    // التحسين: جلب الـ IDs بتاعة العروض مرة واحدة لاستخدامها في العد المباشر بدل الـ nested queries
+    const storeOffers = await this.prisma.offer.findMany({
+      where: { storeId: store.id },
+      select: { id: true },
+    });
+    const offerIds = storeOffers.map((o) => o.id);
+
     const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons] =
       await Promise.all([
         this.prisma.offer.count({
@@ -121,25 +126,25 @@ export class StoresService {
         }),
         this.prisma.coupon.count({
           where: {
-            offer: { storeId: store.id },
+            offerId: { in: offerIds },
             status: 'USED',
             redeemedAt: { gte: startOfDay },
           },
         }),
         this.prisma.coupon.count({
           where: {
-            offer: { storeId: store.id },
+            offerId: { in: offerIds },
             createdAt: { gte: startOfDay },
           },
         }),
         this.prisma.coupon.count({
           where: {
-            offer: { storeId: store.id },
+            offerId: { in: offerIds },
           },
         }),
         this.prisma.coupon.findMany({
           where: {
-            offer: { storeId: store.id },
+            offerId: { in: offerIds },
           },
           orderBy: { createdAt: 'desc' },
           take: 5,

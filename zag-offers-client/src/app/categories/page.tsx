@@ -15,11 +15,17 @@ export default function CategoriesPage() {
 
   useEffect(() => {
     const fetchCats = async () => {
+      // Try cache first
+      const cached = localStorage.getItem('cache_categories_full');
+      if (cached && categories.length === 0) {
+        setCategories(JSON.parse(cached));
+        setLoading(false);
+      }
+
       try {
         const res = await fetch(`${API_URL}/stores/categories`);
         if (res.ok) {
           const data = await res.json();
-          // Filter out clinics and duplicates by display name
           const seenNames = new Set<string>();
           const uniqueCats = data
             .filter((c: Category) => !['عيادات', 'سوبرماركت', 'خدمات محلية'].includes(c.name))
@@ -30,12 +36,21 @@ export default function CategoriesPage() {
               return true;
             });
           setCategories(uniqueCats);
+          localStorage.setItem('cache_categories_full', JSON.stringify(uniqueCats));
         }
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+      } catch (e) { 
+        console.error('Offline or error:', e); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchCats();
-  }, []);
+
+    // Silent background sync when back online
+    const handleOnline = () => fetchCats();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [categories.length]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:py-20" dir="rtl">

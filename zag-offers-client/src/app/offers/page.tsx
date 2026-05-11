@@ -1,17 +1,15 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
-import { API_URL, DISPLAY_NAMES } from '@/lib/constants';
+import { API_URL, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
-const AREAS = [
-  'الجامعة', 'القومية', 'وسط البلد', 'المحافظة', 'طلبة عويضة', 'منطقة الفيلات',
-];
+const AREAS = ZAGAZIG_AREAS;
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <Utensils size={14} />,
@@ -29,39 +27,91 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 
 function OffersPageContent() {
   const searchParams  = useSearchParams();
-  const initialCat    = searchParams.get('categoryId') || '';
+  const router        = useRouter();
+  const pathname      = usePathname();
+  
+  // Initial values from URL
+  const initialCat    = searchParams.get('category') || searchParams.get('categoryId') || '';
+  const initialArea   = searchParams.get('area') || '';
+  const initialSearch = searchParams.get('q') || '';
+  const initialSort   = (searchParams.get('sort') as SortOption) || 'newest';
 
   const [offers,     setOffers]     = useState<Offer[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading,    setLoading]    = useState(true);
-  const [search,     setSearch]     = useState('');
+  const [search,     setSearch]     = useState(initialSearch);
   const [activeCat,  setActiveCat]  = useState(initialCat);
-  const [area,       setArea]       = useState('');
-  const [sort,       setSort]       = useState<SortOption>('newest');
+  const [area,       setArea]       = useState(initialArea);
+  const [sort,       setSort]       = useState<SortOption>(initialSort);
+
+  // Sync state with URL whenever filters change
+  useEffect(() => {
+    const params = new URLSearchParams(searchParams.toString());
+    
+    if (activeCat) params.set('category', activeCat); else params.delete('category');
+    if (area) params.set('area', area); else params.delete('area');
+    if (search) params.set('q', search); else params.delete('q');
+    if (sort !== 'newest') params.set('sort', sort); else params.delete('sort');
+    
+    // Use replace to avoid polluting history stack with every keystroke
+    router.replace(`${pathname}?${params.toString()}`, { scroll: false });
+  }, [activeCat, area, search, sort, pathname, router, searchParams]);
+
+  const [isOffline, setIsOffline] = useState(false);
 
   const fetchData = useCallback(async () => {
-    setLoading(true);
+    // Try to load from cache first for instant view
+    const cachedOffers = localStorage.getItem('cache_offers');
+    const cachedCats = localStorage.getItem('cache_categories');
+    
+    if (cachedOffers && offers.length === 0) {
+      setOffers(JSON.parse(cachedOffers));
+      setLoading(false); // Hide initial loader if we have cache
+    }
+    if (cachedCats && categories.length === 0) {
+      setCategories(JSON.parse(cachedCats));
+    }
+
     try {
       const [offRes, catRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=200`),
         fetch(`${API_URL}/stores/categories`),
       ]);
+      
       if (offRes.ok) {
         const data = await offRes.json();
-        setOffers(Array.isArray(data) ? data : (data.items || []));
+        const items = Array.isArray(data) ? data : (data.items || []);
+        setOffers(items);
+        localStorage.setItem('cache_offers', JSON.stringify(items));
+        setIsOffline(false);
       }
       if (catRes.ok) {
         const cats = await catRes.json();
-        setCategories(cats.filter((c: Category) => c.name !== 'عيادات'));
+        const filteredCats = cats.filter((c: Category) => c.name !== 'عيادات');
+        setCategories(filteredCats);
+        localStorage.setItem('cache_categories', JSON.stringify(filteredCats));
       }
     } catch (e) { 
-      console.error(e); 
+      console.error('Fetch error (possibly offline):', e); 
+      setIsOffline(true);
     } finally { 
       setLoading(false); 
     }
-  }, []);
+  }, [offers.length, categories.length]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  // Monitor online/offline status
+  useEffect(() => {
+    const handleOnline = () => { setIsOffline(false); fetchData(); };
+    const handleOffline = () => setIsOffline(true);
+    window.addEventListener('online', handleOnline);
+    window.addEventListener('offline', handleOffline);
+    return () => {
+      window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
+    };
+  }, [fetchData]);
 
   const filtered = useMemo(() => {
     let list = offers.filter(o => {

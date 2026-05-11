@@ -18,24 +18,34 @@ export default function StoresListPage() {
 
   useEffect(() => {
     const fetchStores = async () => {
+      // Try cache first
+      const cached = localStorage.getItem('cache_stores_list');
+      if (cached && stores.length === 0) {
+        setStores(JSON.parse(cached));
+        setLoading(false);
+      }
+
       try {
         const res = await fetch(`${API_URL}/stores?limit=100`);
         if (res.ok) {
           const data = await res.json();
-          // تحقق من صحة البيانات
           const storesData = Array.isArray(data) ? data : (data.items || []);
-          // فلترة المتاجر غير الصالحة
           const validStores = storesData.filter((s: Store) => s && s.id && s.name);
           setStores(validStores);
+          localStorage.setItem('cache_stores_list', JSON.stringify(validStores));
         }
       } catch (e) { 
-        console.error('Failed to fetch stores:', e); 
+        console.error('Failed to fetch stores (offline?):', e); 
       } finally { 
         setLoading(false); 
       }
     };
     fetchStores();
-  }, []);
+
+    const handleOnline = () => fetchStores();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [stores.length]);
 
   const filteredStores = stores.filter(s => {
     if (!s || !s.name || !s.area) return false;

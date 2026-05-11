@@ -9,6 +9,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
+import { QRCodeSVG } from 'qrcode.react';
 
 interface Offer {
   id: string;
@@ -90,11 +91,20 @@ export default function OfferDetailsPage() {
 
   useEffect(() => {
     const fetchOffer = async () => {
+      // Try cache first
+      const cacheKey = `cache_offer_detail_${id}`;
+      const cached = localStorage.getItem(cacheKey);
+      if (cached && !offer) {
+        setOffer(JSON.parse(cached));
+        setLoading(false);
+      }
+
       try {
         const res = await fetch(`${API_URL}/offers/${id}`);
         if (res.ok) {
           const data = await res.json();
           setOffer(data);
+          localStorage.setItem(cacheKey, JSON.stringify(data));
           
           // Check favorite status from API if logged in
           const token = localStorage.getItem('token');
@@ -114,8 +124,11 @@ export default function OfferDetailsPage() {
             setIsFav(favs.some((f: { id: string }) => f.id === data.id));
           }
         } else router.replace('/');
-      } catch (e) { console.error(e); }
-      finally { setLoading(false); }
+      } catch (e) { 
+        console.error('Offline or error:', e); 
+      } finally { 
+        setLoading(false); 
+      }
     };
     fetchOffer();
     
@@ -143,7 +156,11 @@ export default function OfferDetailsPage() {
 
     fetchReviews();
     checkVerification();
-  }, [id, router]);
+
+    const handleOnline = () => fetchOffer();
+    window.addEventListener('online', handleOnline);
+    return () => window.removeEventListener('online', handleOnline);
+  }, [id, router, offer]);
 
   const toggleFav = async () => {
     const token = localStorage.getItem('token');
@@ -429,19 +446,48 @@ export default function OfferDetailsPage() {
                 </motion.button>
               ) : (
                 <motion.div 
-                  initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }}
+                  initial={{ opacity: 0, y: 10 }} 
+                  animate={{ opacity: 1, y: 0 }}
                   className="space-y-4"
                 >
-                  <button
-                    onClick={handleCopy}
-                    className="w-full bg-black/20 border-2 border-dashed border-white/40 rounded-2xl p-4 text-center hover:bg-black/30 transition-all group"
-                  >
-                    <span className="text-xs font-black text-white/60 mb-2 block tracking-widest uppercase">كود الخصم — اضغط للنسخ</span>
-                    <span className="text-2xl font-black text-white tracking-[4px]">{couponCode}</span>
-                    <div className="flex items-center justify-center gap-2 mt-2 text-white/60 text-xs font-bold">
-                      {copied ? <><CheckCircle2 size={14} className="text-emerald-400" /> تم النسخ!</> : <><Copy size={14} /> نسخ الكود</>}
+                  <div className="bg-white/10 rounded-2xl p-4 text-center border border-white/10 animate-in fade-in zoom-in duration-300">
+                    <CheckCircle2 className="text-white mx-auto mb-2" size={24} />
+                    <p className="text-white font-black text-sm">مبروك! تم حفظ الكوبون في حسابك</p>
+                  </div>
+
+                  <div className="flex flex-col sm:flex-row gap-4">
+                    <button
+                      onClick={handleCopy}
+                      className="flex-1 bg-black/20 border-2 border-dashed border-white/40 rounded-2xl p-6 text-center hover:bg-black/30 transition-all group"
+                    >
+                      <span className="text-[10px] font-black text-white/40 mb-3 block tracking-widest uppercase">كود الخصم — اضغط للنسخ</span>
+                      <span className="text-3xl font-black text-white tracking-[4px]">{couponCode}</span>
+                      <div className="flex items-center justify-center gap-2 mt-4 text-white/40 text-xs font-bold">
+                        {copied ? <><CheckCircle2 size={14} className="text-emerald-400" /> تم النسخ!</> : <><Copy size={14} /> نسخ الكود</>}
+                      </div>
+                    </button>
+
+                    <div className="bg-white p-4 rounded-2xl flex items-center justify-center shadow-xl self-center sm:self-stretch aspect-square min-w-[140px]">
+                      <QRCodeSVG 
+                        value={couponCode} 
+                        size={110}
+                        level="H"
+                        includeMargin={false}
+                      />
                     </div>
-                  </button>
+                  </div>
+
+                  <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center space-y-3">
+                    <p className="text-[11px] text-white/70 font-bold leading-relaxed">
+                      💡 يمكنك العثور على <span className="text-white">الـ QR Code</span> الخاص بهذا العرض في صفحة كوبوناتي لإظهاره للتاجر.
+                    </p>
+                    <Link 
+                      href="/profile/coupons" 
+                      className="inline-flex items-center gap-2 text-xs font-black text-white bg-black/20 px-4 py-2 rounded-xl hover:bg-black/40 transition-all"
+                    >
+                      <Ticket size={14} /> الذهاب إلى كوبوناتي
+                    </Link>
+                  </div>
 
                   <a 
                     href={`https://wa.me/${offer.store?.whatsapp || '201066711545'}?text=${encodeURIComponent(`السلام عليكم، أريد تفعيل كود الخصم الخاص بعرض: ${offer.title}\nكود الكوبون: ${couponCode}`)}`}
@@ -451,10 +497,6 @@ export default function OfferDetailsPage() {
                   >
                     <MessageCircle size={20} /> إرسال الكود للمحل (واتساب)
                   </a>
-
-                  <p className="text-[10px] text-center text-white/80 font-bold leading-relaxed">
-                    أظهر هذا الكود للكاشير أو أرسله عبر الواتساب للمحل للحصول على الخصم فوراً.
-                  </p>
                 </motion.div>
               )}
             </AnimatePresence>
