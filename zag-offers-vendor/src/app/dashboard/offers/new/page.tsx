@@ -102,7 +102,8 @@ export default function NewOfferPage() {
         setSubmitError(null);
         
         try {
-          const uploadPromises = offerImages.map(async (img) => {
+          const uploadResults = [];
+          for (const img of offerImages) {
             if (img.file) {
               let fileToUpload = img.file;
               
@@ -115,26 +116,27 @@ export default function NewOfferPage() {
                 }
               }
 
-              // إذا بعد الضغط لسه أكبر من 5 ميجا (صعبة جداً)، نرفضها
-              if (fileToUpload.size > 5 * 1024 * 1024) {
-                throw new Error(`حجم الصورة ${fileToUpload.name} كبير جداً حتى بعد الضغط`);
-              }
-
               const uploadFormData = new FormData();
               uploadFormData.append('file', fileToUpload);
+              
               const uploadRes = await vendorApi().post('/upload', uploadFormData, {
                 headers: { 'Content-Type': 'multipart/form-data' },
-                timeout: 30000,
+                timeout: 60000, // زيادة المهلة للصور الكبيرة
               });
-              return uploadRes.data.url;
+              
+              if (uploadRes.data?.url) {
+                uploadResults.push(uploadRes.data.url);
+              }
+            } else if (img.url) {
+              // إذا كانت الصورة مرفوعة بالفعل (في حالة التعديل مستقبلاً أو إعادة المحاولة)
+              uploadResults.push(img.url.split('/').pop());
             }
-            return img.url; // Already uploaded URL
-          });
-          const results = await Promise.all(uploadPromises);
-          imageUrls = results.filter((url): url is string => url !== null);
+          }
+          imageUrls = uploadResults.filter(Boolean) as string[];
         } catch (error: any) {
           setIsUploading(false);
-          return setSubmitError(error.message || 'فشل رفع الصور. حاول مرة أخرى.');
+          console.error('Upload Process Error:', error);
+          return setSubmitError('فشل رفع بعض الصور. تأكد من جودتها وحاول مرة أخرى.');
         }
       } else {
         setIsUploading(false);

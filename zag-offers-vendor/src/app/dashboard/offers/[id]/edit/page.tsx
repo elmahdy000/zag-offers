@@ -119,49 +119,45 @@ export default function EditOfferPage() {
     setIsUploading(true);
     
     try {
-      const uploadPromises = offerImages.map(async (img) => {
-        // If it already has a URL (and no file), it's an existing image
-        if (!img.file && (img.url.startsWith('http') || img.url.startsWith('/'))) {
-          // Extract the path from the full URL if needed, 
-          // or just keep it as is if the backend handles full URLs
-          // For consistency with create, let's try to get just the filename if it's from our server
-          return img.url.split('/').pop() || img.url;
+      const uploadResults = [];
+      for (const img of offerImages) {
+        // إذا كانت الصورة قديمة (موجودة بالفعل على السيرفر)
+        if (!img.file && (img.url.includes('/uploads/') || img.url.startsWith('http'))) {
+          // نأخذ اسم الملف فقط من الرابط
+          const fileName = img.url.split('/').pop();
+          if (fileName) uploadResults.push(fileName);
+          continue;
         }
         
-        // If it has a file, upload it
+        // إذا كانت صورة جديدة تحتاج لرفع
         if (img.file) {
           let fileToUpload = img.file;
           
-          // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
           if (fileToUpload.size > 1 * 1024 * 1024) {
             try {
               fileToUpload = await compressImage(fileToUpload);
             } catch (e) {
-              console.error('Compression failed, using original', e);
+              console.error('Compression failed', e);
             }
-          }
-
-          // إذا بعد الضغط لسه أكبر من 5 ميجا (صعبة جداً)، نرفضها
-          if (fileToUpload.size > 5 * 1024 * 1024) {
-            throw new Error(`حجم الصورة ${fileToUpload.name} كبير جداً حتى بعد الضغط`);
           }
 
           const uploadFormData = new FormData();
           uploadFormData.append('file', fileToUpload);
+          
           const uploadRes = await vendorApi().post('/upload', uploadFormData, {
             headers: { 'Content-Type': 'multipart/form-data' },
-            timeout: 30000,
+            timeout: 60000,
           });
-          return uploadRes.data.url;
+          
+          if (uploadRes.data?.url) {
+            uploadResults.push(uploadRes.data.url);
+          }
         }
-        
-        return null;
-      });
-
-      const results = await Promise.all(uploadPromises);
-      imageUrls = results.filter((url): url is string => url !== null);
+      }
+      imageUrls = uploadResults.filter(Boolean) as string[];
     } catch (error: unknown) {
       setIsUploading(false);
+      console.error('Update Upload Error:', error);
       return setSubmitError('فشل معالجة الصور. حاول مرة أخرى.');
     }
 
