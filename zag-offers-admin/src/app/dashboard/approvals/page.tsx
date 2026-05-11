@@ -564,6 +564,7 @@ export default function ApprovalsPage() {
               </div>
             </motion.div>
           </div>
+        )}
       </AnimatePresence>
 
       {fullscreenImage && (
