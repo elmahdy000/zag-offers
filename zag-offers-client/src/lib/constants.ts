@@ -15,6 +15,9 @@ export const CAT_ASSETS: Record<string, string> = {
   'حلاقين':       '/categories/barber.png',
   'حلويات':       '/categories/sweets.png',
   'مناسبات':       '/categories/wedding.png',
+  'ألعاب':         '/categories/games.png',
+  'أطفال':         '/categories/kids.png',
+  'أدوات منزلية':  '/categories/home.png',
   'default':       '/categories/food.png',
 };
 
@@ -28,4 +31,7 @@ export const DISPLAY_NAMES: Record<string, string> = {
   'حلاقين': 'ظبط اللوك',
   'حلويات': 'حلى بوقك',
   'مناسبات': 'عروستي',
+  'ألعاب': 'اون فاير',
+  'أطفال': 'عيالنا',
+  'أدوات منزلية': 'ست البيت',
 };
