@@ -165,8 +165,8 @@ function HomePageContent() {
             transition={{ delay: 0.1 }}
             className="text-4xl sm:text-6xl md:text-7xl font-black text-[#F0F0F0] leading-tight tracking-tight"
           >
-            اكتشف أفضل <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات</span>
+            أفضل <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات في زاج</span>
           </motion.h1>
 
           <motion.p 
@@ -229,7 +229,7 @@ function HomePageContent() {
                 <img 
                   src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
                   alt={c.name} 
-                  className="w-full h-full object-cover grayscale group-hover:grayscale-0 transition-all duration-500" 
+                  className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" 
                 />
               </div>
               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
