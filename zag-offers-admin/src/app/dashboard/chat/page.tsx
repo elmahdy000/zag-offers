@@ -157,13 +157,21 @@ export default function AdminChatPage() {
   useEffect(() => {
     const token = getAdminToken();
     if (!token) return;
-    const s = io(API_URL, { auth: { token }, transports: ['websocket'] });
+    const s = io(API_URL, { 
+      auth: { token }, 
+      transports: ['websocket'],
+      reconnection: true,
+      forceNew: true 
+    });
     socketRef.current = s;
+
     s.on('connect', () => {
+      console.log('Admin Chat Connected! Joining room:', adminId);
       s.emit('join_room', { token, userId: adminId });
     });
 
     s.on('new_message', (msg: ConversationMessage & { conversationId: string }) => {
+      console.log('Admin received new message:', msg);
       if (msg.conversationId === selectedConvId) {
         setMessages(prev => prev.some(m => m.id === msg.id || (m.isOptimistic && m.text === msg.text)) 
           ? prev.map(m => (m.isOptimistic && m.text === msg.text) ? msg : m)

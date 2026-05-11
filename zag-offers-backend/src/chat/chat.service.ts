@@ -70,16 +70,18 @@ export class ChatService {
     // Notify the other participant via EventsGateway
     const otherId = conv.adminId === senderId ? conv.participantId : conv.adminId;
 
-    // 1. Send the actual message to the recipient
+    // 1. Send the actual message to the recipient (Serialized to JSON for safety)
+    const serializedMsg = JSON.parse(JSON.stringify(msg));
+    
     this.eventsGateway.notifyUser(otherId, 'new_message', {
-      ...msg,
+      ...serializedMsg,
       conversationId,
     });
 
     // 2. Notify the recipient to update their conversation list (Sidebar)
     this.eventsGateway.notifyUser(otherId, 'conversation_update', {
       conversationId,
-      lastMessage: msg,
+      lastMessage: serializedMsg,
       updatedAt: new Date().toISOString()
     });
 

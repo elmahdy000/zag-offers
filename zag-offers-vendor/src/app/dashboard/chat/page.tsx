@@ -117,12 +117,26 @@ export default function VendorChatPage() {
     if (!userId) return;
     const token = getCookie('auth_token');
     if (!token) return;
-    const s = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
+    const s = io(SOCKET_URL, { 
+      auth: { token }, 
+      transports: ['websocket'],
+      reconnection: true,
+      reconnectionAttempts: 10,
+      forceNew: true 
+    });
     socketRef.current = s;
+
     s.on('connect', () => {
+      console.log('Chat Socket Connected! Joining room:', userId);
       s.emit('join_room', { token, userId });
     });
+
+    s.on('connect_error', (err) => {
+      console.error('Socket Connection Error:', err.message);
+    });
+
     s.on('new_message', (msg: Message) => {
+      console.log('New real-time message received:', msg);
       setMessages(prev => {
         if (prev.some(m => m.id === msg.id)) return prev;
         const filtered = prev.filter(m => !(m.isOptimistic && m.text === msg.text));

@@ -206,8 +206,10 @@ export class EventsGateway
         throw new Error('Invalid token payload');
       }
 
+      (client as any).user = decoded;
       this.registerConnectedClient(client, decoded);
       void client.join(decoded.sub);
+      this.logger.log(`Client ${client.id} joined personal room: ${decoded.sub}`);
 
       if (decoded.role === 'ADMIN') {
         void client.join('admin_room');
