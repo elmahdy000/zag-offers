@@ -49,14 +49,18 @@ interface Category {
 interface Offer {
   id: string;
   title: string;
-  discount: string; // e.g. "50%"
+  discount: string;
   description: string;
   expiryDate: string;
   endDate: string;
   createdAt: string;
+  images: string[];
   views?: number;
   featured?: boolean;
   store: Store;
+  _count?: {
+    coupons?: number;
+  };
 }
 
 type SortOption = 'newest' | 'expiring' | 'popular' | 'discount';
