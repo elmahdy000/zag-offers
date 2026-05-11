@@ -7,10 +7,6 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { API_URL } from '@/lib/constants';
 
-const AREAS = [
-  'الجامعة', 'القومية', 'وسط البلد', 'المحافظة', 'طلبة عويضة', 'منطقة الفيلات',
-];
-
 import { Offer, Category, SortOption } from '@/lib/types';
 
 const AREAS = [
