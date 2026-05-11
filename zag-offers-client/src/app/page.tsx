@@ -274,7 +274,7 @@ function HomePageContent() {
                 <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
                   <Sparkles size={20} />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-white">عروض ننصحك بها</h2>
+                <h2 className="text-xl sm:text-2xl font-black text-white">عروض مختارة لك</h2>
               </div>
             </div>
             <div className="flex gap-6 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -292,21 +292,22 @@ function HomePageContent() {
       {!activeCat && !search && stores.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 mb-24">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl sm:text-2xl font-black text-white">أبرز شركائنا</h2>
-            <Link href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">تصفح المتاجر</Link>
+            <h2 className="text-xl sm:text-2xl font-black text-white">براندات بنحبها</h2>
+            <Link href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
             {stores.slice(0, 12).map(store => (
               <Link key={store.id} href={`/stores/${store.id}`} className="group">
-                <motion.div 
-                  whileHover={{ y: -5 }}
-                  className="bg-[#252525] border border-white/[0.05] rounded-3xl p-4 sm:p-6 text-center space-y-3 hover:border-[#FF6B00]/40 transition-all shadow-xl"
-                >
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto bg-[#1A1A1A] rounded-2xl border border-white/5 overflow-hidden shadow-inner flex items-center justify-center">
-                    <img src={resolveImageUrl(store.logo)} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt={store.name} />
+                <div className="bg-[#252525] border border-white/5 rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
+                    {store.logo ? (
+                      <img src={resolveImageUrl(store.logo)} alt={store.name} className="w-full h-full object-contain" />
+                    ) : (
+                      <StoreIcon className="text-white/20" size={24} />
+                    )}
                   </div>
-                  <h3 className="text-[10px] sm:text-xs font-black text-[#F0F0F0] truncate">{store.name}</h3>
-                </motion.div>
+                  <span className="text-[10px] sm:text-xs font-black text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
+                </div>
               </Link>
             ))}
           </div>
