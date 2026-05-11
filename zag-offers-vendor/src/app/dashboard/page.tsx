@@ -27,9 +27,9 @@ const StatCard = ({ card, index }: { card: any, index: number }) => (
 );
 
 export default function MerchantDashboard() {
-  const { data: stats, isLoading: statsLoading, refetch } = useVendorStats();
+  const { data: stats, isLoading: statsLoading, refetch: refetchStats } = useVendorStats();
+  const { data: offers, isLoading: offersLoading, refetch: refetchOffers } = useVendorOffers();
   const [cachedStats, setCachedStats] = useState<any>(null);
-  const [recentOffers, setRecentOffers] = useState<any[]>([]);
   const [notification, setNotification] = useState<{ title: string; body: string } | null>(null);
 
   const vendorUser = useMemo(() => {
@@ -40,44 +40,40 @@ export default function MerchantDashboard() {
   const merchantId = vendorUser?.id ?? '';
   const storeName = stats?.storeName ?? vendorUser?.name ?? 'متجرك';
 
-  // تحسين: الاعتماد على React Query وإدارة الكاش بشكل أنظف
+  // تحسين: إدارة الكاش للإحصائيات
   useEffect(() => {
-    // تحديث الكاش عند نجاح جلب الإحصائيات من السيرفر
     if (stats) {
       localStorage.setItem('cache_vendor_stats', JSON.stringify(stats));
       setCachedStats(stats);
-      
-      // تحديث العروض الأخيرة من الإحصائيات (إذا كانت موجودة)
-      if (stats.recentCoupons) {
-        // يمكننا جلب العروض من مكان آخر أو الاعتماد على useVendorOffers
-      }
+    } else {
+      const cached = localStorage.getItem('cache_vendor_stats');
+      if (cached) setCachedStats(JSON.parse(cached));
     }
   }, [stats]);
 
-  // جلب العروض بشكل منفصل باستخدام Hook مخصص إذا لزم الأمر أو يدوياً مرة واحدة
-  useEffect(() => {
-    const fetchOffers = async () => {
-      const offersKey = 'cache_vendor_dashboard_recent';
-      try {
-        const r = await vendorApi().get('/offers/my-offers');
-        const arr = Array.isArray(r.data) ? r.data : r.data?.items ?? [];
-        const top3 = arr.slice(0, 3);
-        setRecentOffers(top3);
-        localStorage.setItem(offersKey, JSON.stringify(top3));
-      } catch (e) {
-        const cached = localStorage.getItem(offersKey);
-        if (cached) setRecentOffers(JSON.parse(cached));
+  // استخراج آخر 3 عروض من قائمة العروض الكلية
+  const recentOffers = useMemo(() => {
+    if (!offers) {
+      const cached = localStorage.getItem('cache_vendor_offers_list');
+      if (cached) {
+        const arr = JSON.parse(cached);
+        return Array.isArray(arr) ? arr.slice(0, 3) : [];
       }
-    };
-    fetchOffers();
+      return [];
+    }
+    const arr = Array.isArray(offers) ? offers : [];
+    return arr.slice(0, 3);
+  }, [offers]);
 
+  // تحديث البيانات عند عودة الاتصال
+  useEffect(() => {
     const handleOnline = () => {
-      fetchOffers();
-      refetch();
+      refetchStats();
+      refetchOffers();
     };
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [refetch]);
+  }, [refetchStats, refetchOffers]);
 
   const socketRef = useSocket(merchantId);
 
@@ -89,7 +85,7 @@ export default function MerchantDashboard() {
       let body = '';
       if (data.type === 'COUPON_GENERATED') { 
         title = 'كوبون جديد 🎫'; body = `عميل طلب كوبون لـ "${data.offerTitle}"`; 
-        refetch(); // تحديث الإحصائيات فوراً
+        refetchStats(); // تحديث الإحصائيات فوراً
       } else if (data.type === 'OFFER_APPROVED') { title = 'تمت الموافقة ✅'; body = `عرض "${data.offerTitle}" نشط الآن`; }
       else if (data.type === 'OFFER_REJECTED') { title = 'تم الرفض ❌'; body = `عرض "${data.offerTitle}" تم رفضه`; }
       
@@ -98,7 +94,7 @@ export default function MerchantDashboard() {
     };
     socket.on('merchant_notification', handleNotify);
     return () => { socket.off('merchant_notification', handleNotify); };
-  }, [socketRef, refetch]);
+  }, [socketRef, refetchStats]);
 
   const displayStats = stats || cachedStats;
 
