@@ -4,10 +4,10 @@ import { useState, useEffect, useRef } from 'react';
 import { Send, MessageSquare, CheckCheck, Loader2, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import { getCookie } from '@/lib/api';
+import { vendorApi, getCookie } from '@/lib/api';
 import { io, Socket } from 'socket.io-client';
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
+const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
 interface Message {
   id: string;
@@ -15,17 +15,20 @@ interface Message {
   senderId: string;
   createdAt: string;
   isRead: boolean;
+  conversationId?: string;
 }
 
 interface Conversation {
   id: string;
   adminId: string;
+  participantId: string;
   messages: Message[];
   lastMessageAt: string;
 }
 
 function getUserId(): string {
   try {
+    if (typeof localStorage === 'undefined') return '';
     return JSON.parse(localStorage.getItem('vendor_user') || '{}').id || '';
   } catch { return ''; }
 }
@@ -41,61 +44,73 @@ export default function VendorChatPage() {
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
   const [sending, setSending] = useState(false);
+  const [error, setError] = useState('');
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const userId = getUserId();
-  const token = getCookie('auth_token') || '';
+  const [userId, setUserId] = useState('');
+
+  // Read userId client-side only
+  useEffect(() => {
+    setUserId(getUserId());
+  }, []);
 
   /* ── Load or start conversation ── */
   useEffect(() => {
+    if (!userId) return;
+
     async function init() {
       setLoading(true);
+      setError('');
       try {
+        const api = vendorApi();
+
         // Get existing conversations
-        const res = await fetch(`${API_URL}/api/chat/conversations`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        const convs: Conversation[] = res.ok ? await res.json() : [];
+        const res = await api.get<Conversation[]>('/chat/conversations');
+        const convs = Array.isArray(res.data) ? res.data : [];
         let conv = convs[0] || null;
 
-        // If no conversation, start one
+        // If no conversation, start one with the admin
         if (!conv) {
-          const startRes = await fetch(`${API_URL}/api/chat/start`, {
-            method: 'POST',
-            headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ participantId: userId, type: 'MERCHANT_SUPPORT' })
+          const startRes = await api.post<Conversation>('/chat/start', {
+            participantId: userId,
+            type: 'MERCHANT_SUPPORT',
           });
-          if (startRes.ok) conv = await startRes.json();
+          conv = startRes.data;
         }
 
         setConversation(conv);
 
-        if (conv) {
-          const msgRes = await fetch(`${API_URL}/api/chat/messages/${conv.id}`, {
-            headers: { Authorization: `Bearer ${token}` }
-          });
-          if (msgRes.ok) setMessages(await msgRes.json());
+        if (conv?.id) {
+          const msgRes = await api.get<Message[]>(`/chat/messages/${conv.id}`);
+          setMessages(Array.isArray(msgRes.data) ? msgRes.data : []);
         }
-      } catch { /* silent */ } finally {
+      } catch (err) {
+        console.error('Chat init error:', err);
+        setError('تعذر تحميل المحادثة، تأكد من اتصالك بالإنترنت');
+      } finally {
         setLoading(false);
       }
     }
-    if (token && userId) init();
-  }, [token, userId]);
+
+    init();
+  }, [userId]);
 
   /* ── WebSocket ── */
   useEffect(() => {
-    if (!token || !userId) return;
-    const s = io(API_URL, { auth: { token }, transports: ['websocket'] });
+    if (!userId) return;
+    const token = getCookie('auth_token');
+    if (!token) return;
+
+    const s = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
     socketRef.current = s;
     s.emit('join', userId);
-    s.on('new_message', (msg: Message & { conversationId: string }) => {
-      if (msg.conversationId === conversation?.id) {
+    s.on('new_message', (msg: Message) => {
+      if (!conversation || msg.conversationId === conversation.id) {
         setMessages(prev => [...prev, msg]);
       }
     });
     return () => { s.disconnect(); };
-  }, [token, userId, conversation?.id]);
+  }, [userId, conversation?.id]);
 
   /* ── Auto scroll ── */
   useEffect(() => {
@@ -105,20 +120,49 @@ export default function VendorChatPage() {
   /* ── Send ── */
   async function handleSend() {
     const t = text.trim();
-    if (!t || !conversation || sending) return;
+    if (!t || sending) return;
+
+    // Optimistically update UI
+    const optimistic: Message = {
+      id: `tmp-${Date.now()}`,
+      text: t,
+      senderId: userId,
+      createdAt: new Date().toISOString(),
+      isRead: false,
+    };
+
     setSending(true);
     setText('');
+    setMessages(prev => [...prev, optimistic]);
+
     try {
-      const res = await fetch(`${API_URL}/api/chat/send`, {
-        method: 'POST',
-        headers: { Authorization: `Bearer ${token}`, 'Content-Type': 'application/json' },
-        body: JSON.stringify({ conversationId: conversation.id, text: t })
-      });
-      if (res.ok) {
-        const msg = await res.json();
-        setMessages(prev => [...prev, msg]);
+      let convId = conversation?.id;
+
+      // Create conversation on-the-fly if still null
+      if (!convId) {
+        const api = vendorApi();
+        const startRes = await api.post<Conversation>('/chat/start', {
+          participantId: userId,
+          type: 'MERCHANT_SUPPORT',
+        });
+        const newConv = startRes.data;
+        setConversation(newConv);
+        convId = newConv.id;
       }
-    } catch { /* silent */ } finally {
+
+      const api = vendorApi();
+      const res = await api.post<Message>('/chat/send', {
+        conversationId: convId,
+        text: t,
+      });
+
+      // Replace optimistic with real message
+      setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data : m));
+    } catch {
+      // Remove optimistic message on failure
+      setMessages(prev => prev.filter(m => m.id !== optimistic.id));
+      setText(t); // Restore text
+    } finally {
       setSending(false);
     }
   }
@@ -129,7 +173,7 @@ export default function VendorChatPage() {
       <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
 
       {/* Header */}
-      <div className="relative px-5 pt-5 pb-3 flex items-center gap-4 z-10 border-b border-white/5 bg-bg/80 backdrop-blur-xl">
+      <div className="relative px-5 pt-5 pb-3 flex items-center gap-4 z-10 border-b border-white/5 bg-bg/80 backdrop-blur-xl shrink-0">
         <button
           onClick={() => router.back()}
           className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5"
@@ -156,6 +200,17 @@ export default function VendorChatPage() {
           <div className="flex justify-center pt-20">
             <Loader2 className="animate-spin text-primary" size={32} />
           </div>
+        ) : error ? (
+          <div className="flex flex-col items-center justify-center pt-20 gap-4 text-center px-6">
+            <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center">
+              <MessageSquare size={24} className="text-red-400" />
+            </div>
+            <p className="text-red-400 text-sm font-bold">{error}</p>
+            <button onClick={() => { setError(''); setLoading(true); setUserId(getUserId()); }}
+              className="text-primary text-[12px] font-black border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/10 transition-all">
+              إعادة المحاولة
+            </button>
+          </div>
         ) : (
           <>
             {/* Welcome note */}
@@ -173,22 +228,22 @@ export default function VendorChatPage() {
               </div>
             )}
 
-            <AnimatePresence>
+            <AnimatePresence initial={false}>
               {messages.map(msg => {
                 const isMe = msg.senderId === userId;
                 return (
                   <motion.div
                     key={msg.id}
-                    initial={{ opacity: 0, y: 10 }}
+                    initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
                     className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
                   >
-                    <div className={`max-w-[75%] ${isMe ? 'items-end' : 'items-start'} flex flex-col gap-1`}>
+                    <div className={`max-w-[75%] flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
                       <div className={`px-4 py-3 rounded-2xl text-sm font-medium shadow-sm ${
                         isMe
                           ? 'bg-primary text-white rounded-bl-md shadow-primary/20'
                           : 'bg-white/[0.06] border border-white/10 text-text rounded-br-md'
-                      }`}>
+                      } ${msg.id.startsWith('tmp-') ? 'opacity-60' : ''}`}>
                         {msg.text}
                       </div>
                       <div className={`flex items-center gap-1 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
@@ -205,7 +260,7 @@ export default function VendorChatPage() {
       </div>
 
       {/* Input */}
-      <div className="px-4 py-4 bg-bg/80 backdrop-blur-xl border-t border-white/5">
+      <div className="px-4 py-4 bg-bg/80 backdrop-blur-xl border-t border-white/5 shrink-0">
         <div className="flex items-end gap-3">
           <textarea
             rows={1}
@@ -217,7 +272,7 @@ export default function VendorChatPage() {
           />
           <button
             onClick={handleSend}
-            disabled={!text.trim() || sending || !conversation}
+            disabled={!text.trim() || sending}
             className="h-11 w-11 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/30 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
           >
             {sending

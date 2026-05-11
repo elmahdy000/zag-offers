@@ -1,7 +1,7 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { createPortal } from 'react-dom';
-import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, MessageSquare } from 'lucide-react';
+import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, MessageSquare, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { getCookie, deleteCookie } from '@/lib/api';
@@ -248,6 +248,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     { name: 'مسح الكود', icon: Scan, href: '/dashboard/scan' },
     { name: 'ملف المتجر', icon: Store, href: '/dashboard/profile' },
     { name: 'دعم ومساعدة', icon: MessageSquare, href: '/dashboard/chat' },
+    { name: 'الإعدادات', icon: Settings, href: '/dashboard/settings' },
   ];
 
   return (
