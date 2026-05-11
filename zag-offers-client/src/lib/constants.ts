@@ -20,6 +20,19 @@ export const CAT_ASSETS: Record<string, string> = {
   'default':       '/categories/food.png',
 };
 
+export const ZAGAZIG_AREAS = [
+  'الكل',
+  'القومية',
+  'الفلل',
+  'الجامعة',
+  'طلبة عويضة',
+  'وسط البلد',
+  'المشاية',
+  'حي الزهور',
+  'السلام',
+  'الحكماء'
+];
+
 export const DISPLAY_NAMES: Record<string, string> = {
   'مطاعم': 'دلع كرشك',
   'كافيهات': 'روقان',

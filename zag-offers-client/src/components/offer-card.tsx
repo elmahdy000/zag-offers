@@ -252,13 +252,13 @@ export function OfferCard({ offer }: OfferCardProps) {
 
         {/* Meta */}
         <div className="mt-auto pt-2.5 border-t border-white/[0.05] flex items-center justify-between gap-1">
-          <div className="flex items-center gap-1 text-[#9A9A9A]">
+          <div className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-lg border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
             <MapPin size={10} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-[10px] font-bold truncate max-w-[80px]">
-              {offer.store?.area || '—'}
+            <span className="text-[10px] font-black text-[#9A9A9A] truncate max-w-[80px] group-hover:text-white transition-colors">
+              {offer.store?.area || 'الزقازيق'}
             </span>
           </div>
-          <span className={`text-[10px] font-bold ${expiryColor}`}>{expiryText}</span>
+          <span className={`text-[10px] font-black ${expiryColor}`}>{expiryText}</span>
         </div>
 
         {/* CTA */}

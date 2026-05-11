@@ -32,7 +32,7 @@ function useAnalytics() {
 }
 
 import { Offer, Category, Store, SortOption } from '@/lib/types';
-import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
+import { API_URL, CAT_ASSETS, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
@@ -52,6 +52,7 @@ function HomePageContent() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(catIdParam || '');
+  const [activeArea, setActiveArea] = useState('');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const debouncedSearch = useDebounce(search, 400);
@@ -107,6 +108,10 @@ function HomePageContent() {
 
     if (activeCat) {
       result = result.filter(o => o.store.categoryId === activeCat || o.store.category?.id === activeCat);
+    }
+
+    if (activeArea) {
+      result = result.filter(o => o.store.area === activeArea);
     }
 
     if (debouncedSearch) {
@@ -211,65 +216,93 @@ function HomePageContent() {
         </div>
       </section>
 
-      {/* ─── Categories Bento/Ribbon ──────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 mb-20">
-        <div className="flex items-center justify-between mb-8">
-          <div className="flex items-center gap-3">
-            <div className="w-1.5 h-6 bg-[#FF6B00] rounded-full" />
-            <h2 className="text-xl sm:text-2xl font-black text-white">الأقسام</h2>
-          </div>
+      {/* ─── Categories & Areas Filter ──────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 mb-16">
+        <div className="flex flex-col gap-8">
           
-          <div className="flex items-center gap-4">
-            <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs font-black text-[#9A9A9A] hover:text-white transition-all">
-              <ArrowUpDown size={14} className="text-[#FF6B00]" />
-              <span>ترتيب حسب: الأحدث</span>
-            </button>
-          </div>
-        </div>
-
-        <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
-          <button 
-            onClick={() => setActiveCat('')}
-            className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
-              ${!activeCat 
-                ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
-                : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
-          >
-            <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-              <span className={`text-sm sm:text-base font-black tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
-              {!activeCat && <div className="absolute bottom-6 w-1 h-1 bg-[#FF6B00] rounded-full" />}
+          {/* Categories Row */}
+          <div className="space-y-6">
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-3">
+                <div className="w-1.5 h-6 bg-[#FF6B00] rounded-full" />
+                <h2 className="text-xl sm:text-2xl font-black text-white">الأقسام</h2>
+              </div>
+              <div className="flex items-center gap-4">
+                <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs font-black text-[#9A9A9A] hover:text-white transition-all">
+                  <ArrowUpDown size={14} className="text-[#FF6B00]" />
+                  <span>ترتيب حسب: الأحدث</span>
+                </button>
+              </div>
             </div>
-          </button>
 
-          {categories.map((c, idx) => (
-            <motion.button 
-              key={c.id}
-              initial={{ opacity: 0, x: 20 }}
-              animate={{ opacity: 1, x: 0 }}
-              transition={{ delay: 0.1 + idx * 0.05 }}
-              onClick={() => setActiveCat(c.id)}
-              className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
-                ${activeCat === c.id 
-                  ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
-                  : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
-            >
-              <div className="absolute inset-0 bg-[#151515]">
-                <img 
-                  src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
-                  alt={c.name} 
-                  className={`w-full h-full object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
-                />
-              </div>
-              <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
-              
-              <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 z-20">
-                <span className={`text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
-                  {getCatName(c.name)}
-                </span>
-                {activeCat === c.id && <div className="absolute bottom-2.5 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />}
-              </div>
-            </motion.button>
-          ))}
+            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+              <button 
+                onClick={() => setActiveCat('')}
+                className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+                  ${!activeCat 
+                    ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
+                    : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
+              >
+                <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+                  <span className={`text-sm sm:text-base font-black tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
+                  {!activeCat && <div className="absolute bottom-6 w-1 h-1 bg-[#FF6B00] rounded-full" />}
+                </div>
+              </button>
+
+              {categories.map((c, idx) => (
+                <motion.button 
+                  key={c.id}
+                  initial={{ opacity: 0, x: 20 }}
+                  animate={{ opacity: 1, x: 0 }}
+                  transition={{ delay: 0.1 + idx * 0.05 }}
+                  onClick={() => setActiveCat(c.id)}
+                  className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+                    ${activeCat === c.id 
+                      ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
+                      : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
+                >
+                  <div className="absolute inset-0 bg-[#151515]">
+                    <img 
+                      src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
+                      alt={c.name} 
+                      className={`w-full h-full object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
+                    />
+                  </div>
+                  <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
+                  
+                  <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 z-20">
+                    <span className={`text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
+                      {getCatName(c.name)}
+                    </span>
+                    {activeCat === c.id && <div className="absolute bottom-2.5 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />}
+                  </div>
+                </motion.button>
+              ))}
+            </div>
+          </div>
+
+          {/* Areas Row */}
+          <div className="space-y-4">
+            <div className="flex items-center gap-2 text-[#9A9A9A] mb-2 mr-1">
+              <MapPin size={16} className="text-[#FF6B00]" />
+              <span className="text-sm font-black">اختر منطقتك بالزقازيق:</span>
+            </div>
+            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
+              {ZAGAZIG_AREAS.map((area) => (
+                <button
+                  key={area}
+                  onClick={() => setActiveArea(area === 'الكل' ? '' : area)}
+                  className={`flex-shrink-0 px-5 py-2.5 rounded-2xl text-xs font-black transition-all border
+                    ${(area === 'الكل' && !activeArea) || activeArea === area
+                      ? 'bg-[#FF6B00] text-white border-[#FF6B00] shadow-[0_4px_15px_rgba(255,107,0,0.3)] scale-105'
+                      : 'bg-white/5 text-[#9A9A9A] border-white/5 hover:bg-white/10'}`}
+                >
+                  {area}
+                </button>
+              ))}
+            </div>
+          </div>
+
         </div>
       </section>
 
