@@ -179,7 +179,7 @@ function useActivityLogs() {
 
   const addLog = useCallback((action: string, target: string, targetType: 'store' | 'offer' | 'user', details?: string) => {
     const newLog: ActivityLog = {
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
       action,
       target,
       targetType,
@@ -218,7 +218,7 @@ function useRealTimeNotifications(onNotification?: (n: Notification) => void) {
       const types: Notification['type'][] = ['store_pending', 'offer_pending', 'user_registered'];
       const type = types[Math.floor(Math.random() * types.length)];
       const newNotification: Notification = {
-        id: crypto.randomUUID(),
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
         type,
         title: type === 'store_pending' ? 'متجر جديد' : type === 'offer_pending' ? 'عرض جديد' : 'مستخدم جديد',
         message: type === 'store_pending' ? 'تم تسجيل متجر جديد بانتظار الموافقة' : type === 'offer_pending' ? 'تم إضافة عرض جديد بانتظار المراجعة' : 'مستخدم جديد سجل في المنصة',

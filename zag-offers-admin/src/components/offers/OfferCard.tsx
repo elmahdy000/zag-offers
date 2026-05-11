@@ -63,7 +63,7 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
             <span className="text-[14px] font-black text-orange-600">{offer.discount}</span>
             <span className="text-[10px] font-bold text-slate-400 truncate flex items-center gap-1">
               <Store size={10} className="opacity-50" />
-              {offer.store.name}
+              {offer.store?.name || 'متجر غير معروف'}
             </span>
           </div>
         </div>
@@ -73,13 +73,13 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
              <Zap size={12} className="text-amber-500" />
-             <span className="text-[11px] font-black text-slate-900">{offer._count.coupons}</span>
+             <span className="text-[11px] font-black text-slate-900">{offer._count?.coupons ?? 0}</span>
              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">كوبون</span>
           </div>
           <div className="w-px h-3 bg-slate-100" />
           <div className="flex items-center gap-1.5 text-slate-400">
              <Clock size={11} />
-             <span className="text-[9px] font-bold">{new Date(offer.createdAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' })}</span>
+             <span className="text-[9px] font-bold">{offer.createdAt ? new Date(offer.createdAt).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short' }) : '---'}</span>
           </div>
         </div>
 

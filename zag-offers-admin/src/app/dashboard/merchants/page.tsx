@@ -311,6 +311,10 @@ export default function MerchantsPage() {
                         <input name="area" defaultValue={merchantDetails?.area} className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:outline-none" />
                       </div>
                       <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">رقم الواتساب</label>
+                        <input name="whatsapp" defaultValue={merchantDetails?.whatsapp} placeholder="01xxxxxxxxx" className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all" />
+                      </div>
+                      <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">الحالة</label>
                         <select name="status" defaultValue={merchantDetails?.status} className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:outline-none">
                           <option value="APPROVED">نشط</option>

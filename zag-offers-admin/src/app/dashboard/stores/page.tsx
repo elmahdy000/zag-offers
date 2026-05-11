@@ -317,7 +317,7 @@ export default function StoresPage() {
             >
               <div className="flex items-start justify-between mb-4">
                 <div className="h-14 w-14 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-black text-xl border border-orange-100">
-                  {store.name[0]}
+                  {store.name?.[0] || 'S'}
                 </div>
                 <span className={`text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider ${
                   store.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-600' :
@@ -399,7 +399,7 @@ export default function StoresPage() {
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
                   <div className="h-16 w-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 font-black text-xl border border-orange-100">
-                    {storeDetails.name[0]}
+                    {storeDetails.name?.[0] || 'S'}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">{storeDetails.name}</h3>

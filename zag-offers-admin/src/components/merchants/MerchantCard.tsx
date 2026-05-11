@@ -63,7 +63,7 @@ export function MerchantCard({ merchant, onView, onEdit, index }: MerchantCardPr
 
       <div className="mt-5 flex items-center justify-between border-t border-slate-50 pt-4">
         <p className="text-[11px] font-semibold text-slate-400 truncate max-w-[120px]">
-          {merchant.owner.name}
+          {merchant.owner?.name || 'مالك غير معروف'}
         </p>
         <div className="flex gap-2">
           <button

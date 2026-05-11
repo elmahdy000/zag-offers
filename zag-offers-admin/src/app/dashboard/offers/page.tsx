@@ -114,6 +114,9 @@ export default function OffersManagementPage() {
       return response.data;
     },
     enabled: !!selectedOfferId,
+    onSuccess: (data) => {
+      if (isEditing) setTempImages(data.images || []);
+    }
   });
 
   const { data: storesData } = useQuery({
@@ -249,7 +252,7 @@ export default function OffersManagementPage() {
               key={offer.id} 
               offer={offer} 
               index={idx}
-              onView={(id) => setSelectedOfferId(id)}
+              onView={(id) => { setSelectedOfferId(id); setIsEditing(false); }}
               onEdit={(id) => { setSelectedOfferId(id); setIsEditing(true); }}
             />
           ))}
@@ -290,7 +293,7 @@ export default function OffersManagementPage() {
                   </div>
 
                   {isEditing ? (
-                    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); updateOfferMutation.mutate({ id: offerDetails!.id, data: Object.fromEntries(fd.entries()) }); }} className="space-y-4">
+                    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); updateOfferMutation.mutate({ id: offerDetails!.id, data: { ...Object.fromEntries(fd.entries()), images: tempImages } }); }} className="space-y-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">العنوان</label>
@@ -321,6 +324,29 @@ export default function OffersManagementPage() {
                           {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
                       </div>
+
+                      <div className="space-y-4">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">صور العرض</label>
+                        <div className="grid grid-cols-4 gap-4">
+                          {tempImages.map((img, i) => (
+                            <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                              <img src={resolveImageUrl(img)} className="h-full w-full object-cover" />
+                              <button type="button" onClick={() => setTempImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><X size={14} /></button>
+                            </div>
+                          ))}
+                          {tempImages.length < 5 && (
+                            <label className="aspect-square rounded-xl border-2 border-dashed border-slate-200 flex flex-col items-center justify-center gap-2 cursor-pointer hover:bg-slate-50 transition-all text-slate-400 hover:text-orange-600 hover:border-orange-300">
+                              {uploading ? <Loader2 className="animate-spin" size={24} /> : (
+                                <>
+                                  <Upload size={24} />
+                                  <span className="text-[10px] font-bold">رفع صورة</span>
+                                  <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => e.target.files && uploadImages(e.target.files)} />
+                                </>
+                              )}
+                            </label>
+                          )}
+                        </div>
+                      </div>
                       <div className="flex gap-4 pt-2">
                         <button type="submit" disabled={updateOfferMutation.isPending} className="flex-1 h-12 rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-orange-600 transition-all shadow-lg">{updateOfferMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'حفظ التعديلات'}</button>
                         <button type="button" onClick={() => setIsEditing(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
@@ -330,9 +356,22 @@ export default function OffersManagementPage() {
                     <div className="space-y-8">
                       <div className="grid grid-cols-3 gap-4">
                          <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100 text-center"><Users size={18} className="mx-auto mb-2 text-orange-600" /><p className="text-xl font-bold text-orange-600">{offerDetails?._count.coupons || 0}</p></div>
-                         <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 text-center"><TrendingUp size={18} className="mx-auto mb-2 text-blue-600" /><p className="text-xl font-bold text-blue-600">1.2k</p></div>
-                         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-center"><Zap size={18} className="mx-auto mb-2 text-emerald-600" /><p className="text-xl font-bold text-emerald-600">12%</p></div>
+                         <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 text-center"><TrendingUp size={18} className="mx-auto mb-2 text-blue-600" /><p className="text-xl font-bold text-blue-600">{offerDetails?._count.favorites || 0}</p></div>
+                         <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-center"><Zap size={18} className="mx-auto mb-2 text-emerald-600" /><p className="text-xl font-bold text-emerald-600">{offerDetails?._count.reviews || 0}</p></div>
                       </div>
+
+                      {offerDetails?.images && offerDetails.images.length > 0 && (
+                        <div className="space-y-4">
+                          <h4 className="text-xs font-bold text-slate-400 uppercase tracking-widest border-b border-slate-50 pb-2">معرض الصور</h4>
+                          <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
+                            {offerDetails.images.map((img, i) => (
+                              <div key={i} className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
+                                <img src={resolveImageUrl(img)} className="h-full w-full object-cover hover:scale-110 transition-transform duration-500" />
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                      )}
                       <div className="flex gap-4 pt-6 border-t border-slate-100">
                         <button onClick={() => setIsEditing(true)} className="flex-1 h-12 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-all border border-slate-200">تعديل البيانات</button>
                         <button onClick={() => setDeleteModal({ id: offerDetails!.id, title: offerDetails!.title })} className="h-12 w-12 flex items-center justify-center rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10"><Trash2 size={20} /></button>

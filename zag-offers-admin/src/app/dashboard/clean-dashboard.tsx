@@ -162,7 +162,7 @@ function useActivityLogs() {
 
   const addLog = useCallback((action: string, target: string, targetType: 'store' | 'offer' | 'user', details?: string) => {
     const newLog: ActivityLog = {
-      id: crypto.randomUUID(),
+      id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
       action,
       target,
       targetType,
@@ -226,7 +226,7 @@ function useRealTimeNotifications(onNotification?: (n: Notification) => void) {
       };
       
       const newNotification: Notification = {
-        id: crypto.randomUUID(),
+        id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
         type,
         title: titles[type],
         message: messages[type],
