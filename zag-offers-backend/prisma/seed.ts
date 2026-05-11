@@ -77,8 +77,7 @@ async function main() {
     'أدوات منزلية',
     'مناسبات',
     'حلويات',
-    'خدمات محلية',
-    'سوبرماركت'
+    'حلاقين'
   ];
 
   const catMap: Record<string, string> = {};

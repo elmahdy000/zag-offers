@@ -19,8 +19,17 @@ export default function CategoriesPage() {
         const res = await fetch(`${API_URL}/stores/categories`);
         if (res.ok) {
           const data = await res.json();
-          // Filter out clinics
-          setCategories(data.filter((c: Category) => c.name !== 'عيادات'));
+          // Filter out clinics and duplicates by display name
+          const seenNames = new Set<string>();
+          const uniqueCats = data
+            .filter((c: Category) => c.name !== 'عيادات')
+            .filter((c: Category) => {
+              const dispName = getCatName(c.name);
+              if (seenNames.has(dispName)) return false;
+              seenNames.add(dispName);
+              return true;
+            });
+          setCategories(uniqueCats);
         }
       } catch (e) { console.error(e); }
       finally { setLoading(false); }

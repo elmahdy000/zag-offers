@@ -72,11 +72,19 @@ function HomePageContent() {
         oRes.json(), cRes.json(), sRes.json(), rRes.json()
       ]);
 
-      // Filter out clinics
-      const filteredCats = cData.filter((c: Category) => c.name !== 'عيادات');
+      // Filter out clinics and duplicates by display name
+      const seenNames = new Set<string>();
+      const uniqueCats = cData
+        .filter((c: Category) => c.name !== 'عيادات')
+        .filter((c: Category) => {
+          const dispName = getCatName(c.name);
+          if (seenNames.has(dispName)) return false;
+          seenNames.add(dispName);
+          return true;
+        });
 
       setOffers(oData);
-      setCategories(filteredCats);
+      setCategories(uniqueCats);
       setStores(sData);
       setRecommended(rData);
     } catch (e) {
