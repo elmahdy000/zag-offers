@@ -267,21 +267,35 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         <div className="glass h-full flex flex-col rounded-none lg:rounded-[2.5rem] border-l lg:border border-white/5 bg-bg/95 lg:bg-white/[0.02] overflow-hidden inner-shadow">
           
           {/* Header */}
-          <div className="p-8 pb-6 flex items-center justify-between">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-2xl shadow-primary/40 group cursor-pointer transition-all hover:scale-110 active:scale-95">
-                <span className="text-white font-black text-xl italic tracking-tighter">Z</span>
+          <div className="p-5 pb-4 flex items-center justify-between border-b border-white/5">
+            <div className="flex items-center gap-3">
+              <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/40">
+                <span className="text-white font-black text-base italic tracking-tighter">Z</span>
               </div>
               <div className="flex flex-col">
-                <span className="text-white font-black text-sm tracking-tight leading-none mb-1">زاچ أوفرز</span>
-                <span className="text-primary font-bold text-[10px] uppercase tracking-widest opacity-80">لوحة التاجر</span>
+                <span className="text-white font-black text-sm tracking-tight leading-none">زاچ أوفرز</span>
+                <span className="text-primary font-bold text-[9px] uppercase tracking-widest opacity-70">لوحة التاجر</span>
               </div>
             </div>
-            {onClose && (
-              <button onClick={onClose} className="lg:hidden w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-dim hover:text-white transition-all border border-white/5">
-                 <X size={20} />
+            <div className="flex items-center gap-2">
+              {/* Bell always visible */}
+              <button
+                onClick={() => setShowBell(!showBell)}
+                className="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all"
+              >
+                <Bell size={18} />
+                {unreadCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[18px] h-[18px] bg-primary text-white text-[9px] font-black rounded-full flex items-center justify-center px-1 shadow-lg shadow-primary/50">
+                    {unreadCount > 9 ? '9+' : unreadCount}
+                  </span>
+                )}
               </button>
-            )}
+              {onClose && (
+                <button onClick={onClose} className="lg:hidden w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-dim hover:text-white transition-all border border-white/5">
+                  <X size={18} />
+                </button>
+              )}
+            </div>
           </div>
 
           {/* Navigation */}
@@ -317,40 +331,15 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
             })}
           </nav>
 
-          {/* User Profile Section */}
-          <div className="p-4 mt-auto">
-            <div className="bg-white/5 lg:bg-transparent rounded-3xl p-2 lg:p-0">
-               <button 
-                 onClick={() => setShowBell(!showBell)}
-                 className="w-full flex items-center justify-between p-4 mb-2 rounded-2xl hover:bg-white/5 transition-all text-text-dim group"
-               >
-                  <div className="flex items-center gap-4">
-                     <div className="relative">
-                        <Bell size={20} className="group-hover:text-primary transition-colors" />
-                        {unreadCount > 0 && (
-                          <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-secondary rounded-full border-2 border-bg" />
-                        )}
-                     </div>
-                     <span className="text-[13px] font-black tracking-tight">التنبيهات</span>
-                  </div>
-                  <div className="flex items-center gap-2">
-                     {unreadCount > 0 && <span className="text-[10px] font-black text-primary">{unreadCount}</span>}
-                     <X size={16} className="opacity-30" />
-                  </div>
-               </button>
-
-               <div className="h-px bg-white/5 mx-4 mb-2" />
-
-               <button 
-                 onClick={handleLogout}
-                 className="w-full flex items-center justify-between p-4 rounded-2xl hover:bg-red-500/10 transition-all text-red-500/60 hover:text-red-500 group"
-               >
-                  <div className="flex items-center gap-4">
-                     <LogOut size={20} />
-                     <span className="text-[13px] font-black tracking-tight">تسجيل الخروج</span>
-                  </div>
-               </button>
-            </div>
+          {/* Footer — Logout */}
+          <div className="p-4 border-t border-white/5">
+            <button
+              onClick={handleLogout}
+              className="w-full flex items-center gap-3 p-3.5 rounded-2xl hover:bg-red-500/10 transition-all text-red-500/50 hover:text-red-500 group"
+            >
+              <LogOut size={18} />
+              <span className="text-[13px] font-black tracking-tight">تسجيل الخروج</span>
+            </button>
           </div>
         </div>
       </aside>
