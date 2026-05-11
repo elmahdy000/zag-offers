@@ -48,7 +48,7 @@ function getNotifRoute(n: Notification): string {
     case 'COUPON_REDEEMED':
     case 'COUPON_UPDATE':
     case 'COUPON_GENERATED':
-      return '/profile/coupons';
+      return '/coupons';
     default:
       return '/';
   }

@@ -490,7 +490,7 @@ export default function OfferDetailsPage() {
                       💡 يمكنك العثور على <span className="text-white">الـ QR Code</span> الخاص بهذا العرض في صفحة كوبوناتي لإظهاره للتاجر.
                     </p>
                     <Link 
-                      href="/profile/coupons" 
+                      href="/coupons" 
                       className="inline-flex items-center gap-2 text-xs font-black text-white bg-black/20 px-4 py-2 rounded-xl hover:bg-black/40 transition-all"
                     >
                       <Ticket size={14} /> الذهاب إلى كوبوناتي

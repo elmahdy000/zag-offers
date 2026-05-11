@@ -40,7 +40,7 @@ function getNotifRoute(n: ClientNotification): string {
     case 'STORE_APPROVED':
       return d.storeId ? `/stores/${d.storeId}` : '/stores';
     case 'COUPON_REDEEMED':
-      return '/profile/coupons';
+      return '/coupons';
     default:
       return '/';
   }

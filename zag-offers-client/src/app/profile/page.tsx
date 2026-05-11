@@ -65,7 +65,7 @@ export default function ProfilePage() {
         <div className="space-y-4">
           <h3 className="text-lg font-black mr-2 mb-4">الوصول السريع</h3>
           
-          <a href="/profile/coupons" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
+          <a href="/coupons" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
             <div className="flex items-center gap-4">
               <div className="w-12 h-12 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00] group-hover:scale-110 transition-transform"><Ticket size={24} /></div>
               <div>

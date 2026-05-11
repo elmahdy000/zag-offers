@@ -80,7 +80,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
         `🎫 تحديث للكوبون`,
         `كوبون العرض "${data.offerTitle}" ${statusText}`,
         'COUPON_UPDATE',
-        { url: '/profile/coupons' }
+        { url: '/coupons' }
       );
     });
 
