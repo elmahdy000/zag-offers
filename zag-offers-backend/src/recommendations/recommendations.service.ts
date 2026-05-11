@@ -11,9 +11,19 @@ export class RecommendationsService {
   ) {}
 
   async getRecommendedOffers(userId?: string) {
-    // 1. إذا كان زائر، نعرض له التريند بناءً على منطقته (إذا كانت معروفة من الـ IP مستقبلاً) أو عامة
+    // 1. إذا كان زائر، نعرض له التريند
     if (!userId) {
       return this.getTrendingOffers();
+    }
+
+    // 2. محاولة جلب الترشيحات من الكاش أولاً (Redis) لتوفير الأداء
+    const cacheKey = `user_rec_${userId}`;
+    try {
+      // @ts-ignore
+      const cached = await this.prisma.cache.get(cacheKey);
+      if (cached) return JSON.parse(cached);
+    } catch (e) {
+      // نتابع لو الكاش فشل
     }
 
     const user = await this.prisma.user.findUnique({
@@ -22,13 +32,12 @@ export class RecommendationsService {
 
     if (!user) return this.getTrendingOffers();
 
-    // 2. حساب اهتمامات المستخدم بناءً على سلوكه
+    // 3. حساب اهتمامات المستخدم
     const interests = await this.analyticsService.getUserInterests(userId);
     const { categoryWeights, areaWeights } = interests;
 
-    // إضافة منطقة المستخدم الأساسية كعامل ترجيح
     if (user.area && !areaWeights[user.area]) {
-      areaWeights[user.area] = 3; // وزن مرتفع لمنطقة السكن
+      areaWeights[user.area] = 3;
     }
 
     const hasInterests =
@@ -39,100 +48,73 @@ export class RecommendationsService {
       return this.getTrendingOffers();
     }
 
-    // 3. جلب pool من العروض النشطة
+    // 4. جلب pool من العروض النشطة
     const pool = await this.prisma.offer.findMany({
       where: {
         status: OfferStatus.ACTIVE,
         store: { status: StoreStatus.APPROVED },
       },
-      select: {
-        id: true,
-        title: true,
-        discount: true,
-        endDate: true,
-        images: true,
-        originalPrice: true,
-        createdAt: true,
+      include: {
         store: {
-          select: {
-            id: true,
-            name: true,
-            logo: true,
-            area: true,
-            categoryId: true,
-            category: { select: { name: true } },
-          },
-        },
+          include: { category: true }
+        }
       },
-      take: 50, // نأخذ أحدث 50 عرض للمفاضلة بينهم
+      take: 50,
       orderBy: { createdAt: 'desc' },
     });
 
-    // 4. نظام النقاط (Scoring System)
+    // 5. نظام النقاط
     const scoredOffers = pool.map((offer) => {
       let score = 0;
       const catId = offer.store.categoryId;
       const area = offer.store.area;
 
-      // نقاط التصنيف (Category Match)
-      if (categoryWeights[catId]) {
-        score += categoryWeights[catId] * 2.5;
-      }
-
-      // نقاط المنطقة (Area Match)
-      if (area && areaWeights[area]) {
-        score += areaWeights[area] * 1.5;
-      }
-
-      // بونص للعروض الجديدة جداً (Recency Bonus)
+      if (categoryWeights[catId]) score += categoryWeights[catId] * 2.5;
+      if (area && areaWeights[area]) score += areaWeights[area] * 1.5;
+      
       const hoursSinceCreated = (Date.now() - new Date(offer.createdAt).getTime()) / 3600000;
       if (hoursSinceCreated < 24) score += 2;
 
       return { ...offer, _score: score };
     });
 
-    // 5. الترتيب والإرجاع
     scoredOffers.sort((a, b) => b._score - a._score);
+    const result = scoredOffers.slice(0, 10).map(({ _score, ...offer }) => offer);
 
-    return scoredOffers.slice(0, 10).map(({ _score, ...offer }) => offer);
+    // 6. حفظ في الكاش لمدة 5 دقائق
+    try {
+      // @ts-ignore
+      await this.prisma.cache.set(cacheKey, JSON.stringify(result), 300);
+    } catch (e) {
+      // نتابع لو الكاش فشل
+    }
+
+    return result;
   }
 
   async getTrendingOffers() {
-    // العروض الرائجة بناءً على عدد مرات التفاعل (Analytics Events) في آخر 7 أيام
     const lastWeek = new Date();
     lastWeek.setDate(lastWeek.getDate() - 7);
 
-    // نأخذ أكثر 10 عروض عليها تفاعل (مشاهدة أو كوبون)
+    // نأخذ أكثر 20 عرض عليهم تفاعل لنضمن وجود 10 نشطين منهم بعد الفلترة
     const topEvents = await this.prisma.analyticsEvent.groupBy({
       by: ['offerId'],
       where: {
         offerId: { not: null },
         createdAt: { gte: lastWeek }
       },
-      _count: {
-        _all: true
-      },
-      orderBy: {
-        _count: {
-          _all: 'desc'
-        }
-      },
-      take: 12
+      _count: { _all: true },
+      orderBy: { _count: { _all: 'desc' } },
+      take: 20
     });
 
     const offerIds = topEvents.map(e => e.offerId as string);
 
-    // إذا لم يكن هناك تفاعل كافٍ، نعود لأحدث العروض
     if (offerIds.length === 0) {
-      return this.prisma.offer.findMany({
-        where: { status: OfferStatus.ACTIVE, store: { status: StoreStatus.APPROVED } },
-        include: { store: true },
-        orderBy: { createdAt: 'desc' },
-        take: 10
-      });
+      return this.getLatestFallback();
     }
 
-    return this.prisma.offer.findMany({
+    const offers = await this.prisma.offer.findMany({
       where: {
         id: { in: offerIds },
         status: OfferStatus.ACTIVE,
@@ -143,6 +125,26 @@ export class RecommendationsService {
           include: { category: true }
         }
       },
+      take: 10
+    });
+
+    // لو الفلترة رجعت أقل من 3 عروض، نستخدم الـ fallback لضمان مظهر الصفحة
+    if (offers.length < 3) {
+      return this.getLatestFallback();
+    }
+
+    return offers;
+  }
+
+  private async getLatestFallback() {
+    return this.prisma.offer.findMany({
+      where: { status: OfferStatus.ACTIVE, store: { status: StoreStatus.APPROVED } },
+      include: {
+        store: {
+          include: { category: true }
+        }
+      },
+      orderBy: { createdAt: 'desc' },
       take: 10
     });
   }
