@@ -62,30 +62,38 @@ interface Offer {
 }
 
 const CAT_ASSETS: Record<string, string> = {
-  'دلع كرشك':         '/categories/food.png',
-  'دلع كرشك 🍔':      '/categories/food.png',
-  'روقان':           '/categories/cafe.png',
-  'روقان ☕':         '/categories/cafe.png',
-  'حلي بؤك':         '/categories/sweets.png',
-  'دلع بنات':         '/categories/beauty.png',
-  'دلع بنات 💄':      '/categories/beauty.png',
-  'شياكة':           '/categories/barber.png',
-  'شياكة 👔':         '/categories/barber.png',
-  'فورمة':           '/categories/gym.png',
-  'فورمة 🦾':          '/categories/gym.png',
-  'بيتك ومطرحك':     '/categories/home.png',
-  'بيتك ومطرحك 🏠':   '/categories/home.png',
-  'تكنولوجى':         '/categories/tech.png',
-  'على الزيرو':      '/categories/car.png',
-  'على الزيرو 🏎️':   '/categories/car.png',
-  'صحتك بالدنيا':    '/categories/medical.png',
-  'صحتك بالدنيا 🏥':  '/categories/medical.png',
-  'على نور':         '/categories/education.png',
-  'ثقف نفسك 💡':     '/categories/education.png',
-  'ليلة العمر':       '/categories/wedding.png',
-  'عروستى 👰':       '/categories/wedding.png',
-  'غيّر جو':         '/categories/travel.png',
-  'default':         '/categories/food.png',
+  'food': '/categories/food.png',
+  'cafe': '/categories/cafe.png',
+  'sweets': '/categories/sweets.png',
+  'beauty': '/categories/beauty.png',
+  'barber': '/categories/barber.png',
+  'gym': '/categories/gym.png',
+  'home': '/categories/home.png',
+  'tech': '/categories/tech.png',
+  'car': '/categories/car.png',
+  'medical': '/categories/medical.png',
+  'education': '/categories/education.png',
+  'wedding': '/categories/wedding.png',
+  'travel': '/categories/travel.png',
+  'default': '/categories/food.png',
+};
+
+const resolveCatAsset = (name: string) => {
+  const n = name.trim();
+  if (n.includes('كرشك') || n.includes('🍔')) return CAT_ASSETS.food;
+  if (n.includes('روقان') || n.includes('☕')) return CAT_ASSETS.cafe;
+  if (n.includes('حلي') || n.includes('حلى')) return CAT_ASSETS.sweets;
+  if (n.includes('بنات') || n.includes('💄')) return CAT_ASSETS.beauty;
+  if (n.includes('شياكة') || n.includes('👔')) return CAT_ASSETS.barber;
+  if (n.includes('فورمة') || n.includes('🦾')) return CAT_ASSETS.gym;
+  if (n.includes('بيتك') || n.includes('🏠')) return CAT_ASSETS.home;
+  if (n.includes('تكنولوجى') || n.includes('تكنولوجيا')) return CAT_ASSETS.tech;
+  if (n.includes('الزيرو') || n.includes('🏎️')) return CAT_ASSETS.car;
+  if (n.includes('صحتك') || n.includes('🏥')) return CAT_ASSETS.medical;
+  if (n.includes('نور') || n.includes('💡')) return CAT_ASSETS.education;
+  if (n.includes('العمر') || n.includes('👰')) return CAT_ASSETS.wedding;
+  if (n.includes('جو') || n.includes('✈️')) return CAT_ASSETS.travel;
+  return CAT_ASSETS.default;
 };
 
 const CACHE_KEY = 'zag_offers_home_cache';
@@ -368,7 +376,7 @@ function HomePageContent() {
           </button>
 
           {categories.map(c => {
-            const imgPath = CAT_ASSETS[c.name] || CAT_ASSETS.default;
+            const imgPath = resolveCatAsset(c.name);
             return (
               <button
                 key={c.id}
@@ -471,7 +479,7 @@ function HomePageContent() {
         const catOffers = offers.filter(o => o.store.categoryId === cat.id || o.store.category?.id === cat.id).slice(0, 8);
         if (catOffers.length === 0) return null;
 
-        const imgPath = CAT_ASSETS[cat.name] || CAT_ASSETS.default;
+        const imgPath = resolveCatAsset(cat.name);
 
         return (
           <section key={cat.id} className="max-w-7xl mx-auto px-4 mb-16">
