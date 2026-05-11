@@ -54,6 +54,7 @@ export default function MerchantDashboard() {
   // استخراج آخر 3 عروض من قائمة العروض الكلية
   const recentOffers = useMemo(() => {
     if (!offers) {
+      if (typeof window === 'undefined') return [];
       const cached = localStorage.getItem('cache_vendor_offers_list');
       if (cached) {
         const arr = JSON.parse(cached);
