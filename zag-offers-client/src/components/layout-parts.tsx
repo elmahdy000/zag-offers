@@ -275,6 +275,10 @@ export function Navbar() {
 
 
 
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+
+  if (isAuthPage) return null;
+
   return (
     <>
       {mounted && showBell && (
@@ -427,6 +431,11 @@ export function Navbar() {
 
 /* ─── Footer ─────────────────────────────────────────────── */
 export function Footer() {
+  const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+
+  if (isAuthPage) return null;
+
   return (
     <footer className="bg-[#111111] border-t border-white/[0.05] mt-20" dir="rtl">
       {/* Top Banner */}

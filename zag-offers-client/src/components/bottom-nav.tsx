@@ -13,6 +13,9 @@ const navItems = [
 
 export default function BottomNav() {
   const pathname = usePathname();
+  const isAuthPage = pathname === '/login' || pathname === '/register' || pathname === '/forgot-password';
+
+  if (isAuthPage) return null;
 
   return (
     <nav className="md:hidden fixed bottom-6 left-1/2 -translate-x-1/2 z-[60] w-[90%] max-w-sm">
