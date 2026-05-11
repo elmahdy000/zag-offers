@@ -158,48 +158,86 @@ export default function MerchantDashboard() {
       </div>
 
       {/* Lists Section - Side by Side on Desktop */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Offers */}
-        <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-8">
+        {/* Top Performing Offers */}
+        <div className="glass rounded-[2rem] overflow-hidden border border-white/5 bg-white/[0.01]">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/[0.01]">
-            <h2 className="text-[12px] font-black text-text flex items-center gap-2"><Tag size={16} className="text-primary" /> عروضي الأخيرة</h2>
-            <Link href="/dashboard/offers" className="text-[10px] font-bold text-primary">الكل</Link>
+            <h2 className="text-[12px] font-black text-text flex items-center gap-2">
+              <TrendingUp size={16} className="text-secondary" /> الأكثر تفاعلاً
+            </h2>
+            <span className="text-[10px] font-bold text-text-dim px-2 py-0.5 bg-white/5 rounded-lg">أفضل الأداء</span>
           </div>
           <div className="divide-y divide-white/5">
-            {recentOffers.length > 0 ? recentOffers.map(offer => (
-              <Link key={offer.id} href={`/dashboard/offers/${offer.id}`} className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors group">
-                <div className="w-11 h-11 rounded-xl overflow-hidden bg-white/5 border border-white/5 shrink-0">
-                  <img src={resolveImageUrl(offer.images?.[0])} className="w-full h-full object-cover" loading="lazy" alt="" />
+            {displayStats?.topOffers?.length > 0 ? displayStats.topOffers.map((offer: any, idx: number) => (
+              <div key={offer.id} className="flex items-center justify-between px-5 py-4 hover:bg-white/[0.02] transition-colors group">
+                <div className="flex items-center gap-4">
+                  <div className="w-9 h-9 rounded-xl bg-secondary/10 flex items-center justify-center text-secondary font-black text-[11px] border border-secondary/10 shrink-0">
+                    {idx + 1}
+                  </div>
+                  <div className="flex flex-col min-w-0">
+                    <p className="text-[12px] font-black text-text truncate leading-tight">{offer.title}</p>
+                    <p className="text-[9px] font-bold text-secondary mt-0.5">{offer.discount} خصم</p>
+                  </div>
                 </div>
-                <div className="flex-1 min-w-0">
-                  <p className="text-[13px] font-black text-text truncate group-hover:text-primary transition-colors">{offer.title}</p>
-                  <p className="text-[10px] font-bold text-primary mt-0.5">{offer.discount}</p>
+                <div className="flex items-center gap-4 shrink-0">
+                  <div className="flex flex-col items-end">
+                    <span className="text-[11px] font-black text-text">{offer.couponsCount}</span>
+                    <span className="text-[8px] font-bold text-text-dimmer uppercase">كوبون</span>
+                  </div>
+                  <div className="w-px h-6 bg-white/5" />
+                  <div className="flex flex-col items-end">
+                    <span className="text-[11px] font-black text-text-dim">{offer.views}</span>
+                    <span className="text-[8px] font-bold text-text-dimmer uppercase">مشاهدة</span>
+                  </div>
                 </div>
-                <ChevronLeft size={14} className="text-text-dimmer group-hover:text-primary" />
-              </Link>
-            )) : <div className="py-10 text-center text-[11px] text-text-dimmer font-bold">لا توجد عروض حالياً</div>}
+              </div>
+            )) : (
+              <div className="py-12 text-center flex flex-col items-center opacity-40">
+                <Sparkles size={20} className="mb-2" />
+                <p className="text-[10px] font-bold">لا يوجد بيانات كافية حالياً</p>
+              </div>
+            )}
           </div>
         </div>
 
         {/* Recent Activity */}
-        <div className="glass rounded-[2rem] overflow-hidden border border-white/5">
+        <div className="glass rounded-[2rem] overflow-hidden border border-white/5 bg-white/[0.01]">
           <div className="flex items-center justify-between px-5 py-4 border-b border-white/5 bg-white/[0.01]">
-            <h2 className="text-[12px] font-black text-text flex items-center gap-2"><Clock size={16} className="text-primary" /> آخر العمليات</h2>
+            <h2 className="text-[12px] font-black text-text flex items-center gap-2">
+              <History size={16} className="text-primary" /> آخر العمليات
+            </h2>
             <Link href="/dashboard/coupons" className="text-[10px] font-bold text-primary">الكل</Link>
           </div>
           <div className="divide-y divide-white/5">
-            {stats?.recentCoupons?.slice(0, 4).map((c: any) => (
-              <div key={c.id} className="flex items-center gap-4 px-5 py-3.5">
-                <div className="w-9 h-9 bg-primary/10 rounded-xl flex items-center justify-center font-black text-primary text-[12px] shrink-0">
-                  {c.customerName?.[0] || 'ع'}
+            {displayStats?.recentCoupons?.length > 0 ? displayStats.recentCoupons.slice(0, 4).map((c: any) => (
+              <div key={c.id} className="flex items-center gap-4 px-5 py-4 hover:bg-white/[0.02] transition-colors">
+                <div className="w-10 h-10 bg-white/5 rounded-xl flex items-center justify-center shrink-0 border border-white/5">
+                  <QrCode size={16} className="text-text-dim" />
                 </div>
                 <div className="flex-1 min-w-0">
-                  <p className="text-[12px] font-bold text-text truncate">{c.customerName || 'عميل'}</p>
-                  <p className="text-[9px] text-text-dimmer truncate">{c.offerTitle}</p>
+                  <div className="flex items-center justify-between mb-0.5">
+                    <p className="text-[12px] font-black text-text truncate">{c.customerName || 'عميل'}</p>
+                    <span className={`text-[8px] font-black px-1.5 py-0.5 rounded-lg border ${
+                      c.status === 'USED' ? 'bg-secondary/10 text-secondary border-secondary/20' : 'bg-primary/10 text-primary border-primary/20'
+                    }`}>
+                      {c.status === 'USED' ? 'تم المسح' : 'طلب'}
+                    </span>
+                  </div>
+                  <p className="text-[10px] font-bold text-text-dim truncate">{c.offerTitle}</p>
                 </div>
-                <span className="text-[10px] font-black text-primary font-mono bg-primary/5 px-2 py-1 rounded-lg">{c.code}</span>
+                <div className="text-left shrink-0">
+                   <p className="text-[10px] font-black text-text font-mono tracking-tighter">{c.code}</p>
+                   <p className="text-[8px] font-bold text-text-dimmer mt-0.5">
+                     {new Date(c.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
+                   </p>
+                </div>
               </div>
-            )) || <div className="py-10 text-center text-[11px] text-text-dimmer font-bold">لا توجد عمليات حالياً</div>}
+            )) : (
+              <div className="py-12 text-center flex flex-col items-center opacity-40">
+                <Clock size={20} className="mb-2" />
+                <p className="text-[10px] font-bold">لا توجد عمليات حالياً</p>
+              </div>
+            )}
           </div>
         </div>
       </div>

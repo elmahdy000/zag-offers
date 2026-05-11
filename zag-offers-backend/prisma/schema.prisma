@@ -101,6 +101,7 @@ model Store {
   offers  Offer[]
   reviews Review[]
 
+  images     String[] // معرض صور المحل
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

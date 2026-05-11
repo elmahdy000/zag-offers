@@ -75,6 +75,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const menuItems = useMemo(() => [
     { name: 'لوحة التحكم', icon: LayoutDashboard, href: '/dashboard' },
+    { name: 'التنبيهات', icon: Bell, href: '/dashboard/notifications' },
     { name: 'العروض', icon: Tag, href: '/dashboard/offers' },
     { name: 'الكوبونات', icon: History, href: '/dashboard/coupons' },
     { name: 'مسح الكود', icon: Scan, href: '/dashboard/scan' },

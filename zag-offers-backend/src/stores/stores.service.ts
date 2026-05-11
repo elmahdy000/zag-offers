@@ -119,7 +119,7 @@ export class StoresService {
     });
     const offerIds = storeOffers.map((o) => o.id);
 
-    const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons] =
+    const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons, topOffers] =
       await Promise.all([
         this.prisma.offer.count({
           where: { storeId: store.id, status: 'ACTIVE' },
@@ -158,6 +158,18 @@ export class StoresService {
             customer: { select: { name: true } },
           },
         }),
+        this.prisma.offer.findMany({
+          where: { storeId: store.id, status: 'ACTIVE' },
+          orderBy: { coupons: { _count: 'desc' } },
+          take: 3,
+          select: {
+            id: true,
+            title: true,
+            discount: true,
+            views: true,
+            _count: { select: { coupons: true } },
+          },
+        }),
       ]);
 
     return {
@@ -177,6 +189,13 @@ export class StoresService {
         offerTitle: c.offer.title,
         customerName: c.customer.name,
       })),
+      topOffers: topOffers.map(o => ({
+        id: o.id,
+        title: o.title,
+        discount: o.discount,
+        views: o.views,
+        couponsCount: o._count.coupons
+      }))
     };
   }
 

@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle } from 'lucide-react';
+import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle, Trash2, Plus } from 'lucide-react';
 import { vendorApi, getVendorStoreId, resolveImageUrl } from '@/lib/api';
 import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
@@ -224,6 +224,75 @@ export default function StoreProfilePage() {
                 className="w-full bg-black/20 border border-white/5 rounded-2xl py-4 pr-12 text-sm font-bold text-text-dim outline-none" 
               />
             </div>
+          </div>
+        </div>
+
+        {/* Gallery Section */}
+        <div className="glass p-8 sm:p-10 rounded-[3rem] border border-white/5 space-y-6 bg-white/[0.01]">
+          <div className="flex items-center justify-between">
+            <div>
+              <h2 className="font-black text-lg text-text">معرض صور المحل</h2>
+              <p className="text-text-dim text-[11px] font-bold mt-1">أضف صوراً توضح جمال ومميزات محلك للزبائن</p>
+            </div>
+            <button 
+              onClick={() => document.getElementById('gallery-input')?.click()}
+              className="bg-white/5 hover:bg-white/10 text-text px-4 py-2 rounded-xl text-[10px] font-black border border-white/10 transition-all flex items-center gap-2"
+            >
+              <Plus size={14} /> إضافة صورة
+            </button>
+            <input 
+              type="file" id="gallery-input" className="hidden" accept="image/*" multiple
+              onChange={async (e) => {
+                const files = Array.from(e.target.files || []);
+                if (files.length === 0) return;
+                setSaving(true);
+                const currentImages = store.images || [];
+                const newImages = [...currentImages];
+
+                for (const file of files) {
+                  const uploadFormData = new FormData();
+                  uploadFormData.append('file', file);
+                  try {
+                    const res = await vendorApi().post('/upload', uploadFormData, {
+                      headers: { 'Content-Type': 'multipart/form-data' },
+                    });
+                    if (res.data?.url) newImages.push(res.data.url);
+                  } catch (err) {}
+                }
+
+                updateStore({ images: newImages }, {
+                  onSuccess: () => {
+                    setSuccess(true);
+                    setTimeout(() => setSuccess(false), 3000);
+                  },
+                  onSettled: () => setSaving(false)
+                });
+              }}
+            />
+          </div>
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
+            {(store.images || []).map((img, idx) => (
+              <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group shadow-lg">
+                <img src={resolveImageUrl(img)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
+                <button 
+                  onClick={() => {
+                    const filtered = (store.images || []).filter((_, i) => i !== idx);
+                    updateStore({ images: filtered });
+                  }}
+                  className="absolute top-2 left-2 bg-red-500/80 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
+                >
+                  <Trash2 size={14} />
+                </button>
+              </div>
+            ))}
+            <button 
+              onClick={() => document.getElementById('gallery-input')?.click()}
+              className="aspect-square rounded-2xl border-2 border-dashed border-white/5 hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 text-text-dimmer hover:text-primary group"
+            >
+              <Camera size={24} className="group-hover:scale-110 transition-transform" />
+              <span className="text-[9px] font-black uppercase tracking-widest">إضافة صورة</span>
+            </button>
           </div>
         </div>
 

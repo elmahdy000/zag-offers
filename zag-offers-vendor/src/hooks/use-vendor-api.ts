@@ -38,6 +38,8 @@ interface UpdateStoreData {
   whatsapp?: string;
   locationUrl?: string;
   logo?: string;
+  coverImage?: string;
+  images?: string[];
 }
 
 // جلب عروض المتجر
