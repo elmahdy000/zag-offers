@@ -170,11 +170,20 @@ export default function AdminChatPage() {
           : [...prev, msg]
         );
       }
-      // Update last message in list
-      setConversations(prev => prev.map(c => c.id === msg.conversationId 
-        ? { ...c, lastMessageAt: msg.createdAt, messages: [msg] }
-        : c
-      ).sort((a,b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime()));
+    });
+
+    s.on('conversation_update', (data: { conversationId: string, lastMessage: any }) => {
+      setConversations(prev => {
+        const index = prev.findIndex(c => c.id === data.conversationId);
+        if (index === -1) return prev; // Should refetch list if new conv
+        const updated = [...prev];
+        updated[index] = { 
+          ...updated[index], 
+          lastMessageAt: data.lastMessage.createdAt, 
+          messages: [data.lastMessage] 
+        };
+        return updated.sort((a,b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
+      });
     });
 
     return () => { s.disconnect(); };
