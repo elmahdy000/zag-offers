@@ -62,7 +62,7 @@ export default function CouponsLogPage() {
     if (!displayLogs?.length) return;
     
     const headers = ['الكود', 'العميل', 'العرض', 'الحالة', 'تاريخ التفعيل'];
-    const rows = displayLogs.map(log => [
+    const rows = displayLogs.map((log: CouponLog) => [
       log.code,
       log.customer?.name || 'عميل مجهول',
       log.offer?.title,
