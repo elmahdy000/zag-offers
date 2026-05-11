@@ -211,127 +211,166 @@ function HomePageContent() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
+    <div className="relative pb-24 overflow-x-hidden bg-[#1A1A1A]" dir="rtl">
       
-      {/* ─── Page Title ──────────────────────────────────── */}
-      <div className="mb-6 sm:mb-10">
-        <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-            <Flame size={22} />
-          </div>
-          الرئيسية
-        </h1>
-        <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mt-2">
-          اكتشف أحدث العروض والخصومات في الزقازيق اليوم
-        </p>
-      </div>
+      {/* ─── Premium Background Blobs ─────────────────────── */}
+      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-[#FF6B00]/10 blur-[120px] rounded-full -translate-y-1/2 translate-x-1/3 -z-10" />
+      <div className="absolute top-[20%] left-0 w-[400px] h-[400px] bg-[#D95A00]/5 blur-[100px] rounded-full -translate-x-1/2 -z-10" />
 
-      {/* ─── Filters Card ────────────────────────────────── */}
-      <div className="bg-[#252525] border border-white/[0.07] rounded-2xl p-4 sm:p-6 mb-10 space-y-4">
-        {/* Search */}
-        <div className="relative">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A]" size={18} />
-          <input
-            type="text"
-            placeholder="ابحث عن عرض أو محل..."
-            className="w-full bg-[#1E1E1E] border border-white/[0.05] rounded-xl pr-12 pl-4 py-3.5 text-sm font-bold text-[#F0F0F0] outline-none focus:border-[#FF6B00] transition-all"
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-          />
-        </div>
-
-        {/* Categories Ribbon */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
-          <button
-            onClick={() => setActiveCat('')}
-            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border transition-all ${!activeCat ? 'bg-[#FF6B00] text-white border-transparent' : 'bg-[#1E1E1E] border-white/[0.05] text-[#9A9A9A]'}`}
+      {/* ─── Hero Section ────────────────────────────────── */}
+      <section className="pt-12 sm:pt-20 pb-16 px-4">
+        <div className="max-w-5xl mx-auto text-center space-y-8">
+          <motion.div 
+            initial={{ opacity: 0, scale: 0.9 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full"
           >
-            ✨ الكل
+            <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse" />
+            <span className="text-[11px] sm:text-xs font-black text-[#FF6B00] uppercase tracking-wider">عروض الزقازيق الحصرية</span>
+          </motion.div>
+
+          <motion.h1 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.1 }}
+            className="text-4xl sm:text-6xl md:text-7xl font-black text-[#F0F0F0] leading-tight tracking-tight"
+          >
+            وفر أكتر في <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">كل مشوار</span>
+          </motion.h1>
+
+          <motion.p 
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="text-[#9A9A9A] text-sm sm:text-lg font-bold max-w-2xl mx-auto leading-relaxed"
+          >
+            بوابتك لأفضل كوبونات الخصم والعروض المباشرة من أقوى محلات ومطاعم مدينتك.
+          </motion.p>
+
+          {/* Search Box - Premium Style */}
+          <motion.div 
+            initial={{ opacity: 0, y: 30 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.3 }}
+            className="max-w-2xl mx-auto relative group"
+          >
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] rounded-[2rem] blur-md opacity-20 group-focus-within:opacity-40 transition-all duration-500" />
+            <div className="relative flex items-center bg-[#252525]/80 backdrop-blur-2xl border border-white/10 p-2 rounded-[2rem] shadow-2xl">
+              <Search className="text-[#9A9A9A] mx-4" size={20} />
+              <input 
+                type="text" 
+                placeholder="ابحث عن عرض، محل، أو صنف..."
+                className="flex-1 bg-transparent py-4 text-sm sm:text-base font-bold text-white outline-none placeholder:text-[#9A9A9A]/50"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+              />
+              <button className="hidden sm:block px-8 py-4 bg-[#FF6B00] text-white font-black text-sm rounded-[1.5rem] hover:bg-[#FF8C35] transition-all shadow-lg">
+                ابحث الآن
+              </button>
+            </div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* ─── Categories Ribbon ──────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4 mb-16">
+        <div className="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-4">
+          <button 
+            onClick={() => setActiveCat('')}
+            className={`flex-shrink-0 px-6 py-3 rounded-2xl text-xs sm:text-sm font-black border transition-all duration-300
+              ${!activeCat ? 'bg-[#FF6B00] border-transparent text-white shadow-xl' : 'bg-[#252525] border-white/5 text-[#9A9A9A] hover:border-white/10'}`}
+          >
+            الكل
           </button>
           {categories.map(c => (
-            <button
+            <button 
               key={c.id}
               onClick={() => setActiveCat(c.id)}
-              className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border transition-all ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent' : 'bg-[#1E1E1E] border-white/[0.05] text-[#9A9A9A]'}`}
+              className={`flex-shrink-0 px-6 py-3 rounded-2xl text-xs sm:text-sm font-black border transition-all duration-300
+                ${activeCat === c.id ? 'bg-[#FF6B00] border-transparent text-white shadow-xl' : 'bg-[#252525] border-white/5 text-[#9A9A9A] hover:border-white/10'}`}
             >
               {c.name}
             </button>
           ))}
         </div>
+      </section>
 
-        {/* Sort */}
-        <div className="flex items-center justify-between pt-2">
-          <div className="flex items-center gap-2 text-[#9A9A9A] text-xs font-bold">
-            <ArrowUpDown size={14} />
-            ترتيب حسب:
-          </div>
-          <select
-            value={sortBy}
-            onChange={(e) => setSortBy(e.target.value as SortOption)}
-            className="bg-transparent text-[#FF6B00] text-xs sm:text-sm font-black outline-none cursor-pointer"
+      {/* ─── Smart Recommendations ───────────────────────── */}
+      <AnimatePresence>
+        {!activeCat && !search && recommended.length > 0 && (
+          <motion.section 
+            initial={{ opacity: 0, x: 20 }}
+            animate={{ opacity: 1, x: 0 }}
+            className="max-w-7xl mx-auto px-4 mb-20"
           >
-            <option value="newest">📅 الأحدث</option>
-            <option value="expiring">⏰ ينتهي قريباً</option>
-            <option value="discount">💰 أعلى خصم</option>
-          </select>
-        </div>
-      </div>
-
-      {/* ─── Recommendations ─────────────────────────────── */}
-      {!activeCat && !search && recommended.length > 0 && (
-        <section className="mb-16">
-          <div className="flex items-center gap-3 mb-6">
-            <div className="w-8 h-8 bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-500">
-              <Sparkles size={18} />
-            </div>
-            <h2 className="text-xl font-black">اقتراحات لك</h2>
-          </div>
-          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
-            {recommended.map((offer) => (
-              <div key={offer.id} className="min-w-[280px] sm:min-w-[320px]">
-                <OfferCard offer={offer} />
-              </div>
-            ))}
-          </div>
-        </section>
-      )}
-
-      {/* ─── Featured Stores ─────────────────────────────── */}
-      {!activeCat && !search && stores.length > 0 && (
-        <section className="mb-16">
-          <div className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-3">
-              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500">
-                <Store size={18} />
-              </div>
-              <h2 className="text-xl font-black">أبرز الشركاء</h2>
-            </div>
-            <Link href="/stores" className="text-xs font-black text-[#FF6B00]">عرض الكل ←</Link>
-          </div>
-          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
-            {stores.map(store => (
-              <Link key={store.id} href={`/stores/${store.id}`} className="group">
-                <div className="aspect-square bg-[#252525] rounded-2xl border border-white/[0.05] p-2 sm:p-4 flex flex-col items-center justify-center text-center gap-2 group-hover:border-[#FF6B00]/40 transition-all">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-black/20 rounded-xl overflow-hidden">
-                    <img src={resolveImageUrl(store.logo)} className="w-full h-full object-cover" alt={store.name} />
-                  </div>
-                  <span className="text-[10px] sm:text-xs font-bold text-[#9A9A9A] truncate w-full">{store.name}</span>
+            <div className="flex items-center justify-between mb-8">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+                  <Sparkles size={20} />
                 </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white">عروض ننصحك بها</h2>
+              </div>
+            </div>
+            <div className="flex gap-6 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {recommended.map((offer) => (
+                <div key={offer.id} className="min-w-[280px] sm:min-w-[340px]">
+                  <OfferCard offer={offer} />
+                </div>
+              ))}
+            </div>
+          </motion.section>
+        )}
+      </AnimatePresence>
+
+      {/* ─── Featured Stores Bento ───────────────────────── */}
+      {!activeCat && !search && stores.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 mb-24">
+          <div className="flex items-center justify-between mb-8">
+            <h2 className="text-xl sm:text-2xl font-black text-white">أبرز شركائنا</h2>
+            <Link href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">تصفح المتاجر</Link>
+          </div>
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+            {stores.slice(0, 12).map(store => (
+              <Link key={store.id} href={`/stores/${store.id}`} className="group">
+                <motion.div 
+                  whileHover={{ y: -5 }}
+                  className="bg-[#252525] border border-white/[0.05] rounded-3xl p-4 sm:p-6 text-center space-y-3 hover:border-[#FF6B00]/40 transition-all shadow-xl"
+                >
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 mx-auto bg-[#1A1A1A] rounded-2xl border border-white/5 overflow-hidden shadow-inner flex items-center justify-center">
+                    <img src={resolveImageUrl(store.logo)} className="w-full h-full object-cover opacity-80 group-hover:opacity-100 transition-opacity" alt={store.name} />
+                  </div>
+                  <h3 className="text-[10px] sm:text-xs font-black text-[#F0F0F0] truncate">{store.name}</h3>
+                </motion.div>
               </Link>
             ))}
           </div>
         </section>
       )}
 
-      {/* ─── Main Offers Grid ────────────────────────────── */}
-      <section>
-        <div className="flex items-center gap-3 mb-6">
-          <div className="w-8 h-8 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500">
-            <Flame size={18} />
+      {/* ─── Main Content Grid ───────────────────────────── */}
+      <section className="max-w-7xl mx-auto px-4">
+        <div className="flex items-center justify-between mb-8">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+              <Flame size={20} />
+            </div>
+            <h2 className="text-xl sm:text-2xl font-black text-white">
+              {activeCat ? `عروض ${categories.find(c => c.id === activeCat)?.name}` : 'أحدث العروض'}
+            </h2>
           </div>
-          <h2 className="text-xl font-black">
-            {activeCat ? `عروض ${categories.find(c => c.id === activeCat)?.name}` : 'كل العروض'}
-          </h2>
+          
+          <div className="flex items-center gap-4">
+            <select 
+              value={sortBy}
+              onChange={(e) => setSortBy(e.target.value as SortOption)}
+              className="bg-[#252525] border border-white/5 text-[#F0F0F0] text-xs font-black px-4 py-2 rounded-xl outline-none cursor-pointer"
+            >
+              <option value="newest">📅 الأحدث</option>
+              <option value="expiring">⏰ ينتهي قريباً</option>
+              <option value="discount">💰 الأعلى خصم</option>
+            </select>
+          </div>
         </div>
 
         {loading ? (
@@ -339,27 +378,39 @@ function HomePageContent() {
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filteredOffers.length === 0 ? (
-          <div className="text-center py-20 bg-[#252525]/50 rounded-3xl border border-white/[0.05]">
-            <Search size={40} className="mx-auto mb-4 text-white/10" />
-            <h3 className="text-lg font-black text-white">لا توجد نتائج</h3>
-            <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm">مسح الفلاتر</button>
-          </div>
+          <motion.div 
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            className="py-24 text-center bg-[#252525]/50 rounded-[3rem] border border-white/5"
+          >
+            <div className="text-4xl mb-4">🔍</div>
+            <h3 className="text-lg font-black text-white">للأسف مفيش عروض هنا حالياً</h3>
+            <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm hover:underline">عرض كل العروض</button>
+          </motion.div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6 sm:gap-8">
             <AnimatePresence mode="popLayout">
-              {filteredOffers.slice(0, 48).map((offer) => (
+              {filteredOffers.slice(0, 48).map((offer, i) => (
                 <motion.div 
                   key={offer.id} 
                   layout 
-                  initial={{ opacity: 0, scale: 0.95 }} 
-                  animate={{ opacity: 1, scale: 1 }} 
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ duration: 0.2 }}
+                  initial={{ opacity: 0, y: 20 }} 
+                  animate={{ opacity: 1, y: 0 }} 
+                  exit={{ opacity: 0, scale: 0.9 }}
+                  transition={{ duration: 0.3, delay: i < 12 ? i * 0.05 : 0 }}
                 >
                   <OfferCard offer={offer} />
                 </motion.div>
               ))}
             </AnimatePresence>
+          </div>
+        )}
+
+        {!loading && filteredOffers.length > 48 && (
+          <div className="mt-20 text-center">
+            <button className="px-12 py-5 bg-[#252525] border border-white/10 rounded-2xl font-black text-white hover:border-[#FF6B00] transition-all shadow-xl">
+              عرض المزيد من العروض المميزة
+            </button>
           </div>
         )}
       </section>
