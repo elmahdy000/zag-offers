@@ -142,21 +142,6 @@ function HomePageContent() {
 
   const fetchData = useCallback(async (force = false) => {
     try {
-      if (!force) {
-        const cached = localStorage.getItem(CACHE_KEY);
-        if (cached) {
-          const { data, timestamp } = JSON.parse(cached);
-          if (Date.now() - timestamp < CACHE_DURATION) {
-            setOffers(data.offers);
-            setCategories(data.categories);
-            setStores(data.stores);
-            setRecommended(data.recommended);
-            setLoading(false);
-            return;
-          }
-        }
-      }
-
       setLoading(true);
       const [oRes, cRes, sRes, rRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=100`),
@@ -173,15 +158,9 @@ function HomePageContent() {
       setCategories(cData);
       setStores(sData);
       setRecommended(rData);
-
-      localStorage.setItem(CACHE_KEY, JSON.stringify({
-        data: { offers: oData, categories: cData, stores: sData, recommended: rData },
-        timestamp: Date.now()
-      }));
-
     } catch (e) {
       console.error(e);
-      setError('فشل تحميل البيانات. يرجى التحقق من اتصال الإنترنت والمحاولة مرة أخرى.');
+      setError('فشل تحميل البيانات. يرجى المحاولة مرة أخرى.');
     } finally {
       setLoading(false);
     }
@@ -189,14 +168,8 @@ function HomePageContent() {
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
-  useEffect(() => {
-    if (catIdParam) setActiveCat(catIdParam);
-  }, [catIdParam]);
-
   const filteredOffers = useMemo(() => {
     let result = [...offers];
-
-    // Filter out expired offers by default
     const now = Date.now();
     result = result.filter(o => {
       const end = o.endDate ? new Date(o.endDate).getTime() : 0;
@@ -216,164 +189,106 @@ function HomePageContent() {
     }
 
     return result.sort((a, b) => {
-      if (sortBy === 'newest') {
-        const dB = b.createdAt ? new Date(b.createdAt).getTime() : 0;
-        const dA = a.createdAt ? new Date(a.createdAt).getTime() : 0;
-        return dB - dA;
-      }
-      if (sortBy === 'expiring') {
-        const dA = a.endDate ? new Date(a.endDate).getTime() : 0;
-        const dB = b.endDate ? new Date(b.endDate).getTime() : 0;
-        return dA - dB;
-      }
+      if (sortBy === 'newest') return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+      if (sortBy === 'expiring') return new Date(a.endDate).getTime() - new Date(b.endDate).getTime();
       if (sortBy === 'discount') {
         const getVal = (d: string) => parseInt(d?.replace(/[^0-9]/g, '') || '0');
         return getVal(b.discount) - getVal(a.discount);
       }
-      if (sortBy === 'popular') return (b.featured ? 1 : 0) - (a.featured ? 1 : 0);
       return 0;
     });
   }, [offers, activeCat, debouncedSearch, sortBy]);
 
-  // Analytics for search
-  useEffect(() => {
-    if (debouncedSearch) {
-      trackEvent('search', { query: debouncedSearch });
-    }
-  }, [debouncedSearch, trackEvent]);
-
-  // Analytics for category
-  const handleCatChange = (id: string, name: string) => {
-    setActiveCat(id);
-    trackEvent('category_filter', { category_id: id, category_name: name });
-  };
-
   if (error) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-[#1A1A1A] p-4 text-center">
-        <div className="max-w-md">
-          <div className="w-20 h-20 bg-red-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <span className="text-4xl">⚠️</span>
-          </div>
-          <h2 className="text-2xl font-black text-white mb-4">{error}</h2>
-          <button 
-            onClick={() => fetchData(true)}
-            className="px-8 py-3 bg-[#FF6B00] text-white rounded-xl font-bold hover:bg-[#FF8C35] transition-colors"
-          >
-            إعادة المحاولة
-          </button>
+      <div className="min-h-screen flex items-center justify-center p-4 text-center">
+        <div>
+          <h2 className="text-xl font-black text-white mb-4">{error}</h2>
+          <button onClick={() => fetchData(true)} className="px-6 py-2 bg-[#FF6B00] text-white rounded-lg">إعادة المحاولة</button>
         </div>
       </div>
     );
   }
 
   return (
-    <div className="pb-16 bg-[#1A1A1A] overflow-x-hidden" dir="rtl">
-      {/* Background Decorative Elements */}
-      <div className="absolute top-[-5%] left-[-10%] w-[60%] h-[40%] bg-[#FF6B00]/5 blur-[100px] rounded-full -z-10" />
-      <div className="absolute top-[15%] right-[-10%] w-[50%] h-[30%] bg-[#FF8C35]/5 blur-[80px] rounded-full -z-10" />
+    <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
+      
+      {/* ─── Page Title ──────────────────────────────────── */}
+      <div className="mb-6 sm:mb-10">
+        <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+            <Flame size={22} />
+          </div>
+          الرئيسية
+        </h1>
+        <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mt-2">
+          اكتشف أحدث العروض والخصومات في الزقازيق اليوم
+        </p>
+      </div>
 
-      {/* Hero Section */}
-      <section className="relative pt-10 sm:pt-16 pb-16 sm:pb-24 px-4 text-center overflow-hidden">
-        {/* Animated Background Pattern */}
-        <div className="absolute inset-0 -z-10 opacity-[0.02]" 
-             style={{ backgroundImage: 'radial-gradient(#FF6B00 1px, transparent 1px)', backgroundSize: '30px 30px' }} />
-        
-        <div className="max-w-4xl mx-auto relative">
-          <motion.div 
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 mb-6 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full text-[#FF6B00] text-[11px] sm:text-[13px] font-black shadow-[0_0_20px_rgba(255,107,0,0.05)]"
-          >
-            <span className="relative flex h-2 w-2">
-              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-[#00C853] opacity-75"></span>
-              <span className="relative inline-flex rounded-full h-2 w-2 bg-[#00C853]"></span>
-            </span>
-            عروض حصرية الآن في الزقازيق
-          </motion.div>
-
-          <motion.h1 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-5xl md:text-7xl font-black mb-6 leading-tight sm:leading-[1.1] text-[#F0F0F0] tracking-tight"
-          >
-            وفر أكتر مع <br className="sm:hidden" />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] drop-shadow-sm">أقوى الخصومات</span>
-          </motion.h1>
-
-          <motion.p 
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ delay: 0.2 }}
-            className="text-[#9A9A9A] text-sm sm:text-lg md:text-xl font-medium max-w-2xl mx-auto leading-relaxed px-2"
-          >
-            خصومات حصرية وكوبونات فورية من أفضل مطاعم ومحلات الزقازيق في مكان واحد.
-          </motion.p>
-
-          <motion.div 
-            initial={{ opacity: 0, scale: 0.95 }}
-            animate={{ opacity: 1, scale: 1 }}
-            transition={{ delay: 0.3 }}
-            className="mt-10 max-w-2xl mx-auto group relative"
-          >
-            <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] rounded-3xl blur-lg opacity-10 group-hover:opacity-20 transition duration-1000"></div>
-            <div className="relative flex items-center bg-[#242424]/90 backdrop-blur-md p-1.5 sm:p-2.5 rounded-2xl sm:rounded-[2.5rem] border border-white/[0.08] shadow-2xl focus-within:border-[#FF6B00]/40 transition-all duration-300">
-              <Search className="text-[#FF6B00] mx-3 sm:mx-5 flex-shrink-0" size={18} />
-              <input
-                type="text"
-                placeholder="ابحث عن عرض أو محل..."
-                className="flex-1 bg-transparent border-none outline-none text-[#F0F0F0] text-sm sm:text-lg font-bold py-3 sm:py-4 placeholder:text-[#9A9A9A]/40"
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-              />
-              <button className="hidden sm:block px-10 py-4 bg-[#FF6B00] text-white font-black text-sm rounded-[1.8rem] hover:bg-[#FF8C35] transition-all duration-300 mr-2">
-                ابحث الآن
-              </button>
-            </div>
-          </motion.div>
+      {/* ─── Filters Card ────────────────────────────────── */}
+      <div className="bg-[#252525] border border-white/[0.07] rounded-2xl p-4 sm:p-6 mb-10 space-y-4">
+        {/* Search */}
+        <div className="relative">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A]" size={18} />
+          <input
+            type="text"
+            placeholder="ابحث عن عرض أو محل..."
+            className="w-full bg-[#1E1E1E] border border-white/[0.05] rounded-xl pr-12 pl-4 py-3.5 text-sm font-bold text-[#F0F0F0] outline-none focus:border-[#FF6B00] transition-all"
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+          />
         </div>
-      </section>
 
-      {/* Categories Bar */}
-      <section className="px-4 mb-10 sticky top-[64px] sm:top-[80px] z-40 bg-[#1A1A1A]/95 backdrop-blur-xl py-3 border-b border-white/[0.05]">
-        <div className="max-w-7xl mx-auto flex items-center gap-2 sm:gap-4 overflow-x-auto no-scrollbar scroll-smooth">
+        {/* Categories Ribbon */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth">
           <button
-            onClick={() => handleCatChange('', 'All')}
-            className={`flex-shrink-0 px-5 py-2 sm:px-8 sm:py-3 rounded-xl text-[11px] sm:text-sm font-black border transition-all duration-300 ${activeCat === '' ? 'bg-[#FF6B00] text-white border-transparent shadow-lg scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a]'}`}
+            onClick={() => setActiveCat('')}
+            className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border transition-all ${!activeCat ? 'bg-[#FF6B00] text-white border-transparent' : 'bg-[#1E1E1E] border-white/[0.05] text-[#9A9A9A]'}`}
           >
             ✨ الكل
           </button>
           {categories.map(c => (
             <button
               key={c.id}
-              onClick={() => handleCatChange(c.id, c.name)}
-              className={`flex-shrink-0 px-4 py-2 sm:px-6 sm:py-3 rounded-xl text-[11px] sm:text-sm font-black flex items-center gap-2 border transition-all duration-300 ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent shadow-lg scale-105' : 'bg-[#252525] border-white/[0.08] text-[#9A9A9A] hover:bg-[#2a2a2a]'}`}
+              onClick={() => setActiveCat(c.id)}
+              className={`flex-shrink-0 px-5 py-2.5 rounded-xl text-xs sm:text-sm font-black border transition-all ${activeCat === c.id ? 'bg-[#FF6B00] text-white border-transparent' : 'bg-[#1E1E1E] border-white/[0.05] text-[#9A9A9A]'}`}
             >
-              <span className="text-xs">🏷️</span>
               {c.name}
             </button>
           ))}
         </div>
-      </section>
 
-      {/* Recommendations Section */}
-      {!activeCat && !search && recommended.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 mb-20 overflow-hidden">
-          <div className="flex items-center justify-between mb-10">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00] to-[#FF8C35] rounded-2xl flex items-center justify-center text-white shadow-[0_8px_20px_rgba(255,107,0,0.2)]">
-                <Sparkles size={24} className="animate-pulse" />
-              </div>
-              <div>
-                <h2 className="text-3xl font-black text-[#F0F0F0]">اقتراحات ذكية</h2>
-                <p className="text-[#9A9A9A] text-sm font-bold mt-1">عروض اخترناها لك بعناية اليوم</p>
-              </div>
-            </div>
+        {/* Sort */}
+        <div className="flex items-center justify-between pt-2">
+          <div className="flex items-center gap-2 text-[#9A9A9A] text-xs font-bold">
+            <ArrowUpDown size={14} />
+            ترتيب حسب:
           </div>
-          <div className="flex gap-6 overflow-x-auto no-scrollbar pb-8 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <select
+            value={sortBy}
+            onChange={(e) => setSortBy(e.target.value as SortOption)}
+            className="bg-transparent text-[#FF6B00] text-xs sm:text-sm font-black outline-none cursor-pointer"
+          >
+            <option value="newest">📅 الأحدث</option>
+            <option value="expiring">⏰ ينتهي قريباً</option>
+            <option value="discount">💰 أعلى خصم</option>
+          </select>
+        </div>
+      </div>
+
+      {/* ─── Recommendations ─────────────────────────────── */}
+      {!activeCat && !search && recommended.length > 0 && (
+        <section className="mb-16">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-8 h-8 bg-orange-500/10 rounded-lg flex items-center justify-center text-orange-500">
+              <Sparkles size={18} />
+            </div>
+            <h2 className="text-xl font-black">اقتراحات لك</h2>
+          </div>
+          <div className="flex gap-4 overflow-x-auto no-scrollbar pb-4">
             {recommended.map((offer) => (
-              <div key={offer.id} className="min-w-[300px] sm:min-w-[340px] flex-shrink-0">
+              <div key={offer.id} className="min-w-[280px] sm:min-w-[320px]">
                 <OfferCard offer={offer} />
               </div>
             ))}
@@ -381,37 +296,26 @@ function HomePageContent() {
         </section>
       )}
 
-      {/* Featured Stores */}
+      {/* ─── Featured Stores ─────────────────────────────── */}
       {!activeCat && !search && stores.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 mb-20">
-          <div className="flex items-center justify-between mb-10">
-            <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/[0.03] border border-white/[0.08] rounded-2xl flex items-center justify-center text-[#FF6B00]">
-                <Store size={24} />
+        <section className="mb-16">
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-3">
+              <div className="w-8 h-8 bg-blue-500/10 rounded-lg flex items-center justify-center text-blue-500">
+                <Store size={18} />
               </div>
-              <div>
-                <h2 className="text-3xl font-black text-[#F0F0F0]">أبرز الشركاء</h2>
-                <p className="text-[#9A9A9A] text-sm font-bold mt-1">أفضل الماركات اللي بتثق فيها</p>
-              </div>
+              <h2 className="text-xl font-black">أبرز الشركاء</h2>
             </div>
-            <Link href="/stores" className="group flex items-center gap-2 text-[#FF6B00] font-black text-sm bg-[#FF6B00]/5 px-5 py-2.5 rounded-xl border border-[#FF6B00]/10 hover:bg-[#FF6B00] hover:text-white transition-all duration-300">
-              <span>عرض الكل</span>
-              <span className="group-hover:translate-x-[-4px] transition-transform">←</span>
-            </Link>
+            <Link href="/stores" className="text-xs font-black text-[#FF6B00]">عرض الكل ←</Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 xl:grid-cols-6 gap-6">
+          <div className="grid grid-cols-3 sm:grid-cols-4 md:grid-cols-6 gap-4">
             {stores.map(store => (
-              <Link key={store.id} href={`/stores/${store.id}`} className="group relative">
-                <div className="aspect-square rounded-[2rem] overflow-hidden bg-[#242424] border border-white/[0.05] group-hover:border-[#FF6B00]/30 transition-all duration-500 shadow-xl group-hover:shadow-[#FF6B00]/5">
-                  <img src={resolveImageUrl(store.logo)} className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110 opacity-80 group-hover:opacity-100" alt={store.name} />
-                  <div className="absolute inset-0 bg-gradient-to-t from-black/95 via-black/20 to-transparent opacity-90 transition-opacity" />
-                  <div className="absolute bottom-5 left-4 right-4 text-center">
-                    <div className="text-sm font-black text-white truncate mb-1">{store.name}</div>
-                    <div className="text-[10px] font-bold text-[#9A9A9A] uppercase tracking-widest flex items-center justify-center gap-1">
-                      <MapPin size={10} className="text-[#FF6B00]" />
-                      {store.area}
-                    </div>
+              <Link key={store.id} href={`/stores/${store.id}`} className="group">
+                <div className="aspect-square bg-[#252525] rounded-2xl border border-white/[0.05] p-2 sm:p-4 flex flex-col items-center justify-center text-center gap-2 group-hover:border-[#FF6B00]/40 transition-all">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 bg-black/20 rounded-xl overflow-hidden">
+                    <img src={resolveImageUrl(store.logo)} className="w-full h-full object-cover" alt={store.name} />
                   </div>
+                  <span className="text-[10px] sm:text-xs font-bold text-[#9A9A9A] truncate w-full">{store.name}</span>
                 </div>
               </Link>
             ))}
@@ -419,78 +323,43 @@ function HomePageContent() {
         </section>
       )}
 
-      {/* Offers Section */}
-      <section className="max-w-7xl mx-auto px-4 relative">
-        <div className="flex items-center justify-between mb-10 flex-wrap gap-6">
-          <div className="flex items-center gap-4">
-            <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00]/20 to-transparent rounded-2xl flex items-center justify-center text-[#FF6B00] shadow-[0_0_20px_rgba(255,107,0,0.1)]">
-              <Flame size={26} className="animate-pulse" />
-            </div>
-            <div>
-              <h2 className="text-3xl font-black text-[#F0F0F0]">
-                {activeCat ? `عروض ${categories.find(c => c.id === activeCat)?.name}` : search ? 'نتائج البحث' : 'كل العروض المتاحة'}
-              </h2>
-              <p className="text-[#9A9A9A] text-sm font-bold mt-1">اكتشف أحدث ما وصل زاج اليوم</p>
-            </div>
+      {/* ─── Main Offers Grid ────────────────────────────── */}
+      <section>
+        <div className="flex items-center gap-3 mb-6">
+          <div className="w-8 h-8 bg-red-500/10 rounded-lg flex items-center justify-center text-red-500">
+            <Flame size={18} />
           </div>
-          <div className="relative group min-w-[180px]">
-            <select
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="w-full appearance-none bg-[#242424] border border-white/[0.08] text-[#F0F0F0] text-sm font-bold rounded-2xl px-6 py-4 pr-12 outline-none cursor-pointer group-hover:border-[#FF6B00]/40 transition-all shadow-xl"
-            >
-              <option value="newest">📅 الأحدث أولاً</option>
-              <option value="expiring">⏰ ينتهي قريباً</option>
-              <option value="popular">🔥 الأكثر شهرة</option>
-              <option value="discount">💰 أعلى نسبة خصم</option>
-            </select>
-            <ArrowUpDown size={18} className="absolute left-5 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none group-hover:text-[#FF6B00] transition-colors" />
-          </div>
+          <h2 className="text-xl font-black">
+            {activeCat ? `عروض ${categories.find(c => c.id === activeCat)?.name}` : 'كل العروض'}
+          </h2>
         </div>
 
-        {filteredOffers.length === 0 && !loading ? (
-          <div className="py-28 text-center bg-[#242424]/50 rounded-[3rem] border border-white/[0.05] shadow-inner relative overflow-hidden">
-            <div className="absolute inset-0 bg-gradient-to-b from-[#FF6B00]/5 to-transparent opacity-30" />
-            <div className="relative z-10">
-              <div className="w-24 h-24 bg-white/[0.03] rounded-full flex items-center justify-center mx-auto mb-8 border border-white/[0.05]">
-                <Search size={36} className="text-[#9A9A9A]/50" />
-              </div>
-              <h3 className="text-2xl font-black mb-3 text-white">للأسف، مفيش نتائج</h3>
-              <p className="text-[#9A9A9A] font-bold mb-10 text-lg max-w-md mx-auto">جرب تغير كلمات البحث أو تختار قسم تاني عشان تلاقي عروض تهمك.</p>
-              <button 
-                onClick={() => { setActiveCat(''); setSearch(''); }}
-                className="px-10 py-4 bg-gradient-to-r from-[#FF6B00] to-[#FF8C35] text-white rounded-2xl font-black hover:shadow-[0_10px_30px_rgba(255,107,0,0.3)] transition-all active:scale-95"
-              >
-                رجوع لكل العروض
-              </button>
-            </div>
+        {loading ? (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+          </div>
+        ) : filteredOffers.length === 0 ? (
+          <div className="text-center py-20 bg-[#252525]/50 rounded-3xl border border-white/[0.05]">
+            <Search size={40} className="mx-auto mb-4 text-white/10" />
+            <h3 className="text-lg font-black text-white">لا توجد نتائج</h3>
+            <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm">مسح الفلاتر</button>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-8">
-            {loading ? Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />) : (
-              <AnimatePresence mode="popLayout">
-                {filteredOffers.slice(0, 48).map((offer, i) => (
-                  <motion.div 
-                    key={offer.id} 
-                    layout 
-                    initial={{ opacity: 0, y: 20 }} 
-                    animate={{ opacity: 1, y: 0 }} 
-                    transition={{ duration: 0.3, delay: i < 12 ? i * 0.05 : 0 }}
-                  >
-                    <OfferCard offer={offer} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
-            )}
-          </div>
-        )}
-        
-        {!loading && filteredOffers.length > 48 && (
-          <div className="mt-20 text-center">
-            <button className="px-16 py-5 bg-[#242424] border border-white/[0.08] rounded-[2rem] font-black text-[#F0F0F0] hover:border-[#FF6B00]/40 hover:text-[#FF6B00] transition-all duration-300 shadow-2xl group flex items-center gap-3 mx-auto">
-              <span>عرض باقي العروض المميزة</span>
-              <span className="text-xl group-hover:translate-y-1 transition-transform">↓</span>
-            </button>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+            <AnimatePresence mode="popLayout">
+              {filteredOffers.slice(0, 48).map((offer) => (
+                <motion.div 
+                  key={offer.id} 
+                  layout 
+                  initial={{ opacity: 0, scale: 0.95 }} 
+                  animate={{ opacity: 1, scale: 1 }} 
+                  exit={{ opacity: 0, scale: 0.95 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <OfferCard offer={offer} />
+                </motion.div>
+              ))}
+            </AnimatePresence>
           </div>
         )}
       </section>
