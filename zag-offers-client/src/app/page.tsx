@@ -195,7 +195,7 @@ function HomePageContent() {
               <input 
                 type="text" 
                 placeholder="ابحث عن عرض، محل، أو صنف..."
-                className="flex-1 bg-transparent py-4 text-sm sm:text-lg font-black text-white outline-none placeholder:text-[#9A9A9A]/30 pr-2"
+                className="flex-1 bg-transparent py-4 text-sm sm:text-lg font-black text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -203,7 +203,7 @@ function HomePageContent() {
                 <span>CTRL</span>
                 <span>K</span>
               </div>
-              <button className="px-10 py-4 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black text-sm rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,107,0,0.3)]">
+              <button className="px-8 py-3 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black text-xs rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,107,0,0.3)]">
                 بحث
               </button>
             </div>
