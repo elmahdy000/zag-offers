@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useRef } from 'react';
+import { useState, useEffect, useRef, useCallback } from 'react';
 import { Send, MessageSquare, CheckCheck, Loader2, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -16,6 +16,7 @@ interface Message {
   createdAt: string;
   isRead: boolean;
   conversationId?: string;
+  isOptimistic?: boolean; // علامة للرسائل التي لم تصل للسيرفر بعد
 }
 
 interface Conversation {
@@ -43,18 +44,16 @@ export default function VendorChatPage() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [text, setText] = useState('');
   const [loading, setLoading] = useState(true);
-  const [sending, setSending] = useState(false);
   const [error, setError] = useState('');
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const [userId, setUserId] = useState('');
 
-  // Read userId client-side only
   useEffect(() => {
     setUserId(getUserId());
   }, []);
 
-  /* ── Load or start conversation ── */
+  /* ── Load conversation ── */
   useEffect(() => {
     if (!userId) return;
 
@@ -63,13 +62,10 @@ export default function VendorChatPage() {
       setError('');
       try {
         const api = vendorApi();
-
-        // Get existing conversations
         const res = await api.get<Conversation[]>('/chat/conversations');
         const convs = Array.isArray(res.data) ? res.data : [];
         let conv = convs[0] || null;
 
-        // If no conversation, start one with the admin
         if (!conv) {
           const startRes = await api.post<Conversation>('/chat/start', {
             participantId: userId,
@@ -79,23 +75,20 @@ export default function VendorChatPage() {
         }
 
         setConversation(conv);
-
         if (conv?.id) {
           const msgRes = await api.get<Message[]>(`/chat/messages/${conv.id}`);
           setMessages(Array.isArray(msgRes.data) ? msgRes.data : []);
         }
       } catch (err) {
-        console.error('Chat init error:', err);
         setError('تعذر تحميل المحادثة، تأكد من اتصالك بالإنترنت');
       } finally {
         setLoading(false);
       }
     }
-
     init();
   }, [userId]);
 
-  /* ── WebSocket ── */
+  /* ── WebSocket with duplication check ── */
   useEffect(() => {
     if (!userId) return;
     const token = getCookie('auth_token');
@@ -104,80 +97,88 @@ export default function VendorChatPage() {
     const s = io(SOCKET_URL, { auth: { token }, transports: ['websocket'] });
     socketRef.current = s;
     s.emit('join', userId);
+
     s.on('new_message', (msg: Message) => {
-      if (!conversation || msg.conversationId === conversation.id) {
-        setMessages(prev => [...prev, msg]);
-      }
+      setMessages(prev => {
+        // منع التكرار إذا كانت الرسالة موجودة بالفعل (عن طريق الـ ID أو النص والتوقيت المتقارب)
+        const exists = prev.some(m => m.id === msg.id || (m.isOptimistic && m.text === msg.text));
+        if (exists) {
+          // استبدال الرسالة التفاؤلية بالرسالة الحقيقية
+          return prev.map(m => (m.isOptimistic && m.text === msg.text) ? msg : m);
+        }
+        return [...prev, msg];
+      });
     });
+
     return () => { s.disconnect(); };
-  }, [userId, conversation?.id]);
+  }, [userId]);
 
   /* ── Auto scroll ── */
+  const scrollToBottom = useCallback(() => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollTo({
+        top: scrollRef.current.scrollHeight,
+        behavior: 'smooth'
+      });
+    }
+  }, []);
+
   useEffect(() => {
-    if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
-  }, [messages]);
+    scrollToBottom();
+  }, [messages, scrollToBottom]);
 
-  /* ── Send ── */
-  async function handleSend() {
+  /* ── Ultra Fast Send ── */
+  const handleSend = async () => {
     const t = text.trim();
-    if (!t || sending) return;
+    if (!t) return;
 
-    // Optimistically update UI
-    const optimistic: Message = {
-      id: `tmp-${Date.now()}`,
+    const optimisticId = `tmp-${Date.now()}`;
+    const optimisticMsg: Message = {
+      id: optimisticId,
       text: t,
       senderId: userId,
       createdAt: new Date().toISOString(),
       isRead: false,
+      isOptimistic: true
     };
 
-    setSending(true);
+    // 1. تحديث الواجهة فوراً ومسح صندوق النص
+    setMessages(prev => [...prev, optimisticMsg]);
     setText('');
-    setMessages(prev => [...prev, optimistic]);
 
     try {
       let convId = conversation?.id;
+      const api = vendorApi();
 
-      // Create conversation on-the-fly if still null
       if (!convId) {
-        const api = vendorApi();
         const startRes = await api.post<Conversation>('/chat/start', {
           participantId: userId,
           type: 'MERCHANT_SUPPORT',
         });
-        const newConv = startRes.data;
-        setConversation(newConv);
-        convId = newConv.id;
+        setConversation(startRes.data);
+        convId = startRes.data.id;
       }
 
-      const api = vendorApi();
+      // 2. الإرسال في الخلفية
       const res = await api.post<Message>('/chat/send', {
         conversationId: convId,
         text: t,
       });
 
-      // Replace optimistic with real message
-      setMessages(prev => prev.map(m => m.id === optimistic.id ? res.data : m));
-    } catch {
-      // Remove optimistic message on failure
-      setMessages(prev => prev.filter(m => m.id !== optimistic.id));
-      setText(t); // Restore text
-    } finally {
-      setSending(false);
+      // 3. تحديث الرسالة التفاؤلية بالبيانات الحقيقية
+      setMessages(prev => prev.map(m => m.id === optimisticId ? { ...res.data, isOptimistic: false } : m));
+    } catch (err) {
+      // إذا فشل الإرسال، نترك الرسالة مع علامة خطأ أو نحذفها
+      setMessages(prev => prev.filter(m => m.id !== optimisticId));
+      setText(t); // إعادة النص للصندوق ليحاول المستخدم مرة أخرى
     }
-  }
+  };
 
   return (
     <div className="fixed inset-0 bg-bg z-[100] flex flex-col" dir="rtl">
-      {/* Decor */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-
       {/* Header */}
       <div className="relative px-5 pt-5 pb-3 flex items-center gap-4 z-10 border-b border-white/5 bg-bg/80 backdrop-blur-xl shrink-0">
-        <button
-          onClick={() => router.back()}
-          className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5"
-        >
+        <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-white/5">
           <ChevronRight size={20} />
         </button>
         <div className="flex items-center gap-3">
@@ -194,91 +195,66 @@ export default function VendorChatPage() {
         </div>
       </div>
 
-      {/* Messages */}
-      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-3">
+      {/* Messages Area */}
+      <div ref={scrollRef} className="flex-1 overflow-y-auto px-4 py-6 space-y-4 scroll-smooth">
         {loading ? (
-          <div className="flex justify-center pt-20">
-            <Loader2 className="animate-spin text-primary" size={32} />
-          </div>
+          <div className="flex justify-center pt-20"><Loader2 className="animate-spin text-primary" size={32} /></div>
         ) : error ? (
           <div className="flex flex-col items-center justify-center pt-20 gap-4 text-center px-6">
-            <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center">
-              <MessageSquare size={24} className="text-red-400" />
-            </div>
             <p className="text-red-400 text-sm font-bold">{error}</p>
-            <button onClick={() => { setError(''); setLoading(true); setUserId(getUserId()); }}
-              className="text-primary text-[12px] font-black border border-primary/30 px-4 py-2 rounded-xl hover:bg-primary/10 transition-all">
-              إعادة المحاولة
-            </button>
+            <button onClick={() => window.location.reload()} className="text-primary text-[12px] font-black border border-primary/30 px-4 py-2 rounded-xl">إعادة المحاولة</button>
           </div>
         ) : (
-          <>
-            {/* Welcome note */}
-            <div className="flex justify-center">
-              <span className="px-4 py-1.5 rounded-full bg-white/5 text-text-dimmer text-[10px] font-black uppercase tracking-widest border border-white/5">
-                مرحباً بك في الدعم
-              </span>
-            </div>
-
-            {messages.length === 0 && (
-              <div className="flex justify-start">
-                <div className="max-w-[75%] px-4 py-3 rounded-2xl rounded-br-md bg-white/5 border border-white/10 text-sm font-medium text-text-dim">
-                  أهلاً! كيف يمكننا مساعدتك اليوم؟ 👋
-                </div>
-              </div>
-            )}
-
-            <AnimatePresence initial={false}>
-              {messages.map(msg => {
-                const isMe = msg.senderId === userId;
-                return (
-                  <motion.div
-                    key={msg.id}
-                    initial={{ opacity: 0, y: 8 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
-                  >
-                    <div className={`max-w-[75%] flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
-                      <div className={`px-4 py-3 rounded-2xl text-sm font-medium shadow-sm ${
-                        isMe
-                          ? 'bg-primary text-white rounded-bl-md shadow-primary/20'
-                          : 'bg-white/[0.06] border border-white/10 text-text rounded-br-md'
-                      } ${msg.id.startsWith('tmp-') ? 'opacity-60' : ''}`}>
-                        {msg.text}
-                      </div>
-                      <div className={`flex items-center gap-1 px-1 ${isMe ? 'flex-row-reverse' : 'flex-row'}`}>
-                        <span className="text-[9px] text-text-dimmer">{timeStr(msg.createdAt)}</span>
-                        {isMe && <CheckCheck size={11} className={msg.isRead ? 'text-primary' : 'text-white/20'} />}
-                      </div>
+          <AnimatePresence initial={false}>
+            {messages.map((msg, idx) => {
+              const isMe = msg.senderId === userId;
+              const isLast = idx === messages.length - 1;
+              return (
+                <motion.div
+                  key={msg.id}
+                  initial={isLast ? { opacity: 0, y: 10, scale: 0.95 } : false}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  className={`flex ${isMe ? 'justify-end' : 'justify-start'}`}
+                >
+                  <div className={`max-w-[80%] flex flex-col gap-1 ${isMe ? 'items-end' : 'items-start'}`}>
+                    <div className={`px-4 py-2.5 rounded-2xl text-[13px] font-bold shadow-sm transition-opacity ${
+                      isMe 
+                        ? 'bg-primary text-white rounded-bl-none shadow-primary/10' 
+                        : 'bg-white/5 border border-white/5 text-text rounded-br-none'
+                    } ${msg.isOptimistic ? 'opacity-50 animate-pulse' : 'opacity-100'}`}>
+                      {msg.text}
                     </div>
-                  </motion.div>
-                );
-              })}
-            </AnimatePresence>
-          </>
+                    <div className="flex items-center gap-1.5 px-1">
+                       <span className="text-[8px] font-black text-text-dimmer uppercase">{timeStr(msg.createdAt)}</span>
+                       {isMe && (
+                         <CheckCheck size={10} className={msg.isOptimistic ? 'text-text-dimmer/20' : (msg.isRead ? 'text-secondary' : 'text-text-dimmer')} />
+                       )}
+                    </div>
+                  </div>
+                </motion.div>
+              );
+            })}
+          </AnimatePresence>
         )}
       </div>
 
-      {/* Input */}
+      {/* Modern Input Bar */}
       <div className="px-4 py-4 bg-bg/80 backdrop-blur-xl border-t border-white/5 shrink-0">
-        <div className="flex items-end gap-3">
-          <textarea
-            rows={1}
+        <div className="flex items-center gap-3 bg-white/5 border border-white/5 rounded-2xl p-1.5 focus-within:border-primary/30 transition-all">
+          <input
+            type="text"
             value={text}
             onChange={e => setText(e.target.value)}
-            onKeyDown={e => { if (e.key === 'Enter' && !e.shiftKey) { e.preventDefault(); handleSend(); } }}
-            placeholder="اكتب رسالتك..."
-            className="flex-1 bg-white/5 border border-white/10 rounded-2xl px-4 py-3 text-sm font-medium text-text placeholder:text-text-dimmer focus:outline-none focus:border-primary/40 transition-all resize-none max-h-28"
+            onKeyDown={e => { if (e.key === 'Enter') handleSend(); }}
+            placeholder="اكتب هنا..."
+            className="flex-1 bg-transparent px-4 py-2 text-sm font-bold text-text outline-none placeholder:text-text-dimmer/50"
           />
           <button
             onClick={handleSend}
-            disabled={!text.trim() || sending}
-            className="h-11 w-11 rounded-2xl bg-primary text-white flex items-center justify-center shadow-xl shadow-primary/30 active:scale-95 transition-all disabled:opacity-30 disabled:cursor-not-allowed shrink-0"
+            disabled={!text.trim()}
+            className="h-10 w-10 rounded-xl bg-primary text-white flex items-center justify-center shadow-lg shadow-primary/20 active:scale-90 transition-all disabled:opacity-20 disabled:grayscale shrink-0"
           >
-            {sending
-              ? <Loader2 size={18} className="animate-spin" />
-              : <Send size={18} className="rotate-180" />
-            }
+            <Send size={18} className="rotate-180" />
           </button>
         </div>
       </div>
