@@ -369,7 +369,7 @@ function HomePageContent() {
                 <div className="aspect-square rounded-2xl overflow-hidden bg-[#252525] border border-white/[0.05]
                                 group-hover:border-[#FF6B00]/30 transition-all shadow-lg group-hover:shadow-[#FF6B00]/5">
                   <img
-                    src={resolveImageUrl(store.logo, 'store')}
+                    src={resolveImageUrl(store.logo)}
                     className="w-full h-full object-cover transition-transform duration-500 group-hover:scale-110"
                     alt={store.name}
                   />
