@@ -466,7 +466,7 @@ function HomePageContent() {
         </section>
       )}
 
-      {/* ─── Offers by Category (Mutaqa'a Sections) ─────────── */}
+      {/* ─── Offers by Category (Mutaqa'a Sections) ───────── */}
       {!activeCat && !search && categories.map(cat => {
         const catOffers = offers.filter(o => o.store.categoryId === cat.id || o.store.category?.id === cat.id).slice(0, 8);
         if (catOffers.length === 0) return null;
@@ -504,32 +504,62 @@ function HomePageContent() {
         );
       })}
 
-              <AnimatePresence mode="popLayout">
-                {filteredOffers.map((offer, i) => (
-                  <motion.div
-                    key={offer.id}
-                    layout
-                    initial={{ opacity: 0, y: 12 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0 }}
-                    transition={{ delay: Math.min(i * 0.04, 0.3) }}
-                    onClick={() => trackEvent('offer_click', {
-                      offerId: offer.id,
-                      offerTitle: offer.title,
-                      storeId: offer.store.id,
-                      storeName: offer.store.name,
-                      position: i,
-                      source: 'homepage'
-                    })}
-                  >
-                    <OfferCard offer={offer} />
-                  </motion.div>
-                ))}
-              </AnimatePresence>
+      {/* ─── Global Offers Grid (Search/Filter OR Fallback) ────── */}
+      <section className="max-w-7xl mx-auto px-4 mt-8">
+        <div className="flex items-center justify-between mb-8 flex-wrap gap-4">
+          <div className="flex items-center gap-3">
+            <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-2xl flex items-center justify-center text-[#FF6B00]">
+              <Flame size={22} />
             </div>
-          )}
-        </section>
-      )}
+            <div>
+              <h2 className="text-2xl font-black">
+                {activeCat ? `عروض ${categories.find(c => c.id === activeCat)?.name}` : search ? 'نتائج البحث' : 'كل العروض اللي في الزقازيق 🚀'}
+              </h2>
+              <p className="text-xs text-[#9A9A9A] font-bold mt-0.5">أفضل الصفقات واللقطات</p>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <div className="relative">
+              <select
+                value={sortBy}
+                onChange={(e) => setSortBy(e.target.value as SortOption)}
+                className="appearance-none bg-[#1E1E1E] border border-white/[0.07] text-[#F0F0F0] text-sm font-bold rounded-xl px-4 py-2.5 pr-10 focus:outline-none focus:border-[#FF6B00]/50 cursor-pointer"
+              >
+                <option value="newest">📅 الأحدث</option>
+                <option value="expiring">⏰ ينتهي قريباً</option>
+                <option value="popular">🔥 الأشهر</option>
+              </select>
+              <ArrowUpDown size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none" />
+            </div>
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-5">
+          <AnimatePresence mode="popLayout">
+            {(activeCat || search ? filteredOffers : offers).slice(0, 48).map((offer, i) => (
+              <motion.div
+                key={offer.id}
+                layout
+                initial={{ opacity: 0, y: 12 }}
+                animate={{ opacity: 1, y: 0 }}
+                exit={{ opacity: 0 }}
+                transition={{ delay: Math.min(i * 0.04, 0.3) }}
+              >
+                <OfferCard offer={offer} />
+              </motion.div>
+            ))}
+          </AnimatePresence>
+        </div>
+
+        {!loading && (activeCat || search) && filteredOffers.length === 0 && (
+          <div className="flex flex-col items-center justify-center py-24 gap-4 text-center">
+            <div className="w-20 h-20 bg-[#252525] rounded-full flex items-center justify-center text-4xl">🔍</div>
+            <h3 className="text-lg font-bold text-[#F0F0F0]">لا توجد عروض مطابقة</h3>
+            <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">جرّب تغيير كلمة البحث</p>
+          </div>
+        )}
+      </section>
     </div>
   );
 }
