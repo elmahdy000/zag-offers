@@ -70,9 +70,15 @@ async function main() {
     'ملابس',
     'جيم',
     'تجميل',
-    'كورسات',
-    'عيادات',
-    'خدمات سيارات'
+    'دورات',
+    'خدمات سيارات',
+    'ألعاب',
+    'أطفال',
+    'أدوات منزلية',
+    'مناسبات',
+    'حلويات',
+    'خدمات محلية',
+    'سوبرماركت'
   ];
 
   const catMap: Record<string, string> = {};
@@ -86,7 +92,7 @@ async function main() {
   }
 
   // 5. Create Stores
-  const stores = [
+  const storesData = [
     {
       name: 'مطعم البرنس - القومية',
       address: 'شارع القومية، الزقازيق',
@@ -128,13 +134,19 @@ async function main() {
       address: 'وسط البلد، خلف سينما عرابي',
       area: 'وسط البلد',
       phone: '01012345678',
-      categoryId: catMap['كورسات'],
+      categoryId: catMap['دورات'],
       ownerId: admin.id,
       status: StoreStatus.APPROVED,
     }
   ];
 
-  for (const s of stores) {
+  for (const s of storesData) {
+    // Check if store exists by name + address to avoid duplicates
+    const existing = await prisma.store.findFirst({
+        where: { name: s.name, address: s.address }
+    });
+    if (existing) continue;
+
     const store = await prisma.store.create({
       data: s,
     });
@@ -153,58 +165,7 @@ async function main() {
           storeId: store.id,
         },
       });
-      await prisma.offer.create({
-        data: {
-          title: 'كومبو الطلاب',
-          description: 'ساندوتش + بطاطس + كانز بـ 80 جنيه بس بدل 120',
-          discount: 'وفر 40 جنيه',
-          terms: 'يجب إظهار كارنيه الجامعة',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000),
-          status: OfferStatus.ACTIVE,
-          storeId: store.id,
-        },
-      });
-    } else if (s.categoryId === catMap['كافيهات']) {
-      await prisma.offer.create({
-        data: {
-          title: 'ساعة الحظ',
-          description: 'اشتري أي مشروب واحصل على التاني مجاناً من 11 لـ 2 ظهراً',
-          discount: '1+1 مجاناً',
-          terms: 'العرض ساري على المشروبات الساخنة والباردة',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          status: OfferStatus.ACTIVE,
-          storeId: store.id,
-        },
-      });
-    } else if (s.categoryId === catMap['ملابس']) {
-      await prisma.offer.create({
-        data: {
-          title: 'خصومات الشتاء',
-          description: 'خصم فوري 30% على جميع موديلات السنة اللي فاتت',
-          discount: '30% خصم',
-          terms: 'حتى نفاذ الكمية في المعرض',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 15 * 24 * 60 * 60 * 1000),
-          status: OfferStatus.ACTIVE,
-          storeId: store.id,
-        },
-      });
-    } else if (s.categoryId === catMap['جيم']) {
-      await prisma.offer.create({
-        data: {
-          title: 'فورمة الساحل بدري',
-          description: 'اشتراك 3 شهور بخصم 40% شامل المتابعة مع مدرب خاص',
-          discount: '40% خصم',
-          terms: 'للمشتركين الجدد فقط',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 45 * 24 * 60 * 60 * 1000),
-          status: OfferStatus.ACTIVE,
-          storeId: store.id,
-        },
-      });
-    } else if (s.categoryId === catMap['كورسات']) {
+    } else if (s.categoryId === catMap['دورات']) {
       await prisma.offer.create({
         data: {
           title: 'منحة البرمجة للشباب',
