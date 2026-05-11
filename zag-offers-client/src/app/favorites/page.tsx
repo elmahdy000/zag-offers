@@ -133,34 +133,34 @@ export default function FavoritesPage() {
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
-      <div className="flex items-center justify-between mb-10">
+    <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
+      <div className="flex items-center justify-between mb-8 sm:mb-10">
         <div>
-          <h1 className="text-3xl font-black mb-2">المفضلة</h1>
-          <p className="text-white/40 text-sm font-bold">العروض التي قمت بحفظها للرجوع إليها لاحقاً</p>
+          <h1 className="text-2xl sm:text-3xl font-black mb-1 sm:mb-2 text-[#F0F0F0]">المفضلة</h1>
+          <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold">العروض التي قمت بحفظها للرجوع إليها لاحقاً</p>
         </div>
-        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-red-500 border border-white/10">
-          <Heart size={24} fill="currentColor" />
+        <div className="w-10 h-10 sm:w-12 sm:h-12 bg-[#FF6B00]/10 rounded-xl sm:rounded-2xl flex items-center justify-center text-[#FF6B00] border border-[#FF6B00]/20">
+          <Heart size={20} fill="currentColor" />
         </div>
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3].map(i => <div key={i} className="h-48 bg-white/5 rounded-[32px] animate-pulse" />)}
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[1,2,3].map(i => <div key={i} className="h-40 bg-white/5 rounded-2xl animate-pulse" />)}
         </div>
       ) : favorites.length === 0 ? (
-        <div className="text-center py-24 glass rounded-[40px] border-dashed border-2 border-white/5">
-          <div className="w-20 h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/10">
-            <Heart size={40} />
+        <div className="text-center py-16 sm:py-24 bg-[#252525]/50 rounded-[2rem] border border-white/[0.05] shadow-inner">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/10">
+            <Heart size={32} />
           </div>
-          <h3 className="text-xl font-black mb-2">قائمة المفضلة فارغة</h3>
-          <p className="text-white/30 text-sm font-bold mb-8 max-w-xs mx-auto">لم تقم بإضافة أي عروض للمفضلة بعد. ابدأ باستكشاف العروض المميزة في مدينتك.</p>
-          <Link href="/" className="px-10 py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.02] transition-all inline-flex items-center gap-2">
-            استكشف العروض <ArrowRight size={18} />
+          <h3 className="text-lg sm:text-xl font-black mb-2 text-white">قائمة المفضلة فارغة</h3>
+          <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mb-8 max-w-xs mx-auto">لم تقم بإضافة أي عروض للمفضلة بعد. ابدأ باستكشاف العروض المميزة.</p>
+          <Link href="/" className="px-8 py-3.5 bg-[#FF6B00] text-white font-black rounded-xl shadow-lg hover:scale-[1.02] transition-all inline-flex items-center gap-2 text-sm">
+            استكشف العروض <ArrowRight size={16} />
           </Link>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           <AnimatePresence>
             {favorites.map((offer) => (
               <motion.div 

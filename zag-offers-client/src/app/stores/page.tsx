@@ -52,18 +52,18 @@ export default function StoresListPage() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-8 mb-16">
+    <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
         <div>
-          <h1 className="text-4xl font-black mb-4">شركاء النجاح</h1>
-          <p className="text-white/40 font-bold">اكتشف أفضل المحلات والخدمات في الزقازيق</p>
+          <h1 className="text-3xl sm:text-4xl font-black mb-3 text-[#F0F0F0]">شركاء النجاح</h1>
+          <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold">اكتشف أفضل المحلات والخدمات في الزقازيق</p>
         </div>
-        <div className="relative w-full md:w-96">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={20} />
+        <div className="relative w-full md:w-80">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A]" size={18} />
           <input 
             type="text"
-            placeholder="ابحث عن محل معين..."
-            className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] outline-none transition-all"
+            placeholder="ابحث عن محل..."
+            className="w-full bg-[#252525] border border-white/[0.08] rounded-xl px-12 py-3.5 text-sm font-bold text-[#F0F0F0] focus:border-[#FF6B00] outline-none transition-all shadow-lg"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -71,20 +71,20 @@ export default function StoresListPage() {
       </div>
 
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {[1,2,3,4,5,6].map(i => <div key={i} className="h-48 bg-white/5 rounded-[32px] animate-pulse" />)}
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+          {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 sm:h-48 bg-white/5 rounded-2xl sm:rounded-[32px] animate-pulse" />)}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredStores.map((store) => {
             const logoUrl = resolveImageUrl(store.logo);
             return (
               <Link key={store.id} href={`/stores/${store.id}`}>
                 <motion.div 
                   whileHover={{ y: -5 }}
-                  className="glass p-6 rounded-[32px] flex flex-col items-center text-center hover:border-[#FF6B00]/50 transition-all cursor-pointer group"
+                  className="bg-[#252525] border border-white/[0.05] p-4 sm:p-6 rounded-2xl sm:rounded-[32px] flex flex-col items-center text-center hover:border-[#FF6B00]/50 transition-all cursor-pointer group shadow-xl"
                 >
-                  <div className="w-20 h-20 bg-black/40 rounded-[24px] border-2 border-white/5 flex items-center justify-center overflow-hidden mb-4 shadow-xl">
+                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-black/40 rounded-xl sm:rounded-[24px] border border-white/5 flex items-center justify-center overflow-hidden mb-3 sm:mb-4">
                     {logoUrl ? 
                       <Image
                         src={logoUrl}

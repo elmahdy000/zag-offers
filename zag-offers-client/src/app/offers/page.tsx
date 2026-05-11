@@ -114,14 +114,14 @@ function OffersPageContent() {
     <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
 
       {/* ─── Page Title ──────────────────────────────────── */}
-      <div className="mb-8">
-        <h1 className="text-3xl font-black flex items-center gap-3">
-          <span className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-            <Flame size={20} />
-          </span>
-          استكشف جميع العروض
+      <div className="mb-6 sm:mb-10">
+        <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-3">
+          <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+            <Flame size={22} />
+          </div>
+          استكشف العروض
         </h1>
-        <p className="text-[#9A9A9A] text-sm font-semibold mt-1 mr-13">
+        <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mt-2">
           عروض حية ومعتمدة من أفضل المحلات في الزقازيق
         </p>
       </div>
@@ -149,15 +149,15 @@ function OffersPageContent() {
         </div>
 
         {/* Category Ribbon */}
-        <div className="flex items-center gap-3 overflow-x-auto pb-2 scrollbar-hide">
+        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth -mx-1 px-1">
           <button
             onClick={() => setActiveCat('')}
-            className={`flex items-center gap-2 px-6 py-3 rounded-xl font-bold text-sm whitespace-nowrap transition-all border
+            className={`flex items-center gap-2 px-5 py-2.5 rounded-xl font-black text-xs sm:text-sm whitespace-nowrap transition-all border
                        ${!activeCat 
-                         ? 'bg-[#FF6B00] border-[#FF6B00] text-white shadow-[0_8px_20px_rgba(255,107,0,0.3)]' 
-                         : 'bg-[#1E1E1E] border-white/[0.07] text-[#9A9A9A] hover:border-white/20'}`}
+                         ? 'bg-[#FF6B00] border-transparent text-white shadow-lg' 
+                         : 'bg-[#1E1E1E] border-white/[0.05] text-[#9A9A9A] hover:border-white/20'}`}
           >
-            <Sparkles size={16} /> الكل
+            <Sparkles size={14} /> الكل
           </button>
           {categories.map(c => {
             const isActive = activeCat === c.id;
@@ -237,16 +237,16 @@ function OffersPageContent() {
         /* Render Grouped by Category */
         <div className="space-y-16">
           {Object.entries(grouped).map(([categoryName, categoryOffers]) => (
-            <div key={categoryName} className="animate-in">
+            <div key={categoryName} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Category Header */}
-              <div className="flex items-center gap-4 mb-6">
-                <div className="w-9 h-9 bg-[#FF6B00]/5 border border-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-                  {CAT_ICONS[categoryName] || <Layers size={18} />}
+              <div className="flex items-center gap-3 mb-6">
+                <div className="w-8 h-8 bg-[#FF6B00]/10 rounded-lg flex items-center justify-center text-[#FF6B00]">
+                  {CAT_ICONS[categoryName] || <Layers size={16} />}
                 </div>
-                <h2 className="text-xl font-black text-[#F0F0F0]">{categoryName}</h2>
-                <div className="h-px flex-1 bg-white/[0.05]" />
-                <span className="text-[10px] font-black text-[#9A9A9A] uppercase tracking-widest bg-white/[0.03] px-3 py-1 rounded-full border border-white/[0.05]">
-                  {categoryOffers.length} عرض
+                <h2 className="text-lg sm:text-xl font-black text-[#F0F0F0]">{categoryName}</h2>
+                <div className="h-px flex-1 bg-white/[0.04]" />
+                <span className="text-[9px] font-black text-[#9A9A9A] uppercase tracking-wider bg-white/[0.02] px-3 py-1 rounded-full border border-white/[0.05]">
+                  {categoryOffers.length}
                 </span>
               </div>
 

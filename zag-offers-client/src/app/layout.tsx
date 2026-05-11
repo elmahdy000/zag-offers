@@ -33,19 +33,18 @@ export default function RootLayout({
     <html lang="ar" dir="rtl">
       <head>
         <link rel="manifest" href="/manifest.json" />
-        <meta name="theme-color" content="#FF6B00" />
+        <meta name="theme-color" content="#1A1A1A" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
         <link rel="apple-touch-icon" href="/icon-192.svg" />
         <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
       </head>
-      <body className="antialiased">
+      <body className="antialiased bg-[#1A1A1A] text-[#F0F0F0] selection:bg-[#FF6B00]/30 overflow-x-hidden">
         <ReactQueryProvider>
           <NotificationProvider>
-            {/* ClientInit registers the service worker on the client side */}
             <ClientInit />
             <Navbar />
-            <main className="min-h-screen pt-20 pb-32 md:pb-0">
+            <main className="min-h-screen pt-16 sm:pt-20 pb-24 sm:pb-12 md:pb-0 overflow-x-hidden">
               {children}
             </main>
             <Footer />
