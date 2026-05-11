@@ -6,7 +6,7 @@ import { MapPin, Heart, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, S
 import Link from 'next/link';
 import Image from 'next/image';
 import { BASE_URL, API_URL } from '@/lib/constants';
-import { resolveImageUrl } from '@/lib/utils';
+import { resolveImageUrl, calculateDaysLeft } from '@/lib/utils';
 
 interface Offer {
   id: string;
@@ -85,10 +85,7 @@ export function OfferCard({ offer }: OfferCardProps) {
   }
 
   // ─── Derived values ───────────────────────────────────────────────────────
-  const daysLeft = Math.ceil(
-    // eslint-disable-next-line react-hooks/exhaustive-deps, react-hooks/rules-of-hooks, @typescript-eslint/no-unused-vars, react-hooks/purity
-    (new Date(offer.endDate).getTime() - Date.now()) / (1000 * 60 * 60 * 24)
-  );
+  const daysLeft = calculateDaysLeft(offer.endDate);
 
   const logoUrl = resolveImageUrl(offer.store?.logo);
   const catName = offer.store?.category?.name || '';
