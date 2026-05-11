@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Body, Param, UseGuards, Request } from '@nestjs/common';
+import { Controller, Get, Post, Body, Param, UseGuards, Request, HttpException, HttpStatus } from '@nestjs/common';
 import { ChatService } from './chat.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { ApiTags, ApiOperation, ApiBearerAuth } from '@nestjs/swagger';
@@ -28,18 +28,32 @@ export class ChatController {
     @Body() body: { conversationId: string; text: string },
     @Request() req: any
   ) {
+    if (!body.conversationId || !body.text) {
+      throw new HttpException('conversationId and text are required', HttpStatus.BAD_REQUEST);
+    }
     return this.chatService.sendMessage(body.conversationId, req.user.id, body.text);
   }
 
   @Post('start')
-  @ApiOperation({ summary: 'بدء محادثة جديدة' })
-  startConversation(
-    @Body() body: { participantId: string; type: string },
+  @ApiOperation({ summary: 'بدء محادثة جديدة مع الأدمن' })
+  async startConversation(
+    @Body() body: { participantId?: string; type?: string },
     @Request() req: any
   ) {
-    // Only Admin can start conversations for now, or users can start with admin
-    // For simplicity, we assume one participant is Admin
-    const adminId = req.user.role === 'ADMIN' ? req.user.id : 'ADMIN_ID_FIXED'; // Needs logic to find admin
-    return this.chatService.startConversation(adminId, body.participantId, body.type);
+    // If caller is ADMIN, they provide participantId
+    // If caller is MERCHANT/CUSTOMER, they start a conversation with the first admin
+    if (req.user.role === 'ADMIN') {
+      if (!body.participantId) {
+        throw new HttpException('participantId is required for admin', HttpStatus.BAD_REQUEST);
+      }
+      return this.chatService.startConversation(req.user.id, body.participantId, body.type || 'MERCHANT_SUPPORT');
+    } else {
+      // Non-admin: start/get conversation with the first admin in DB
+      const conv = await this.chatService.startConversationWithAnyAdmin(
+        req.user.id,
+        body.type || 'MERCHANT_SUPPORT',
+      );
+      return conv;
+    }
   }
 }
