@@ -183,10 +183,10 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-black text-[#F0F0F0] leading-tight tracking-tight"
+            className="text-4xl sm:text-6xl md:text-7xl font-black leading-tight tracking-tight"
           >
-            أفضل <br />
-            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات في زاج</span>
+            <span className="text-[#F0F0F0]">أفضل</span> <br />
+            <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات في</span> <span className="text-white">زاج</span>
           </motion.h1>
 
           <motion.p 
@@ -229,14 +229,10 @@ function HomePageContent() {
           <button 
             onClick={() => setActiveCat('')}
             className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-3xl overflow-hidden border transition-all duration-300
-              ${!activeCat ? 'border-[#FF6B00] ring-2 ring-[#FF6B00]/20' : 'border-white/5 opacity-60 hover:opacity-100'}`}
+              ${!activeCat ? 'border-[#FF6B00] bg-[#FF6B00]/5 ring-2 ring-[#FF6B00]/20' : 'border-white/5 bg-[#252525] opacity-60 hover:opacity-100'}`}
           >
-            <div className="absolute inset-0 bg-[#252525]">
-               <img src={CAT_ASSETS['الكل']} className="w-full h-full object-cover transition-all duration-500 group-hover:scale-110" alt="الكل" />
-            </div>
-            <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent z-10" />
-            <div className="absolute inset-0 flex flex-col items-center justify-end pb-4 z-20">
-              <span className={`text-[11px] font-black tracking-widest ${!activeCat ? 'text-[#FF6B00]' : 'text-white/60'}`}>الكل</span>
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
+              <span className={`text-sm sm:text-base font-black tracking-widest ${!activeCat ? 'text-[#FF6B00]' : 'text-white/60 group-hover:text-white'}`}>الكل</span>
             </div>
           </button>
 
