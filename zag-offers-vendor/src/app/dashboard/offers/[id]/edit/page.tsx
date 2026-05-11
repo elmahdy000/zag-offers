@@ -5,6 +5,7 @@ import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
 import { useUpdateOffer, useDeleteOffer } from '@/hooks/use-vendor-api';
+import { compressImage } from '@/lib/image-utils';
 import { DashboardSkeleton } from '@/components/Skeleton';
 
 export default function EditOfferPage() {
@@ -126,8 +127,24 @@ export default function EditOfferPage() {
         
         // If it has a file, upload it
         if (img.file) {
+          let fileToUpload = img.file;
+          
+          // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
+          if (fileToUpload.size > 1 * 1024 * 1024) {
+            try {
+              fileToUpload = await compressImage(fileToUpload);
+            } catch (e) {
+              console.error('Compression failed, using original', e);
+            }
+          }
+
+          // إذا بعد الضغط لسه أكبر من 5 ميجا (صعبة جداً)، نرفضها
+          if (fileToUpload.size > 5 * 1024 * 1024) {
+            throw new Error(`حجم الصورة ${fileToUpload.name} كبير جداً حتى بعد الضغط`);
+          }
+
           const uploadFormData = new FormData();
-          uploadFormData.append('file', img.file);
+          uploadFormData.append('file', fileToUpload);
           const uploadRes = await vendorApi().post('/upload', uploadFormData, {
             headers: { 'Content-Type': 'multipart/form-data' },
             timeout: 30000,

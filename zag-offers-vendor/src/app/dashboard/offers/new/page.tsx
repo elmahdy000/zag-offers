@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, getVendorStoreId } from '@/lib/api';
 import { useCreateOffer } from '@/hooks/use-vendor-api';
+import { compressImage } from '@/lib/image-utils';
 
 export default function NewOfferPage() {
   const router = useRouter();
@@ -93,19 +94,29 @@ export default function NewOfferPage() {
     // تحقق ورفع الصور
     let imageUrls: string[] = [];
     if (offerImages.length > 0) {
-      for (const img of offerImages) {
-        if (img.file) {
-          if (img.file.size > 5 * 1024 * 1024) {
-            return setSubmitError('حجم الصورة يجب أن يكون أقل من 5 ميجابايت');
-          }
-        }
-      }
+      setSubmitError(null);
       
       try {
         const uploadPromises = offerImages.map(async (img) => {
           if (img.file) {
+            let fileToUpload = img.file;
+            
+            // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
+            if (fileToUpload.size > 1 * 1024 * 1024) {
+              try {
+                fileToUpload = await compressImage(fileToUpload);
+              } catch (e) {
+                console.error('Compression failed, using original', e);
+              }
+            }
+
+            // إذا بعد الضغط لسه أكبر من 5 ميجا (صعبة جداً)، نرفضها
+            if (fileToUpload.size > 5 * 1024 * 1024) {
+              throw new Error(`حجم الصورة ${fileToUpload.name} كبير جداً حتى بعد الضغط`);
+            }
+
             const uploadFormData = new FormData();
-            uploadFormData.append('file', img.file);
+            uploadFormData.append('file', fileToUpload);
             const uploadRes = await vendorApi().post('/upload', uploadFormData, {
               headers: { 'Content-Type': 'multipart/form-data' },
               timeout: 30000,
@@ -116,8 +127,8 @@ export default function NewOfferPage() {
         });
         const results = await Promise.all(uploadPromises);
         imageUrls = results.filter((url): url is string => url !== null);
-      } catch (error: unknown) {
-        return setSubmitError('فشل رفع الصور. حاول مرة أخرى.');
+      } catch (error: any) {
+        return setSubmitError(error.message || 'فشل رفع الصور. حاول مرة أخرى.');
       }
     } else {
       return setSubmitError('يجب رفع صورة واحدة على الأقل');

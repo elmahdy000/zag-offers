@@ -5,6 +5,7 @@ import { Star, Camera, CheckCircle2, User, Image as ImageIcon, Send, Loader2, Sp
 import { motion, AnimatePresence } from 'framer-motion';
 import { resolveImageUrl } from '@/lib/utils';
 import { API_URL } from '@/lib/constants';
+import { compressImage } from '@/lib/image-utils';
 
 interface Review {
   id: string;
@@ -69,8 +70,19 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
       // 1. Upload images first
       const imageUrls: string[] = [];
       for (const img of images) {
+        let fileToUpload = img.file;
+
+        // ضغط تلقائي لو الحجم كبير
+        if (fileToUpload.size > 1 * 1024 * 1024) {
+          try {
+            fileToUpload = await compressImage(fileToUpload);
+          } catch (e) {
+            console.error('Compression failed', e);
+          }
+        }
+
         const formData = new FormData();
-        formData.append('file', img.file);
+        formData.append('file', fileToUpload);
         const uploadRes = await fetch(`${API_URL}/upload`, {
           method: 'POST',
           headers: { 'Authorization': `Bearer ${token}` },
