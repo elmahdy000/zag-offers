@@ -34,9 +34,18 @@ export default function RootLayout({
       <head>
         <link rel="manifest" href="/manifest.json" />
         <meta name="theme-color" content="#1A1A1A" />
+        
+        {/* iOS Specific Meta Tags */}
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+        <meta name="apple-mobile-web-app-title" content="Zag Offers" />
+        
+        {/* Apple Touch Icons */}
         <link rel="apple-touch-icon" href="/icon-192.svg" />
+        <link rel="apple-touch-icon" sizes="152x152" href="/icon-192.svg" />
+        <link rel="apple-touch-icon" sizes="180x180" href="/icon-192.svg" />
+        <link rel="apple-touch-icon" sizes="167x167" href="/icon-192.svg" />
+        
         <link rel="icon" type="image/svg+xml" href="/icon-192.svg" />
       </head>
       <body className="antialiased bg-[#1A1A1A] text-[#F0F0F0] selection:bg-[#FF6B00]/30 overflow-x-hidden">
