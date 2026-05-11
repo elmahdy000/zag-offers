@@ -158,7 +158,7 @@ export class StoresService {
             customer: { select: { name: true } },
           },
         }),
-        this.prisma.offer.findMany({
+        (this.prisma.offer as any).findMany({
           where: { storeId: store.id, status: 'ACTIVE' },
           orderBy: { coupons: { _count: 'desc' } },
           take: 3,
