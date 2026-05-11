@@ -107,17 +107,20 @@ export default function OffersManagementPage() {
     refetchOnWindowFocus: false,
   });
 
-  const { data: offerDetails, isLoading: detailsLoading } = useQuery({
+  const { data: offerDetails, isLoading: detailsLoading } = useQuery<OfferDetails>({
     queryKey: ['offer-details', selectedOfferId],
     queryFn: async () => {
       const response = await adminApi().get<OfferDetails>(`/admin/offers/${selectedOfferId}`);
       return response.data;
     },
     enabled: !!selectedOfferId,
-    onSuccess: (data) => {
-      if (isEditing) setTempImages(data.images || []);
-    }
   });
+
+  useEffect(() => {
+    if (offerDetails && isEditing) {
+      setTempImages(offerDetails.images || []);
+    }
+  }, [offerDetails, isEditing]);
 
   const { data: storesData } = useQuery({
     queryKey: ['all-stores-list'],
