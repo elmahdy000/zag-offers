@@ -189,12 +189,12 @@ export class StoresService {
         offerTitle: c.offer.title,
         customerName: c.customer.name,
       })),
-      topOffers: topOffers.map(o => ({
+      topOffers: (topOffers as any[]).map(o => ({
         id: o.id,
         title: o.title,
         discount: o.discount,
         views: o.views,
-        couponsCount: o._count.coupons
+        couponsCount: o._count?.coupons || 0
       }))
     };
   }
