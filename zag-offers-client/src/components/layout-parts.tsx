@@ -448,12 +448,12 @@ export function Footer() {
             <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
             <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
             
-            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8 text-center sm:text-right">
-              <div className="flex flex-col sm:flex-row items-center gap-6">
+            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8 text-right sm:text-right">
+              <div className="flex flex-col sm:flex-row items-center gap-6 text-right">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 group-hover:rotate-12 transition-all duration-500 shadow-2xl">
                   <Ticket className="text-white" size={32} />
                 </div>
-                <div>
+                <div className="text-center sm:text-right">
                   <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
                     عروض حصرية بانتظارك!
                   </h2>
@@ -469,17 +469,17 @@ export function Footer() {
 
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
           {/* Brand Info */}
-          <div className="space-y-8 flex flex-col items-center sm:items-start text-center sm:text-right">
+          <div className="space-y-8 flex flex-col items-start text-right">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-2xl flex items-center justify-center shadow-xl shadow-orange-950/20">
                 <ShoppingBag className="text-white" size={24} />
               </div>
               <span className="text-3xl font-black text-white tracking-tighter">Zag<span className="text-[#FF6B00]">Offers</span></span>
             </Link>
-            <p className="text-[#9A9A9A] text-sm leading-relaxed font-bold max-w-xs sm:text-right">
+            <p className="text-[#9A9A9A] text-sm leading-relaxed font-bold max-w-xs text-justify">
               المنصة رقم #1 في الزقازيق لاكتشاف أفضل العروض. بنجمعلك كل الخصومات في مكان واحد عشان نسهل عليك حياتك.
             </p>
-            <div className="flex gap-4 justify-center sm:justify-start">
+            <div className="flex gap-4 justify-start">
               {[
                 { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, href: '#' },
                 { icon: <XIcon size={20} />, href: '#' },
@@ -494,8 +494,8 @@ export function Footer() {
 
           {/* Links Grid */}
           <div className="grid grid-cols-2 gap-8 md:col-span-2 lg:col-span-2">
-            <div className="text-right flex flex-col items-center sm:items-start">
-              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-start">
+            <div className="text-right flex flex-col items-start">
+              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2">
                 روابط هامة
                 <span className="w-1.5 h-4 bg-[#FF6B00] rounded-full" />
               </h4>
@@ -515,8 +515,8 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-            <div className="text-right flex flex-col items-center sm:items-start">
-              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-start">
+            <div className="text-right flex flex-col items-start">
+              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2">
                 للتجار
                 <span className="w-1.5 h-4 bg-blue-500 rounded-full" />
               </h4>
@@ -539,8 +539,8 @@ export function Footer() {
           </div>
 
           {/* Subscription */}
-          <div className="space-y-6 flex flex-col items-center sm:items-start text-center sm:text-right">
-            <h4 className="text-base font-black text-white flex items-center gap-2 justify-start">
+          <div className="space-y-6 flex flex-col items-start text-right">
+            <h4 className="text-base font-black text-white flex items-center gap-2">
               النشرة البريدية
               <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
             </h4>

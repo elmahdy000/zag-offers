@@ -277,6 +277,15 @@ export class StoresService {
     });
   }
 
+  async getMyStore(merchantId: string): Promise<Store> {
+    const stores = await this.prisma.store.findMany({
+      where: { ownerId: merchantId },
+      include: { category: true, owner: { select: { email: true } } },
+    });
+    if (stores.length === 0) throw new NotFoundException('لا يوجد محل مرتبط بهذا التاجر');
+    return stores[0];
+  }
+
   async createCategory(name: string) {
     return this.prisma.category.create({
       data: { name },

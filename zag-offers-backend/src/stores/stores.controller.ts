@@ -113,6 +113,15 @@ export class StoresController {
     return this.storesService.getMerchantStores(req.user.id);
   }
 
+  @Get('my')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'عرض تفاصيل متجر التاجر الحالي' })
+  async getMyStore(@Request() req: { user: { id: string } }) {
+    return this.storesService.getMyStore(req.user.id);
+  }
+
   @Get(':id')
   @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'عرض بيانات محل معين' })

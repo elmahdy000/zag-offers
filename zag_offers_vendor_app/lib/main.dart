@@ -5,6 +5,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 
 import 'core/theme/app_colors.dart';
+import 'core/theme/app_theme.dart';
 import 'core/network/api_client.dart';
 import 'features/auth/data/datasources/auth_remote_data_source.dart';
 import 'features/auth/presentation/bloc/auth_bloc.dart';
@@ -72,38 +73,7 @@ class ZagOffersVendorApp extends StatelessWidget {
         title: 'Zag Offers Vendor',
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          brightness: Brightness.dark,
-          scaffoldBackgroundColor: AppColors.background,
-          colorScheme: const ColorScheme.dark(
-            primary: AppColors.primary,
-            secondary: AppColors.primary,
-            surface: AppColors.surface,
-            background: AppColors.background,
-            onPrimary: Colors.white,
-          ),
-          appBarTheme: const AppBarTheme(
-            backgroundColor: AppColors.background,
-            elevation: 0,
-            centerTitle: true,
-            titleTextStyle: TextStyle(
-              color: AppColors.textPrimary,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              fontFamily: 'Cairo',
-            ),
-          ),
-          cardTheme: CardTheme(
-            color: AppColors.card,
-            elevation: 0,
-            shape: RoundedRectangleBorder(
-              borderRadius: BorderRadius.circular(16),
-              side: const BorderSide(color: AppColors.border, width: 1),
-            ),
-          ),
-          textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme),
-        ),
+        theme: AppTheme.darkTheme,
         builder: (context, child) {
           return Directionality(
             textDirection: TextDirection.rtl,

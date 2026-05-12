@@ -7,6 +7,7 @@ class SocketService {
   io.Socket? _socket;
   bool _isConnected = false;
   final Map<String, List<Function(dynamic)>> _eventHandlers = {};
+  String? _userId;
 
   io.Socket? get socket => _socket;
   bool get isConnected => _isConnected;
@@ -18,10 +19,25 @@ class SocketService {
 
     final prefs = await SharedPreferences.getInstance();
     final token = prefs.getString('auth_token');
+    final userData = prefs.getString('user_data');
 
     if (token == null) {
       log('WebSocket: No token found, cannot connect authenticated.');
       return;
+    }
+
+    // Extract user ID from stored data (React app compatibility)
+    if (userData != null) {
+      try {
+        final userMap = userData.startsWith('{') ? 
+          Map<String, dynamic>.fromEntries(
+            userData.split(',').map((e) => MapEntry(e.split(':')[0].trim().replaceAll('{', '').replaceAll('"', ''), 
+            e.split(':')[1].trim().replaceAll('}', '').replaceAll('"', '')))
+          ) : null;
+        _userId = userMap?['id']?.toString();
+      } catch (e) {
+        log('WebSocket: Failed to parse user data: $e');
+      }
     }
 
     _socket?.clearListeners();
@@ -29,9 +45,11 @@ class SocketService {
 
     _socket = io.io(AppConstants.socketUrl, 
       io.OptionBuilder()
-        .setTransports(['websocket', 'polling'])
+        .setTransports(['websocket'])
         .setAuth({'token': token})
         .enableReconnection()
+        .setReconnectionAttempts(10)
+        .setReconnectionDelay(1000)
         .disableAutoConnect()
         .build()
     );
@@ -45,6 +63,12 @@ class SocketService {
     _socket?.onConnect((_) {
       _isConnected = true;
       log('WebSocket: Connected to server');
+      
+      // Join merchant room (React app compatibility)
+      if (_userId != null) {
+        _socket?.emit('join_room', {'token': token, 'userId': _userId});
+        log('WebSocket: Joined merchant room: $_userId');
+      }
     });
 
     _socket?.onDisconnect((_) {
@@ -52,8 +76,14 @@ class SocketService {
       log('WebSocket: Disconnected');
     });
 
-    _socket?.on('connected', (data) {
-      log('WebSocket: Authenticated as ${data['userId']}');
+    _socket?.on('merchant_notification', (data) {
+      log('WebSocket: Merchant notification received: $data');
+      // Handle real-time notifications (React app compatibility)
+    });
+
+    _socket?.on('new_message', (data) {
+      log('WebSocket: New message received: $data');
+      // Handle chat messages (React app compatibility)
     });
 
     _socket?.on('error', (data) {
