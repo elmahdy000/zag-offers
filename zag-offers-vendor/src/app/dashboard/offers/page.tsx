@@ -265,7 +265,7 @@ export default function OffersListPage() {
           </p>
         </motion.div>
       ) : (
-        Object.entries(grouped).map(([category, catOffers]) => (
+        (Object.entries(grouped) as [string, Offer[]][]).map(([category, catOffers]) => (
           <div key={category} className="mb-16">
             <div className="flex items-center gap-4 mb-8">
               <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
