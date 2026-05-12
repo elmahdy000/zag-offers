@@ -26,6 +26,7 @@ class AppColors {
   static const Color textSecondary = Color(0xFFA0A0A0);
   static const Color textDim = Color(0xFF666666);
   static const Color textDimmer = Color(0xFF404040);
+  static const Color textTertiary = Color(0xFF888888); // Added for compatibility
   
   // Glass Effects - Enhanced
   static Color glassBackground = Colors.white.withOpacity(0.02);

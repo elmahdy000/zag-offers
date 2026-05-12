@@ -1,5 +1,8 @@
 import '../../domain/entities/dashboard_stats_entity.dart';
 
+// Add alias for compatibility
+typedef DashboardStats = DashboardStatsEntity;
+
 class DashboardStatsModel extends DashboardStatsEntity {
   const DashboardStatsModel({
     required super.activeOffers,

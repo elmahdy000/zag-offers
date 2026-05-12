@@ -24,9 +24,12 @@ class DashboardLoading extends DashboardState {}
 
 class DashboardLoaded extends DashboardState {
   final DashboardStatsEntity stats;
-  DashboardLoaded(this.stats);
+  final String? storeId; // Add storeId for compatibility
+  
+  DashboardLoaded(this.stats, {this.storeId});
+  
   @override
-  List<Object?> get props => [stats];
+  List<Object?> get props => [stats, storeId];
 }
 
 class DashboardError extends DashboardState {
@@ -51,7 +54,7 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     emit(DashboardLoading());
     try {
       final stats = await getDashboardStatsUseCase(NoParams());
-      emit(DashboardLoaded(stats));
+      emit(DashboardLoaded(stats, storeId: stats.storeId));
     } catch (e) {
       emit(DashboardError(e.toString().replaceAll('Exception: ', '')));
     }
