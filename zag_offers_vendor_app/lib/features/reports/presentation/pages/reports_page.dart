@@ -2,9 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
+import 'package:zag_offers_vendor_app/core/theme/app_theme.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
-import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
 class ReportsPage extends StatelessWidget {
   const ReportsPage({super.key});
@@ -16,7 +17,7 @@ class ReportsPage extends StatelessWidget {
       appBar: AppBar(
         title: Text(
           'تقارير الأداء',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+          style: AppTheme.title.copyWith(fontWeight: FontWeight.w900),
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
@@ -35,9 +36,14 @@ class ReportsPage extends StatelessWidget {
               padding: EdgeInsets.all(24.0),
               child: ListSkeleton(itemCount: 6),
             );
-          } else if (state is DashboardError) {
+          }
+
+          if (state is DashboardError) {
             return _buildErrorState(context, state.message);
-          } else if (state is DashboardLoaded) {
+          }
+
+          if (state is DashboardLoaded) {
+            final stats = state.stats;
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<DashboardBloc>().add(GetDashboardStatsRequested());
@@ -48,111 +54,142 @@ class ReportsPage extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Summary Section
-                    Text(
-                      'نظرة عامة',
-                      style: GoogleFonts.cairo(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
+                    Container(
+                      padding: const EdgeInsets.all(18),
+                      decoration: AppTheme.glassCard,
+                      child: Row(
+                        children: [
+                          Container(
+                            width: 44,
+                            height: 44,
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            child: const Icon(Icons.analytics_rounded, color: AppColors.primary),
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  'ملخص التقارير',
+                                  style: AppTheme.body.copyWith(
+                                    color: AppColors.text,
+                                    fontWeight: FontWeight.w900,
+                                  ),
+                                ),
+                                const SizedBox(height: 2),
+                                Text(
+                                  'أهم الأرقام والنشاط اليومي لمتجرك',
+                                  style: AppTheme.caption.copyWith(color: AppColors.textSecondary),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                       ),
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 24),
+                    Text(
+                      'نظرة عامة',
+                      style: AppTheme.title.copyWith(color: AppColors.text),
+                    ),
+                    const SizedBox(height: 14),
                     Row(
                       children: [
                         Expanded(
                           child: _buildSummaryCard(
-                            'إجمالي المسح',
-                            state.stats.scansToday.toString(),
+                            'إجمالي المسح اليوم',
+                            stats.scansToday.toString(),
                             Icons.qr_code_scanner_rounded,
                             AppColors.primary,
                           ),
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 12),
                         Expanded(
                           child: _buildSummaryCard(
                             'عروض نشطة',
-                            state.stats.activeOffers.toString(),
+                            stats.activeOffers.toString(),
                             Icons.local_offer_rounded,
                             AppColors.secondary,
                           ),
                         ),
                       ],
                     ),
-                    const SizedBox(height: 32),
-
-                    // Chart Section (Placeholder for now)
-                    Text(
-                      'إحصائيات الاستخدام الأسبوعية',
-                      style: GoogleFonts.cairo(
-                        fontSize: 18,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                    const SizedBox(height: 12),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: _buildSummaryCard(
+                            'طلبات اليوم',
+                            stats.claimsToday.toString(),
+                            Icons.local_activity_rounded,
+                            AppColors.emerald,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: _buildSummaryCard(
+                            'إجمالي الطلبات',
+                            stats.totalClaims.toString(),
+                            Icons.people_alt_rounded,
+                            AppColors.purple,
+                          ),
+                        ),
+                      ],
                     ),
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 28),
+                    Text(
+                      'اتجاه النشاط الأسبوعي',
+                      style: AppTheme.title.copyWith(color: AppColors.text),
+                    ),
+                    const SizedBox(height: 14),
                     Container(
                       height: 200,
                       width: double.infinity,
-                      padding: const EdgeInsets.all(20),
-                      decoration: BoxDecoration(
-                        color: Colors.white,
-                        borderRadius: BorderRadius.circular(24),
-                        boxShadow: [
-                          BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.04),
-                            blurRadius: 20,
-                            offset: const Offset(0, 8),
-                          ),
-                        ],
-                      ),
+                      padding: const EdgeInsets.all(18),
+                      decoration: AppTheme.glassCard,
                       child: CustomPaint(
                         painter: SimpleChartPainter(AppColors.primary),
                       ),
                     ),
-                    const SizedBox(height: 32),
-
-                    // Detailed Activity
+                    const SizedBox(height: 28),
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
                         Text(
-                          'سجل العمليات الأخير',
-                          style: GoogleFonts.cairo(
-                            fontSize: 18,
-                            fontWeight: FontWeight.bold,
-                            color: AppColors.textPrimary,
-                          ),
+                          'آخر العمليات',
+                          style: AppTheme.title.copyWith(color: AppColors.text),
                         ),
-                        if (state.stats.recentCoupons.isNotEmpty)
+                        if (stats.recentCoupons.isNotEmpty)
                           Text(
-                            '${state.stats.recentCoupons.length} عملية',
-                            style: GoogleFonts.cairo(
-                              fontSize: 14,
-                              color: AppColors.textSecondary,
-                            ),
+                            '${stats.recentCoupons.length} عملية',
+                            style: AppTheme.caption.copyWith(color: AppColors.textSecondary),
                           ),
                       ],
                     ),
-                    const SizedBox(height: 16),
-                    if (state.stats.recentCoupons.isEmpty)
+                    const SizedBox(height: 14),
+                    if (stats.recentCoupons.isEmpty)
                       _buildEmptyState()
                     else
                       ListView.builder(
                         shrinkWrap: true,
                         physics: const NeverScrollableScrollPhysics(),
-                        itemCount: state.stats.recentCoupons.length,
+                        itemCount: stats.recentCoupons.length,
                         itemBuilder: (context, index) {
-                          final coupon = state.stats.recentCoupons[index];
+                          final coupon = stats.recentCoupons[index];
                           return _buildHistoryItem(coupon);
                         },
                       ),
-                    const SizedBox(height: 100),
+                    const SizedBox(height: 96),
                   ],
                 ),
               ),
             );
           }
+
           return const SizedBox();
         },
       ),
@@ -161,44 +198,31 @@ class ReportsPage extends StatelessWidget {
 
   Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(20),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(24),
-        boxShadow: [
-          BoxShadow(
-            color: color.withValues(alpha: 0.05),
-            blurRadius: 15,
-            offset: const Offset(0, 6),
-          ),
-        ],
-      ),
+      padding: const EdgeInsets.all(16),
+      decoration: AppTheme.glassCard,
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Container(
             padding: const EdgeInsets.all(10),
             decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.1),
+              color: color.withValues(alpha: 0.12),
               borderRadius: BorderRadius.circular(12),
             ),
-            child: Icon(icon, color: color, size: 24),
+            child: Icon(icon, color: color, size: 20),
           ),
-          const SizedBox(height: 16),
+          const SizedBox(height: 12),
           Text(
             value,
-            style: GoogleFonts.cairo(
-              fontSize: 24,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textPrimary,
-            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTheme.heading2.copyWith(color: AppColors.text, fontWeight: FontWeight.w900),
           ),
           Text(
             title,
-            style: GoogleFonts.cairo(
-              fontSize: 14,
-              color: AppColors.textSecondary,
-            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+            style: AppTheme.caption.copyWith(color: AppColors.textSecondary),
           ),
         ],
       ),
@@ -207,45 +231,37 @@ class ReportsPage extends StatelessWidget {
 
   Widget _buildHistoryItem(dynamic coupon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 12),
-      padding: const EdgeInsets.all(16),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[50]!),
-      ),
+      margin: const EdgeInsets.only(bottom: 10),
+      padding: const EdgeInsets.all(14),
+      decoration: AppTheme.glassCard,
       child: Row(
         children: [
           Container(
-            width: 48,
-            height: 48,
+            width: 42,
+            height: 42,
             decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.1),
+              color: AppColors.success.withValues(alpha: 0.12),
               shape: BoxShape.circle,
             ),
             child: const Icon(Icons.check_rounded, color: AppColors.success),
           ),
-          const SizedBox(width: 16),
+          const SizedBox(width: 12),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(
                   coupon.offerTitle,
-                  style: GoogleFonts.cairo(
-                    fontWeight: FontWeight.bold,
-                    fontSize: 15,
-                    color: AppColors.textPrimary,
+                  style: AppTheme.body.copyWith(
+                    fontWeight: FontWeight.w900,
+                    color: AppColors.text,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
                   'العميل: ${coupon.customerName}',
-                  style: GoogleFonts.cairo(
-                    fontSize: 12,
-                    color: AppColors.textSecondary,
-                  ),
+                  style: AppTheme.caption.copyWith(color: AppColors.textSecondary),
                 ),
               ],
             ),
@@ -263,10 +279,7 @@ class ReportsPage extends StatelessWidget {
               ),
               Text(
                 TimeUtils.getRelativeTime(coupon.redeemedAt),
-                style: GoogleFonts.cairo(
-                  fontSize: 11,
-                  color: Colors.grey,
-                ),
+                style: AppTheme.caption.copyWith(color: AppColors.textDim),
               ),
             ],
           ),
@@ -278,14 +291,14 @@ class ReportsPage extends StatelessWidget {
   Widget _buildEmptyState() {
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(40.0),
+        padding: const EdgeInsets.all(32.0),
         child: Column(
           children: [
-            Icon(Icons.history_rounded, size: 64, color: Colors.grey[200]),
-            const SizedBox(height: 16),
+            Icon(Icons.history_rounded, size: 64, color: AppColors.textDimmer),
+            const SizedBox(height: 12),
             Text(
               'لا يوجد سجل عمليات بعد',
-              style: GoogleFonts.cairo(color: Colors.grey, fontSize: 16),
+              style: AppTheme.body.copyWith(color: AppColors.textSecondary),
             ),
           ],
         ),
@@ -302,7 +315,7 @@ class ReportsPage extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center, style: GoogleFonts.cairo()),
+            Text(message, textAlign: TextAlign.center, style: GoogleFonts.cairo(color: AppColors.text)),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.read<DashboardBloc>().add(GetDashboardStatsRequested()),
@@ -322,7 +335,7 @@ class SimpleChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withValues(alpha: 0.1)
+      ..color = color.withValues(alpha: 0.12)
       ..style = PaintingStyle.fill;
 
     final linePaint = Paint()
@@ -333,12 +346,12 @@ class SimpleChartPainter extends CustomPainter {
 
     final path = Path();
     final points = [
-      Offset(0, size.height * 0.8),
+      Offset(0, size.height * 0.78),
       Offset(size.width * 0.2, size.height * 0.6),
       Offset(size.width * 0.4, size.height * 0.7),
-      Offset(size.width * 0.6, size.height * 0.4),
-      Offset(size.width * 0.8, size.height * 0.5),
-      Offset(size.width, size.height * 0.2),
+      Offset(size.width * 0.6, size.height * 0.45),
+      Offset(size.width * 0.8, size.height * 0.52),
+      Offset(size.width, size.height * 0.28),
     ];
 
     path.moveTo(points[0].dx, points[0].dy);
@@ -348,7 +361,6 @@ class SimpleChartPainter extends CustomPainter {
 
     canvas.drawPath(path, linePaint);
 
-    // Fill area
     final fillPath = Path.from(path)
       ..lineTo(size.width, size.height)
       ..lineTo(0, size.height)

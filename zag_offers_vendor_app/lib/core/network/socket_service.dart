@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:shared_preferences/shared_preferences.dart';
@@ -26,15 +27,13 @@ class SocketService {
       return;
     }
 
-    // Extract user ID from stored data (React app compatibility)
+    // Extract user ID from stored data.
     if (userData != null) {
       try {
-        final userMap = userData.startsWith('{') ? 
-          Map<String, dynamic>.fromEntries(
-            userData.split(',').map((e) => MapEntry(e.split(':')[0].trim().replaceAll('{', '').replaceAll('"', ''), 
-            e.split(':')[1].trim().replaceAll('}', '').replaceAll('"', '')))
-          ) : null;
-        _userId = userMap?['id']?.toString();
+        final decoded = jsonDecode(userData);
+        if (decoded is Map<String, dynamic>) {
+          _userId = (decoded['id'] ?? decoded['_id'])?.toString();
+        }
       } catch (e) {
         log('WebSocket: Failed to parse user data: $e');
       }

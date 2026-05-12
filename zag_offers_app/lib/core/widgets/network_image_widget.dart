@@ -24,6 +24,19 @@ class NetworkImageWidget extends StatelessWidget {
       return _buildPlaceholder();
     }
 
+    if (_isAssetPath(imageUrl!)) {
+      return ClipRRect(
+        borderRadius: borderRadius ?? BorderRadius.zero,
+        child: Image.asset(
+          imageUrl!,
+          width: width,
+          height: height,
+          fit: fit,
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+        ),
+      );
+    }
+
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.zero,
       child: CachedNetworkImage(
@@ -31,13 +44,18 @@ class NetworkImageWidget extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
-        placeholder: (context, url) => const Skeleton(
-          width: double.infinity,
-          height: double.infinity,
+        placeholder: (context, url) => SkeletonLoader(
+          width: width ?? double.infinity,
+          height: height ?? double.infinity,
+          borderRadius: borderRadius?.topLeft.x ?? 0,
         ),
         errorWidget: (context, url, error) => _buildPlaceholder(),
       ),
     );
+  }
+
+  bool _isAssetPath(String value) {
+    return value.startsWith('assets/');
   }
 
   Widget _buildPlaceholder() {

@@ -35,6 +35,10 @@ class AuthRepositoryImpl implements AuthRepository {
 
     if (token != null && userData != null) {
       final userModel = UserModel.fromJson(jsonDecode(userData));
+      if (userModel.role != 'MERCHANT') {
+        await logout();
+        return null;
+      }
       return UserEntity(
         id: userModel.id,
         email: userModel.email,

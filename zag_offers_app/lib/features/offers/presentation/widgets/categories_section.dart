@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 import '../constants/offer_categories.dart';
 import '../pages/all_offers_page.dart';
 import '../pages/categories_page.dart';
@@ -84,15 +85,10 @@ class CategoriesSection extends StatelessWidget {
                         ),
                         child: ClipRRect(
                           borderRadius: BorderRadius.circular(22),
-                          child: category.image != null
-                              ? Image.network(
-                                  category.image!,
+                          child: category.imagePath != null
+                              ? NetworkImageWidget(
+                                  imageUrl: category.imagePath!,
                                   fit: BoxFit.cover,
-                                  errorBuilder: (_, __, ___) => Icon(
-                                    category.icon,
-                                    color: category.color,
-                                    size: 28,
-                                  ),
                                 )
                               : Icon(
                                   category.icon,

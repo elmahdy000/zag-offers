@@ -1,8 +1,14 @@
-import 'package:intl/intl.dart';
+﻿import 'package:intl/intl.dart';
 
 class TimeUtils {
-  static String getRelativeTime(DateTime dateTime) {
+  static String getRelativeTime(DateTime? dateTime) {
+    if (dateTime == null) return 'غير محدد';
     final now = DateTime.now();
+
+    if (dateTime.isAfter(now)) {
+      return DateFormat('yyyy/MM/dd HH:mm').format(dateTime);
+    }
+
     final difference = now.difference(dateTime);
 
     if (difference.inMinutes < 1) {

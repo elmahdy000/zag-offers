@@ -245,9 +245,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                         ),
                                       ),
                                       child: ClipOval(
-                                        child: categoryItem.image != null
+                                        child: categoryItem.imagePath != null
                                             ? NetworkImageWidget(
-                                                imageUrl: categoryItem.image!,
+                                                imageUrl: categoryItem.imagePath!,
                                                 fit: BoxFit.cover,
                                               )
                                             : Container(

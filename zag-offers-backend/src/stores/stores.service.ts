@@ -128,25 +128,25 @@ export class StoresService {
         }),
         this.prisma.coupon.count({
           where: {
-            offerId: { in: offerIds },
+            offer: { storeId: store.id },
             status: 'USED',
             redeemedAt: { gte: startOfDay },
           },
         }),
         this.prisma.coupon.count({
           where: {
-            offerId: { in: offerIds },
+            offer: { storeId: store.id },
             createdAt: { gte: startOfDay },
           },
         }),
         this.prisma.coupon.count({
           where: {
-            offerId: { in: offerIds },
+            offer: { storeId: store.id },
           },
         }),
         this.prisma.coupon.findMany({
           where: {
-            offerId: { in: offerIds },
+            offer: { storeId: store.id },
           },
           orderBy: { createdAt: 'desc' },
           take: 5,

@@ -80,9 +80,9 @@ class CategoriesPage extends StatelessWidget {
                               shape: BoxShape.circle,
                             ),
                             child: ClipOval(
-                              child: category.image != null
+                              child: category.imagePath != null
                                   ? NetworkImageWidget(
-                                      imageUrl: category.image!,
+                                      imageUrl: category.imagePath!,
                                       fit: BoxFit.cover,
                                     )
                                   : Icon(

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_theme.dart';
@@ -58,11 +58,11 @@ class MainLayoutState extends State<MainLayout> {
       backgroundColor: AppColors.background,
       body: IndexedStack(
         index: _currentIndex,
-        children: const [
-          EnhancedDashboardPage(),
-          OffersPage(),
-          QRScannerPage(),
-          ProfilePage(),
+        children: [
+          const EnhancedDashboardPage(),
+          const OffersPage(),
+          _currentIndex == 2 ? const QRScannerPage() : const SizedBox.shrink(),
+          const ProfilePage(),
         ],
       ),
       bottomNavigationBar: _buildBottomNavigationBar(),

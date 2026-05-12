@@ -5,13 +5,13 @@ class OfferCategoryItem {
   final IconData icon;
   final Color color;
   final String? description;
-  final String? image;
+  final String? imagePath;
 
   const OfferCategoryItem({
     required this.name,
     required this.icon,
     required this.color,
     this.description,
-    this.image,
+    this.imagePath,
   });
 }

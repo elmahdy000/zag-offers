@@ -1,6 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCookie, vendorApi, getVendorStoreId, Offer } from '@/lib/api';
-import { secureUserData, secureStorage } from '@/lib/crypto';
+import { getCookie, vendorApi, getVendorStoreId } from '@/lib/api';
 
 // Types
 interface CreateOfferData {
@@ -75,7 +74,7 @@ export function useVendorStats() {
   return useQuery({
     queryKey: ['vendor-stats'],
     queryFn: async () => {
-      const res = await vendorApi().get('/stores/stats');
+      const res = await vendorApi().get('/stores/my-dashboard');
       return res.data;
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
@@ -194,7 +193,7 @@ export function useUpdateStore() {
 export function useChangePassword() {
   return useMutation({
     mutationFn: async (data: any) => {
-      const res = await vendorApi().post('/auth/change-password', data);
+      const res = await vendorApi().post('/auth/password', data);
       return res.data;
     },
   });

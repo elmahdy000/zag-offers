@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -54,7 +54,6 @@ class _LoginPageState extends State<LoginPage> {
               ),
             );
           } else if (state is AuthAuthenticated) {
-            // Navigator.of(context).pushReplacementNamed('/dashboard');
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم تسجيل الدخول بنجاح!'),
@@ -97,15 +96,13 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 48),
-
-                    // Phone Field
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.card,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
                           BoxShadow(
-                            color: Colors.black.withValues(alpha: 0.05),
+                            color: Colors.black.withOpacity(0.05),
                             blurRadius: 10,
                             offset: const Offset(0, 4),
                           ),
@@ -132,8 +129,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 20),
-
-                    // Password Field
                     Container(
                       decoration: BoxDecoration(
                         color: AppColors.card,
@@ -174,8 +169,6 @@ class _LoginPageState extends State<LoginPage> {
                       ),
                     ),
                     const SizedBox(height: 40),
-
-                    // Login Button
                     ElevatedButton(
                       onPressed: state is AuthLoading ? null : _onLogin,
                       style: ElevatedButton.styleFrom(

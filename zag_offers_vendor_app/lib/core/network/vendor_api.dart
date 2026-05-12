@@ -1,7 +1,7 @@
 import 'package:dio/dio.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../constants/app_constants.dart';
-import '../utils/crypto_utils.dart';
+import 'dart:convert';
 
 class VendorApi {
   late final Dio dio;
@@ -66,54 +66,58 @@ class VendorApi {
 
   // Auth endpoints (React app compatibility)
   Future<Response> login(Map<String, dynamic> data) async {
-    return await dio.post('/api/auth/vendor/login', data: data);
+    return await dio.post('/auth/login', data: data);
   }
 
   Future<Response> register(Map<String, dynamic> data) async {
-    return await dio.post('/api/auth/vendor/register', data: data);
+    return await dio.post('/auth/register', data: data);
   }
 
   Future<Response> refreshToken() async {
-    return await dio.post('/api/auth/refresh');
+    return await dio.post('/auth/refresh');
   }
 
   // Dashboard endpoints (React app compatibility)
   Future<Response> getDashboardStats() async {
-    return await dio.get('/api/vendor/dashboard/stats');
+    return await dio.get('/stores/my-dashboard');
   }
 
   Future<Response> getVendorOffers() async {
-    return await dio.get('/api/vendor/offers');
+    return await dio.get('/offers/my');
   }
 
   Future<Response> getVendorCoupons() async {
-    return await dio.get('/api/vendor/coupons');
+    return await dio.get('/coupons/merchant');
   }
 
   // Offers endpoints (React app compatibility)
   Future<Response> createOffer(Map<String, dynamic> data) async {
-    return await dio.post('/api/vendor/offers', data: data);
+    return await dio.post('/offers', data: data);
   }
 
   Future<Response> updateOffer(String id, Map<String, dynamic> data) async {
-    return await dio.put('/api/vendor/offers/$id', data: data);
+    return await dio.patch('/offers/$id', data: data);
   }
 
   Future<Response> deleteOffer(String id) async {
-    return await dio.delete('/api/vendor/offers/$id');
+    return await dio.delete('/offers/$id');
   }
 
   Future<Response> getOffer(String id) async {
-    return await dio.get('/api/vendor/offers/$id');
+    return await dio.get('/offers/$id');
   }
 
   // Store endpoints (React app compatibility)
   Future<Response> getVendorStore() async {
-    return await dio.get('/api/vendor/store');
+    return await dio.get('/stores/my');
   }
 
   Future<Response> updateStore(Map<String, dynamic> data) async {
-    return await dio.put('/api/vendor/store', data: data);
+    final storeId = await getVendorStoreId();
+    if (storeId == null || storeId.isEmpty) {
+      throw Exception('Store ID not found');
+    }
+    return await dio.patch('/stores/$storeId', data: data);
   }
 
   // File upload (React app compatibility)
@@ -143,25 +147,25 @@ class VendorApi {
 
   // Notifications endpoints (React app compatibility)
   Future<Response> getNotifications() async {
-    return await dio.get('/api/notifications');
+    return await dio.get('/notifications');
   }
 
   Future<Response> markAllNotificationsRead() async {
-    return await dio.post('/api/notifications/read-all');
+    return await dio.post('/notifications/read-all');
   }
 
   // QR Scanner endpoints (React app compatibility)
   Future<Response> validateCoupon(String code) async {
-    return await dio.post('/api/vendor/validate-coupon', data: {'code': code});
+    return await dio.get('/coupons/by-code/$code');
   }
 
   Future<Response> redeemCoupon(String code) async {
-    return await dio.post('/api/vendor/redeem-coupon', data: {'code': code});
+    return await dio.post('/coupons/redeem', data: {'code': code});
   }
 
   // Security endpoints (React app compatibility)
   Future<Response> changePassword(Map<String, dynamic> data) async {
-    return await dio.post('/api/vendor/change-password', data: data);
+    return await dio.post('/auth/password', data: data);
   }
 
   // Utility methods
@@ -183,13 +187,10 @@ class VendorApi {
       final userData = prefs.getString('vendor_user') ?? prefs.getString('user_data');
       
       if (userData != null) {
-        // Parse user data to get store ID (React app compatibility)
-        final userMap = userData.startsWith('{') ? 
-          Map<String, dynamic>.fromEntries(
-            userData.split(',').map((e) => MapEntry(e.split(':')[0].trim().replaceAll('{', '').replaceAll('"', ''), 
-            e.split(':')[1].trim().replaceAll('}', '').replaceAll('"', '')))
-          ) : null;
-        return userMap?['storeId']?.toString();
+        final decoded = jsonDecode(userData);
+        if (decoded is Map<String, dynamic>) {
+          return decoded['storeId']?.toString();
+        }
       }
     } catch (e) {
       // Handle error silently

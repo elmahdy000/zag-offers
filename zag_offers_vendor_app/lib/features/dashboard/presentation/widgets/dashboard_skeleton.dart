@@ -7,21 +7,17 @@ class DashboardSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Padding(
+    return SingleChildScrollView(
       padding: const EdgeInsets.all(24),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header skeleton
           _buildHeaderSkeleton(),
           const SizedBox(height: 32),
-          
-          // Stats grid skeleton
           _buildStatsGridSkeleton(),
-          const SizedBox(height: 40),
-          
-          // Content sections skeleton
+          const SizedBox(height: 24),
           Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(child: _buildContentSkeleton()),
               const SizedBox(width: 16),
@@ -69,41 +65,42 @@ class DashboardSkeleton extends StatelessWidget {
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.2,
+      childAspectRatio: 0.95,
       children: List.generate(4, (index) {
         return Container(
           decoration: AppTheme.glassCard,
           child: Padding(
-            padding: const EdgeInsets.all(24),
+            padding: const EdgeInsets.all(16),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
+              mainAxisSize: MainAxisSize.min,
               children: [
                 // Icon skeleton
                 Container(
-                  width: 48,
-                  height: 48,
+                  width: 40,
+                  height: 40,
                   decoration: BoxDecoration(
                     color: AppColors.glassBackground,
                     borderRadius: BorderRadius.circular(16),
                   ),
                 ),
-                const SizedBox(height: 16),
+                const SizedBox(height: 10),
                 
                 // Label skeleton
                 Container(
-                  width: 80,
-                  height: 16,
+                  width: 72,
+                  height: 12,
                   decoration: BoxDecoration(
                     color: AppColors.glassBackground,
                     borderRadius: BorderRadius.circular(4),
                   ),
                 ),
-                const SizedBox(height: 8),
+                const SizedBox(height: 6),
                 
                 // Value skeleton
                 Container(
-                  width: 60,
-                  height: 32,
+                  width: 52,
+                  height: 24,
                   decoration: BoxDecoration(
                     color: AppColors.glassBackground,
                     borderRadius: BorderRadius.circular(4),
@@ -119,12 +116,12 @@ class DashboardSkeleton extends StatelessWidget {
 
   Widget _buildContentSkeleton() {
     return Container(
-      height: 300,
       decoration: AppTheme.glassCard,
       child: Padding(
-        padding: const EdgeInsets.all(24),
+        padding: const EdgeInsets.all(16),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisSize: MainAxisSize.min,
           children: [
             // Header skeleton
             Row(
@@ -144,7 +141,7 @@ class DashboardSkeleton extends StatelessWidget {
                     children: [
                       Container(
                         width: double.infinity,
-                        height: 20,
+                        height: 14,
                         decoration: BoxDecoration(
                           color: AppColors.glassBackground,
                           borderRadius: BorderRadius.circular(4),
@@ -152,8 +149,8 @@ class DashboardSkeleton extends StatelessWidget {
                       ),
                       const SizedBox(height: 4),
                       Container(
-                        width: 100,
-                        height: 16,
+                        width: 72,
+                        height: 10,
                         decoration: BoxDecoration(
                           color: AppColors.glassBackground,
                           borderRadius: BorderRadius.circular(4),
@@ -164,24 +161,23 @@ class DashboardSkeleton extends StatelessWidget {
                 ),
               ],
             ),
-            const SizedBox(height: 20),
+            const SizedBox(height: 12),
             
             // Content skeleton
-            Expanded(
-              child: Column(
-                children: List.generate(3, (index) {
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 12),
-                    child: Container(
-                      height: 60,
-                      decoration: BoxDecoration(
-                        color: AppColors.glassBackground,
-                        borderRadius: BorderRadius.circular(12),
-                      ),
+            Column(
+              children: List.generate(2, (index) {
+                return Padding(
+                  padding: EdgeInsets.only(bottom: index == 1 ? 0 : 10),
+                  child: Container(
+                    height: 44,
+                    decoration: BoxDecoration(
+                      color: AppColors.surface.withValues(alpha: 0.45),
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: AppColors.glassBorder),
                     ),
-                  );
-                }),
-              ),
+                  ),
+                );
+              }),
             ),
           ],
         ),

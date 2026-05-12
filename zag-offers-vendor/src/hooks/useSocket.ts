@@ -15,7 +15,17 @@ export const useSocket = (userId?: string) => {
 
   useEffect(() => {
     const token = getCookie('auth_token');
-    socketRef.current = io(SOCKET_URL);
+    if (!token) {
+      socketRef.current?.disconnect();
+      socketRef.current = null;
+      return;
+    }
+
+    socketRef.current = io(SOCKET_URL, {
+      auth: { token },
+      transports: ['websocket'],
+      reconnectionAttempts: 5,
+    });
 
     socketRef.current.on('connect', () => {
       console.log('Connected to Real-time Server');

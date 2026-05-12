@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
@@ -6,6 +6,7 @@ import '../../../../../core/widgets/stat_card.dart';
 import '../../../../../core/widgets/glass_card.dart';
 import '../../../../../core/widgets/notification_bubble.dart';
 import '../../../../../core/widgets/sparkline_chart.dart';
+import '../../../offers/presentation/pages/add_edit_offer_page.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../../data/models/dashboard_stats_model.dart';
 
@@ -79,25 +80,9 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
     
     await Future.delayed(const Duration(milliseconds: 800));
     
+    if (!mounted) return;
     setState(() {
       _isRefreshing = false;
-    });
-  }
-
-  void _showNotification(String title, String body, {String? type}) {
-    setState(() {
-      _notifications.add(
-        NotificationData(
-          title: title,
-          body: body,
-          type: type,
-          onClose: () {
-            setState(() {
-              _notifications.removeLast();
-            });
-          },
-        ),
-      );
     });
   }
 
@@ -276,7 +261,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
         
         // Welcome message
         Text(
-          'مرحباً بك،\nمتجر زاچ',
+          'مرحبًا بك،\nمتجر زاج',
           style: AppTheme.heading1.copyWith(
             fontSize: 42,
             height: 1.2,
@@ -290,7 +275,12 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           children: [
             Expanded(
               child: GlassButton(
-                onPressed: _refreshData,
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
+                  );
+                },
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 padding: const EdgeInsets.symmetric(vertical: 20),
@@ -349,7 +339,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.2,
+      childAspectRatio: 1.0,
       children: List.generate(4, (index) {
         return StatCard(
           label: '...',
@@ -371,11 +361,11 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
       crossAxisCount: 2,
       crossAxisSpacing: 16,
       mainAxisSpacing: 16,
-      childAspectRatio: 1.2,
+      childAspectRatio: 1.0,
       children: [
         StatCard(
           label: 'نشاط اليوم',
-          value: (stats.claimsToday ?? 0).toString(),
+          value: stats.claimsToday.toString(),
           icon: Icons.local_activity,
           color: AppColors.primary,
           bgColor: AppColors.primary.withOpacity(0.1),
@@ -393,7 +383,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
         ),
         StatCard(
           label: 'عروض نشطة',
-          value: (stats.activeOffers ?? 0).toString(),
+          value: stats.activeOffers.toString(),
           icon: Icons.star,
           color: AppColors.secondary,
           bgColor: AppColors.secondary.withOpacity(0.1),
@@ -401,7 +391,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
         ),
         StatCard(
           label: 'قاعدة العملاء',
-          value: (stats.totalClaims ?? 0).toString(),
+          value: stats.totalClaims.toString(),
           icon: Icons.people,
           color: AppColors.purple,
           bgColor: AppColors.purple.withOpacity(0.1),
@@ -567,7 +557,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Text(
-                      'الأكثر تأثيراً',
+                      'الأكثر تأثيرًا',
                       style: AppTheme.body.copyWith(
                         color: AppColors.text,
                         fontWeight: FontWeight.w900,
@@ -698,3 +688,6 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
     );
   }
 }
+
+
+

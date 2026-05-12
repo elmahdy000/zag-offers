@@ -163,16 +163,22 @@ export default function CouponsManagementPage() {
           {Object.entries(statusLabels).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
         </select>
 
-        <select
-          value={storeIdFilter}
-          onChange={(e) => { setStoreIdFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm"
-        >
-          <option value="">كل المتاجر</option>
-          {storesData?.items.map((store) => (
-            <option key={store.id} value={store.id}>{store.name}</option>
-          ))}
-        </select>
+        <div className="relative lg:col-span-1">
+          <Store className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 pointer-events-none" size={18} />
+          <select
+            value={storeIdFilter}
+            onChange={(e) => { setStoreIdFilter(e.target.value); setPage(1); }}
+            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-bold focus:border-orange-500 focus:outline-none shadow-sm appearance-none transition-all cursor-pointer hover:border-slate-300"
+          >
+            <option value="">كل المتاجر</option>
+            {storesData?.items.map((store) => (
+              <option key={store.id} value={store.id}>{store.name}</option>
+            ))}
+          </select>
+          <div className="absolute left-4 top-1/2 -translate-y-1/2 pointer-events-none text-slate-300">
+             <Filter size={14} />
+          </div>
+        </div>
       </div>
 
       {isLoading ? (

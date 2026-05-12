@@ -31,8 +31,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final token = response.data['access_token'];
       final user = UserModel.fromJson(response.data['user']);
 
-      if (user.role != 'MERCHANT' && user.role != 'ADMIN') {
-        throw Exception('Not authorized as vendor.');
+      // Vendor mobile app must use merchant accounts only.
+      // Most vendor endpoints are protected with MERCHANT role on backend.
+      if (user.role != 'MERCHANT') {
+        throw Exception('This app is for merchant accounts only.');
       }
 
       await sharedPreferences.setString('auth_token', token);

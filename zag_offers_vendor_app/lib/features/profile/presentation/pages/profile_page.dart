@@ -198,8 +198,17 @@ class _ProfilePageState extends State<ProfilePage> {
           if (state is ProfileLoading) return const Center(child: CardSkeleton());
           if (state is ProfileError) return _buildErrorState(state.message);
 
-          final user = (state as dynamic).user; // Handle type safety properly in production
-          if (user == null) return const SizedBox();
+          // Identify the user from the state safely
+          dynamic user;
+          if (state is ProfileLoaded) user = state.user;
+          else if (state is PasswordChanging) user = state.user;
+          else if (state is PasswordChanged) user = state.user;
+          else if (state is PasswordChangeError) user = state.user;
+
+          if (user == null) {
+             if (state is ProfileError) return _buildErrorState(state.message);
+             return const Center(child: CardSkeleton());
+          }
 
           return CustomScrollView(
             slivers: [

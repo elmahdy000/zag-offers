@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -122,7 +122,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
             Row(
               mainAxisAlignment: MainAxisAlignment.spaceBetween,
               children: [
-                _buildBadge('خصم ${widget.offer.discount}', AppColors.secondary),
+                _buildBadge('Ø®ØµÙ… ${widget.offer.discount}', AppColors.secondary),
                 _buildPreviewIndicator(),
               ],
             ),
@@ -143,10 +143,10 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
               _buildPriceRow(),
             
             const SizedBox(height: 32),
-            _buildSectionHeader('عن هذا العرض'),
+            _buildSectionHeader('Ø¹Ù† Ù‡Ø°Ø§ Ø§Ù„Ø¹Ø±Ø¶'),
             const SizedBox(height: 12),
             Text(
-              widget.offer.description ?? 'لا يوجد وصف متاح.',
+              widget.offer.description.trim().isEmpty ? 'لا يوجد وصف متاح.' : widget.offer.description,
               style: GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.6, fontSize: 14),
             ),
             
@@ -155,7 +155,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
             
             if (widget.offer.terms != null && widget.offer.terms!.isNotEmpty) ...[
               const SizedBox(height: 32),
-              _buildSectionHeader('الشروط والأحكام'),
+              _buildSectionHeader('Ø§Ù„Ø´Ø±ÙˆØ· ÙˆØ§Ù„Ø£Ø­ÙƒØ§Ù…'),
               const SizedBox(height: 12),
               Text(
                 widget.offer.terms!,
@@ -195,7 +195,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
           const Icon(Icons.remove_red_eye_rounded, color: AppColors.textTertiary, size: 14),
           const SizedBox(width: 6),
           Text(
-            'معاينة مباشرة',
+            'Ù…Ø¹Ø§ÙŠÙ†Ø© Ù…Ø¨Ø§Ø´Ø±Ø©',
             style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.bold),
           ),
         ],
@@ -209,7 +209,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
       children: [
         if (widget.offer.newPrice != null)
           Text(
-            '${widget.offer.newPrice} ج.م',
+            '${widget.offer.newPrice} Ø¬.Ù…',
             style: GoogleFonts.cairo(fontSize: 26, color: AppColors.primary, fontWeight: FontWeight.w900),
           ),
         if (widget.offer.oldPrice != null) ...[
@@ -217,7 +217,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
           Padding(
             padding: const EdgeInsets.only(bottom: 4),
             child: Text(
-              '${widget.offer.oldPrice} ج.م',
+              '${widget.offer.oldPrice} Ø¬.Ù…',
               style: GoogleFonts.cairo(
                 fontSize: 16,
                 color: AppColors.textTertiary,
@@ -251,7 +251,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'صالح حتى: ${DateFormat('yyyy/MM/dd').format(widget.offer.endDate)}',
+              'ØµØ§Ù„Ø­ Ø­ØªÙ‰: ${DateFormat('yyyy/MM/dd').format(widget.offer.endDate)}',
               style: GoogleFonts.cairo(color: AppColors.error, fontWeight: FontWeight.bold, fontSize: 14),
             ),
           ),
@@ -317,7 +317,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                       const Icon(Icons.publish_rounded, size: 20),
                       const SizedBox(width: 10),
                       Text(
-                        widget.isEdit ? 'تأكيد التعديلات' : 'نشر العرض الآن',
+                        widget.isEdit ? 'ØªØ£ÙƒÙŠØ¯ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª' : 'Ù†Ø´Ø± Ø§Ù„Ø¹Ø±Ø¶ Ø§Ù„Ø¢Ù†',
                         style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -336,3 +336,4 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
     }
   }
 }
+

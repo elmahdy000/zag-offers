@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/constants/app_constants.dart';
@@ -85,6 +85,8 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                       hintText: 'ابحث عن عرض...',
                       hintStyle: GoogleFonts.cairo(fontSize: 12, color: AppColors.textTertiary),
                       prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 18),
+                      enabledBorder: InputBorder.none,
+                      focusedBorder: InputBorder.none,
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     ),
@@ -463,3 +465,4 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
     );
   }
 }
+
