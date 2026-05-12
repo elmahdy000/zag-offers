@@ -56,6 +56,18 @@ type OfferUpdatePayload = {
   images?: string[];
 };
 
+type OfferCreatePayload = {
+  title: string;
+  description: string;
+  discount: string;
+  storeId: string;
+  startDate: string;
+  endDate: string;
+  images: string[];
+  terms?: string;
+  usageLimit?: number;
+};
+
 @Injectable()
 export class AdminService {
   private validateOfferImages(images: string[]) {
@@ -1307,5 +1319,62 @@ export class AdminService {
         owner: { connect: { id: payload.ownerId } },
       },
     });
+  }
+
+  async createOffer(payload: OfferCreatePayload, adminId: string) {
+    const store = await this.prisma.store.findUnique({
+      where: { id: payload.storeId },
+    });
+    if (!store) throw new NotFoundException('المحل غير موجود');
+
+    const startDate = new Date(payload.startDate);
+    const endDate = new Date(payload.endDate);
+
+    if (Number.isNaN(startDate.getTime()) || Number.isNaN(endDate.getTime())) {
+      throw new BadRequestException('Invalid dates provided');
+    }
+
+    if (payload.images && payload.images.length > 0) {
+      this.validateOfferImages(payload.images);
+    }
+
+    const offer = await this.prisma.offer.create({
+      data: {
+        title: payload.title,
+        description: payload.description,
+        discount: payload.discount,
+        terms: payload.terms,
+        usageLimit: payload.usageLimit ? +payload.usageLimit : null,
+        startDate,
+        endDate,
+        images: payload.images || [],
+        status: OfferStatus.ACTIVE, // Admin offers are approved by default
+        store: { connect: { id: payload.storeId } },
+      },
+      include: { store: true },
+    });
+
+    // Notify users about new offer
+    this.eventsGateway.broadcastNewOffer(offer);
+
+    const imageUrl =
+      offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
+
+    void this.notificationsService.sendToAll(
+      'عرض جديد من الإدارة 🎁',
+      `تمت إضافة عرض جديد في ${store.name}: ${offer.title}`,
+      { offerId: offer.id, type: 'NEW_OFFER' },
+      imageUrl,
+    );
+
+    await this.auditLogService.log({
+      action: 'CREATE_OFFER',
+      adminId,
+      targetId: offer.id,
+      targetName: offer.title,
+      details: `Created for store: ${store.name}`,
+    });
+
+    return offer;
   }
 }

@@ -202,6 +202,12 @@ export class AdminController {
     return this.adminService.getPendingOffers();
   }
 
+  @Post('offers')
+  @ApiOperation({ summary: 'Create a new offer as admin' })
+  createOffer(@Body() body: any, @Request() req: { user: { id: string } }) {
+    return this.adminService.createOffer(body, req.user.id);
+  }
+
   @Get('offers/:id')
   @ApiOperation({ summary: 'Get full offer details for admin' })
   getOfferDetails(@Param('id') id: string) {
