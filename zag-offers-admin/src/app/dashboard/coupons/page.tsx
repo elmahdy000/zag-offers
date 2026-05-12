@@ -74,10 +74,20 @@ export default function CouponsManagementPage() {
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('');
+  const [storeIdFilter, setStoreIdFilter] = useState('');
   const [page, setPage] = useState(1);
   const [selectedCouponId, setSelectedCouponId] = useState<string | null>(null);
   const [deleteModal, setDeleteModal] = useState<{ id: string; code: string } | null>(null);
   const [busyId, setBusyId] = useState<string | null>(null);
+
+  // Fetch Stores for Filter
+  const { data: storesData } = useQuery({
+    queryKey: ['admin-stores-list'],
+    queryFn: async () => {
+      const response = await adminApi().get('/admin/stores', { params: { limit: 1000 } });
+      return response.data as { items: { id: string; name: string }[] };
+    },
+  });
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -88,12 +98,13 @@ export default function CouponsManagementPage() {
   }, [search]);
 
   const { data, isLoading } = useQuery({
-    queryKey: ['admin-coupons', debouncedSearch, statusFilter, page],
+    queryKey: ['admin-coupons', debouncedSearch, statusFilter, storeIdFilter, page],
     queryFn: async () => {
       const response = await adminApi().get('/admin/coupons', {
         params: {
           search: debouncedSearch || undefined,
           status: statusFilter || undefined,
+          storeId: storeIdFilter || undefined,
           page,
           limit: 12,
         },
@@ -133,7 +144,7 @@ export default function CouponsManagementPage() {
         icon={Ticket}
       />
 
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-5">
         <div className="relative lg:col-span-3">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
           <input
@@ -150,6 +161,17 @@ export default function CouponsManagementPage() {
         >
           <option value="">كل الحالات</option>
           {Object.entries(statusLabels).map(([v, { label }]) => <option key={v} value={v}>{label}</option>)}
+        </select>
+
+        <select
+          value={storeIdFilter}
+          onChange={(e) => { setStoreIdFilter(e.target.value); setPage(1); }}
+          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm"
+        >
+          <option value="">كل المتاجر</option>
+          {storesData?.items.map((store) => (
+            <option key={store.id} value={store.id}>{store.name}</option>
+          ))}
         </select>
       </div>
 

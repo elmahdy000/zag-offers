@@ -1125,15 +1125,17 @@ export class AdminService {
 
   async getAllCoupons(params: {
     status?: CouponStatus;
+    storeId?: string;
     search?: string;
     page?: number;
     limit?: number;
   }) {
-    const { status, search, page = 1, limit = 20 } = params;
+    const { status, storeId, search, page = 1, limit = 20 } = params;
     const skip = (page - 1) * limit;
 
     const where: Prisma.CouponWhereInput = {};
     if (status) where.status = status;
+    if (storeId) where.offer = { storeId };
     if (search) {
       where.OR = [
         { code: { contains: search, mode: 'insensitive' } },

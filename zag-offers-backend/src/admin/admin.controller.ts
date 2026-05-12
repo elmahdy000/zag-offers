@@ -348,17 +348,20 @@ export class AdminController {
   @Get('coupons')
   @ApiOperation({ summary: 'List coupons with filters and pagination' })
   @ApiQuery({ name: 'status', enum: CouponStatus, required: false })
+  @ApiQuery({ name: 'storeId', required: false })
   @ApiQuery({ name: 'search', required: false })
   @ApiQuery({ name: 'page', required: false })
   @ApiQuery({ name: 'limit', required: false })
   getAllCoupons(
     @Query('status') status?: CouponStatus,
+    @Query('storeId') storeId?: string,
     @Query('search') search?: string,
     @Query('page') page?: number,
     @Query('limit') limit?: number,
   ) {
     return this.adminService.getAllCoupons({
       status,
+      storeId,
       search,
       page: page ? +page : 1,
       limit: limit ? +limit : 20,
