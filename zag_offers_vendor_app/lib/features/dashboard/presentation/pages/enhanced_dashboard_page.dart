@@ -217,10 +217,10 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
                   decoration: BoxDecoration(
-                    color: AppColors.glassBackground.color,
+                    color: AppColors.glassBackground,
                     borderRadius: BorderRadius.circular(20),
                     border: Border.all(
-                      color: AppColors.glassBorder.color,
+                      color: AppColors.glassBorder,
                       width: 1,
                     ),
                   ),
@@ -356,7 +356,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           value: '...',
           icon: Icons.analytics,
           color: AppColors.textDimmer,
-          bgColor: AppColors.glassBackground.color!,
+          bgColor: AppColors.glassBackground,
           loading: true,
           index: index,
         );
@@ -590,10 +590,10 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: AppColors.glassBackground.color,
+              color: AppColors.glassBackground,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.glassBorder.color,
+                color: AppColors.glassBorder,
                 width: 1,
               ),
             ),
@@ -666,10 +666,10 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           Container(
             height: 200,
             decoration: BoxDecoration(
-              color: AppColors.glassBackground.color,
+              color: AppColors.glassBackground,
               borderRadius: BorderRadius.circular(16),
               border: Border.all(
-                color: AppColors.glassBorder.color,
+                color: AppColors.glassBorder,
                 width: 1,
               ),
             ),

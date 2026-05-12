@@ -109,10 +109,10 @@ class NotificationBubble extends StatelessWidget {
                   width: 32,
                   height: 32,
                   decoration: BoxDecoration(
-                    color: AppColors.glassBackground.color,
+                    color: AppColors.glassBackground,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(
-                      color: AppColors.glassBorder.color,
+                      color: AppColors.glassBorder,
                       width: 1,
                     ),
                   ),

@@ -11,7 +11,7 @@ import { vendorApi, resolveImageUrl } from '@/lib/api';
 import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
-import ConfirmModal from '@/components/ConfirmModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 export default function StoreProfilePage() {
   const [saving, setSaving] = useState(false);
