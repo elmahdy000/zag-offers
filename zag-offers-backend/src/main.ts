@@ -61,6 +61,10 @@ async function bootstrap() {
       'Authorization',
       'X-Requested-With',
       'Accept',
+      'X-Request-Timestamp',
+      'X-Request-Signature',
+      'x-request-timestamp',
+      'x-request-signature',
     ],
     credentials: true,
   });

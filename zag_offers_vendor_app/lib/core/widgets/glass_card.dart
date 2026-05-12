@@ -81,9 +81,7 @@ class GlassButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.glassBackground,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: borderSide != null 
-            ? borderSide 
-            : Border.all(
+        border: borderSide as BoxBorder? ?? Border.all(
                 color: AppColors.glassBorder,
                 width: 1,
               ),

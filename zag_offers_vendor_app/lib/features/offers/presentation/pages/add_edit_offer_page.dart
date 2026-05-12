@@ -367,12 +367,12 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2), dashArray: const [5, 5]),
+                border: Border.all(color: AppColors.primary.withOpacity(0.2)),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_rounded, size: 40, color: AppColors.primary.withValues(alpha: 0.5)),
+                  Icon(Icons.add_photo_alternate_rounded, size: 40, color: AppColors.primary.withOpacity(0.5)),
                   const SizedBox(height: 8),
                   Text('اضغط لإضافة صور العرض', style: GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 12)),
                 ],

@@ -456,6 +456,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
               context.read<OffersBloc>().add(DeleteOfferRequested(id));
               Navigator.pop(context);
             },
+            child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
           ),
         ],
       ),

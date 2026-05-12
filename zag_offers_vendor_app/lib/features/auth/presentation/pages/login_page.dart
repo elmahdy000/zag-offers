@@ -119,7 +119,6 @@ class _LoginPageState extends State<LoginPage> {
                           hintText: 'رقم الهاتف',
                           prefixIcon: const Icon(
                             Icons.phone_android_outlined,
-                            Icons.phone_android_outlined,
                             color: AppColors.primary,
                           ),
                           border: OutlineInputBorder(

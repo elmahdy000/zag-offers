@@ -215,7 +215,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
         if (widget.offer.oldPrice != null) ...[
           const SizedBox(width: 12),
           Padding(
-            padding: const EdgeInsets.bottom(4),
+            padding: const EdgeInsets.only(bottom: 4),
             child: Text(
               '${widget.offer.oldPrice} ج.م',
               style: GoogleFonts.cairo(
