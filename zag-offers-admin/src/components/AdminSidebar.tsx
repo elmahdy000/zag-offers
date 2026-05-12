@@ -12,7 +12,6 @@ import {
   LogOut,
   Megaphone,
   Menu,
-  MessageSquare,
   Settings,
   ShieldCheck,
   ShoppingBag,
@@ -29,15 +28,14 @@ import { adminApi } from '@/lib/api';
 const menuItems = [
   { name: 'نظرة عامة', icon: Grid2X2, href: '/dashboard' },
   { name: 'مركز الموافقات', icon: ShieldCheck, href: '/dashboard/approvals' },
-  { name: 'المحادثات والدعم', icon: MessageSquare, href: '/dashboard/chat' },
   { name: 'إدارة المتاجر', icon: ShoppingBag, href: '/dashboard/merchants' },
   { name: 'إدارة العروض', icon: Sparkles, href: '/dashboard/offers' },
   { name: 'إدارة التصنيفات', icon: ListFilter, href: '/dashboard/categories' },
-  { name: 'إدارة الكوبونات', icon: TicketPercent, href: '/dashboard/coupons' },
+  { name: 'قائمة الكوبونات', icon: TicketPercent, href: '/dashboard/coupons' },
   { name: 'إدارة المستخدمين', icon: Users2, href: '/dashboard/users' },
-  { name: 'الإذاعة العامة', icon: Megaphone, href: '/dashboard/broadcast' },
+  { name: 'إرسال تنبيهات عامة', icon: Megaphone, href: '/dashboard/broadcast' },
   { name: 'سجل العمليات', icon: ListFilter, href: '/dashboard/audit-logs' },
-  { name: 'الإعدادات', icon: Settings, href: '/dashboard/settings' },
+  { name: 'إعدادات المنصة', icon: Settings, href: '/dashboard/settings' },
 ] as const;
 
 async function fetchPendingCount() {
@@ -161,8 +159,7 @@ export default function AdminSidebar() {
   const { data: pendingCount = 0 } = useQuery<number>({
     queryKey: ['pending-count'],
     queryFn: fetchPendingCount,
-    staleTime: 60000,
-    refetchOnWindowFocus: false,
+    staleTime: 30000,
   });
 
   const handleLogout = () => {
