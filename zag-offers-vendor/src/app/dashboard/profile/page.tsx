@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle, Trash2, Plus, ArrowUpRight } from 'lucide-react';
+import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle, Trash2, Plus, ArrowUpRight, AlertCircle, RefreshCw } from 'lucide-react';
 import { vendorApi, getVendorStoreId, resolveImageUrl } from '@/lib/api';
 import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
@@ -25,7 +25,7 @@ export default function StoreProfilePage() {
   });
 
   // React Query hooks
-  const { data: store, isLoading } = useVendorStore();
+  const { data: store, isLoading, isError, error, refetch } = useVendorStore();
   const { mutate: updateStore, isPending: updating } = useUpdateStore();
 
   useEffect(() => {
@@ -105,7 +105,52 @@ export default function StoreProfilePage() {
   };
 
   if (isLoading) return <DashboardSkeleton />;
-  if (!store) return <div className="p-8 text-center text-text-dim">لم يتم العثور على بيانات المتجر.</div>;
+
+  if (isError) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-6">
+        <div className="w-20 h-20 bg-red-500/10 rounded-[2.5rem] flex items-center justify-center text-red-500 border border-red-500/20 shadow-2xl shadow-red-500/10">
+           <AlertCircle size={40} />
+        </div>
+        <div>
+          <h2 className="text-xl font-black text-text mb-2 tracking-tight">حدث خطأ في جلب البيانات</h2>
+          <p className="text-text-dim text-sm font-bold max-w-xs mx-auto leading-relaxed">
+            {error instanceof Error ? error.message : 'فشل الاتصال بالخادم. يرجى التحقق من اتصال الإنترنت.'}
+          </p>
+        </div>
+        <button 
+          onClick={() => refetch()}
+          className="bg-primary text-white px-8 py-3 rounded-xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-105 active:scale-95 transition-all flex items-center gap-2"
+        >
+          <RefreshCw size={18} />
+          إعادة المحاولة
+        </button>
+      </div>
+    );
+  }
+
+  if (!store) {
+    return (
+      <div className="min-h-[60vh] flex flex-col items-center justify-center p-8 text-center space-y-6">
+        <div className="w-20 h-20 bg-primary/10 rounded-[2.5rem] flex items-center justify-center text-primary border border-primary/20 shadow-2xl shadow-primary/10">
+           <Store size={40} />
+        </div>
+        <div>
+          <h2 className="text-xl font-black text-text mb-2 tracking-tight">لم يتم العثور على المتجر</h2>
+          <p className="text-text-dim text-sm font-bold max-w-xs mx-auto leading-relaxed">
+            يبدو أنه لا يوجد متجر مرتبط بهذا الحساب حالياً. يرجى التواصل مع الدعم الفني لتفعيل متجرك.
+          </p>
+        </div>
+        <a 
+          href="https://wa.me/201091428238" 
+          className="bg-white/5 text-text px-8 py-3 rounded-xl font-black text-sm border border-white/10 hover:bg-white/10 transition-all flex items-center gap-2"
+        >
+          <MessageCircle size={18} />
+          تواصل مع الدعم
+        </a>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto animate-in">

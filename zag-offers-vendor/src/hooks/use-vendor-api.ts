@@ -1,11 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCookie } from '@/lib/api';
-import { vendorApi, getVendorStoreId, resolveImageUrl, Offer } from '@/lib/api';
-import { useSocket } from '@/hooks/useSocket';
+import { getCookie, vendorApi, getVendorStoreId, Offer } from '@/lib/api';
 import { secureUserData, secureStorage } from '@/lib/crypto';
-
-// API base URL
-const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online/api';
 
 // Types
 interface CreateOfferData {
@@ -45,113 +40,88 @@ interface UpdateStoreData {
   images?: string[];
 }
 
-// جلب عروض المتجر
+// ── Vendor Offers Hook ──
 export const useVendorOffers = () => {
   return useQuery({
     queryKey: ['vendor-offers'],
     queryFn: async () => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/offers/my`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch offers');
-      return res.json();
+      const res = await vendorApi().get('/offers/my');
+      return res.data;
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 1000 * 60, // 1 minute
     gcTime: 1000 * 60 * 5, // 5 minutes
-    retry: 3,
+    retry: 2,
     refetchOnWindowFocus: false,
   });
 };
 
-// جلب كوبونات المتجر
+// ── Vendor Coupons Hook ──
 export function useVendorCoupons() {
   return useQuery({
     queryKey: ['vendor-coupons'],
     queryFn: async () => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/coupons/merchant`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch coupons');
-      return res.json();
+      const res = await vendorApi().get('/coupons/merchant');
+      return res.data;
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
-    staleTime: 30 * 1000, // 30 ثانية
-    gcTime: 2 * 60 * 1000, // 2 دقيقة
+    staleTime: 30 * 1000, // 30 seconds
+    gcTime: 2 * 60 * 1000, // 2 minutes
   });
 }
 
-// جلب إحصائيات المتجر
+// ── Vendor Stats Hook ──
 export function useVendorStats() {
   return useQuery({
     queryKey: ['vendor-stats'],
     queryFn: async () => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/stores/stats`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch stats');
-      return res.json();
+      const res = await vendorApi().get('/stores/stats');
+      return res.data;
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
-    staleTime: 60 * 1000, // 1 دقيقة
-    gcTime: 5 * 60 * 1000, // 5 دقائق
-    refetchInterval: 60 * 1000, // تحديث كل دقيقة
+    staleTime: 60 * 1000, // 1 minute
+    gcTime: 5 * 60 * 1000, // 5 minutes
+    refetchInterval: 60 * 1000, // Update every minute
+    retry: 3,
   });
 }
 
-// جلب بيانات المتجر
+/**
+ * ── Vendor Store Hook (Crucial Fix) ──
+ * This hook is optimized to handle slow responses and provide reliable store data.
+ */
 export function useVendorStore() {
   return useQuery({
     queryKey: ['vendor-store'],
     queryFn: async () => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/stores/my`, {
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error('Failed to fetch store');
-      return res.json();
+      try {
+        const res = await vendorApi().get('/stores/my', {
+          timeout: 15000, // 15 seconds timeout
+        });
+        if (!res.data) throw new Error('No data returned from server');
+        return res.data;
+      } catch (err: any) {
+        console.error('Store fetch error:', err);
+        if (err.response?.status === 404) {
+          throw new Error('لم يتم العثور على متجر مربوط بهذا الحساب. يرجى التواصل مع الإدارة.');
+        }
+        throw new Error(err.response?.data?.message || 'فشل الاتصال بخادم بيانات المتجر. يرجى المحاولة لاحقاً.');
+      }
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
-    staleTime: 10 * 60 * 1000, // 10 دقائق
-    gcTime: 30 * 60 * 1000, // 30 دقيقة
+    staleTime: 5 * 60 * 1000, // 5 minutes
+    retry: 2,
+    retryDelay: (attempt) => Math.min(attempt * 1000, 3000),
   });
 }
 
-// إنشاء عرض جديد
+// ── Create Offer Mutation ──
 export function useCreateOffer() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: CreateOfferData) => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/offers`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to create offer');
-      }
-
-      return res.json();
+      const res = await vendorApi().post('/offers', data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-offers'] });
@@ -160,30 +130,13 @@ export function useCreateOffer() {
   });
 }
 
-// تحديث عرض
+// ── Update Offer Mutation ──
 export function useUpdateOffer() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async ({ id, data }: { id: string; data: UpdateOfferData }) => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/offers/${id}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to update offer');
-      }
-
-      return res.json();
+      const res = await vendorApi().patch(`/offers/${id}`, data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-offers'] });
@@ -191,22 +144,13 @@ export function useUpdateOffer() {
   });
 }
 
-// حذف عرض
+// ── Delete Offer Mutation ──
 export function useDeleteOffer() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (id: string) => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/offers/${id}`, {
-        method: 'DELETE',
-        headers: { 'Authorization': `Bearer ${token}` },
-      });
-
-      if (!res.ok) throw new Error('Failed to delete offer');
-      return res.json();
+      const res = await vendorApi().delete(`/offers/${id}`);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-offers'] });
@@ -215,30 +159,13 @@ export function useDeleteOffer() {
   });
 }
 
-// تفعيل كوبون
+// ── Redeem Coupon Mutation ──
 export function useRedeemCoupon() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: RedeemCouponData) => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/coupons/redeem`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to redeem coupon');
-      }
-
-      return res.json();
+      const res = await vendorApi().post('/coupons/redeem', data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-coupons'] });
@@ -247,32 +174,15 @@ export function useRedeemCoupon() {
   });
 }
 
-// تحديث بيانات المتجر
+// ── Update Store Mutation ──
 export function useUpdateStore() {
   const queryClient = useQueryClient();
-
   return useMutation({
     mutationFn: async (data: UpdateStoreData) => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
       const storeId = typeof window !== 'undefined' ? getVendorStoreId() : null;
-      if (!token) throw new Error('Not authenticated');
       if (!storeId) throw new Error('Store ID not found');
-
-      const res = await fetch(`${API_URL}/stores/${storeId}`, {
-        method: 'PATCH',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'Failed to update store');
-      }
-
-      return res.json();
+      const res = await vendorApi().patch(`/stores/${storeId}`, data);
+      return res.data;
     },
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['vendor-store'] });
@@ -280,28 +190,12 @@ export function useUpdateStore() {
   });
 }
 
-// تغيير كلمة المرور
+// ── Change Password Mutation ──
 export function useChangePassword() {
   return useMutation({
     mutationFn: async (data: any) => {
-      const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      if (!token) throw new Error('Not authenticated');
-
-      const res = await fetch(`${API_URL}/auth/change-password`, {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': `Bearer ${token}`,
-        },
-        body: JSON.stringify(data),
-      });
-
-      if (!res.ok) {
-        const error = await res.json();
-        throw new Error(error.message || 'فشل تغيير كلمة المرور');
-      }
-
-      return res.json();
+      const res = await vendorApi().post('/auth/change-password', data);
+      return res.data;
     },
   });
 }
