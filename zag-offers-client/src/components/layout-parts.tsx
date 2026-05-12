@@ -476,10 +476,10 @@ export function Footer() {
               </div>
               <span className="text-3xl font-black text-white tracking-tighter">Zag<span className="text-[#FF6B00]">Offers</span></span>
             </Link>
-            <p className="text-[#9A9A9A] text-sm leading-relaxed font-bold max-w-xs text-right">
+            <p className="text-[#9A9A9A] text-sm leading-relaxed font-bold max-w-xs sm:text-right">
               المنصة رقم #1 في الزقازيق لاكتشاف أفضل العروض. بنجمعلك كل الخصومات في مكان واحد عشان نسهل عليك حياتك.
             </p>
-            <div className="flex gap-4">
+            <div className="flex gap-4 justify-center sm:justify-start">
               {[
                 { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, href: '#' },
                 { icon: <XIcon size={20} />, href: '#' },
@@ -494,12 +494,12 @@ export function Footer() {
 
           {/* Links Grid */}
           <div className="grid grid-cols-2 gap-8 md:col-span-2 lg:col-span-2">
-            <div className="text-right">
-              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-end sm:justify-start">
+            <div className="text-right flex flex-col items-center sm:items-start">
+              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-start">
                 روابط هامة
                 <span className="w-1.5 h-4 bg-[#FF6B00] rounded-full" />
               </h4>
-              <ul className="space-y-4">
+              <ul className="space-y-4 w-full">
                 {[
                   { label: 'أحدث العروض', href: '/offers' },
                   { label: 'المتاجر', href: '/stores' },
@@ -507,7 +507,7 @@ export function Footer() {
                   { label: 'من نحن', href: '/about' }
                 ].map((l, i) => (
                   <li key={i}>
-                    <Link href={l.href} className="text-[#9A9A9A] hover:text-[#FF6B00] font-bold text-sm transition-colors flex items-center justify-end sm:justify-start gap-2 group">
+                    <Link href={l.href} className="text-[#9A9A9A] hover:text-[#FF6B00] font-bold text-sm transition-colors flex items-center justify-center sm:justify-start gap-2 group">
                       <ChevronLeft size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
                       {l.label}
                     </Link>
@@ -515,12 +515,12 @@ export function Footer() {
                 ))}
               </ul>
             </div>
-            <div className="text-right">
-              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-end sm:justify-start">
+            <div className="text-right flex flex-col items-center sm:items-start">
+              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2 justify-start">
                 للتجار
                 <span className="w-1.5 h-4 bg-blue-500 rounded-full" />
               </h4>
-              <ul className="space-y-4">
+              <ul className="space-y-4 w-full">
                 {[
                   { label: 'سجل محلك', href: '/contact' },
                   { label: 'لوحة التحكم', href: 'https://vendor.zagoffers.online' },
@@ -528,7 +528,7 @@ export function Footer() {
                   { label: 'الدعم الفني', href: '/support' }
                 ].map((l, i) => (
                   <li key={i}>
-                    <Link href={l.href} className="text-[#9A9A9A] hover:text-blue-500 font-bold text-sm transition-colors flex items-center justify-end sm:justify-start gap-2 group">
+                    <Link href={l.href} className="text-[#9A9A9A] hover:text-blue-500 font-bold text-sm transition-colors flex items-center justify-center sm:justify-start gap-2 group">
                       <ChevronLeft size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
                       {l.label}
                     </Link>
@@ -540,11 +540,11 @@ export function Footer() {
 
           {/* Subscription */}
           <div className="space-y-6 flex flex-col items-center sm:items-start text-center sm:text-right">
-            <h4 className="text-base font-black text-white flex items-center gap-2">
+            <h4 className="text-base font-black text-white flex items-center gap-2 justify-start">
               النشرة البريدية
               <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
             </h4>
-            <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed max-w-[200px] text-right">
+            <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed max-w-[200px] sm:text-right">
               اشترك عشان نبعتلك أقوى العروض الحصرية أول بأول على إيميلك.
             </p>
             <div className="space-y-3 w-full max-w-xs">
