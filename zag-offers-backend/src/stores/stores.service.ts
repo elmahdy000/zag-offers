@@ -115,9 +115,11 @@ export class StoresService {
     // التحسين: جلب الـ IDs بتاعة العروض مرة واحدة لاستخدامها في العد المباشر بدل الـ nested queries
     const storeOffers = await this.prisma.offer.findMany({
       where: { storeId: store.id },
-      select: { id: true },
+      select: { id: true, views: true },
     });
     const offerIds = storeOffers.map((o) => o.id);
+    
+    console.log(`[Stats Debug] Store ID: ${store.id}, Found ${storeOffers.length} offers, Offer IDs:`, offerIds);
 
     const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons, topOffers] =
       await Promise.all([
