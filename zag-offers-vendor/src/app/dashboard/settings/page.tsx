@@ -1,10 +1,22 @@
 'use client';
-import { Store, Shield, Bell, ChevronLeft, Lock, Smartphone, LogOut, ExternalLink, HelpCircle } from 'lucide-react';
+import { Store, Shield, Bell, ChevronLeft, Lock, Smartphone, LogOut, ExternalLink, HelpCircle, Activity, Wifi, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
 import { deleteCookie } from '@/lib/api';
+import { useEffect, useState } from 'react';
+import { PerformanceMonitor } from '@/lib/performance-monitor';
 
 export default function SettingsPage() {
+  const [avgLatency, setAvgLatency] = useState<number | null>(null);
+
+  useEffect(() => {
+    const metrics = PerformanceMonitor.getMetrics().filter(m => m.type === 'API_LATENCY');
+    if (metrics.length > 0) {
+      const avg = metrics.reduce((acc, m) => acc + m.value, 0) / metrics.length;
+      setAvgLatency(avg);
+    }
+  }, []);
+
   const handleLogout = () => {
     if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
       deleteCookie('auth_token');
@@ -95,6 +107,45 @@ export default function SettingsPage() {
             </Link>
           </motion.div>
         ))}
+      </div>
+
+      {/* Performance Status Section */}
+      <div className="mt-6">
+        <div className="glass p-6 rounded-[2rem] border border-white/5 bg-white/[0.01]">
+          <div className="flex items-center gap-3 mb-6">
+            <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
+              <Activity size={20} />
+            </div>
+            <div>
+              <h3 className="text-sm font-black text-text">حالة الاتصال والأداء</h3>
+              <p className="text-[10px] font-bold text-text-dim">بيانات حية من جلسة العمل الحالية</p>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-2 gap-4">
+             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-2 mb-2 text-text-dim">
+                   <Wifi size={14} />
+                   <span className="text-[10px] font-black uppercase">سرعة الـ API</span>
+                </div>
+                <div className="flex items-end gap-1">
+                   <span className={`text-2xl font-black ${!avgLatency ? 'text-text-dimmer' : avgLatency < 500 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {avgLatency ? avgLatency.toFixed(0) : '--'}
+                   </span>
+                   <span className="text-[10px] font-bold text-text-dimmer mb-1">ms</span>
+                </div>
+             </div>
+             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+                <div className="flex items-center gap-2 mb-2 text-text-dim">
+                   <Zap size={14} />
+                   <span className="text-[10px] font-black uppercase">جودة الخدمة</span>
+                </div>
+                <div className="flex items-end gap-1">
+                   <span className="text-2xl font-black text-blue-400">مستقر</span>
+                </div>
+             </div>
+          </div>
+        </div>
       </div>
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">

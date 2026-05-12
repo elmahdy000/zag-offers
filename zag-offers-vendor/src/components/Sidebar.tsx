@@ -28,6 +28,11 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     } catch { return null; }
   }, []);
 
+  const storeId = useMemo(() => {
+    if (typeof localStorage === 'undefined') return null;
+    return localStorage.getItem('vendor_store_id');
+  }, []);
+
   const socket = useSocket(userId);
 
   // Fetch notifications once
@@ -80,10 +85,10 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     { name: 'الكوبونات', icon: History, href: '/dashboard/coupons' },
     { name: 'مسح الكود', icon: Scan, href: '/dashboard/scan' },
     { name: 'ملف المتجر', icon: Store, href: '/dashboard/profile' },
-    { name: 'معاينة المتجر', icon: MessageSquare, href: `https://zagoffers.online/stores/${userId}`, external: true },
+    { name: 'معاينة المتجر', icon: MessageSquare, href: `https://zagoffers.online/stores/${storeId}`, external: true },
     { name: 'الدعم الفني', icon: Bell, href: 'https://wa.me/201091428238', external: true },
     { name: 'الإعدادات', icon: Settings, href: '/dashboard/settings' },
-  ], [userId]);
+  ], [userId, storeId]);
 
   if (!mounted) return null;
 

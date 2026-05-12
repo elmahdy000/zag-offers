@@ -44,7 +44,17 @@ export default function NotificationsPage() {
   }, []);
 
   const markAllRead = async () => {
-    // منطق مستقبلي إذا كان متاحاً في الباك-إند
+    try {
+      const token = getCookie('auth_token');
+      if (token) {
+        await fetch(`${API_URL}/api/notifications/read-all`, {
+          method: 'POST',
+          headers: { Authorization: `Bearer ${token}` },
+        });
+      }
+    } catch (e) {
+      console.error('Failed to mark all as read:', e);
+    }
     setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
 

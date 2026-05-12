@@ -7,6 +7,7 @@ import { vendorApi, resolveImageUrl } from '@/lib/api';
 import { useVendorOffers, useDeleteOffer } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
+import { secureStorage } from '@/lib/crypto';
 
 interface Offer {
   id: string;
@@ -129,13 +130,13 @@ export default function OffersListPage() {
   const { mutate: deleteOffer } = useDeleteOffer();
 
   useEffect(() => {
-    const cached = localStorage.getItem('cache_vendor_offers_list');
-    if (cached) setCachedOffers(JSON.parse(cached));
+    const cached = secureStorage.get<Offer[]>('cache_vendor_offers_list');
+    if (cached) setCachedOffers(cached);
   }, []);
 
   useEffect(() => {
     if (offers) {
-      localStorage.setItem('cache_vendor_offers_list', JSON.stringify(offers));
+      secureStorage.set('cache_vendor_offers_list', offers);
       setCachedOffers(offers);
     }
   }, [offers]);

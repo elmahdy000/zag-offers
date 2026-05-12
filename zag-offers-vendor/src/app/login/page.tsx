@@ -5,6 +5,9 @@ import { Smartphone, Lock, Eye, EyeOff, Loader2, LogIn, ChevronLeft } from 'luci
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { validateEgyptianPhone, validatePassword } from '@/lib/validation';
+import { handleApiError, logError } from '@/lib/errorHandler';
+import { secureStorage, secureUserData, secureStoreData } from '@/lib/crypto';
 import { setCookie } from '@/lib/cookie-utils';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
@@ -23,16 +26,16 @@ export default function LoginPage() {
     setError(null);
 
     // تحقق من صيغة رقم الموبايل المصري
-    const phoneRegex = /^01[0125][0-9]{8}$/;
-    if (!phoneRegex.test(phone.trim())) {
+    if (!validateEgyptianPhone(phone.trim())) {
       setError('يرجى إدخال رقم موبايل مصري صحيح');
       setLoading(false);
       return;
     }
 
-    // تحقق من طول كلمة المرور
-    if (password.length < 6) {
-      setError('كلمة المرور يجب أن تكون 6 أحرف على الأقل');
+    // تحقق من قوة كلمة المرور
+    const passwordValidation = validatePassword(password);
+    if (!passwordValidation.valid) {
+      setError(passwordValidation.error!);
       setLoading(false);
       return;
     }
@@ -50,8 +53,11 @@ export default function LoginPage() {
         return;
       }
 
-      setCookie('auth_token', access_token);
-      localStorage.setItem('vendor_user', JSON.stringify(user));
+      // حفظ التوكن بشكل آمن
+      setCookie('auth_token', access_token, 7);
+      
+      // حفظ بيانات المستخدم بشكل مشفر
+      secureUserData.save(user);
 
       try {
         const statsRes = await axios.get(`${API_URL}/stores/my-dashboard`, {
@@ -59,13 +65,20 @@ export default function LoginPage() {
         });
         const stats = statsRes.data as { storeId: string };
         if (stats.storeId) {
-          localStorage.setItem('vendor_store_id', stats.storeId);
+          // حفظ معرف المتجر بشكل مشفر
+          secureStoreData.save(stats.storeId);
         }
-      } catch { }
+      } catch (error) {
+        // تسجيل الخطأ ولكن لا نوقف عملية الدخول
+        const apiError = handleApiError(error);
+        logError(apiError, 'Store ID Fetch');
+      }
 
       router.push('/dashboard');
-    } catch {
-      setError('بيانات الدخول غير صحيحة. يرجى المحاولة مرة أخرى.');
+    } catch (error: unknown) {
+      const apiError = handleApiError(error);
+      logError(apiError, 'Login');
+      setError(apiError.message);
     } finally {
       setLoading(false);
     }

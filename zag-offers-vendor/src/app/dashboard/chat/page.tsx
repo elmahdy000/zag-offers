@@ -90,7 +90,9 @@ export default function VendorChatPage() {
       try {
         const user = JSON.parse(localStorage.getItem('vendor_user') || '{}');
         setUserId(user.id || '');
-      } catch (e) {}
+      } catch (e) {
+        console.error('Failed to load user from localStorage:', e);
+      }
     }
   }, []);
 

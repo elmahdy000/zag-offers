@@ -6,6 +6,9 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, getVendorStoreId } from '@/lib/api';
 import { useCreateOffer } from '@/hooks/use-vendor-api';
 import { compressImage } from '@/lib/image-utils';
+import { validateFile, validateImageDimensions, offerSchema, sanitizeInput } from '@/lib/validation';
+import { handleApiError, logError } from '@/lib/errorHandler';
+import { secureStorage } from '@/lib/crypto';
 
 export default function NewOfferPage() {
   const router = useRouter();
@@ -22,10 +25,9 @@ export default function NewOfferPage() {
 
   // تحميل المسودة عند فتح الصفحة
   useEffect(() => {
-    const savedDraft = localStorage.getItem('cache_new_offer_draft');
+    const savedDraft = secureStorage.get<any>('cache_new_offer_draft');
     if (savedDraft) {
-      const draft = JSON.parse(savedDraft);
-      if (draft.title || draft.description) {
+      if (savedDraft.title || savedDraft.description) {
         setShowDraftPrompt(true);
       }
     }
@@ -34,20 +36,26 @@ export default function NewOfferPage() {
   // حفظ المسودة تلقائياً
   useEffect(() => {
     if (formData.title || formData.description) {
-      localStorage.setItem('cache_new_offer_draft', JSON.stringify(formData));
+      secureStorage.set('cache_new_offer_draft', formData);
     }
   }, [formData]);
 
   const restoreDraft = () => {
-    const savedDraft = localStorage.getItem('cache_new_offer_draft');
+    const savedDraft = secureStorage.get<any>('cache_new_offer_draft');
     if (savedDraft) {
-      setFormData(JSON.parse(savedDraft));
+      setFormData({
+        title: savedDraft.title || '',
+        description: savedDraft.description || '',
+        discount: savedDraft.discount || '',
+        originalPrice: savedDraft.originalPrice || '',
+        expiryDate: savedDraft.expiryDate || ''
+      });
       setShowDraftPrompt(false);
     }
   };
 
   const clearDraft = () => {
-    localStorage.removeItem('cache_new_offer_draft');
+    secureStorage.remove('cache_new_offer_draft');
     setShowDraftPrompt(false);
   };
 
@@ -56,15 +64,34 @@ export default function NewOfferPage() {
   const [isUploading, setIsUploading] = useState(false);
   const submitting = submittingQuery || isUploading;
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
+    
+    // التحقق من عدد الصور
     if (offerImages.length + files.length > 5) {
       setSubmitError('الحد الأقصى هو 5 صور فقط');
       return;
     }
 
     if (files.length > 0) {
-      files.forEach((file) => {
+      setSubmitError(null);
+      
+      for (const file of files) {
+        // التحقق من صحة الملف
+        const fileValidation = validateFile(file);
+        if (!fileValidation.valid) {
+          setSubmitError(fileValidation.error!);
+          return;
+        }
+
+        // التحقق من أبعاد الصورة
+        const dimensionValidation = await validateImageDimensions(file);
+        if (!dimensionValidation.valid) {
+          setSubmitError(dimensionValidation.error!);
+          return;
+        }
+
+        // معالجة الملف
         const reader = new FileReader();
         reader.onloadend = () => {
           if (typeof reader.result === 'string') {
@@ -73,7 +100,7 @@ export default function NewOfferPage() {
           }
         };
         reader.readAsDataURL(file);
-      });
+      }
     }
   };
 
@@ -91,139 +118,111 @@ export default function NewOfferPage() {
     }
     setSubmitError(null);
     
-    // تحقق من البيانات
-    if (!formData.title.trim()) return setSubmitError('برجاء إدخال عنوان العرض');
-    if (formData.title.trim().length < 5) return setSubmitError('عنوان العرض يجب أن يكون 5 أحرف على الأقل');
-    
-    if (!formData.discount.trim()) return setSubmitError('برجاء إدخال نسبة الخصم');
-    
-    // تحقق من صيغة الخصم
-    const discountRegex = /^\d+(\.\d+)?%?$/;
-    if (!discountRegex.test(formData.discount.trim())) {
-      return setSubmitError('صيغة الخصم غير صحيحة. مثال: 50% أو 50');
-    }
-    
-    const discountValue = parseFloat(formData.discount.replace('%', ''));
-    if (discountValue <= 0 || discountValue > 100) {
-      return setSubmitError('نسبة الخصم يجب أن تكون بين 1% و 100%');
-    }
-    
-    if (!formData.expiryDate) return setSubmitError('برجاء اختيار تاريخ انتهاء العرض');
-    
-    // تحقق من تاريخ الانتهاء
-    const expiryDate = new Date(formData.expiryDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    if (expiryDate <= today) {
-      return setSubmitError('تاريخ الانتهاء يجب أن يكون في المستقبل');
-    }
-    
-    // تحقق من السعر الأصلي
-    if (formData.originalPrice) {
-      const price = parseFloat(formData.originalPrice);
-      if (isNaN(price) || price <= 0) {
-        return setSubmitError('السعر الأصلي يجب أن يكون رقماً موجباً');
-      }
-    }
+    // تنظيف المدخلات
+    const sanitizedData = {
+      title: sanitizeInput(formData.title.trim()),
+      description: sanitizeInput(formData.description.trim()),
+      discount: formData.discount.trim(),
+      originalPrice: formData.originalPrice.trim(),
+      expiryDate: formData.expiryDate
+    };
 
-    const storeId = getVendorStoreId();
-    if (!storeId) return setSubmitError('لم يتم ربط متجر بحسابك. تواصل مع الإدارة.');
+    // التحقق من صحة البيانات باستخدام Zod
+    try {
+      const validatedData = offerSchema.parse(sanitizedData);
+      
+      // التحقق من وجود صور
+      if (offerImages.length === 0) {
+        setSubmitError('يجب رفع صورة واحدة على الأقل');
+        return;
+      }
+
+      const storeId = getVendorStoreId();
+      if (!storeId) return setSubmitError('لم يتم ربط متجر بحسابك. تواصل مع الإدارة.');
 
     // تحقق ورفع الصور
-    let imageUrls: string[] = [];
-    setIsUploading(true);
-    
-    try {
-      if (offerImages.length > 0) {
-        setSubmitError(null);
-        
-        try {
-          const uploadResults = [];
-          for (const img of offerImages) {
-            if (img.file) {
-              let fileToUpload = img.file;
-              
-              // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
-              if (fileToUpload.size > 1 * 1024 * 1024) {
-                try {
-                  fileToUpload = await compressImage(fileToUpload);
-                } catch (e) {
-                  console.error('Compression failed, using original', e);
-                }
+      let imageUrls: string[] = [];
+      setIsUploading(true);
+      
+      try {
+        const uploadResults = [];
+        for (const img of offerImages) {
+          if (img.file) {
+            let fileToUpload = img.file;
+            
+            // إذا كانت الصورة أكبر من 1 ميجا، نقوم بضغطها تلقائياً
+            if (fileToUpload.size > 1 * 1024 * 1024) {
+              try {
+                fileToUpload = await compressImage(fileToUpload);
+              } catch (e) {
+                console.error('Compression failed, using original', e);
               }
-
-              const uploadFormData = new FormData();
-              uploadFormData.append('file', fileToUpload);
-              
-              const uploadRes = await vendorApi().post('/upload', uploadFormData, {
-                headers: { 'Content-Type': 'multipart/form-data' },
-                timeout: 60000, // زيادة المهلة للصور الكبيرة
-              });
-              
-              if (uploadRes.data?.url) {
-                uploadResults.push(uploadRes.data.url);
-              }
-            } else if (img.url) {
-              // إذا كانت الصورة مرفوعة بالفعل (في حالة التعديل مستقبلاً أو إعادة المحاولة)
-              uploadResults.push(img.url.split('/').pop());
             }
+
+            const uploadFormData = new FormData();
+            uploadFormData.append('file', fileToUpload);
+            
+            const uploadRes = await vendorApi().post('/upload', uploadFormData, {
+              headers: { 'Content-Type': 'multipart/form-data' },
+              timeout: 60000, // زيادة المهلة للصور الكبيرة
+            });
+            
+            if (uploadRes.data?.url) {
+              uploadResults.push(uploadRes.data.url);
+            }
+          } else if (img.url) {
+            // إذا كانت الصورة مرفوعة بالفعل (في حالة التعديل مستقبلاً أو إعادة المحاولة)
+            uploadResults.push(img.url.split('/').pop());
           }
-          imageUrls = uploadResults.filter(Boolean) as string[];
-        } catch (error: any) {
-          setIsUploading(false);
-          console.error('Upload Process Error:', error);
-          return setSubmitError('فشل رفع بعض الصور. تأكد من جودتها وحاول مرة أخرى.');
         }
-      } else {
+        imageUrls = uploadResults.filter(Boolean) as string[];
+      } catch (error: any) {
         setIsUploading(false);
-        return setSubmitError('يجب رفع صورة واحدة على الأقل');
+        const apiError = handleApiError(error);
+        logError(apiError, 'Image Upload');
+        return setSubmitError(apiError.message);
       }
-    } catch (error: unknown) {
-      setIsUploading(false);
-      return setSubmitError('فشل معالجة الصور. حاول مرة أخرى.');
+
+      const formattedDiscount = /^\d+$/.test(validatedData.discount) 
+        ? `${validatedData.discount}%` 
+        : validatedData.discount;
+
+      // Use React Query mutation
+      createOffer(
+        {
+          title: validatedData.title,
+          description: validatedData.description || validatedData.title,
+          discount: formattedDiscount,
+          startDate: new Date().toISOString(),
+          endDate: new Date(validatedData.endDate).toISOString(),
+          storeId,
+          images: imageUrls,
+          originalPrice: validatedData.originalPrice ? parseFloat(validatedData.originalPrice) : undefined,
+        },
+        {
+          onSuccess: () => {
+            setIsUploading(false);
+            secureStorage.remove('cache_new_offer_draft');
+            router.push('/dashboard/offers');
+          },
+          onError: (error: unknown) => {
+            console.error('Full Submit Error:', error);
+            const apiError = handleApiError(error);
+            logError(apiError, 'Offer Creation');
+            setSubmitError(apiError.message);
+            setIsUploading(false);
+          },
+        }
+      );
+    } catch (validationError: any) {
+      // Zod validation errors
+      if (validationError.errors) {
+        const firstError = validationError.errors[0];
+        setSubmitError(firstError.message);
+      } else {
+        setSubmitError(validationError.message || 'بيانات غير صحيحة');
+      }
     }
-
-    const formattedDiscount = /^\d+$/.test(formData.discount.trim()) 
-      ? `${formData.discount.trim()}%` 
-      : formData.discount.trim();
-
-    // Use React Query mutation
-    createOffer(
-      {
-        title: formData.title.trim(),
-        description: formData.description.trim() || formData.title.trim(),
-        discount: formattedDiscount,
-        startDate: new Date().toISOString(),
-        endDate: new Date(formData.expiryDate).toISOString(),
-        storeId,
-        images: imageUrls,
-        originalPrice: formData.originalPrice ? parseFloat(formData.originalPrice) : undefined,
-      },
-      {
-        onSuccess: () => {
-          setIsUploading(false);
-          localStorage.removeItem('cache_new_offer_draft');
-          router.push('/dashboard/offers');
-        },
-        onError: (error: unknown) => {
-          console.error('Full Submit Error:', error);
-          const axiosErr = error as { response?: { data?: { message?: string | string[] }, status?: number } };
-          const msg = axiosErr.response?.data?.message;
-          const status = axiosErr.response?.status;
-          
-          if (status === 401) {
-            setSubmitError('انتهت جلستك، برجاء تسجيل الدخول مرة أخرى');
-          } else if (status === 413) {
-            setSubmitError('حجم الملفات كبير جداً');
-          } else if (msg) {
-            setSubmitError(Array.isArray(msg) ? msg.join(' | ') : msg);
-          } else {
-            setSubmitError(`عفواً، حدث خطأ في الخادم (${status || 'Connection Error'}). تأكد من اتصال الإنترنت وحاول مرة أخرى.`);
-          }
-          setIsUploading(false);
-        },
-      }
-    );
   };
 
   const isNumericDiscount = /^\d+(\.\d+)?%?$/.test(formData.discount);

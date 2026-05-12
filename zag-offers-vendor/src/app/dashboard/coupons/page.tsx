@@ -6,6 +6,8 @@ import { useVendorCoupons } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
 
+import { secureStorage } from '@/lib/crypto';
+
 interface CouponLog {
   id: string;
   code: string;
@@ -23,16 +25,16 @@ export default function CouponsLogPage() {
   // React Query hook
   const { data: logs, isLoading, refetch } = useVendorCoupons();
 
-  // تحسين: منطق الكاش للأوفلاين
+  // تحسين: منطق الكاش للأوفلاين باستخدام التخزين الآمن
   useEffect(() => {
-    const cached = localStorage.getItem('cache_vendor_coupons');
-    if (cached) setCachedLogs(JSON.parse(cached));
+    const cached = secureStorage.get<CouponLog[]>('cache_vendor_coupons');
+    if (cached) setCachedLogs(cached);
   }, []);
 
   // تحديث الكاش عند النجاح
   useEffect(() => {
     if (logs) {
-      localStorage.setItem('cache_vendor_coupons', JSON.stringify(logs));
+      secureStorage.set('cache_vendor_coupons', logs);
       setCachedLogs(logs);
     }
   }, [logs]);

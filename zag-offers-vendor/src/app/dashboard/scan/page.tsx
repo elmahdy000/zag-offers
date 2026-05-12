@@ -2,10 +2,12 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { QrCode, X, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2, ChevronRight, Keyboard, Scan } from 'lucide-react';
+import { QrCode, X, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2, ChevronRight, Keyboard, Scan, CloudOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { vendorApi } from '@/lib/api';
+import { OfflineSync } from '@/lib/offline-sync';
+import { secureStorage } from '@/lib/crypto';
 
 export default function ScanPage() {
   const router = useRouter();
@@ -17,9 +19,19 @@ export default function ScanPage() {
   const [couponData, setCouponData] = useState<any>(null);
   const [isManual, setIsManual] = useState(false);
   const [manualCode, setManualCode] = useState('');
+  const [pendingSyncs, setPendingSyncs] = useState(0);
   const scannerRef = useRef<Html5Qrcode | null>(null);
 
   const [recentScans, setRecentScans] = useState<any[]>([]);
+
+  useEffect(() => {
+    setPendingSyncs(OfflineSync.getQueue().length);
+    const handleSyncComplete = () => {
+      setPendingSyncs(OfflineSync.getQueue().length);
+    };
+    window.addEventListener('offline-sync-completed', handleSyncComplete);
+    return () => window.removeEventListener('offline-sync-completed', handleSyncComplete);
+  }, []);
 
   // Sound effects
   const playSuccessSound = () => {
@@ -46,9 +58,8 @@ export default function ScanPage() {
       setMessage('');
       setResult(null);
 
-      // Load recent scans from cache
-      const cached = localStorage.getItem('vendor_recent_scans');
-      if (cached) setRecentScans(JSON.parse(cached));
+      const cached = secureStorage.get<any[]>('vendor_recent_scans');
+      if (cached) setRecentScans(cached);
 
       setTimeout(async () => {
         try {
@@ -96,13 +107,7 @@ export default function ScanPage() {
 
   const validateCoupon = async (code: string) => {
     if (!code) return;
-    if (!navigator.onLine) {
-      setStatus('error');
-      setMessage('هذا الإجراء يحتاج اتصال بالإنترنت للتحقق من الكوبون');
-      playErrorSound();
-      return;
-    }
-
+    
     setLoading(true);
     setStatus('idle');
     setMessage('');
@@ -114,6 +119,12 @@ export default function ScanPage() {
       setResult(code.trim()); 
       playSuccessSound();
     } catch (err: any) {
+      if (!navigator.onLine || err.message === 'Network Error') {
+        // لو مفيش نت بس الكود موجود يدوي أو ممسوح، هنسمح بالانتقال لمرحلة التفعيل
+        setResult(code.trim());
+        setCouponData({ offer: { title: 'كوبون (غير محقق - أوفلاين)', discount: '??%' } });
+        return;
+      }
       setStatus('error');
       setMessage(err.response?.data?.message || 'الكود غير صحيح أو منتهي الصلاحية');
       setCouponData(null);
@@ -127,13 +138,6 @@ export default function ScanPage() {
     const code = result || manualCode;
     if (!code) return;
 
-    if (!navigator.onLine) {
-      setStatus('error');
-      setMessage('هذا الإجراء يحتاج اتصال بالإنترنت لتفعيل الخصم');
-      playErrorSound();
-      return;
-    }
-
     setLoading(true);
     try {
       const api = vendorApi();
@@ -143,7 +147,6 @@ export default function ScanPage() {
       setMessage(res.data?.message || 'تم تفعيل الخصم بنجاح!');
       playSuccessSound();
 
-      // Add to recent scans
       const newScan = {
         id: Date.now(),
         code: code.trim(),
@@ -152,9 +155,19 @@ export default function ScanPage() {
       };
       const updatedRecent = [newScan, ...recentScans.slice(0, 2)];
       setRecentScans(updatedRecent);
-      localStorage.setItem('vendor_recent_scans', JSON.stringify(updatedRecent));
+      secureStorage.set('vendor_recent_scans', updatedRecent);
 
     } catch (err: any) {
+      if (!navigator.onLine || err.message === 'Network Error' || !err.response) {
+        await OfflineSync.addToQueue('REDEEM_COUPON', { code: code.trim() });
+        setPendingSyncs(OfflineSync.getQueue().length);
+        
+        setStatus('success');
+        setMessage('تم حفظ العملية! سيتم تفعيل الكوبون تلقائياً فور عودة الإنترنت.');
+        playSuccessSound();
+        return;
+      }
+
       setStatus('error');
       setMessage(err.response?.data?.message || 'فشل في تفعيل الكوبون');
       playErrorSound();
@@ -185,15 +198,23 @@ export default function ScanPage() {
              <span className="text-[10px] font-bold text-text-dimmer uppercase tracking-widest">{scanning ? 'نشط الآن' : 'في انتظار المسح'}</span>
           </div>
         </div>
-        <button 
-          onClick={() => {
-            if (isManual) { setIsManual(false); startScanner(); } 
-            else { stopScanner(); setIsManual(true); }
-          }}
-          className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/5 active:scale-90 ${isManual ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'glass text-text-dim'}`}
-        >
-          {isManual ? <Scan size={18} /> : <Keyboard size={18} />}
-        </button>
+        <div className="flex items-center gap-2">
+          {pendingSyncs > 0 && (
+            <div className="flex items-center gap-1 bg-amber-500/10 text-amber-500 px-3 py-1.5 rounded-xl border border-amber-500/20">
+               <CloudOff size={14} />
+               <span className="text-[10px] font-black">{pendingSyncs}</span>
+            </div>
+          )}
+          <button 
+            onClick={() => {
+              if (isManual) { setIsManual(false); startScanner(); } 
+              else { stopScanner(); setIsManual(true); }
+            }}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/5 active:scale-90 ${isManual ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'glass text-text-dim'}`}
+          >
+            {isManual ? <Scan size={18} /> : <Keyboard size={18} />}
+          </button>
+        </div>
       </div>
 
       <div className="flex-1 flex flex-col items-center px-6 overflow-y-auto pb-8">
@@ -219,7 +240,6 @@ export default function ScanPage() {
                 <p className="text-text-dim text-xs font-bold leading-relaxed mt-1">سيقوم النظام بالتعرف على الكود تلقائياً</p>
               </div>
 
-              {/* Recent Scans Overlay */}
               {recentScans.length > 0 && (
                 <div className="mt-8 space-y-3">
                   <p className="text-[10px] font-black text-text-dimmer uppercase tracking-widest text-center">آخر العمليات</p>

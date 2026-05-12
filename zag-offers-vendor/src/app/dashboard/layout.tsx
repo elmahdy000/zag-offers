@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
 import Sidebar from '@/components/Sidebar';
-import { Menu, X } from 'lucide-react';
+import { Menu, X, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, getVendorStoreId } from '@/lib/api';
-
 import BottomNav from '@/components/BottomNav';
+import { secureStoreData } from '@/lib/crypto';
+import { OfflineSync } from '@/lib/offline-sync';
 
 export default function DashboardLayout({
   children,
@@ -16,55 +17,32 @@ export default function DashboardLayout({
   const [isOnline, setIsOnline] = useState(true);
   
   useEffect(() => {
-    setIsOnline(navigator.onLine);
-    const handleOnline = () => {
-      setIsOnline(true);
-      // مزامنة العمليات المعلقة
-      const syncRedemptions = async () => {
-        if (typeof window === 'undefined') return;
-        const queue = JSON.parse(localStorage.getItem('pending_redemptions') || '[]');
-        if (queue.length === 0) return;
+    if (typeof window !== 'undefined') {
+      setIsOnline(navigator.onLine);
+      OfflineSync.init();
 
-        console.log(`Syncing ${queue.length} pending redemptions...`);
-        const api = vendorApi();
-        const remaining = [];
+      const handleOnline = () => setIsOnline(true);
+      const handleOffline = () => setIsOnline(false);
 
-        for (const item of queue) {
-          try {
-            await api.post('/coupons/redeem', { code: item.code });
-          } catch (e: any) {
-            // لو فشل بسبب إن الكود استخدم خلاص، نمسحه
-            // لو فشل بسبب نت تاني، نحفظه للمرة الجاية
-            if (e.response?.status !== 400 && e.response?.status !== 404) {
-              remaining.push(item);
+      window.addEventListener('online', handleOnline);
+      window.addEventListener('offline', handleOffline);
+
+      const storeId = getVendorStoreId();
+      if (!storeId) {
+        vendorApi().get('/stores/my-dashboard')
+          .then((res: { data?: { storeId?: string } }) => {
+            if (res.data?.storeId) {
+              secureStoreData.save(res.data.storeId);
             }
-          }
-        }
+          })
+          .catch(() => {});
+      }
 
-        localStorage.setItem('pending_redemptions', JSON.stringify(remaining));
+      return () => {
+        window.removeEventListener('online', handleOnline);
+        window.removeEventListener('offline', handleOffline);
       };
-      syncRedemptions();
-    };
-    const handleOffline = () => setIsOnline(false);
-    window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', handleOffline);
-
-    const storeId = getVendorStoreId();
-    if (!storeId) {
-      vendorApi().get('/stores/my-dashboard')
-        .then((res: { data?: { storeId?: string } }) => {
-          if (res.data?.storeId && typeof window !== 'undefined') {
-            localStorage.setItem('vendor_store_id', res.data.storeId);
-            window.location.reload();
-          }
-        })
-        .catch(() => {});
     }
-
-    return () => {
-      window.removeEventListener('online', handleOnline);
-      window.removeEventListener('offline', handleOffline);
-    };
   }, []);
 
   return (
@@ -92,7 +70,7 @@ export default function DashboardLayout({
 
       {/* Main Content Area */}
       <div className="flex-1 flex flex-col min-h-screen w-full">
-        {/* Connection Status Banner (Mobile/Tablet) */}
+        {/* Connection Status Banner */}
         <AnimatePresence>
           {!isOnline && (
             <motion.div
@@ -101,7 +79,7 @@ export default function DashboardLayout({
               exit={{ height: 0, opacity: 0 }}
               className="bg-red-500 text-white text-[10px] font-black py-1 px-4 text-center overflow-hidden flex items-center justify-center gap-2"
             >
-              <X size={12} /> انقطع الاتصال — أنت تعمل في وضع الأوفلاين
+              <WifiOff size={12} /> انقطع الاتصال — أنت تعمل في وضع الأوفلاين (سيتم مزامنة العمليات لاحقاً)
             </motion.div>
           )}
         </AnimatePresence>
