@@ -6,9 +6,15 @@ import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 
+import ConfirmModal from '@/components/ConfirmModal';
+
 export default function StoreProfilePage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
+  
+  // State for gallery image deletion
+  const [imageToDelete, setImageToDelete] = useState<number | null>(null);
+
   const [formData, setFormData] = useState({
     name: '',
     phone: '',
@@ -303,10 +309,7 @@ export default function StoreProfilePage() {
               <div key={idx} className="relative aspect-square rounded-2xl overflow-hidden border border-white/5 group shadow-lg">
                 <img src={resolveImageUrl(img)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500" alt="" />
                 <button 
-                  onClick={() => {
-                    const filtered = (store.images || []).filter((_: string, i: number) => i !== idx);
-                    updateStore({ images: filtered });
-                  }}
+                  onClick={() => setImageToDelete(idx)}
                   className="absolute top-2 left-2 bg-red-500/80 text-white p-1.5 rounded-lg opacity-0 group-hover:opacity-100 transition-opacity hover:bg-red-500"
                 >
                   <Trash2 size={14} />
@@ -348,6 +351,21 @@ export default function StoreProfilePage() {
           </AnimatePresence>
         </div>
       </div>
+      <ConfirmModal 
+        isOpen={imageToDelete !== null}
+        onClose={() => setImageToDelete(null)}
+        onConfirm={() => {
+          if (imageToDelete !== null) {
+            const filtered = (store.images || []).filter((_: string, i: number) => i !== imageToDelete);
+            updateStore({ images: filtered }, {
+              onSuccess: () => setImageToDelete(null)
+            });
+          }
+        }}
+        isLoading={updating}
+        title="حذف الصورة"
+        message="هل أنت متأكد من حذف هذه الصورة من معرض المتجر؟"
+      />
     </div>
   );
 }

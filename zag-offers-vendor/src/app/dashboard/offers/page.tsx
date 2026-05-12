@@ -8,6 +8,7 @@ import { useVendorOffers, useDeleteOffer } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
 import { secureStorage } from '@/lib/crypto';
+import ConfirmModal from '@/components/ConfirmModal';
 
 interface Offer {
   id: string;
@@ -125,15 +126,23 @@ export default function OffersListPage() {
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [cachedOffers, setCachedOffers] = useState<Offer[]>([]);
+  
+  // State for Custom Confirm Modal
+  const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({
+    isOpen: false,
+    id: null
+  });
 
   const { data: offers, isLoading, refetch } = useVendorOffers();
-  const { mutate: deleteOffer } = useDeleteOffer();
+  const { mutate: deleteOffer, isPending: isDeleting } = useDeleteOffer();
 
+  // تحميل الكاش من التخزين الآمن
   useEffect(() => {
     const cached = secureStorage.get<Offer[]>('cache_vendor_offers_list');
     if (cached) setCachedOffers(cached);
   }, []);
 
+  // تحديث الكاش عند النجاح
   useEffect(() => {
     if (offers) {
       secureStorage.set('cache_vendor_offers_list', offers);
@@ -141,9 +150,18 @@ export default function OffersListPage() {
     }
   }, [offers]);
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('هل تريد حذف هذا العرض نهائياً؟')) return;
-    deleteOffer(id);
+  const handleDelete = (id: string) => {
+    setDeleteModal({ isOpen: true, id });
+  };
+
+  const confirmDelete = () => {
+    if (deleteModal.id) {
+      deleteOffer(deleteModal.id, {
+        onSuccess: () => {
+          setDeleteModal({ isOpen: false, id: null });
+        }
+      });
+    }
   };
 
   const displayOffers = Array.isArray(offers) ? offers : cachedOffers;
@@ -287,6 +305,14 @@ export default function OffersListPage() {
           </div>
         ))
       )}
+      <ConfirmModal 
+        isOpen={deleteModal.isOpen}
+        onClose={() => setDeleteModal({ isOpen: false, id: null })}
+        onConfirm={confirmDelete}
+        isLoading={isDeleting}
+        title="حذف العرض"
+        message="هل أنت متأكد من حذف هذا العرض نهائياً؟ لا يمكن التراجع عن هذه العملية."
+      />
     </div>
   );
 }

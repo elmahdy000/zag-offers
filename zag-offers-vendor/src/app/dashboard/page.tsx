@@ -5,7 +5,7 @@ import {
   Tag, Clock, ArrowUpRight, ChevronLeft, Activity
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { vendorApi, resolveImageUrl } from '@/lib/api';
+import { vendorApi, resolveImageUrl, Offer } from '@/lib/api';
 import { Plus, Bell, CheckCircle2, Sparkles, Users, QrCode, History, MessageSquare, TrendingUp, TrendingDown } from 'lucide-react';
 import { useVendorStats, useVendorOffers } from '@/hooks/use-vendor-api';
 import { useSocket } from '@/hooks/useSocket';
@@ -98,30 +98,17 @@ export default function MerchantDashboard() {
       secureStorage.set('cache_vendor_stats', stats);
       setCachedStats(stats);
     }
-    // استخراج آخر 3 عروض
-    const recentOffers = useMemo(() => {
-      const arr = Array.isArray(offers) ? offers : [];
-      if (arr.length > 0) return arr.slice(0, 3);
-      
-      // محاولة قراءة من كاش العروض
-      if (typeof window !== 'undefined') {
-        const cached = secureStorage.get('cache_vendor_offers_list');
-        if (cached) {
-          return Array.isArray(cached) ? cached.slice(0, 3) : [];
-        }
-      }
-      return [];
-    }, [offers]);
-  }, [stats, offers]);
+  }, [stats]);
 
   const recentOffers = useMemo(() => {
     const arr = Array.isArray(offers) ? offers : [];
     if (arr.length > 0) return arr.slice(0, 3);
+    
+    // محاولة قراءة من كاش العروض بالتخزين الآمن
     if (typeof window !== 'undefined') {
-      const cached = localStorage.getItem('cache_vendor_offers_list');
-      if (cached) {
-        const cachedArr = JSON.parse(cached);
-        return Array.isArray(cachedArr) ? cachedArr.slice(0, 3) : [];
+      const cached = secureStorage.get<Offer[]>('cache_vendor_offers_list');
+      if (cached && Array.isArray(cached)) {
+        return cached.slice(0, 3);
       }
     }
     return [];
