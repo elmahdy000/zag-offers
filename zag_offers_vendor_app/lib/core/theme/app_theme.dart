@@ -125,9 +125,9 @@ class AppTheme {
     ),
   );
 
-  // Input Decoration
-  static InputDecoration get inputDecoration {
-    return InputDecoration(
+  // Input Decoration Theme
+  static InputDecorationTheme get inputDecorationTheme {
+    return InputDecorationTheme(
       filled: true,
       fillColor: AppColors.glassBackground,
       border: OutlineInputBorder(
@@ -202,7 +202,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: secondaryButton,
     ),
-    inputDecorationTheme: inputDecoration,
+    inputDecorationTheme: inputDecorationTheme,
     textTheme: GoogleFonts.cairoTextTheme(
       ThemeData.dark().textTheme,
     ).copyWith(
