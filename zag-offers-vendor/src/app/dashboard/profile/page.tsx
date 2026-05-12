@@ -1,6 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle, Trash2, Plus } from 'lucide-react';
+import { Store, MapPin, Phone, Mail, Camera, Save, Loader2, CheckCircle2, MessageCircle, Trash2, Plus, ArrowUpRight } from 'lucide-react';
 import { vendorApi, getVendorStoreId, resolveImageUrl } from '@/lib/api';
 import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
@@ -103,40 +103,67 @@ export default function StoreProfilePage() {
 
   return (
     <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto animate-in">
-      <div className="mb-10">
-        <h1 className="text-3xl font-black text-text tracking-tight">إعدادات المتجر</h1>
-        <p className="text-text-dim mt-2 font-bold text-xs uppercase tracking-widest">إدارة الهوية والمعلومات العامة</p>
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
+        <div>
+          <h1 className="text-4xl font-black text-text tracking-tighter">إعدادات المتجر</h1>
+          <p className="text-text-dim mt-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+            <span className="w-2 h-2 bg-primary rounded-full animate-pulse" />
+            إدارة الهوية والمعلومات العامة
+          </p>
+        </div>
+        <a 
+          href={`https://zagoffers.online/stores/${store.id}`} 
+          target="_blank" 
+          rel="noopener noreferrer"
+          className="glass px-6 py-3 rounded-2xl flex items-center gap-3 text-text-dim hover:text-primary hover:border-primary/30 transition-all group border border-white/5"
+        >
+          <div className="w-8 h-8 bg-white/5 rounded-xl flex items-center justify-center group-hover:bg-primary/10 transition-all">
+            <ArrowUpRight size={16} />
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-widest">معاينة المتجر المباشر</span>
+        </a>
       </div>
 
-      <div className="space-y-8">
-        {/* Logo Section */}
-        <div className="glass p-10 rounded-[3rem] border border-white/5 flex flex-col items-center inner-shadow relative overflow-hidden bg-white/[0.01]">
-          <div className="absolute top-0 inset-x-0 h-24 bg-gradient-to-b from-primary/5 to-transparent" />
-          <div className="relative group">
-            <div className="w-36 h-36 bg-bg border-4 border-white/5 rounded-[2.5rem] flex items-center justify-center overflow-hidden shadow-2xl transition-all group-hover:scale-105 group-hover:border-primary/50">
-              {store.logo ? (
-                <img src={resolveImageUrl(store.logo)} alt={store.name} className="w-full h-full object-cover" />
-              ) : (
-                <Store size={48} className="text-white/10" />
-              )}
+      <div className="space-y-10">
+        {/* Profile Card */}
+        <div className="relative group">
+          <div className="absolute -inset-1 bg-gradient-to-r from-primary/20 to-blue-500/20 rounded-[3.5rem] blur opacity-25 group-hover:opacity-40 transition duration-1000"></div>
+          <div className="relative glass p-10 rounded-[3rem] border border-white/10 flex flex-col items-center inner-shadow bg-bg/80 backdrop-blur-xl">
+            <div className="relative mb-8">
+              <div className="w-40 h-40 bg-bg border-4 border-white/10 rounded-[3rem] flex items-center justify-center overflow-hidden shadow-2xl transition-all group-hover:border-primary/50">
+                {store.logo ? (
+                  <img src={resolveImageUrl(store.logo)} alt={store.name} className="w-full h-full object-cover" />
+                ) : (
+                  <Store size={48} className="text-white/10" />
+                )}
+                {(saving || updating) && (
+                  <div className="absolute inset-0 bg-black/60 flex items-center justify-center backdrop-blur-sm">
+                    <Loader2 className="animate-spin text-primary" size={32} />
+                  </div>
+                )}
+              </div>
+              <input 
+                type="file" 
+                id="logo-input" 
+                className="hidden" 
+                accept="image/*"
+                onChange={handleLogoUpload}
+              />
+              <button 
+                onClick={() => document.getElementById('logo-input')?.click()}
+                className="absolute -bottom-2 -left-2 bg-primary text-white p-4 rounded-[1.5rem] shadow-xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all z-20 border-4 border-bg"
+              >
+                <Camera size={20} />
+              </button>
             </div>
-            <input 
-              type="file" 
-              id="logo-input" 
-              className="hidden" 
-              accept="image/*"
-              onChange={handleLogoUpload}
-            />
-            <button 
-              onClick={() => document.getElementById('logo-input')?.click()}
-              className="absolute -bottom-2 -left-2 bg-primary text-white p-3 rounded-2xl shadow-xl shadow-primary/40 hover:scale-110 active:scale-95 transition-all"
-            >
-              <Camera size={20} />
-            </button>
-          </div>
-          <div className="text-center mt-6">
-            <h2 className="font-black text-lg text-text">لوجو المحل</h2>
-            <p className="text-text-dim text-[11px] font-bold mt-1">يظهر للعملاء في الصفحة الرئيسية وقائمة المتاجر</p>
+            
+            <div className="text-center">
+              <h2 className="text-2xl font-black text-text mb-2 tracking-tight">{formData.name || 'اسم المتجر'}</h2>
+              <div className="flex items-center justify-center gap-2 text-text-dimmer font-bold text-[10px] uppercase tracking-[0.2em]">
+                <MapPin size={12} />
+                {formData.address || 'لم يتم تحديد عنوان'}
+              </div>
+            </div>
           </div>
         </div>
 

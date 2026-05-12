@@ -1,9 +1,18 @@
 'use client';
-import { Store, Shield, Bell, ChevronLeft, Lock, Smartphone } from 'lucide-react';
+import { Store, Shield, Bell, ChevronLeft, Lock, Smartphone, LogOut, ExternalLink, HelpCircle } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
+import { deleteCookie } from '@/lib/api';
 
 export default function SettingsPage() {
+  const handleLogout = () => {
+    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
+      deleteCookie('auth_token');
+      localStorage.clear();
+      window.location.href = '/login';
+    }
+  };
+
   const sections = [
     {
       title: 'بيانات المتجر',
@@ -43,8 +52,11 @@ export default function SettingsPage() {
   return (
     <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto animate-in">
       <div className="mb-12">
-        <h1 className="text-3xl font-black text-text tracking-tight">إعدادات النظام</h1>
-        <p className="text-text-dim mt-2 font-bold text-xs uppercase tracking-widest">تخصيص لوحة التحكم وحساب المتجر</p>
+        <h1 className="text-4xl font-black text-text tracking-tighter">إعدادات النظام</h1>
+        <p className="text-text-dim mt-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
+           <span className="w-1.5 h-1.5 bg-primary rounded-full" />
+           تخصيص لوحة التحكم وحساب المتجر
+        </p>
       </div>
 
       <div className="grid grid-cols-1 gap-4">
@@ -57,17 +69,17 @@ export default function SettingsPage() {
           >
             <Link 
               href={section.href}
-              className="glass p-6 rounded-[2rem] border border-white/5 flex items-center justify-between hover:border-primary/30 transition-all group active:scale-[0.99]"
+              className="glass p-6 rounded-[2rem] border border-white/5 flex items-center justify-between hover:border-primary/30 transition-all group active:scale-[0.99] bg-white/[0.01]"
             >
               <div className="flex items-center gap-5">
-                <div className={`w-14 h-14 ${section.bg} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110`}>
+                <div className={`w-14 h-14 ${section.bg} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg`}>
                   <section.icon className={section.color} size={24} />
                 </div>
                 <div>
                   <div className="flex items-center gap-3">
                     <h3 className="font-black text-text text-sm">{section.title}</h3>
                     {section.tag && (
-                      <span className="text-[8px] font-black bg-white/5 text-text-dimmer px-2 py-0.5 rounded-md uppercase tracking-wider">
+                      <span className="text-[8px] font-black bg-white/10 text-primary px-2 py-0.5 rounded-md uppercase tracking-wider">
                         {section.tag}
                       </span>
                     )}
@@ -85,15 +97,31 @@ export default function SettingsPage() {
         ))}
       </div>
 
-      <div className="mt-12 p-8 glass rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center text-center">
-        <Shield className="text-text-dimmer mb-4" size={32} />
-        <h4 className="text-xs font-black text-text-dim uppercase tracking-widest mb-1">مركز الدعم والمساعدة</h4>
-        <p className="text-[10px] font-bold text-text-dimmer max-w-[280px]">
-          إذا كنت تواجه مشكلة فنية أو تود استفساراً حول النظام، يمكنك التواصل معنا عبر واتساب الدعم الفني
-        </p>
-        <button className="mt-6 text-[11px] font-black text-primary hover:underline">
-          تواصل مع الدعم الفني
-        </button>
+      <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
+        <div className="p-8 glass rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center text-center bg-white/[0.01]">
+          <HelpCircle className="text-text-dimmer mb-4" size={32} />
+          <h4 className="text-[11px] font-black text-text uppercase tracking-widest mb-1">مركز المساعدة</h4>
+          <p className="text-[10px] font-bold text-text-dimmer max-w-[200px] leading-relaxed">
+            لديك استفسار؟ فريق الدعم متاح 24/7 لمساعدتك
+          </p>
+          <a href="https://wa.me/201091428238" target="_blank" className="mt-6 text-[10px] font-black text-primary hover:underline flex items-center gap-2">
+            تواصل معنا <ExternalLink size={12} />
+          </a>
+        </div>
+
+        <div className="p-8 glass rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center text-center bg-red-500/[0.02]">
+          <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 mb-4">
+             <LogOut size={24} />
+          </div>
+          <h4 className="text-[11px] font-black text-text uppercase tracking-widest mb-1">الخروج من الحساب</h4>
+          <p className="text-[10px] font-bold text-text-dimmer mb-6">سيتم إنهاء الجلسة الحالية على هذا الجهاز</p>
+          <button 
+            onClick={handleLogout}
+            className="text-[10px] font-black bg-red-500 text-white px-8 py-3 rounded-xl shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95 transition-all"
+          >
+            تسجيل الخروج
+          </button>
+        </div>
       </div>
     </div>
   );
