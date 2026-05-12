@@ -93,8 +93,8 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   const handleToastClick = (notif: Notification) => {
     if (notif.data?.url) {
       router.push(notif.data.url);
-      setNotifications(prev => prev.filter(n => n.id !== notif.id));
     }
+    setNotifications(prev => prev.filter(n => n.id !== notif.id));
   };
 
   return (

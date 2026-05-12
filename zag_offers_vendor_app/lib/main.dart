@@ -74,7 +74,40 @@ class ZagOffersVendorApp extends StatelessWidget {
         title: 'Zag Offers Vendor',
         navigatorKey: navigatorKey,
         debugShowCheckedModeBanner: false,
-        theme: AppTheme.darkTheme,
+        theme: AppTheme.darkTheme.copyWith(
+          inputDecorationTheme: InputDecorationTheme(
+            filled: true,
+            fillColor: AppColors.glassBackground,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(color: AppColors.glassBorder),
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: BorderSide(color: AppColors.glassBorder),
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: const BorderSide(color: AppColors.primary),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(20),
+              borderSide: const BorderSide(color: AppColors.error),
+            ),
+            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            hintStyle: GoogleFonts.cairo(
+              color: AppColors.textDimmer,
+              fontWeight: FontWeight.w700,
+              fontSize: 14,
+            ),
+            labelStyle: GoogleFonts.cairo(
+              color: AppColors.textDim,
+              fontWeight: FontWeight.w900,
+              fontSize: 10,
+              letterSpacing: 0.3,
+            ),
+          ),
+        ),
         builder: (context, child) {
           return Directionality(
             textDirection: TextDirection.rtl,

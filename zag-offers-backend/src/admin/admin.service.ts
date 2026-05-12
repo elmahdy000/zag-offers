@@ -730,8 +730,8 @@ export class AdminService {
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
     void this.notificationsService.sendToAll(
-      'New offer available',
-      `${offer.store.name} published a new offer: "${offer.title}"`,
+      `${offer.store.name} 🎁`,
+      `عرض جديد متاح الآن: "${offer.title}"`,
       { offerId: offer.id, type: 'NEW_OFFER' },
       imageUrl,
     );
@@ -1361,8 +1361,8 @@ export class AdminService {
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
     void this.notificationsService.sendToAll(
-      'عرض جديد من الإدارة 🎁',
-      `تمت إضافة عرض جديد في ${store.name}: ${offer.title}`,
+      `${store.name} 🎁`,
+      `تمت إضافة عرض جديد: ${offer.title}`,
       { offerId: offer.id, type: 'NEW_OFFER' },
       imageUrl,
     );
