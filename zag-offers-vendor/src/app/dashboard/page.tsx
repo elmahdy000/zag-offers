@@ -2,13 +2,14 @@
 import { useState, useEffect, useMemo } from 'react';
 import Link from 'next/link';
 import {
-  Tag, TrendingUp, Plus, Bell, CheckCircle2,
-  Clock, Users, ArrowUpRight, Sparkles, MessageSquare, QrCode, History, ChevronLeft
+  Tag, Clock, ArrowUpRight, ChevronLeft
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
+import { Plus, Bell, CheckCircle2, Sparkles, Users, QrCode, History, MessageSquare, TrendingUp } from 'lucide-react';
 import { useVendorStats, useVendorOffers } from '@/hooks/use-vendor-api';
 import { useSocket } from '@/hooks/useSocket';
+import PullToRefresh from '@/components/PullToRefresh';
 
 // تحسين: استخدام مكونات ثابتة لتقليل إعادة الرندر
 const StatCard = ({ card, index, loading = false }: { card: any, index: number, loading?: boolean }) => (

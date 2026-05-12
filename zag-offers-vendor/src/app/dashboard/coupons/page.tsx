@@ -56,6 +56,7 @@ export default function CouponsLogPage() {
     return 'bg-primary/10 text-primary border-primary/20';
   };
 
+  const [visibleCount, setVisibleCount] = useState(20);
   const displayLogs = logs || cachedLogs;
 
   const exportToCSV = () => {
@@ -89,6 +90,9 @@ export default function CouponsLogPage() {
     log.customer?.name?.toLowerCase().includes(searchTerm.toLowerCase()) ||
     log.offer?.title?.toLowerCase().includes(searchTerm.toLowerCase())
   ) : [];
+
+  const visibleLogs = filteredLogs.slice(0, visibleCount);
+  const hasMore = visibleCount < filteredLogs.length;
 
   return (
     <div className="p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto">
@@ -151,7 +155,7 @@ export default function CouponsLogPage() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.03]">
-                {filteredLogs.map((log: CouponLog, i: number) => (
+                {visibleLogs.map((log: CouponLog, i: number) => (
                   <motion.tr 
                     initial={{ opacity: 0, x: -10 }}
                     animate={{ opacity: 1, x: 0 }}
@@ -199,6 +203,18 @@ export default function CouponsLogPage() {
             </table>
           )}
         </div>
+        
+        {/* Load More Section */}
+        {hasMore && (
+          <div className="p-8 border-t border-white/5 flex justify-center bg-white/[0.01]">
+            <button 
+              onClick={() => setVisibleCount(prev => prev + 20)}
+              className="px-10 py-3.5 bg-white/5 border border-white/5 rounded-2xl text-text-dim font-black text-[11px] uppercase tracking-widest hover:text-primary hover:border-primary/20 hover:bg-primary/5 transition-all active:scale-95"
+            >
+              تحميل المزيد من السجلات
+            </button>
+          </div>
+        )}
         
         {/* Footer info */}
         <div className="p-4 bg-white/[0.01] border-t border-white/5 flex justify-center">

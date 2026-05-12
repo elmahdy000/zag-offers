@@ -21,17 +21,10 @@ export function resolveImageUrl(path: string | null | undefined): string {
   return `${baseDomain}${cleanPath}`;
 }
 
-/** قراءة قيمة كوكي من المتصفح */
-export function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-  return match ? decodeURIComponent(match[1]) : null;
-}
+import { getCookie, deleteCookie } from './cookie-utils';
+export { getCookie, deleteCookie };
 
-/** حذف كوكي */
-export function deleteCookie(name: string) {
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-}
+/** تحويل المسار النسبي لصورة إلى رابط كامل */
 
 
 /** قراءة بيانات المستخدم المخزنة */

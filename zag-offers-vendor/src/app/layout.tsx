@@ -4,6 +4,7 @@ import { ReactQueryProvider } from '@/lib/react-query-provider';
 import SWProvider from '@/components/sw-provider';
 import { NotificationProvider } from '@/components/notification-provider';
 import PWAInstallPrompt from '@/components/pwa-install-prompt';
+import ErrorBoundary from '@/components/ErrorBoundary';
 
 export const viewport: Viewport = {
   themeColor: '#ff7e1a',
@@ -44,10 +45,12 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col antialiased">
         <SWProvider>
           <ReactQueryProvider>
-            <NotificationProvider>
-              {children}
-              <PWAInstallPrompt />
-            </NotificationProvider>
+            <ErrorBoundary>
+              <NotificationProvider>
+                {children}
+                <PWAInstallPrompt />
+              </NotificationProvider>
+            </ErrorBoundary>
           </ReactQueryProvider>
         </SWProvider>
       </body>

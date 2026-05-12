@@ -5,6 +5,7 @@ import { Smartphone, Lock, Eye, EyeOff, Loader2, LogIn, ChevronLeft } from 'luci
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
+import { setCookie } from '@/lib/cookie-utils';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
 
@@ -49,7 +50,7 @@ export default function LoginPage() {
         return;
       }
 
-      document.cookie = `auth_token=${encodeURIComponent(access_token)}; path=/; SameSite=Strict${process.env.NODE_ENV === 'production' ? '; Secure' : ''}`;
+      setCookie('auth_token', access_token);
       localStorage.setItem('vendor_user', JSON.stringify(user));
 
       try {
