@@ -175,9 +175,9 @@ export default function MerchantDashboard() {
   const displayStats = stats || cachedStats;
 
   const statCards = useMemo(() => [
-    { label: 'نشاط اليوم', value: displayStats?.todayClaims ?? 0, icon: Zap, color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20', trend: 15 },
+    { label: 'طلبات اليوم', value: displayStats?.todayClaims ?? 0, icon: Zap, color: 'text-orange-400', bg: 'bg-orange-400/10', border: 'border-orange-400/20', trend: 15 },
+    { label: 'مسح اليوم', value: displayStats?.scansToday ?? 0, icon: CheckCircle2, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', trend: 5 },
     { label: 'الزيارات', value: displayStats?.totalViewsCount ?? 0, icon: Eye, color: 'text-blue-400', bg: 'bg-blue-400/10', border: 'border-blue-400/20', trend: 8 },
-    { label: 'عروض نشطة', value: displayStats?.activeOffersCount ?? 0, icon: Sparkles, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/20', trend: 0 },
     { label: 'قاعدة العملاء', value: displayStats?.totalClaimsCount ?? 0, icon: Users, color: 'text-purple-400', bg: 'bg-purple-400/10', border: 'border-purple-400/20', trend: 12 },
   ], [displayStats]);
 
