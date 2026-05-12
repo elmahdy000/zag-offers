@@ -22,7 +22,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
   late AnimationController _statsController;
   late AnimationController _actionController;
   
-  List<NotificationData> _notifications = [];
+  final List<NotificationData> _notifications = [];
   bool _isRefreshing = false;
   String _lastUpdated = '';
 
@@ -156,14 +156,14 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
                   width: 600,
                   height: 600,
                   decoration: BoxDecoration(
-                    color: AppColors.primary.withValues(alpha: 0.05),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.primary.withValues(alpha: 0.2),
-                        blurRadius: 150,
-                      ),
-                    ],
+                    gradient: RadialGradient(
+                      center: Alignment.bottomLeft,
+                      radius: 1.5,
+                      colors: [
+                        AppColors.secondary.withOpacity(0.05),
+                        Colors.transparent,
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -375,36 +375,36 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
       children: [
         StatCard(
           label: 'نشاط اليوم',
-          value: (stats.todayClaims ?? 0).toString(),
+          value: (stats.claimsToday ?? 0).toString(),
           icon: Icons.local_activity,
           color: AppColors.primary,
-          bgColor: AppColors.primary.withValues(alpha: 0.1),
+          bgColor: AppColors.primary.withOpacity(0.1),
           trend: '+15%',
           index: 0,
         ),
         StatCard(
           label: 'الزيارات',
-          value: (stats.totalViewsCount ?? 0).toString(),
+          value: '0', // Placeholder until API provides views data
           icon: Icons.visibility,
           color: AppColors.blue,
-          bgColor: AppColors.blue.withValues(alpha: 0.1),
+          bgColor: AppColors.blue.withOpacity(0.1),
           trend: '+8%',
           index: 1,
         ),
         StatCard(
           label: 'عروض نشطة',
-          value: (stats.activeOffersCount ?? 0).toString(),
+          value: (stats.activeOffers ?? 0).toString(),
           icon: Icons.star,
           color: AppColors.secondary,
-          bgColor: AppColors.secondary.withValues(alpha: 0.1),
+          bgColor: AppColors.secondary.withOpacity(0.1),
           index: 2,
         ),
         StatCard(
           label: 'قاعدة العملاء',
-          value: (stats.totalClaimsCount ?? 0).toString(),
+          value: (stats.totalClaims ?? 0).toString(),
           icon: Icons.people,
           color: AppColors.purple,
-          bgColor: AppColors.purple.withValues(alpha: 0.1),
+          bgColor: AppColors.purple.withOpacity(0.1),
           trend: '+12%',
           index: 3,
         ),
@@ -634,11 +634,11 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
                 width: 40,
                 height: 40,
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
+                  color: AppColors.primary.withOpacity(0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
                 child: Icon(
-                  Icons.activity,
+                  Icons.analytics,
                   color: AppColors.primary,
                   size: 20,
                 ),

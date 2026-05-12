@@ -26,13 +26,11 @@ class GlassCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final decoration = heavy ? AppTheme.glassHeavy : AppTheme.glassCard;
-    
     return Container(
       width: width,
       height: height,
       margin: margin,
-      decoration: AppTheme.glassCard,
+      decoration: heavy ? AppTheme.glassHeavy : AppTheme.glassCard,
       child: Material(
         color: Colors.transparent,
         child: InkWell(

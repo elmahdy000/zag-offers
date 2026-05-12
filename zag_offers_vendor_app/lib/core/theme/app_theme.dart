@@ -126,38 +126,40 @@ class AppTheme {
   );
 
   // Input Decoration
-  static InputDecoration get inputDecoration => InputDecoration(
-    filled: true,
-    fillColor: AppColors.glassBackground,
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: const BorderSide(color: AppColors.glassBorder),
-    ),
-    enabledBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: const BorderSide(color: AppColors.glassBorder),
-    ),
-    focusedBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: const BorderSide(color: AppColors.primary),
-    ),
-    errorBorder: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(20),
-      borderSide: const BorderSide(color: AppColors.error),
-    ),
-    contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-    hintStyle: GoogleFonts.cairo(
-      color: AppColors.textDimmer,
-      fontWeight: FontWeight.w700,
-      fontSize: 14,
-    ),
-    labelStyle: GoogleFonts.cairo(
-      color: AppColors.textDim,
-      fontWeight: FontWeight.w900,
-      fontSize: 10,
-      letterSpacing: 0.3,
-    ),
-  );
+  static InputDecoration get inputDecoration {
+    return InputDecoration(
+      filled: true,
+      fillColor: AppColors.glassBackground,
+      border: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.glassBorder),
+      ),
+      enabledBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.glassBorder),
+      ),
+      focusedBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.primary),
+      ),
+      errorBorder: OutlineInputBorder(
+        borderRadius: BorderRadius.circular(20),
+        borderSide: const BorderSide(color: AppColors.error),
+      ),
+      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+      hintStyle: GoogleFonts.cairo(
+        color: AppColors.textDimmer,
+        fontWeight: FontWeight.w700,
+        fontSize: 14,
+      ),
+      labelStyle: GoogleFonts.cairo(
+        color: AppColors.textDim,
+        fontWeight: FontWeight.w900,
+        fontSize: 10,
+        letterSpacing: 0.3,
+      ),
+    );
+  }
 
   // Complete ThemeData
   static ThemeData get darkTheme => ThemeData(
@@ -186,7 +188,7 @@ class AppTheme {
         size: 24,
       ),
     ),
-    cardTheme: CardTheme(
+    cardTheme: CardThemeData(
       color: AppColors.card,
       elevation: 0,
       shape: RoundedRectangleBorder(
@@ -200,9 +202,7 @@ class AppTheme {
     outlinedButtonTheme: OutlinedButtonThemeData(
       style: secondaryButton,
     ),
-    inputDecorationTheme: InputDecorationTheme(
-      ...inputDecoration,
-    ),
+    inputDecorationTheme: inputDecoration,
     textTheme: GoogleFonts.cairoTextTheme(
       ThemeData.dark().textTheme,
     ).copyWith(

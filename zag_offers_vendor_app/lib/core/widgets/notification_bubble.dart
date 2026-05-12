@@ -35,10 +35,10 @@ class NotificationBubble extends StatelessWidget {
             end: Alignment.bottomRight,
             colors: [
               isSuccess 
-                  ? AppColors.success.withValues(alpha: 0.1)
+                  ? AppColors.success.withOpacity(0.1)
                   : isError 
-                      ? AppColors.error.withValues(alpha: 0.1)
-                      : AppColors.primary.withValues(alpha: 0.1),
+                      ? AppColors.error.withOpacity(0.1)
+                      : AppColors.primary.withOpacity(0.1),
               Colors.transparent,
             ],
           ),

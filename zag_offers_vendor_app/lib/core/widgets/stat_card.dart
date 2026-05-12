@@ -42,21 +42,7 @@ class StatCard extends StatelessWidget {
           );
         },
         child: Container(
-          decoration: BoxDecoration(
-            color: AppTheme.glassBackground.color,
-            borderRadius: BorderRadius.circular(40),
-            border: Border.all(
-              color: AppColors.glassBorder,
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withOpacity(0.2),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
-              ),
-            ],
-          ),
+          decoration: AppTheme.glassCard,
           child: Container(
             decoration: BoxDecoration(
               color: bgColor.withOpacity(0.1),
