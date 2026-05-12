@@ -5,6 +5,8 @@ import { motion } from 'framer-motion';
 import { deleteCookie } from '@/lib/api';
 import { useEffect, useState } from 'react';
 import { PerformanceMonitor } from '@/lib/performance-monitor';
+import { ConfirmModal } from '@/components/ConfirmModal';
+import { secureStorage } from '@/lib/crypto';
 
 export default function SettingsPage() {
   const [avgLatency, setAvgLatency] = useState<number | null>(null);
@@ -17,12 +19,12 @@ export default function SettingsPage() {
     }
   }, []);
 
+  const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
+
   const handleLogout = () => {
-    if (confirm('هل أنت متأكد من تسجيل الخروج؟')) {
-      deleteCookie('auth_token');
-      localStorage.clear();
-      window.location.href = '/login';
-    }
+    deleteCookie('auth_token');
+    secureStorage.clear();
+    window.location.href = '/login';
   };
 
   const sections = [
@@ -165,15 +167,24 @@ export default function SettingsPage() {
              <LogOut size={24} />
           </div>
           <h4 className="text-[11px] font-black text-text uppercase tracking-widest mb-1">الخروج من الحساب</h4>
-          <p className="text-[10px] font-bold text-text-dimmer mb-6">سيتم إنهاء الجلسة الحالية على هذا الجهاز</p>
           <button 
-            onClick={handleLogout}
+            onClick={() => setShowLogoutConfirm(true)}
             className="text-[10px] font-black bg-red-500 text-white px-8 py-3 rounded-xl shadow-lg shadow-red-500/20 hover:scale-105 active:scale-95 transition-all"
           >
             تسجيل الخروج
           </button>
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={showLogoutConfirm}
+        onClose={() => setShowLogoutConfirm(false)}
+        onConfirm={handleLogout}
+        title="تسجيل الخروج"
+        message="هل أنت متأكد من رغبتك في تسجيل الخروج؟ سيتم إنهاء جلستك الحالية."
+        confirmText="خروج"
+        type="danger"
+      />
     </div>
   );
 }

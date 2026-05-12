@@ -8,7 +8,7 @@ import { useVendorOffers, useDeleteOffer } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
 import { secureStorage } from '@/lib/crypto';
-import ConfirmModal from '@/components/ConfirmModal';
+import { ConfirmModal } from '@/components/ConfirmModal';
 
 interface Offer {
   id: string;

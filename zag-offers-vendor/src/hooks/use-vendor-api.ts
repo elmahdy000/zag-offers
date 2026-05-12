@@ -1,5 +1,8 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCookie } from '@/lib/api';
+import { vendorApi, getVendorStoreId, resolveImageUrl, Offer } from '@/lib/api';
+import { useSocket } from '@/hooks/useSocket';
+import { secureUserData, secureStorage } from '@/lib/crypto';
 
 // API base URL
 const API_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online/api';
@@ -251,7 +254,7 @@ export function useUpdateStore() {
   return useMutation({
     mutationFn: async (data: UpdateStoreData) => {
       const token = typeof window !== 'undefined' ? getCookie('auth_token') : null;
-      const storeId = typeof window !== 'undefined' ? localStorage.getItem('vendor_store_id') : null;
+      const storeId = typeof window !== 'undefined' ? getVendorStoreId() : null;
       if (!token) throw new Error('Not authenticated');
       if (!storeId) throw new Error('Store ID not found');
 

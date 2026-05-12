@@ -16,6 +16,8 @@ interface PerformanceMetric {
 const METRICS_STORAGE_KEY = 'zag_performance_metrics';
 const SLOW_REQUEST_THRESHOLD = 1000; // 1 ثانية
 
+import { secureStorage } from './crypto';
+
 export const PerformanceMonitor = {
   /** تسجيل مقياس جديد */
   log(type: MetricType, name: string, value: number, metadata?: any) {
@@ -33,7 +35,7 @@ export const PerformanceMonitor = {
       console.log(`%c[Performance] ${type} | ${name}: ${value.toFixed(2)}ms`, color, metadata || '');
     }
 
-    // حفظ في localStorage للمراجعة لاحقاً أو الإرسال للباك-إند
+    // حفظ في التخزين الآمن للمراجعة لاحقاً أو الإرسال للباك-إند
     this.saveMetric(metric);
 
     // إذا كان الطلب بطيئاً جداً، يمكن إرسال تنبيه فوري للباك-إند هنا
@@ -44,12 +46,11 @@ export const PerformanceMonitor = {
 
   /** حفظ المقياس محلياً */
   saveMetric(metric: PerformanceMetric) {
-    if (typeof window === 'undefined') return;
     try {
-      const existing = JSON.parse(localStorage.getItem(METRICS_STORAGE_KEY) || '[]');
+      const existing = secureStorage.get<PerformanceMetric[]>(METRICS_STORAGE_KEY) || [];
       // نحتفظ بآخر 50 مقياس فقط لتجنب امتلاء الذاكرة
       const updated = [metric, ...existing].slice(0, 50);
-      localStorage.setItem(METRICS_STORAGE_KEY, JSON.stringify(updated));
+      secureStorage.set(METRICS_STORAGE_KEY, updated);
     } catch (e) {
       console.error('Failed to save performance metric', e);
     }
@@ -57,12 +58,7 @@ export const PerformanceMonitor = {
 
   /** جلب التقارير المخزنة */
   getMetrics(): PerformanceMetric[] {
-    if (typeof window === 'undefined') return [];
-    try {
-      return JSON.parse(localStorage.getItem(METRICS_STORAGE_KEY) || '[]');
-    } catch {
-      return [];
-    }
+    return secureStorage.get<PerformanceMetric[]>(METRICS_STORAGE_KEY) || [];
   },
 
   /** إرسال تقرير عن تأخير حرج */

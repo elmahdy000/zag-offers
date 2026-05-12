@@ -7,6 +7,8 @@ import { useRouter } from 'next/navigation';
 import { vendorApi, getCookie } from '@/lib/api';
 import { io, Socket } from 'socket.io-client';
 
+import { secureUserData } from '@/lib/crypto';
+
 const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
 interface Message {
@@ -86,13 +88,11 @@ export default function VendorChatPage() {
   const scrollRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    if (typeof localStorage !== 'undefined') {
-      try {
-        const user = JSON.parse(localStorage.getItem('vendor_user') || '{}');
-        setUserId(user.id || '');
-      } catch (e) {
-        console.error('Failed to load user from localStorage:', e);
-      }
+    try {
+      const user = secureUserData.load();
+      if (user) setUserId(user.id || '');
+    } catch (e) {
+      console.error('Failed to load user from secure storage:', e);
     }
   }, []);
 

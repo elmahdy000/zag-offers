@@ -3,9 +3,10 @@ import { useEffect, useState, useMemo } from 'react';
 import { LayoutDashboard, Tag, History, Scan, Store, LogOut, Bell, X, MessageSquare, Settings } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getCookie, deleteCookie } from '@/lib/api';
+import { getCookie, deleteCookie, getVendorStoreId } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSocket } from '@/hooks/useSocket';
+import { secureUserData, secureStorage } from '@/lib/crypto';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
@@ -21,17 +22,16 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   const unreadCount = useMemo(() => notifications.filter((n) => !n.isRead).length, [notifications]);
   
   const userId = useMemo(() => {
-    if (typeof localStorage === 'undefined') return null;
+    if (!mounted) return undefined;
     try {
-      const user = JSON.parse(localStorage.getItem('vendor_user') || '{}');
-      return user.id;
-    } catch { return null; }
-  }, []);
+      return secureUserData.load()?.id || undefined;
+    } catch { return undefined; }
+  }, [mounted]);
 
   const storeId = useMemo(() => {
-    if (typeof localStorage === 'undefined') return null;
-    return localStorage.getItem('vendor_store_id');
-  }, []);
+    if (!mounted) return undefined;
+    return getVendorStoreId() || undefined;
+  }, [mounted]);
 
   const socket = useSocket(userId);
 
@@ -67,14 +67,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
 
   const handleLogout = () => {
     deleteCookie('auth_token');
-    // مسح كافة الكاشات عند تسجيل الخروج
-    const cacheKeys = [
-      'vendor_user', 'vendor_store_id', 'cache_vendor_stats', 
-      'cache_vendor_coupons', 'cache_vendor_offers_list', 
-      'cache_vendor_dashboard_recent', 'pending_redemptions',
-      'vendor_recent_scans'
-    ];
-    cacheKeys.forEach(k => localStorage.removeItem(k));
+    secureStorage.clear();
     window.location.href = '/login';
   };
 

@@ -3,6 +3,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Share } from 'lucide-react';
+import { secureStorage } from '@/lib/crypto';
 
 export default function PWAInstallPrompt() {
   const [show, setShow] = useState(false);
@@ -17,7 +18,7 @@ export default function PWAInstallPrompt() {
     if (isStandalone) return;
 
     // 2. Check if dismissed before
-    const isDismissed = localStorage.getItem('vendor_pwa_dismissed');
+    const isDismissed = secureStorage.get<string>('vendor_pwa_dismissed');
     if (isDismissed) {
       const dismissedDate = new Date(isDismissed);
       const now = new Date();
@@ -64,7 +65,7 @@ export default function PWAInstallPrompt() {
 
   const handleDismiss = () => {
     setShow(false);
-    localStorage.setItem('vendor_pwa_dismissed', new Date().toISOString());
+    secureStorage.set('vendor_pwa_dismissed', new Date().toISOString());
   };
 
   return (
