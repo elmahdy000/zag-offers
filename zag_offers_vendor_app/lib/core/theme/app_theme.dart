@@ -110,7 +110,7 @@ class AppTheme {
     backgroundColor: AppColors.glassBackground,
     foregroundColor: AppColors.text,
     elevation: 0,
-    side: const BorderSide(
+    side: BorderSide(
       color: AppColors.glassBorder,
       width: 1,
     ),
@@ -132,11 +132,11 @@ class AppTheme {
       fillColor: AppColors.glassBackground,
       border: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: AppColors.glassBorder),
+        borderSide: BorderSide(color: AppColors.glassBorder),
       ),
       enabledBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
-        borderSide: const BorderSide(color: AppColors.glassBorder),
+        borderSide: BorderSide(color: AppColors.glassBorder),
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(20),
