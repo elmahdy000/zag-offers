@@ -54,7 +54,7 @@ export default function ScanPage() {
         try {
           const html5QrCode = new Html5Qrcode("reader");
           scannerRef.current = html5QrCode;
-          const config = { fps: 15, qrbox: { width: 250, height: 250 } };
+          const config = { fps: 20, qrbox: { width: 280, height: 280 } };
           await html5QrCode.start(
             { facingMode: "environment" }, 
             config,
@@ -199,14 +199,14 @@ export default function ScanPage() {
       <div className="flex-1 flex flex-col items-center px-6 overflow-y-auto pb-8">
         <AnimatePresence mode="wait">
           {(!result && !isManual) ? (
-            <motion.div key="scanner-ui" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full max-w-sm mt-2 space-y-4">
-              <div className="relative aspect-square w-full bg-black rounded-[2.5rem] overflow-hidden border-2 border-white/5 shadow-2xl">
+            <motion.div key="scanner-ui" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full mt-2 space-y-4">
+              <div className="relative aspect-square w-full bg-black rounded-[3rem] overflow-hidden border-2 border-white/5 shadow-2xl">
                 <div id="reader" className="w-full h-full" />
                 <div className="absolute inset-0 pointer-events-none">
-                  <div className="absolute top-8 right-8 w-12 h-12 border-t-4 border-r-4 border-primary rounded-tr-3xl" />
-                  <div className="absolute top-8 left-8 w-12 h-12 border-t-4 border-l-4 border-primary rounded-tl-3xl" />
-                  <div className="absolute bottom-8 right-8 w-12 h-12 border-b-4 border-r-4 border-primary rounded-br-3xl" />
-                  <div className="absolute bottom-8 left-8 w-12 h-12 border-b-4 border-l-4 border-primary rounded-bl-3xl" />
+                  <div className="absolute top-10 right-10 w-14 h-14 border-t-4 border-r-4 border-primary rounded-tr-3xl" />
+                  <div className="absolute top-10 left-10 w-14 h-14 border-t-4 border-l-4 border-primary rounded-tl-3xl" />
+                  <div className="absolute bottom-10 right-10 w-14 h-14 border-b-4 border-r-4 border-primary rounded-br-3xl" />
+                  <div className="absolute bottom-10 left-10 w-14 h-14 border-b-4 border-l-4 border-primary rounded-bl-3xl" />
                 </div>
                 {!scanning && (
                   <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl px-8 text-center">
