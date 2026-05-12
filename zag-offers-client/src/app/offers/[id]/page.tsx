@@ -493,6 +493,7 @@ export default function OfferDetailsPage() {
                         size={110}
                         level="H"
                         includeMargin={false}
+                        fgColor="#FF6B00"
                       />
                     </div>
                   </div>

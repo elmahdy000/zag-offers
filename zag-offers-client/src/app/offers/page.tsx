@@ -25,6 +25,16 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   'default':       <Sparkles size={14} />,
 };
 
+// --- Debounce Hook ---
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
 function OffersPageContent() {
   const searchParams  = useSearchParams();
   const router        = useRouter();
@@ -43,6 +53,7 @@ function OffersPageContent() {
   const [activeCat,  setActiveCat]  = useState(initialCat);
   const [area,       setArea]       = useState(initialArea);
   const [sort,       setSort]       = useState<SortOption>(initialSort);
+  const debouncedSearch = useDebounce(search, 400);
 
   // Sync state with URL whenever filters change
   useEffect(() => {
@@ -74,7 +85,7 @@ function OffersPageContent() {
 
     try {
       const [offRes, catRes] = await Promise.all([
-        fetch(`${API_URL}/offers?limit=200`),
+        fetch(`${API_URL}/offers?limit=40`),
         fetch(`${API_URL}/stores/categories`),
       ]);
       
@@ -115,7 +126,7 @@ function OffersPageContent() {
 
   const filtered = useMemo(() => {
     let list = offers.filter(o => {
-      const q = search.toLowerCase();
+      const q = debouncedSearch.toLowerCase();
       const matchSearch = !q
         || o.title.toLowerCase().includes(q)
         || o.store?.name?.toLowerCase().includes(q);

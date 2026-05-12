@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronLeft, Shield } from 'lucide-react';
+import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronLeft, Shield, MessageCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -14,13 +14,21 @@ interface User {
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
-      setTimeout(() => setUser(JSON.parse(savedUser)), 0);
-    } else {
+    try {
+      const savedUser = localStorage.getItem('user');
+      if (savedUser) {
+        setUser(JSON.parse(savedUser));
+      } else {
+        router.replace('/login');
+      }
+    } catch (error) {
+      console.error('Error parsing user data:', error);
       router.replace('/login');
+    } finally {
+      setLoading(false);
     }
   }, [router]);
 
@@ -30,10 +38,23 @@ export default function ProfilePage() {
     router.replace('/login');
   };
 
+  if (loading) {
+    return (
+      <div className="min-h-[60vh] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-[#FF6B00] border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
   if (!user) return null;
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
+    <motion.div 
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="max-w-4xl mx-auto px-4 py-10" 
+      dir="rtl"
+    >
       {/* Profile Header */}
       <div className="glass rounded-[40px] p-8 sm:p-12 mb-8 relative overflow-hidden text-center sm:text-right">
         <div className="absolute top-0 left-0 w-64 h-64 bg-[#FF6B00]/5 blur-[100px] -z-10" />
@@ -61,72 +82,90 @@ export default function ProfilePage() {
       </div>
 
       {/* Profile Menu */}
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6 mb-8">
+        {/* Quick Access Group */}
         <div className="space-y-4">
-          <h3 className="text-lg font-black mr-2 mb-4">الوصول السريع</h3>
+          <h3 className="text-sm font-black text-white/30 mr-2 uppercase tracking-[0.2em]">الوصول السريع</h3>
           
-          <a href="/coupons" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
+          <Link href="/coupons" className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[28px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group min-h-[90px]">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00] group-hover:scale-110 transition-transform"><Ticket size={24} /></div>
+              <div className="w-14 h-14 bg-[#FF6B00]/10 rounded-2xl flex items-center justify-center text-[#FF6B00] group-hover:scale-110 transition-transform"><Ticket size={26} /></div>
               <div>
-                <h4 className="font-black text-white">كوبوناتي</h4>
-                <p className="text-xs font-bold text-white/30 uppercase tracking-widest">تاريخ الخصومات</p>
+                <h4 className="font-black text-white text-base">كوبوناتي</h4>
+                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">تاريخ الخصومات</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20" />
-          </a>
+            <ChevronLeft className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
+          </Link>
 
-          <a href="/favorites" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
+          <Link href="/favorites" className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[28px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group min-h-[90px]">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-red-500/10 rounded-xl flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform"><Heart size={24} /></div>
+              <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 group-hover:scale-110 transition-transform"><Heart size={26} /></div>
               <div>
-                <h4 className="font-black text-white">المفضلة</h4>
-                <p className="text-xs font-bold text-white/30 uppercase tracking-widest">العروض المحفوظة</p>
+                <h4 className="font-black text-white text-base">المفضلة</h4>
+                <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">العروض المحفوظة</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20" />
-          </a>
+            <ChevronLeft className="text-white/20 group-hover:text-red-500 group-hover:translate-x-[-4px] transition-all" />
+          </Link>
         </div>
 
+        {/* Settings Group */}
         <div className="space-y-4">
-          <h3 className="text-lg font-black mr-2 mb-4">الإعدادات</h3>
+          <h3 className="text-sm font-black text-white/30 mr-2 uppercase tracking-[0.2em]">الإعدادات والدعم</h3>
           
-          <Link href="/profile/edit" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
+          <Link href="/profile/edit" className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[28px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group min-h-[90px]">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/80 group-hover:text-[#FF6B00] group-hover:scale-110 transition-transform"><Settings size={24} /></div>
+              <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/80 group-hover:text-[#FF6B00] group-hover:scale-110 transition-transform"><Settings size={26} /></div>
               <div>
-                <h4 className="font-black text-white">تعديل البيانات</h4>
-                <p className="text-xs font-bold text-white/50 uppercase tracking-widest">تحديث الملف الشخصي</p>
+                <h4 className="font-black text-white text-base">تعديل البيانات</h4>
+                <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-0.5">تحديث الملف الشخصي</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20" />
+            <ChevronLeft className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
           </Link>
 
-          {/* Contact & Support */}
-          <Link href="/contact" className="flex items-center justify-between p-6 bg-white/5 border border-white/5 rounded-[24px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group">
+          <Link href="/contact" className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[28px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group min-h-[90px]">
             <div className="flex items-center gap-4">
-              <div className="w-12 h-12 bg-white/5 rounded-xl flex items-center justify-center text-white/80 group-hover:text-[#FF6B00] group-hover:scale-110 transition-transform"><Smartphone size={24} /></div>
+              <div className="w-14 h-14 bg-white/5 rounded-2xl flex items-center justify-center text-white/80 group-hover:text-[#FF6B00] group-hover:scale-110 transition-transform"><MessageCircle size={26} /></div>
               <div>
-                <h4 className="font-black text-white">تواصل معنا</h4>
-                <p className="text-xs font-bold text-white/50 uppercase tracking-widest">الدعم الفني والمساعدة</p>
+                <h4 className="font-black text-white text-base">تواصل معنا</h4>
+                <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-0.5">الدعم الفني والمساعدة</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20" />
+            <ChevronLeft className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
           </Link>
+        </div>
 
-          {/* Legal Links */}
-          <div className="flex items-center justify-between gap-4 px-2">
-            <Link href="/terms" className="text-xs font-bold text-white/40 hover:text-white transition-colors">الشروط والأحكام</Link>
-            <span className="w-1 h-1 rounded-full bg-white/20" />
-            <Link href="/privacy" className="text-xs font-bold text-white/40 hover:text-white transition-colors">سياسة الخصوصية</Link>
-          </div>
-
-          <div className="p-6 bg-gradient-to-br from-orange-600/20 to-orange-900/20 border border-[#FF6B00]/20 rounded-[24px] mt-4">
-             <h4 className="font-black text-white mb-2">انضم لبرنامج الولاء 🌟</h4>
-             <p className="text-xs font-bold text-white/50 leading-relaxed">قريباً ستتمكن من جمع النقاط مع كل كوبون تستخدمه واستبدالها بهدايا قيمة.</p>
+        {/* Loyalty Banner - Spans Full Width */}
+        <div className="col-span-full mt-2">
+          <div className="relative overflow-hidden p-8 bg-gradient-to-br from-orange-600/20 via-orange-900/10 to-transparent border border-[#FF6B00]/20 rounded-[32px] group">
+            <div className="absolute top-0 left-0 w-32 h-32 bg-[#FF6B00]/10 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
+            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6">
+              <div className="text-center sm:text-right">
+                <h4 className="text-xl font-black text-white mb-2 flex items-center justify-center sm:justify-start gap-2">
+                  برنامج الولاء <span className="text-2xl">🌟</span>
+                </h4>
+                <p className="text-sm font-bold text-white/50 leading-relaxed max-w-md">
+                  قريباً ستتمكن من جمع النقاط مع كل كوبون تستخدمه واستبدالها بهدايا قيمة وحصرية.
+                </p>
+              </div>
+              <div className="px-6 py-3 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-2xl text-[#FF6B00] font-black text-xs uppercase tracking-tighter">
+                قريباً جداً
+              </div>
+            </div>
           </div>
         </div>
       </div>
-    </div>
+
+      {/* Legal Footer */}
+      <div className="flex flex-wrap items-center justify-center gap-6 px-2 mt-8 opacity-40 hover:opacity-100 transition-opacity">
+        <Link href="/terms" className="text-[10px] font-black uppercase tracking-widest hover:text-[#FF6B00] transition-colors">الشروط والأحكام</Link>
+        <div className="w-1 h-1 rounded-full bg-white/20" />
+        <Link href="/privacy" className="text-[10px] font-black uppercase tracking-widest hover:text-[#FF6B00] transition-colors">سياسة الخصوصية</Link>
+        <div className="w-1 h-1 rounded-full bg-white/20" />
+        <p className="text-[10px] font-black uppercase tracking-widest text-white/50">Zag Offers v2.0</p>
+      </div>
+    </motion.div>
   );
 }

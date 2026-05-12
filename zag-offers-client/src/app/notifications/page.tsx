@@ -21,15 +21,15 @@ function getNotifIcon(type?: string) {
   switch (type) {
     case 'NEW_OFFER':
     case 'OFFER_APPROVED':
-      return <Tag size={20} className="text-orange-500" />;
+      return <Tag size={20} className="text-[#FF6B00]" />;
     case 'STORE_APPROVED':
-      return <Store size={20} className="text-blue-500" />;
+      return <Store size={20} className="text-blue-400" />;
     case 'COUPON_REDEEMED':
     case 'COUPON_GENERATED':
     case 'COUPON_UPDATE':
-      return <Ticket size={20} className="text-green-500" />;
+      return <Ticket size={20} className="text-emerald-400" />;
     default:
-      return <Bell size={20} className="text-gray-500" />;
+      return <Bell size={20} className="text-white/20" />;
   }
 }
 

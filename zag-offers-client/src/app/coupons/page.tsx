@@ -133,7 +133,7 @@ export default function MyCouponsPage() {
                   {/* Small QR Preview */}
                   {!coupon.isRedeemed && (
                     <div className="hidden sm:block p-2 bg-white rounded-xl">
-                      <QRCodeSVG value={coupon.code} size={40} />
+                      <QRCodeSVG value={coupon.code} size={40} fgColor="#FF6B00" />
                     </div>
                   )}
                   
@@ -184,34 +184,37 @@ export default function MyCouponsPage() {
               onClick={() => setSelectedCoupon(null)}
             />
             <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="relative bg-white rounded-[40px] p-8 w-full max-w-sm text-center"
+              initial={{ scale: 0.9, opacity: 0, y: 20 }}
+              animate={{ scale: 1, opacity: 1, y: 0 }}
+              exit={{ scale: 0.9, opacity: 0, y: 20 }}
+              className="relative bg-[#1A1A1A] border border-white/10 rounded-[40px] p-8 w-full max-w-sm text-center shadow-2xl overflow-hidden"
             >
+              {/* Background Glow */}
+              <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#FF6B00]/10 blur-[80px] -z-10" />
+
               <button 
                 onClick={() => setSelectedCoupon(null)}
-                className="absolute top-6 right-6 w-10 h-10 bg-black/5 rounded-full flex items-center justify-center text-black/40 hover:text-black transition-colors"
+                className="absolute top-6 right-6 w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors border border-white/5"
               >
                 <X size={20} />
               </button>
 
-              <div className="mt-4 mb-6">
-                <div className="w-20 h-20 bg-[#FF6B00]/10 rounded-[24px] flex items-center justify-center text-[#FF6B00] mx-auto mb-4">
+              <div className="mt-4 mb-8">
+                <div className="w-20 h-20 bg-[#FF6B00]/10 rounded-[28px] flex items-center justify-center text-[#FF6B00] mx-auto mb-5 shadow-2xl shadow-orange-900/20">
                   <QrCode size={40} />
                 </div>
-                <h3 className="text-2xl font-black text-black">كود التفعيل</h3>
-                <p className="text-black/40 text-sm font-bold mt-1">أظهر هذا الكود للتاجر للحصول على الخصم</p>
+                <h3 className="text-2xl font-black text-white">كود التفعيل</h3>
+                <p className="text-white/40 text-sm font-bold mt-1 uppercase tracking-wider">Show to merchant to redeem</p>
               </div>
 
-              <div className="bg-white p-6 rounded-[32px] shadow-[0_20px_50px_rgba(0,0,0,0.1)] inline-block mb-6 border-2 border-black/5">
-                <QRCodeSVG value={selectedCoupon.code} size={200} includeMargin={true} />
+              <div className="bg-white p-6 rounded-[32px] shadow-[0_20px_50px_rgba(255,107,0,0.15)] inline-block mb-8 border-4 border-[#FF6B00]/10">
+                <QRCodeSVG value={selectedCoupon.code} size={200} includeMargin={true} fgColor="#FF6B00" />
               </div>
 
               <div className="space-y-4">
-                <div className="bg-black/5 py-4 rounded-2xl relative group">
-                  <span className="text-2xl font-black tracking-[0.2em] text-black">{selectedCoupon.code}</span>
-                  <p className="text-[10px] font-bold text-black/30 mt-1 uppercase">كود الكوبون الرقمي</p>
+                <div className="bg-white/5 py-5 rounded-2xl relative group border border-white/5">
+                  <span className="text-3xl font-black tracking-[0.25em] text-white">{selectedCoupon.code}</span>
+                  <p className="text-[10px] font-black text-white/20 mt-1.5 uppercase tracking-widest">كود الكوبون الرقمي</p>
                 </div>
                 
                 <div className="grid grid-cols-2 gap-3">

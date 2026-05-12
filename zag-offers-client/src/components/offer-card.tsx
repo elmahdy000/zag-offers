@@ -165,10 +165,14 @@ export function OfferCard({ offer }: OfferCardProps) {
         
         {/* Background Image if exists */}
         {offerImage && (
-          <img 
+          <Image 
             src={offerImage} 
             alt={offer.title} 
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-60" 
+            fill
+            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-60" 
+            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
+            quality={75}
+            priority={false}
           />
         )}
 

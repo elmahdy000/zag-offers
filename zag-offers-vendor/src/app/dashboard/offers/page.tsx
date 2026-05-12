@@ -1,5 +1,6 @@
 'use client';
 import { useState, useEffect } from 'react';
+import Image from 'next/image';
 import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
@@ -43,10 +44,13 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
       {/* Mini Image & Header */}
       <div className="relative h-28 bg-white/5 overflow-hidden">
         {offer.images && offer.images.length > 0 ? (
-          <img
+          <Image
             src={resolveImageUrl(offer.images[0])}
             alt={offer.title}
-            className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100"
+            fill
+            className="object-cover group-hover:scale-110 transition-transform duration-700 opacity-60 group-hover:opacity-100"
+            sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+            quality={60}
           />
         ) : (
           <div className="w-full h-full bg-gradient-to-br from-primary/10 to-secondary/10 flex items-center justify-center">

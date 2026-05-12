@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'reac
 import { motion, AnimatePresence } from 'framer-motion';
 import { Search, Flame, Sparkles, Store as StoreIcon, ArrowUpDown, MapPin } from 'lucide-react';
 import Link from 'next/link';
+import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
 import { resolveImageUrl } from '@/lib/utils';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
@@ -76,7 +77,7 @@ function HomePageContent() {
     try {
       setLoading(true);
       const [oRes, cRes, sRes, rRes] = await Promise.all([
-        fetch(`${API_URL}/offers?limit=100`),
+        fetch(`${API_URL}/offers?limit=24`),
         fetch(`${API_URL}/stores/categories`),
         fetch(`${API_URL}/stores?limit=12`),
         fetch(`${API_URL}/recommendations`)
@@ -302,10 +303,13 @@ function HomePageContent() {
                         : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
                   >
                     <div className="absolute inset-0 bg-[#151515]">
-                      <img 
+                      <Image 
                         src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
                         alt={c.name} 
-                        className={`w-full h-full object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
+                        fill
+                        className={`object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
+                        sizes="(max-width: 640px) 112px, 128px"
+                        quality={70}
                       />
                     </div>
                     <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
@@ -387,7 +391,14 @@ function HomePageContent() {
                 <div className="bg-[#252525] border border-white/5 rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
                   <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
                     {store.logo ? (
-                      <img src={resolveImageUrl(store.logo)} alt={store.name} className="w-full h-full object-contain" />
+                      <Image 
+                        src={resolveImageUrl(store.logo)} 
+                        alt={store.name} 
+                        width={64}
+                        height={64}
+                        className="w-full h-full object-contain" 
+                        quality={70}
+                      />
                     ) : (
                       <StoreIcon className="text-white/20" size={24} />
                     )}
@@ -458,11 +469,15 @@ function HomePageContent() {
           </div>
         )}
 
-        {!loading && filteredOffers.length > 48 && (
+        {!loading && filteredOffers.length >= 24 && (
           <div className="mt-20 text-center">
-            <button className="px-12 py-5 bg-[#252525] border border-white/10 rounded-2xl font-black text-white hover:border-[#FF6B00] transition-all shadow-xl">
-              عرض المزيد من العروض المميزة
-            </button>
+            <Link 
+              href="/offers"
+              className="inline-flex items-center gap-3 px-12 py-5 bg-[#FF6B00] rounded-2xl font-black text-white hover:bg-[#D95A00] transition-all shadow-[0_10px_30px_rgba(255,107,0,0.3)] hover:scale-105 active:scale-95"
+            >
+              استكشف كل العروض الحصرية
+              <ArrowUpDown size={20} className="rotate-90" />
+            </Link>
           </div>
         )}
       </section>
