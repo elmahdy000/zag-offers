@@ -24,6 +24,18 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+  
+  // Initialize local notifications for this isolate
+  await NotificationService.initializeLocalNotifications();
+  
+  // Show local notification if it has content
+  final title = message.notification?.title ?? message.data['title'] ?? 'تحديث جديد';
+  final body = message.notification?.body ?? message.data['body'] ?? '';
+  
+  if (title.isNotEmpty || body.isNotEmpty) {
+    await NotificationService.showLocalNotification(title, body);
+  }
+  
   debugPrint("Handling a background message: ${message.messageId}");
 }
 

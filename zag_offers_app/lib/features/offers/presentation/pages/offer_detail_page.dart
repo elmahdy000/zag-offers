@@ -31,6 +31,9 @@ class OfferDetailPage extends StatefulWidget {
 class _OfferDetailPageState extends State<OfferDetailPage> {
   TextTheme get textTheme => Theme.of(context).textTheme;
   late final Future<bool> _canGenerateCouponFuture;
+  late final ReviewsBloc _reviewsBloc;
+  late final CouponsBloc _couponsBloc;
+  late final TextEditingController _commentController;
   int _selectedImageIndex = 0;
   late final PageController _pageController;
 
@@ -45,6 +48,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   @override
   void initState() {
     super.initState();
+    _reviewsBloc = sl<ReviewsBloc>()..add(FetchStoreReviews(widget.offer.store.id));
+    _couponsBloc = sl<CouponsBloc>();
+    _commentController = TextEditingController();
     _canGenerateCouponFuture = _canGenerateCoupon();
     _pageController = PageController(initialPage: _selectedImageIndex);
   }
@@ -52,6 +58,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   @override
   void dispose() {
     _pageController.dispose();
+    _commentController.dispose();
+    _reviewsBloc.close();
+    _couponsBloc.close();
     super.dispose();
   }
 
@@ -95,10 +104,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
     return MultiBlocProvider(
       providers: [
-        BlocProvider(create: (_) => sl<CouponsBloc>()),
-        BlocProvider.value(
-          value: sl<ReviewsBloc>()..add(FetchStoreReviews(widget.offer.store.id)),
-        ),
+        BlocProvider.value(value: _couponsBloc),
+        BlocProvider.value(value: _reviewsBloc),
       ],
       child: MultiBlocListener(
         listeners: [
@@ -106,9 +113,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           BlocListener<ReviewsBloc, ReviewsState>(
             listener: (context, state) {
               if (state is ReviewActionSuccess) {
-                context
-                    .read<ReviewsBloc>()
-                    .add(FetchStoreReviews(widget.offer.store.id));
+                _reviewsBloc.add(FetchStoreReviews(widget.offer.store.id));
                 ScaffoldMessenger.of(context).showSnackBar(
                   const SnackBar(
                     content: Text('تمت إضافة تقييمك بنجاح'),
@@ -553,7 +558,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     child: ElevatedButton(
                       onPressed: (state is CouponsLoading || !canGenerate)
                           ? null
-                          : () => context.read<CouponsBloc>().add(
+                          : () => _couponsBloc.add(
                                 GenerateCouponRequested(widget.offer.id),
                               ),
                       style: ElevatedButton.styleFrom(
@@ -866,100 +871,136 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   void _showAddReviewBottomSheet() {
-    int selectedRating = 5;
-    final commentController = TextEditingController();
-    final theme = Theme.of(context);
-
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
-      backgroundColor: theme.cardColor,
+      backgroundColor: Theme.of(context).cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
-      builder: (bottomSheetContext) => StatefulBuilder(
-        builder: (context, setModalState) => Padding(
-          padding: EdgeInsets.fromLTRB(
-            24,
-            24,
-            24,
-            MediaQuery.of(context).viewInsets.bottom + 24,
-          ),
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                'ما رأيك في هذا العرض؟',
-                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
-              ),
-              const SizedBox(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: List.generate(
-                  5,
-                  (i) => IconButton(
-                    onPressed: () => setModalState(() => selectedRating = i + 1),
-                    icon: Icon(
-                      Icons.star_rounded,
-                      size: 36,
-                      color:
-                          i < selectedRating ? Colors.amber : theme.disabledColor.withValues(alpha: 0.3),
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(height: 16),
-              TextField(
-                controller: commentController,
-                maxLines: 3,
-                decoration: InputDecoration(
-                  hintText: 'اكتب تجربتك هنا (اختياري)',
-                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
-                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                  ),
-                  filled: true,
-                  fillColor: theme.scaffoldBackgroundColor,
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(16),
-                    borderSide: BorderSide.none,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                height: 56,
-                child: ElevatedButton(
-                  onPressed: () {
-                    context.read<ReviewsBloc>().add(
-                          AddReviewRequested(
-                            storeId: widget.offer.store.id,
-                            rating: selectedRating,
-                            comment: commentController.text.trim().isEmpty 
-                                ? null 
-                                : commentController.text.trim(),
-                          ),
-                        );
-                    Navigator.pop(bottomSheetContext);
-                  },
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    foregroundColor: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    elevation: 0,
-                  ),
-                  child: const Text(
-                    'إرسال التقييم',
-                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
-                  ),
-                ),
-              ),
-            ],
-          ),
+      builder: (bottomSheetContext) => BlocProvider.value(
+        value: _reviewsBloc,
+        child: _AddReviewSheet(
+          storeId: widget.offer.store.id,
+          offerId: widget.offer.id,
+          commentController: _commentController,
         ),
       ),
-    ).then((_) => commentController.dispose());
+    );
+  }
+}
+
+class _AddReviewSheet extends StatefulWidget {
+  final String storeId;
+  final String? offerId;
+  final TextEditingController commentController;
+
+  const _AddReviewSheet({
+    required this.storeId,
+    this.offerId,
+    required this.commentController,
+  });
+
+  @override
+  State<_AddReviewSheet> createState() => _AddReviewSheetState();
+}
+
+class _AddReviewSheetState extends State<_AddReviewSheet> {
+  int _selectedRating = 5;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.commentController.clear();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    
+    return Padding(
+      padding: EdgeInsets.fromLTRB(
+        24,
+        24,
+        24,
+        MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Text(
+            'ما رأيك في هذا العرض؟',
+            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+          ),
+          const SizedBox(height: 16),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: List.generate(
+              5,
+              (i) => IconButton(
+                onPressed: () => setState(() => _selectedRating = i + 1),
+                icon: Icon(
+                  Icons.star_rounded,
+                  size: 36,
+                  color: i < _selectedRating ? Colors.amber : theme.disabledColor.withValues(alpha: 0.3),
+                ),
+              ),
+            ),
+          ),
+          const SizedBox(height: 16),
+          TextField(
+            controller: widget.commentController,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'اكتب تجربتك هنا (اختياري)',
+              hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+              ),
+              filled: true,
+              fillColor: theme.scaffoldBackgroundColor,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(16),
+                borderSide: BorderSide.none,
+              ),
+            ),
+          ),
+          const SizedBox(height: 24),
+          SizedBox(
+            width: double.infinity,
+            height: 56,
+            child: ElevatedButton(
+              onPressed: () {
+                // Focus out to close keyboard before popping
+                FocusManager.instance.primaryFocus?.unfocus();
+                
+                context.read<ReviewsBloc>().add(
+                  AddReviewRequested(
+                    storeId: widget.storeId,
+                    offerId: widget.offerId,
+                    rating: _selectedRating,
+                    comment: widget.commentController.text.trim().isEmpty 
+                        ? null 
+                        : widget.commentController.text.trim(),
+                  ),
+                );
+                Navigator.pop(context);
+              },
+              style: ElevatedButton.styleFrom(
+                backgroundColor: AppColors.primary,
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                elevation: 0,
+              ),
+              child: const Text(
+                'إرسال التقييم',
+                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
   }
 }

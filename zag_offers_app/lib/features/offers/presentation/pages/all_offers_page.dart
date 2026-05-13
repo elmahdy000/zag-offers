@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
@@ -25,6 +26,7 @@ class AllOffersPage extends StatefulWidget {
 class _AllOffersPageState extends State<AllOffersPage> {
   late String _selectedCategory;
   final TextEditingController _searchController = TextEditingController();
+  Timer? _debounceTimer;
 
   String _currentArea = 'الكل';
   double _minDiscount = 0;
@@ -42,19 +44,26 @@ class _AllOffersPageState extends State<AllOffersPage> {
 
   @override
   void dispose() {
+    _debounceTimer?.cancel();
     _searchController.dispose();
     super.dispose();
   }
 
   void _onSearchChanged(String query, BuildContext context) {
-    final trimmed = query.trim();
-    if (OfferFilterUtils.shouldRunSearch(trimmed)) {
-      context.read<OffersBloc>().add(SearchOffers(trimmed));
-    }
+    _debounceTimer?.cancel();
+    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
+      final trimmed = query.trim();
+      if (OfferFilterUtils.shouldRunSearch(trimmed)) {
+        context.read<OffersBloc>().add(SearchOffers(trimmed));
+      } else if (trimmed.isEmpty) {
+        context.read<OffersBloc>().add(SearchOffers(''));
+      }
+    });
     setState(() {});
   }
 
   void _clearSearch(BuildContext context) {
+    _debounceTimer?.cancel();
     setState(() {
       _searchController.clear();
     });

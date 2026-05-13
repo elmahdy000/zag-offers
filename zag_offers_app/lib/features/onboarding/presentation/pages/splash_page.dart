@@ -3,6 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
+import '../../../../core/services/notification_service.dart';
 
 class SplashPage extends StatefulWidget {
   const SplashPage({super.key});
@@ -51,6 +52,9 @@ class _SplashPageState extends State<SplashPage>
     if (!mounted) return;
 
     if (token != null && token.isNotEmpty) {
+      // Sync FCM token even for returning users to ensure server has it
+      NotificationService.sendTokenToBackend();
+      
       Navigator.pushReplacement(
         context,
         MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -89,15 +93,19 @@ class _SplashPageState extends State<SplashPage>
               mainAxisAlignment: MainAxisAlignment.center,
               children: [
                 Container(
-                  padding: const EdgeInsets.all(28),
+                  padding: const EdgeInsets.all(4),
                   decoration: BoxDecoration(
-                    color: Colors.white.withValues(alpha: 0.1),
+                    color: Colors.white,
                     borderRadius: BorderRadius.circular(32),
                   ),
-                  child: const Icon(
-                    Icons.local_offer_rounded,
-                    size: 80,
-                    color: Colors.white,
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(28),
+                    child: Image.asset(
+                      'assets/splash_logo.png',
+                      width: 160,
+                      height: 160,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                 ),
                 const SizedBox(height: 40),

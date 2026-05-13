@@ -1,10 +1,14 @@
+import 'dart:convert';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 
 abstract class NotificationEvent extends Equatable {
   @override
   List<Object?> get props => [];
 }
+
+class LoadNotifications extends NotificationEvent {}
 
 class NewSocialProofReceived extends NotificationEvent {
   final String storeName;
@@ -44,6 +48,18 @@ class NotificationItem extends Equatable {
     required this.createdAt,
   });
 
+  Map<String, dynamic> toJson() => {
+        'title': title,
+        'message': message,
+        'createdAt': createdAt.toIso8601String(),
+      };
+
+  factory NotificationItem.fromJson(Map<String, dynamic> json) => NotificationItem(
+        title: json['title'],
+        message: json['message'],
+        createdAt: DateTime.parse(json['createdAt']),
+      );
+
   @override
   List<Object?> get props => [title, message, createdAt];
 }
@@ -78,19 +94,38 @@ class NotificationFeedState extends NotificationState {
 }
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
+  static const String _storageKey = 'notifications_history';
+
   NotificationBloc() : super(NotificationFeedState(items: const [])) {
+    on<LoadNotifications>(_onLoadNotifications);
     on<NewSocialProofReceived>(_onNewSocialProofReceived);
     on<ClearLatestNotification>(_onClearLatestNotification);
     on<GeneralNotificationReceived>(_onGeneralNotificationReceived);
-    on<ClearAllNotifications>((event, emit) {
-      emit(NotificationFeedState(items: const []));
-    });
+    on<ClearAllNotifications>(_onClearAllNotifications);
+    
+    // Load notifications on creation
+    add(LoadNotifications());
   }
 
-  void _onNewSocialProofReceived(
+  Future<void> _onLoadNotifications(
+    LoadNotifications event,
+    Emitter<NotificationState> emit,
+  ) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? data = prefs.getString(_storageKey);
+      if (data != null) {
+        final List<dynamic> decoded = json.decode(data);
+        final items = decoded.map((e) => NotificationItem.fromJson(e)).toList();
+        emit(NotificationFeedState(items: items));
+      }
+    } catch (_) {}
+  }
+
+  Future<void> _onNewSocialProofReceived(
     NewSocialProofReceived event,
     Emitter<NotificationState> emit,
-  ) {
+  ) async {
     final currentState = state is NotificationFeedState
         ? state as NotificationFeedState
         : NotificationFeedState(items: const []);
@@ -102,12 +137,14 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       createdAt: DateTime.now(),
     );
 
+    final newItems = [item, ...currentState.items];
     emit(
       currentState.copyWith(
-        items: [item, ...currentState.items],
+        items: newItems,
         latestItem: item,
       ),
     );
+    await _saveToStorage(newItems);
   }
 
   void _onClearLatestNotification(
@@ -118,10 +155,10 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit((state as NotificationFeedState).copyWith(clearLatest: true));
   }
 
-  void _onGeneralNotificationReceived(
+  Future<void> _onGeneralNotificationReceived(
     GeneralNotificationReceived event,
     Emitter<NotificationState> emit,
-  ) {
+  ) async {
     final currentState = state is NotificationFeedState
         ? state as NotificationFeedState
         : NotificationFeedState(items: const []);
@@ -132,11 +169,30 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       createdAt: DateTime.now(),
     );
 
+    final newItems = [item, ...currentState.items];
     emit(
       currentState.copyWith(
-        items: [item, ...currentState.items],
+        items: newItems,
         latestItem: item,
       ),
     );
+    await _saveToStorage(newItems);
+  }
+
+  Future<void> _onClearAllNotifications(
+    ClearAllNotifications event,
+    Emitter<NotificationState> emit,
+  ) async {
+    emit(NotificationFeedState(items: const []));
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.remove(_storageKey);
+  }
+
+  Future<void> _saveToStorage(List<NotificationItem> items) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String encoded = json.encode(items.map((e) => e.toJson()).toList());
+      await prefs.setString(_storageKey, encoded);
+    } catch (_) {}
   }
 }

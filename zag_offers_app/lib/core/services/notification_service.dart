@@ -6,6 +6,7 @@ import '../../injection_container.dart' as di;
 import '../network/api_client.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 import '../utils/navigation_service.dart';
+import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import '../../features/offers/presentation/pages/offer_loading_page.dart';
 
 class NotificationService {
@@ -16,13 +17,13 @@ class NotificationService {
 
   static String? get currentToken => _fcmToken;
 
-  static Future<void> initialize() async {
+  static Future<void> initializeLocalNotifications() async {
     // إعداد الإشعارات المحلية للقنوات والصوت
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('ic_notification');
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
-    
+
     await _localNotifications.initialize(initializationSettings);
 
     // إنشاء قناة الإشعارات مع الصوت المخصص
@@ -36,8 +37,13 @@ class NotificationService {
     );
 
     await _localNotifications
-        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
+  }
+
+  static Future<void> initialize() async {
+    await initializeLocalNotifications();
 
     final settings = await _messaging.requestPermission(
       alert: true,
@@ -152,14 +158,14 @@ class NotificationService {
     final body = message.notification?.body ?? '';
     
     // إظهار تنبيه محلي للمستخدم ليراه في الـ Foreground
-    _showLocalNotification(title, body);
+    showLocalNotification(title, body);
 
     di.sl<NotificationBloc>().add(
       GeneralNotificationReceived(title: title, body: body),
     );
   }
 
-  static Future<void> _showLocalNotification(String title, String body) async {
+  static Future<void> showLocalNotification(String title, String body) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'offers_channel',

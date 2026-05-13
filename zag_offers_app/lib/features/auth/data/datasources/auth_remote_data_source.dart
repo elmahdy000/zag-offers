@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
 
@@ -35,9 +36,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       });
       return UserModel.fromLoginJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'فشل تسجيل الدخول');
+      throw ServerException(e.response?.data['message'] ?? 'فشل تسجيل الدخول');
     } catch (e) {
-      throw Exception('حدث خطأ غير متوقع');
+      throw ServerException('حدث خطأ غير متوقع');
     }
   }
 
@@ -53,9 +54,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       });
       return UserModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'فشل إنشاء الحساب');
+      throw ServerException(e.response?.data['message'] ?? 'فشل إنشاء الحساب');
     } catch (e) {
-      throw Exception('حدث خطأ غير متوقع');
+      throw ServerException('حدث خطأ غير متوقع');
     }
   }
 

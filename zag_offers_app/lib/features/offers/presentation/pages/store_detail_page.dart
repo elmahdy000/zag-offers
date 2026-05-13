@@ -12,15 +12,37 @@ import '../bloc/offers_event.dart';
 import '../bloc/offers_state.dart';
 import 'offer_detail_page.dart';
 
-class StoreDetailPage extends StatelessWidget {
+class StoreDetailPage extends StatefulWidget {
   final StoreEntity store;
 
   const StoreDetailPage({super.key, required this.store});
 
+  @override
+  State<StoreDetailPage> createState() => _StoreDetailPageState();
+}
+
+class _StoreDetailPageState extends State<StoreDetailPage> {
+  late final OffersBloc _offersBloc;
+  late final ReviewsBloc _reviewsBloc;
+
+  @override
+  void initState() {
+    super.initState();
+    _offersBloc = sl<OffersBloc>()..add(FetchStoreOffers(widget.store.id));
+    _reviewsBloc = sl<ReviewsBloc>()..add(FetchStoreReviews(widget.store.id));
+  }
+
+  @override
+  void dispose() {
+    _offersBloc.close();
+    _reviewsBloc.close();
+    super.dispose();
+  }
+
   Future<void> _launchUrl(BuildContext context, String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (!context.mounted) return;
+      if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تعذر فتح التطبيق المطلوب على هذا الجهاز'),
@@ -34,12 +56,8 @@ class StoreDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => sl<OffersBloc>()..add(FetchStoreOffers(store.id)),
-        ),
-        BlocProvider(
-          create: (_) => sl<ReviewsBloc>()..add(FetchStoreReviews(store.id)),
-        ),
+        BlocProvider.value(value: _offersBloc),
+        BlocProvider.value(value: _reviewsBloc),
       ],
       child: Scaffold(
         body: CustomScrollView(
@@ -107,7 +125,7 @@ class StoreDetailPage extends StatelessWidget {
                   shape: BoxShape.circle,
                 ),
                 child: NetworkImageWidget(
-                  imageUrl: store.logo,
+                  imageUrl: widget.store.logo,
                   width: 120,
                   height: 120,
                   borderRadius: BorderRadius.circular(60),
@@ -126,7 +144,7 @@ class StoreDetailPage extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          store.name,
+          widget.store.name,
           style: theme.textTheme.displaySmall?.copyWith(
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
@@ -142,7 +160,7 @@ class StoreDetailPage extends StatelessWidget {
                 borderRadius: BorderRadius.circular(12),
               ),
               child: Text(
-                store.category ?? 'متجر',
+                widget.store.category ?? 'متجر',
                 style: theme.textTheme.labelMedium?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
@@ -157,7 +175,7 @@ class StoreDetailPage extends StatelessWidget {
             ),
             const SizedBox(width: 4),
             Text(
-              store.area,
+              widget.store.area,
               style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
@@ -172,19 +190,19 @@ class StoreDetailPage extends StatelessWidget {
   Widget _buildContactButtons(BuildContext context) {
     return Row(
       children: [
-        if (store.phone != null)
+        if (widget.store.phone != null)
           Expanded(
             child: _buildActionButton(
               context,
               icon: Icons.call_rounded,
               label: 'اتصال',
               color: Colors.blue,
-              onTap: () => _launchUrl(context, 'tel:${store.phone}'),
+              onTap: () => _launchUrl(context, 'tel:${widget.store.phone}'),
             ),
           ),
-        if (store.phone != null && store.whatsapp != null)
+        if (widget.store.phone != null && widget.store.whatsapp != null)
           const SizedBox(width: 12),
-        if (store.whatsapp != null)
+        if (widget.store.whatsapp != null)
           Expanded(
             child: _buildActionButton(
               context,
@@ -193,7 +211,7 @@ class StoreDetailPage extends StatelessWidget {
               color: Colors.green,
               onTap: () => _launchUrl(
                 context,
-                'https://wa.me/${store.whatsapp}',
+                'https://wa.me/${widget.store.whatsapp}',
               ),
             ),
           ),

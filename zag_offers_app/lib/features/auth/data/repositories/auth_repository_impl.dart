@@ -1,5 +1,6 @@
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/dio_error_mapper.dart';
@@ -33,6 +34,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUserRole(userModel.role);
 
       return Right(userModel);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'فشل تسجيل الدخول'));
     } on DioException catch (e) {
       final message = mapDioErrorToMessage(
         e,
@@ -69,6 +72,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUserRole(userModel.role);
 
       return Right(userModel);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'فشل إنشاء الحساب'));
     } on DioException catch (e) {
       final message = mapDioErrorToMessage(
         e,

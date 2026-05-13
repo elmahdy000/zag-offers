@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/dio_error_mapper.dart';
 import '../models/review_model.dart';
 
 abstract class ReviewsRemoteDataSource {
@@ -22,7 +24,7 @@ class ReviewsRemoteDataSourceImpl implements ReviewsRemoteDataSource {
         if (comment != null) 'comment': comment,
       });
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -38,7 +40,7 @@ class ReviewsRemoteDataSourceImpl implements ReviewsRemoteDataSource {
       }
       return [];
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 }
