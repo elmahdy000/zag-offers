@@ -1,10 +1,11 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/users/presentation/bloc/users_bloc.dart';
 import 'package:zag_offers_admin_app/features/users/presentation/pages/user_details_page.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
+import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -42,25 +43,21 @@ class _UsersPageState extends State<UsersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'إدارة المستخدمين',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('إدارة المستخدمين'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(70),
+          preferredSize: const Size.fromHeight(80),
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
+            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: TextField(
               controller: _searchController,
               decoration: InputDecoration(
-                hintText:
-                    'البحث بالاسم، الهاتف أو البريد...',
-                prefixIcon: const Icon(Icons.search, color: Color(0xFFFF6B00)),
+                hintText: 'البحث بالاسم، الهاتف أو البريد...',
+                prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
                 suffixIcon: _searchController.text.isNotEmpty
                     ? IconButton(
-                        icon: const Icon(Icons.clear),
+                        icon: const Icon(Icons.clear_rounded),
                         onPressed: () {
                           _searchController.clear();
                           context.read<UsersBloc>().add(const LoadUsersEvent());
@@ -68,26 +65,6 @@ class _UsersPageState extends State<UsersPage> {
                         },
                       )
                     : null,
-                filled: true,
-                fillColor: Colors.white,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide.none,
-                ),
-                enabledBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: BorderSide(
-                    color: Colors.orange.withValues(alpha: 0.1),
-                  ),
-                ),
-                focusedBorder: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(16),
-                  borderSide: const BorderSide(
-                    color: Color(0xFFFF6B00),
-                    width: 1,
-                  ),
-                ),
-                contentPadding: const EdgeInsets.symmetric(vertical: 0),
               ),
               onChanged: (value) {
                 setState(() {});
@@ -102,17 +79,11 @@ class _UsersPageState extends State<UsersPage> {
         listener: (context, state) {
           if (state is UserDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم حذف المستخدم بنجاح'),
-                backgroundColor: Colors.green,
-              ),
+              const SnackBar(content: Text('تم حذف المستخدم بنجاح'), backgroundColor: AppColors.success),
             );
           } else if (state is UsersError) {
             ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: Colors.red,
-              ),
+              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
             );
           }
         },
@@ -130,16 +101,13 @@ class _UsersPageState extends State<UsersPage> {
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    Icon(
-                      Icons.people_outline,
-                      size: 64,
-                      color: Colors.blueGrey[300],
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: Icon(Icons.people_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
                     ),
-                    const SizedBox(height: 16),
-                    Text(
-                      'لم يتم العثور على مستخدمين',
-                      style: GoogleFonts.cairo(color: Colors.blueGrey[500]),
-                    ),
+                    const SizedBox(height: 24),
+                    Text('لم يتم العثور على مستخدمين', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                   ],
                 ),
               );
@@ -156,22 +124,17 @@ class _UsersPageState extends State<UsersPage> {
                 separatorBuilder: (_, __) => const SizedBox(height: 12),
                 itemBuilder: (context, index) {
                   final user = state.users[index];
-                  return Card(
-                    elevation: 0,
-                    color: Colors.white,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      side: BorderSide(
-                        color: Colors.blueGrey[100]!.withValues(alpha: 0.5),
-                      ),
+                  return Container(
+                    decoration: BoxDecoration(
+                      color: AppColors.white,
+                      borderRadius: BorderRadius.circular(20),
+                      boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                     ),
                     child: ListTile(
                       onTap: () {
                         Navigator.push<bool>(
                           context,
-                          MaterialPageRoute(
-                            builder: (_) => UserDetailsPage(user: user),
-                          ),
+                          MaterialPageRoute(builder: (_) => UserDetailsPage(user: user)),
                         ).then((shouldRefresh) {
                           if (shouldRefresh == true && context.mounted) {
                             context.read<UsersBloc>().add(LoadUsersEvent());
@@ -179,48 +142,34 @@ class _UsersPageState extends State<UsersPage> {
                         });
                       },
                       contentPadding: const EdgeInsets.all(16),
-                      leading: CircleAvatar(
-                        backgroundColor: const Color(0xFFFFF7ED),
-                        child: Text(
-                          user.name.isNotEmpty ? user.name[0] : '?',
-                          style: const TextStyle(
-                            color: Color(0xFFFF6B00),
-                            fontWeight: FontWeight.bold,
+                      leading: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(16)),
+                        child: Center(
+                          child: Text(
+                            user.name.isNotEmpty ? user.name[0] : '?',
+                            style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 20),
                           ),
                         ),
                       ),
-                      title: Text(
-                        user.name,
-                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                      ),
+                      title: Text(user.name, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                       subtitle: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
-                            user.phone,
-                            style: GoogleFonts.inter(fontSize: 13),
-                          ),
                           const SizedBox(height: 4),
+                          Text(user.phone, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textSecondary)),
+                          const SizedBox(height: 6),
                           Row(
                             children: [
-                              const Icon(
-                                Icons.stars,
-                                size: 14,
-                                color: Colors.amber,
-                              ),
-                              const SizedBox(width: 4),
-                              Text(
-                                '${user.points} نقطة',
-                                style: GoogleFonts.cairo(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
+                              const Icon(Icons.stars_rounded, size: 16, color: Colors.amber),
+                              const SizedBox(width: 6),
+                              Text('${user.points} نقطة', style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
                             ],
                           ),
                         ],
                       ),
-                      trailing: const Icon(Icons.chevron_right),
+                      trailing: Icon(Icons.arrow_forward_ios_rounded, size: 16, color: AppColors.textSecondary.withValues(alpha: 0.3)),
                     ),
                   );
                 },
@@ -231,17 +180,12 @@ class _UsersPageState extends State<UsersPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
+                  const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
                   const SizedBox(height: 12),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(color: Colors.red[700]),
-                  ),
-                  const SizedBox(height: 16),
+                  Text(state.message, style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+                  const SizedBox(height: 24),
                   ElevatedButton(
-                    onPressed: () =>
-                        context.read<UsersBloc>().add(LoadUsersEvent()),
+                    onPressed: () => context.read<UsersBloc>().add(LoadUsersEvent()),
                     child: const Text('إعادة المحاولة'),
                   ),
                 ],
@@ -254,4 +198,3 @@ class _UsersPageState extends State<UsersPage> {
     );
   }
 }
-

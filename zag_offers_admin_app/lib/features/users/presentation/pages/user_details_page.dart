@@ -1,12 +1,12 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
-import 'package:zag_offers_admin_app/features/users/presentation/bloc/users_bloc.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/features/users/domain/entities/app_user.dart';
 import 'package:zag_offers_admin_app/features/users/domain/entities/app_user_details.dart';
 import 'package:zag_offers_admin_app/features/users/domain/repositories/user_repository.dart';
 import 'package:zag_offers_admin_app/injection_container.dart';
+import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 
 class UserDetailsPage extends StatefulWidget {
   final AppUser user;
@@ -38,12 +38,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'تفاصيل المستخدم',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('تفاصيل المستخدم'),
       ),
       body: FutureBuilder<AppUserDetails>(
         future: _detailsFuture,
@@ -55,25 +52,22 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           if (snapshot.hasError || !snapshot.hasData) {
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.all(40),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
-                    const Icon(
-                      Icons.error_outline,
-                      color: Colors.red,
-                      size: 46,
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.1), shape: BoxShape.circle),
+                      child: const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 64),
                     ),
+                    const SizedBox(height: 24),
+                    Text('تعذر تحميل البيانات', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18, color: AppColors.textPrimary)),
                     const SizedBox(height: 12),
-                    Text(
-                      'تعذر تحميل تفاصيل المستخدم',
-                      style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
-                    ),
-                    const SizedBox(height: 8),
-                    TextButton(
-                      onPressed: () =>
-                          setState(() => _detailsFuture = _loadDetails()),
-                      child: const Text('إعادة المحاولة'),
+                    TextButton.icon(
+                      onPressed: () => setState(() => _detailsFuture = _loadDetails()),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('إعادة المحاولة'),
                     ),
                   ],
                 ),
@@ -89,176 +83,97 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
               await future;
             },
             child: ListView(
-              padding: const EdgeInsets.all(16),
+              padding: const EdgeInsets.all(20),
               children: [
-                Card(
-                  color: Colors.white,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(16),
+                Container(
+                  padding: const EdgeInsets.all(24),
+                  decoration: BoxDecoration(
+                    color: AppColors.white,
+                    borderRadius: BorderRadius.circular(24),
+                    boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
                   ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(16),
-                    child: Column(
-                      children: [
-                        CircleAvatar(
-                          radius: 30,
+                  child: Column(
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
+                        child: Center(
                           child: Text(
                             user.name.isNotEmpty ? user.name[0] : '?',
-                            style: const TextStyle(
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
+                            style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 32, color: AppColors.primary),
                           ),
                         ),
-                        const SizedBox(height: 10),
-                        Text(
-                          user.name,
-                          style: GoogleFonts.cairo(
-                            fontSize: 17,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        Text(
-                          user.phone,
-                          style: GoogleFonts.inter(color: Colors.blueGrey[600]),
-                        ),
-                      ],
-                    ),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(user.name, style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                      const SizedBox(height: 4),
+                      Text(user.phone, style: GoogleFonts.inter(color: AppColors.textSecondary, fontSize: 15)),
+                      const SizedBox(height: 24),
+                      Row(
+                        children: [
+                          _buildQuickStat(Icons.stars_rounded, user.points.toString(), 'نقاط'),
+                          _buildQuickStat(Icons.storefront_rounded, user.storesCount.toString(), 'متاجر'),
+                          _buildQuickStat(Icons.confirmation_number_rounded, user.couponsCount.toString(), 'كوبونات'),
+                        ],
+                      ),
+                    ],
                   ),
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 _infoCard('البيانات الأساسية', [
-                  _row('البريد الإلكتروني', user.email ?? '-'),
-                  _row('الدور', user.role),
-                  _row('المنطقة', user.area ?? '-'),
-                  _row('النقاط', user.points.toString()),
-                  _row(
-                    'تاريخ الانضمام',
-                    DateFormat(
-                      'yyyy/MM/dd - hh:mm a',
-                      'ar',
-                    ).format(user.createdAt),
-                  ),
+                  _row(Icons.email_outlined, 'البريد الإلكتروني', user.email ?? '-'),
+                  _row(Icons.badge_outlined, 'الدور', user.role),
+                  _row(Icons.location_on_outlined, 'المنطقة', user.area ?? '-'),
+                  _row(Icons.calendar_today_rounded, 'تاريخ الانضمام', DateFormat('yyyy/MM/dd - hh:mm a', 'ar').format(user.createdAt)),
                 ]),
-                const SizedBox(height: 12),
+                const SizedBox(height: 24),
                 Row(
                   children: [
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _isSubmitting
-                            ? null
-                            : () => _showEditPointsDialog(user),
-                        icon: const Icon(Icons.stars_outlined),
-                        label: Text(
-                          'تعديل النقاط',
-                          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6B00),
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                        ),
+                        onPressed: _isSubmitting ? null : () => _showEditPointsDialog(user),
+                        icon: const Icon(Icons.stars_outlined, size: 20),
+                        label: const Text('تعديل النقاط'),
+                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                       ),
                     ),
-                    const SizedBox(width: 10),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: ElevatedButton.icon(
-                        onPressed: _isSubmitting
-                            ? null
-                            : () => _showChangeRoleDialog(user),
-                        icon: const Icon(Icons.admin_panel_settings_outlined),
-                        label: Text(
-                          'تغيير الدور',
-                          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.indigo[50],
-                          foregroundColor: Colors.indigo,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          elevation: 0,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(width: 10),
-                    Expanded(
-                      child: ElevatedButton.icon(
-                        onPressed: _isSubmitting
-                            ? null
-                            : () => _showDeleteConfirmation(user),
-                        icon: const Icon(Icons.delete_outline),
-                        label: Text(
-                          'حذف المستخدم',
-                          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[50],
-                          foregroundColor: Colors.red,
-                          padding: const EdgeInsets.symmetric(vertical: 12),
-                          elevation: 0,
-                        ),
+                        onPressed: _isSubmitting ? null : () => _showChangeRoleDialog(user),
+                        icon: const Icon(Icons.admin_panel_settings_outlined, size: 20),
+                        label: const Text('تغيير الدور'),
+                        style: ElevatedButton.styleFrom(backgroundColor: Colors.indigo[50], foregroundColor: Colors.indigo, elevation: 0, padding: const EdgeInsets.symmetric(vertical: 14)),
                       ),
                     ),
                   ],
                 ),
                 const SizedBox(height: 12),
-                _infoCard('الإحصائيات', [
-                  _row('عدد المتاجر', user.storesCount.toString()),
-                  _row(
-                    'عدد الكوبونات',
-                    user.couponsCount.toString(),
+                SizedBox(
+                  width: double.infinity,
+                  child: TextButton.icon(
+                    onPressed: _isSubmitting ? null : () => _showDeleteConfirmation(user),
+                    icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
+                    label: const Text('حذف المستخدم نهائياً', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                    style: TextButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 14)),
                   ),
-                  _row('عدد المفضلة', user.favoritesCount.toString()),
-                  _row(
-                    'عدد المراجعات',
-                    user.reviewsCount.toString(),
-                  ),
-                ]),
+                ),
+                const SizedBox(height: 32),
+                _sectionTitle('متاجر المستخدم', Icons.storefront_rounded),
                 const SizedBox(height: 12),
-                _sectionTitle('متاجر المستخدم'),
-                const SizedBox(height: 8),
                 if (user.stores.isEmpty)
-                  _emptyBox(
-                    'لا يوجد متاجر مرتبطة بهذا المستخدم',
-                  )
+                  _emptyBox('لا يوجد متاجر مرتبطة بهذا المستخدم')
                 else
-                  ...user.stores.map(
-                    (store) => Card(
-                      color: Colors.white,
-                      child: ListTile(
-                        leading: const Icon(Icons.storefront_outlined),
-                        title: Text(
-                          store.name,
-                          style: GoogleFonts.cairo(fontWeight: FontWeight.w700),
-                        ),
-                        subtitle: Text(
-                          'الحالة: ${store.status} • العروض: ${store.offersCount}',
-                        ),
-                      ),
-                    ),
-                  ),
+                  ...user.stores.map((store) => _buildItemCard(Icons.store_rounded, store.name, 'الحالة: ${store.status} • العروض: ${store.offersCount}')),
+                const SizedBox(height: 32),
+                _sectionTitle('آخر الكوبونات', Icons.confirmation_number_rounded),
                 const SizedBox(height: 12),
-                _sectionTitle('آخر الكوبونات'),
-                const SizedBox(height: 8),
                 if (user.recentCoupons.isEmpty)
-                  _emptyBox(
-                    'لا توجد كوبونات لهذا المستخدم',
-                  )
+                  _emptyBox('لا توجد كوبونات لهذا المستخدم')
                 else
-                  ...user.recentCoupons.map(
-                    (coupon) => Card(
-                      color: Colors.white,
-                      child: ListTile(
-                        leading: const Icon(Icons.confirmation_num_outlined),
-                        title: Text(
-                          coupon.code,
-                          style: GoogleFonts.inter(fontWeight: FontWeight.w700),
-                        ),
-                        subtitle: Text(
-                          '${coupon.offerTitle ?? "بدون عرض"} • ${coupon.status}\n${DateFormat('yyyy/MM/dd', 'ar').format(coupon.createdAt)}',
-                        ),
-                      ),
-                    ),
-                  ),
+                  ...user.recentCoupons.map((coupon) => _buildItemCard(Icons.confirmation_num_rounded, coupon.code, '${coupon.offerTitle ?? "بدون عرض"} • ${coupon.status}\n${DateFormat('yyyy/MM/dd', 'ar').format(coupon.createdAt)}')),
+                const SizedBox(height: 40),
               ],
             ),
           );
@@ -267,63 +182,81 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     );
   }
 
-  Widget _infoCard(String title, List<Widget> children) {
-    return Card(
-      color: Colors.white,
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-      child: Padding(
-        padding: const EdgeInsets.all(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: GoogleFonts.cairo(
-                fontSize: 16,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 10),
-            ...children,
-          ],
-        ),
-      ),
-    );
-  }
-
-  Widget _row(String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.only(bottom: 8),
-      child: Row(
+  Widget _buildQuickStat(IconData icon, String value, String label) {
+    return Expanded(
+      child: Column(
         children: [
-          Expanded(
-            child: Text(
-              label,
-              style: GoogleFonts.inter(color: Colors.blueGrey[600]),
-            ),
-          ),
-          Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.w600)),
+          Icon(icon, size: 22, color: AppColors.primary),
+          const SizedBox(height: 8),
+          Text(value, style: GoogleFonts.inter(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text(label, style: GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary)),
         ],
       ),
     );
   }
 
-  Widget _sectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+  Widget _infoCard(String title, List<Widget> children) {
+    return Container(
+      padding: const EdgeInsets.all(24),
+      decoration: BoxDecoration(
+        color: AppColors.white,
+        borderRadius: BorderRadius.circular(24),
+        boxShadow: [BoxShadow(color: Colors.black.withValues(alpha: 0.03), blurRadius: 10, offset: const Offset(0, 4))],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(title, style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          const SizedBox(height: 20),
+          ...children,
+        ],
+      ),
+    );
+  }
+
+  Widget _row(IconData icon, String label, String value) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 16),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+          const SizedBox(width: 12),
+          Text(label, style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary)),
+          const Spacer(),
+          Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
+        ],
+      ),
+    );
+  }
+
+  Widget _sectionTitle(String title, IconData icon) {
+    return Row(
+      children: [
+        Icon(icon, size: 18, color: AppColors.primary),
+        const SizedBox(width: 8),
+        Text(title, style: GoogleFonts.cairo(fontSize: 17, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+      ],
     );
   }
 
   Widget _emptyBox(String text) {
     return Container(
       width: double.infinity,
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.circular(12),
+      padding: const EdgeInsets.all(20),
+      decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade100)),
+      child: Text(text, textAlign: TextAlign.center, style: GoogleFonts.cairo(color: AppColors.textSecondary, fontSize: 13)),
+    );
+  }
+
+  Widget _buildItemCard(IconData icon, String title, String subtitle) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 12),
+      decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade100)),
+      child: ListTile(
+        leading: Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(10)), child: Icon(icon, size: 20, color: AppColors.primary)),
+        title: Text(title, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
+        subtitle: Text(subtitle, style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary)),
       ),
-      child: Text(text, style: GoogleFonts.cairo(color: Colors.blueGrey[600])),
     );
   }
 
@@ -332,23 +265,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     await showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text(
-          'تعديل نقاط المستخدم',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('تعديل نقاط المستخدم'),
         content: TextField(
           controller: controller,
           keyboardType: TextInputType.number,
-          decoration: InputDecoration(
-            labelText: 'عدد النقاط',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+          decoration: const InputDecoration(labelText: 'عدد النقاط الجديد'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
           ElevatedButton(
             onPressed: () async {
               final points = int.tryParse(controller.text.trim());
@@ -366,24 +290,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   Future<void> _updatePoints(int points) async {
     setState(() => _isSubmitting = true);
-    final result = await sl<UserRepository>().updateUser(
-      widget.user.id,
-      points: points,
-    );
+    final result = await sl<UserRepository>().updateUser(widget.user.id, points: points);
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-      ),
+      (failure) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message), backgroundColor: AppColors.error)),
       (_) async {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحديث النقاط بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث النقاط بنجاح'), backgroundColor: AppColors.success));
         final future = _loadDetails();
         setState(() => _detailsFuture = future);
         await future;
@@ -395,23 +309,11 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     final shouldDelete = await showDialog<bool>(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('حذف المستخدم', style: GoogleFonts.cairo()),
-        content: Text(
-          'هل أنت متأكد من حذف ${user.name}؟ لا يمكن التراجع عن هذا الإجراء.',
-        ),
+        title: const Text('حذف المستخدم'),
+        content: Text('هل أنت متأكد من حذف ${user.name}؟ لا يمكن التراجع عن هذا الإجراء.'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext, false),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () => Navigator.pop(dialogContext, true),
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حذف'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext, false), child: const Text('إلغاء')),
+          ElevatedButton(onPressed: () => Navigator.pop(dialogContext, true), style: ElevatedButton.styleFrom(backgroundColor: AppColors.error), child: const Text('حذف')),
         ],
       ),
     );
@@ -427,31 +329,21 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
       context: context,
       builder: (dialogContext) => StatefulBuilder(
         builder: (context, setLocalState) => AlertDialog(
-          title: Text('تغيير دور المستخدم', style: GoogleFonts.cairo()),
+          title: const Text('تغيير دور المستخدم'),
           content: DropdownButtonFormField<String>(
-            initialValue: selectedRole,
+            value: selectedRole,
             items: const [
               DropdownMenuItem(value: 'CUSTOMER', child: Text('CUSTOMER')),
               DropdownMenuItem(value: 'MERCHANT', child: Text('MERCHANT')),
               DropdownMenuItem(value: 'ADMIN', child: Text('ADMIN')),
             ],
             onChanged: (value) {
-              if (value != null) {
-                setLocalState(() => selectedRole = value);
-              }
+              if (value != null) setLocalState(() => selectedRole = value);
             },
-            decoration: InputDecoration(
-              labelText: 'الدور',
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
+            decoration: const InputDecoration(labelText: 'الدور'),
           ),
           actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('إلغاء'),
-            ),
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
             ElevatedButton(
               onPressed: () async {
                 Navigator.pop(dialogContext);
@@ -467,24 +359,14 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   Future<void> _updateRole(String role) async {
     setState(() => _isSubmitting = true);
-    final result = await sl<UserRepository>().updateUserRole(
-      widget.user.id,
-      role,
-    );
+    final result = await sl<UserRepository>().updateUserRole(widget.user.id, role);
     if (!mounted) return;
     setState(() => _isSubmitting = false);
 
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-      ),
+      (failure) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message), backgroundColor: AppColors.error)),
       (_) async {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم تحديث الدور بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث الدور بنجاح'), backgroundColor: AppColors.success));
         final future = _loadDetails();
         setState(() => _detailsFuture = future);
         await future;
@@ -499,16 +381,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     setState(() => _isSubmitting = false);
 
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text(failure.message), backgroundColor: Colors.red),
-      ),
+      (failure) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message), backgroundColor: AppColors.error)),
       (_) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم حذف المستخدم بنجاح'),
-            backgroundColor: Colors.green,
-          ),
-        );
+        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف المستخدم بنجاح'), backgroundColor: AppColors.success));
         Navigator.pop(context, true);
       },
     );

@@ -8,6 +8,7 @@ import 'package:zag_offers_admin_app/features/offers/presentation/bloc/offers_bl
 import 'package:zag_offers_admin_app/features/offers/presentation/widgets/offer_card.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/injection_container.dart';
+import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 
 class OffersPage extends StatefulWidget {
   const OffersPage({super.key});
@@ -36,66 +37,36 @@ class _OffersPageState extends State<OffersPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'إدارة العروض',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('إدارة العروض'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
+          preferredSize: const Size.fromHeight(130),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'البحث عن العروض...',
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFFFF6B00),
-                    ),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear_rounded),
                             onPressed: () {
                               _searchController.clear();
                               setState(() => _searchQuery = '');
                             },
                           )
                         : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: Colors.orange.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFFF6B00),
-                        width: 1,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
                   ),
                   onChanged: (value) =>
                       setState(() => _searchQuery = value.toLowerCase()),
                 ),
               ),
-              const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -113,6 +84,7 @@ class _OffersPageState extends State<OffersPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -127,21 +99,21 @@ class _OffersPageState extends State<OffersPage> {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم تحديث حالة العرض بنجاح'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
               ),
             );
           } else if (state is OfferDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم حذف العرض بنجاح'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
               ),
             );
           } else if (state is OffersError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }
@@ -165,22 +137,46 @@ class _OffersPageState extends State<OffersPage> {
 
             if (filtered.isEmpty) {
               return Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Icon(
-                      Icons.local_offer_outlined,
-                      size: 64,
-                      color: Colors.blueGrey[300],
-                    ),
-                    const SizedBox(height: 16),
-                    Text(
-                      _searchQuery.isNotEmpty
-                          ? 'لا يوجد عروض تطابق "$_searchQuery"'
-                          : 'لا يوجد عروض حالياً',
-                      style: GoogleFonts.cairo(color: Colors.blueGrey[500]),
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(40),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(24),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: Icon(
+                          _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.local_offer_rounded,
+                          size: 64,
+                          color: AppColors.primary.withValues(alpha: 0.7),
+                        ),
+                      ),
+                      const SizedBox(height: 24),
+                      Text(
+                        _searchQuery.isNotEmpty ? 'لم نعثر على نتائج' : 'لا يوجد عروض',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.cairo(
+                          fontWeight: FontWeight.w900,
+                          fontSize: 20,
+                          color: AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      Text(
+                        _searchQuery.isNotEmpty 
+                            ? 'جرّب البحث بكلمات مختلفة للعثور على العرض المطلوب.'
+                            : 'لا توجد عروض منشورة حالياً في النظام.',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.cairo(
+                          color: AppColors.textSecondary,
+                          height: 1.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }
@@ -204,24 +200,51 @@ class _OffersPageState extends State<OffersPage> {
             );
           } else if (state is OffersError) {
             return Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.error_outline, size: 48, color: Colors.red[300]),
-                  const SizedBox(height: 12),
-                  Text(
-                    state.message,
-                    textAlign: TextAlign.center,
-                    style: GoogleFonts.inter(color: Colors.red[700]),
-                  ),
-                  const SizedBox(height: 16),
-                  ElevatedButton(
-                    onPressed: () => context.read<OffersBloc>().add(
-                      LoadOffersEvent(status: _selectedStatus),
+              child: Padding(
+                padding: const EdgeInsets.all(40),
+                child: Column(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Container(
+                      padding: const EdgeInsets.all(24),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(
+                        Icons.wifi_off_rounded,
+                        size: 64,
+                        color: AppColors.error,
+                      ),
                     ),
-                    child: const Text('إعادة المحاولة'),
-                  ),
-                ],
+                    const SizedBox(height: 24),
+                    Text(
+                      'حدث خطأ في جلب البيانات',
+                      style: GoogleFonts.cairo(
+                        fontWeight: FontWeight.w900,
+                        fontSize: 20,
+                        color: AppColors.textPrimary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.cairo(
+                        color: AppColors.textSecondary,
+                        height: 1.5,
+                      ),
+                    ),
+                    const SizedBox(height: 32),
+                    ElevatedButton.icon(
+                      onPressed: () => context.read<OffersBloc>().add(
+                        LoadOffersEvent(status: _selectedStatus),
+                      ),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('إعادة المحاولة'),
+                    ),
+                  ],
+                ),
               ),
             );
           }
@@ -246,7 +269,7 @@ class _OffersPageState extends State<OffersPage> {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
           content: Text('تعذر تحميل تفاصيل العرض: $e'),
-          backgroundColor: Colors.red,
+          backgroundColor: AppColors.error,
         ),
       );
       return null;
@@ -292,22 +315,22 @@ class _OffersPageState extends State<OffersPage> {
             children: [
               Center(
                 child: Container(
-                  width: 42,
+                  width: 40,
                   height: 4,
                   decoration: BoxDecoration(
-                    color: Colors.blueGrey[200],
+                    color: Colors.grey.shade200,
                     borderRadius: BorderRadius.circular(20),
                   ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               if (images.isNotEmpty) ...[
                 SizedBox(
                   height: 200,
                   child: ListView.separated(
                     scrollDirection: Axis.horizontal,
                     itemCount: images.length,
-                    separatorBuilder: (_, __) => const SizedBox(width: 10),
+                    separatorBuilder: (_, __) => const SizedBox(width: 12),
                     itemBuilder: (_, i) => ClipRRect(
                       borderRadius: BorderRadius.circular(16),
                       child: Image.network(
@@ -318,30 +341,11 @@ class _OffersPageState extends State<OffersPage> {
                         errorBuilder: (_, __, ___) => Container(
                           width: 300,
                           height: 200,
-                          color: Colors.orange[50],
-                          child: Icon(
-                            Icons.image_not_supported,
-                            color: Colors.orange[200],
-                          ),
+                          color: AppColors.background,
+                          child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey),
                         ),
                       ),
                     ),
-                  ),
-                ),
-                const SizedBox(height: 8),
-                Text(
-                  'عدد الصور: ${images.length}',
-                  style: GoogleFonts.cairo(fontSize: 12, color: Colors.blueGrey[600]),
-                ),
-                const SizedBox(height: 12),
-              ] else if (offer.imageUrl != null && offer.imageUrl!.isNotEmpty) ...[
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(16),
-                  child: Image.network(
-                    offer.imageUrl!,
-                    height: 200,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -352,8 +356,9 @@ class _OffersPageState extends State<OffersPage> {
                     child: Text(
                       details['title']?.toString() ?? offer.title,
                       style: GoogleFonts.cairo(
-                        fontSize: 18,
+                        fontSize: 20,
                         fontWeight: FontWeight.bold,
+                        color: AppColors.textPrimary,
                       ),
                     ),
                   ),
@@ -374,168 +379,61 @@ class _OffersPageState extends State<OffersPage> {
                   ),
                 ],
               ),
-              const SizedBox(height: 6),
+              const SizedBox(height: 8),
               Text(
                 store['name']?.toString() ?? offer.storeName,
                 style: GoogleFonts.cairo(
                   fontSize: 16,
-                  color: Colors.orange[800],
-                  fontWeight: FontWeight.w600,
+                  color: AppColors.primary,
+                  fontWeight: FontWeight.bold,
                 ),
-              ),
-              const SizedBox(height: 12),
-              _buildInfoItem(
-                'الوصف',
-                details['description']?.toString() ?? offer.description,
-                Icons.description_outlined,
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      'تاريخ البدء',
-                      DateFormat('yyyy/MM/dd', 'ar').format(
-                        DateTime.tryParse(details['startDate']?.toString() ?? '') ?? offer.startDate,
-                      ),
-                      Icons.calendar_today,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      'تاريخ الانتهاء',
-                      DateFormat('yyyy/MM/dd', 'ar').format(
-                        DateTime.tryParse(details['endDate']?.toString() ?? '') ?? offer.endDate,
-                      ),
-                      Icons.event_busy,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      'السعر القديم',
-                      offer.oldPrice?.toString() ?? details['oldPrice']?.toString() ?? '-',
-                      Icons.money_off,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      'السعر الجديد',
-                      offer.newPrice?.toString() ?? details['newPrice']?.toString() ?? '-',
-                      Icons.attach_money,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      'الخصم',
-                      details['discount']?.toString() ?? '-',
-                      Icons.percent_outlined,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      'حد الاستخدام',
-                      details['usageLimit'] == null ? 'غير محدد' : details['usageLimit'].toString(),
-                      Icons.onetwothree_outlined,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      'الكوبونات',
-                      '${counts['coupons'] ?? 0}',
-                      Icons.confirmation_number_outlined,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      'المفضلة',
-                      '${counts['favorites'] ?? 0}',
-                      Icons.favorite_border,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      'المراجعات',
-                      '${counts['reviews'] ?? 0}',
-                      Icons.reviews_outlined,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      'صاحب المتجر',
-                      owner['name']?.toString() ?? '-',
-                      Icons.person_outline,
-                    ),
-                  ),
-                ],
-              ),
-              const SizedBox(height: 12),
-              Row(
-                children: [
-                  Expanded(
-                    child: _buildInfoItem(
-                      'هاتف التاجر',
-                      owner['phone']?.toString() ?? '-',
-                      Icons.phone_outlined,
-                    ),
-                  ),
-                  Expanded(
-                    child: _buildInfoItem(
-                      'معرف العرض',
-                      '#${offer.id.substring(0, 8)}',
-                      Icons.tag_outlined,
-                    ),
-                  ),
-                ],
               ),
               const SizedBox(height: 24),
-              SizedBox(
-                width: double.infinity,
-                child: OutlinedButton.icon(
-                  onPressed: () {
-                    Navigator.pop(context);
-                    _showEditOfferDialog(context, offer, details);
-                  },
-                  icon: const Icon(Icons.edit_outlined),
-                  label: const Text('تعديل بيانات العرض'),
+              _buildDetailSection('معلومات العرض', [
+                _buildInfoItem('الوصف', details['description']?.toString() ?? offer.description, Icons.description_outlined),
+                Row(
+                  children: [
+                    Expanded(child: _buildInfoItem('البداية', DateFormat('yyyy/MM/dd', 'ar').format(DateTime.tryParse(details['startDate']?.toString() ?? '') ?? offer.startDate), Icons.calendar_today_rounded)),
+                    Expanded(child: _buildInfoItem('النهاية', DateFormat('yyyy/MM/dd', 'ar').format(DateTime.tryParse(details['endDate']?.toString() ?? '') ?? offer.endDate), Icons.event_busy_rounded)),
+                  ],
                 ),
-              ),
-              const SizedBox(height: 10),
+                Row(
+                  children: [
+                    Expanded(child: _buildInfoItem('السعر القديم', '${offer.oldPrice?.toString() ?? details['oldPrice']?.toString() ?? '-'} ج.م', Icons.money_off_rounded)),
+                    Expanded(child: _buildInfoItem('السعر الجديد', '${offer.newPrice?.toString() ?? details['newPrice']?.toString() ?? '-'} ج.م', Icons.attach_money_rounded)),
+                  ],
+                ),
+              ]),
+              const SizedBox(height: 24),
+              _buildDetailSection('الإحصائيات', [
+                Row(
+                  children: [
+                    Expanded(child: _buildInfoItem('الكوبونات', '${counts['coupons'] ?? 0}', Icons.confirmation_number_outlined)),
+                    Expanded(child: _buildInfoItem('المفضلة', '${counts['favorites'] ?? 0}', Icons.favorite_border_rounded)),
+                    Expanded(child: _buildInfoItem('المراجعات', '${counts['reviews'] ?? 0}', Icons.reviews_outlined)),
+                  ],
+                ),
+              ]),
+              const SizedBox(height: 24),
+              _buildDetailSection('معلومات التاجر', [
+                _buildInfoItem('صاحب المتجر', owner['name']?.toString() ?? '-', Icons.person_outline_rounded),
+                _buildInfoItem('رقم التواصل', owner['phone']?.toString() ?? '-', Icons.phone_android_rounded),
+              ]),
+              const SizedBox(height: 32),
               if (offer.status == 'PENDING') ...[
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
+                      child: TextButton(
                         onPressed: () {
                           Navigator.pop(context);
                           _showRejectionDialog(context, offer);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[50],
-                          foregroundColor: Colors.red,
-                          elevation: 0,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.error,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: const Text('رفض العرض'),
+                        child: const Text('رفض العرض', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -547,18 +445,25 @@ class _OffersPageState extends State<OffersPage> {
                           );
                           Navigator.pop(context);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.green,
-                          foregroundColor: Colors.white,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
                         child: const Text('قبول العرض'),
                       ),
                     ),
                   ],
                 ),
-              ],
-              const SizedBox(height: 10),
+              ] else
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton(
+                    onPressed: () => Navigator.pop(context),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: Colors.grey.shade200),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    ),
+                    child: const Text('إغلاق', style: TextStyle(color: AppColors.textPrimary)),
+                  ),
+                ),
+              const SizedBox(height: 12),
               SizedBox(
                 width: double.infinity,
                 child: TextButton.icon(
@@ -566,8 +471,8 @@ class _OffersPageState extends State<OffersPage> {
                     Navigator.pop(context);
                     _showDeleteConfirmation(context, offer);
                   },
-                  icon: const Icon(Icons.delete_outline, color: Colors.red),
-                  label: const Text('حذف العرض', style: TextStyle(color: Colors.red)),
+                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 18),
+                  label: const Text('حذف العرض نهائياً', style: TextStyle(color: AppColors.error, fontSize: 13)),
                 ),
               ),
             ],
@@ -577,42 +482,87 @@ class _OffersPageState extends State<OffersPage> {
     );
   }
 
+  Widget _buildDetailSection(String title, List<Widget> children) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text(title, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        const SizedBox(height: 12),
+        ...children,
+      ],
+    );
+  }
+
+  Widget _buildInfoItem(String label, String value, IconData icon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Icon(icon, size: 18, color: AppColors.primary.withValues(alpha: 0.6)),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(label, style: GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary)),
+              Text(value, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
+  Color _statusColor(String status) {
+    switch (status) {
+      case 'APPROVED':
+      case 'ACTIVE':
+        return AppColors.success;
+      case 'PENDING':
+        return AppColors.primary;
+      case 'REJECTED':
+      case 'EXPIRED':
+        return AppColors.error;
+      default:
+        return AppColors.textSecondary;
+    }
+  }
+
+  String _statusLabel(String status) {
+    switch (status) {
+      case 'APPROVED':
+        return 'مقبول';
+      case 'ACTIVE':
+        return 'نشط';
+      case 'PENDING':
+        return 'قيد الانتظار';
+      case 'REJECTED':
+        return 'مرفوض';
+      case 'EXPIRED':
+        return 'منتهي';
+      default:
+        return status;
+    }
+  }
+
   void _showRejectionDialog(BuildContext context, Offer offer) {
     final reasonController = TextEditingController();
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('سبب الرفض', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: const Text('سبب الرفض'),
         content: TextField(
           controller: reasonController,
           maxLines: 3,
-          decoration: InputDecoration(
-            hintText: 'يرجى توضيح سبب رفض هذا العرض...',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
-          ),
+          decoration: const InputDecoration(hintText: 'يرجى توضيح سبب رفض هذا العرض...'),
         ),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
           ElevatedButton(
             onPressed: () {
-              context.read<OffersBloc>().add(
-                UpdateOfferStatusEvent(
-                  id: offer.id,
-                  status: 'REJECTED',
-                  reason: reasonController.text.trim().isEmpty
-                      ? null
-                      : reasonController.text.trim(),
-                ),
-              );
+              context.read<OffersBloc>().add(UpdateOfferStatusEvent(id: offer.id, status: 'REJECTED', reason: reasonController.text.trim().isEmpty ? null : reasonController.text.trim()));
               Navigator.pop(dialogContext);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('تأكيد الرفض'),
           ),
         ],
@@ -624,295 +574,21 @@ class _OffersPageState extends State<OffersPage> {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        title: Text('حذف العرض', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
-        content: Text('هل تريد حذف "${offer.title}" نهائياً؟', style: GoogleFonts.cairo()),
+        title: const Text('حذف العرض'),
+        content: Text('هل تريد حذف "${offer.title}" نهائياً؟'),
         actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
-          ),
+          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
           ElevatedButton(
             onPressed: () {
               context.read<OffersBloc>().add(DeleteOfferEvent(id: offer.id));
               Navigator.pop(dialogContext);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('حذف'),
           ),
         ],
       ),
     );
-  }
-
-  void _showEditOfferDialog(
-    BuildContext context,
-    Offer offer,
-    Map<String, dynamic> details,
-  ) {
-    final titleController = TextEditingController(
-      text: details['title']?.toString() ?? offer.title,
-    );
-    final descriptionController = TextEditingController(
-      text: details['description']?.toString() ?? offer.description,
-    );
-    final discountController = TextEditingController(
-      text: details['discount']?.toString() ?? '',
-    );
-    final termsController = TextEditingController(
-      text: details['terms']?.toString() ?? '',
-    );
-    final usageLimitController = TextEditingController(
-      text: details['usageLimit']?.toString() ?? '',
-    );
-    final imagesController = TextEditingController(
-      text: (details['images'] is List)
-          ? (details['images'] as List).map((e) => e.toString()).join('\n')
-          : '',
-    );
-    final startDateController = TextEditingController(
-      text: details['startDate']?.toString() ?? offer.startDate.toIso8601String(),
-    );
-    final endDateController = TextEditingController(
-      text: details['endDate']?.toString() ?? offer.endDate.toIso8601String(),
-    );
-    const allowedStatuses = <String>[
-      'PENDING',
-      'APPROVED',
-      'ACTIVE',
-      'PAUSED',
-      'REJECTED',
-      'EXPIRED',
-    ];
-    String status = details['status']?.toString() ?? offer.status;
-    if (!allowedStatuses.contains(status)) {
-      status = 'PENDING';
-    }
-
-    showDialog(
-      context: context,
-      builder: (dialogContext) => StatefulBuilder(
-        builder: (_, setLocalState) => AlertDialog(
-          title: Text(
-            'تعديل العرض',
-            style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-          ),
-          content: SizedBox(
-            width: 520,
-            child: SingleChildScrollView(
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  TextField(
-                    controller: titleController,
-                    decoration: const InputDecoration(labelText: 'العنوان'),
-                  ),
-                  TextField(
-                    controller: descriptionController,
-                    maxLines: 3,
-                    decoration: const InputDecoration(labelText: 'الوصف'),
-                  ),
-                  TextField(
-                    controller: discountController,
-                    decoration: const InputDecoration(labelText: 'الخصم'),
-                  ),
-                  TextField(
-                    controller: termsController,
-                    maxLines: 2,
-                    decoration: const InputDecoration(labelText: 'الشروط'),
-                  ),
-                  TextField(
-                    controller: usageLimitController,
-                    keyboardType: TextInputType.number,
-                    decoration: const InputDecoration(
-                      labelText: 'حد الاستخدام (اختياري)',
-                    ),
-                  ),
-                  TextField(
-                    controller: startDateController,
-                    decoration: const InputDecoration(
-                      labelText: 'تاريخ البدء (ISO)',
-                    ),
-                  ),
-                  TextField(
-                    controller: endDateController,
-                    decoration: const InputDecoration(
-                      labelText: 'تاريخ الانتهاء (ISO)',
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  DropdownButtonFormField<String>(
-                    value: status,
-                    decoration: const InputDecoration(labelText: 'الحالة'),
-                    items: allowedStatuses
-                        .map(
-                          (s) => DropdownMenuItem<String>(
-                            value: s,
-                            child: Text(s),
-                          ),
-                        )
-                        .toList(),
-                    onChanged: (value) {
-                      if (value != null) setLocalState(() => status = value);
-                    },
-                  ),
-                  TextField(
-                    controller: imagesController,
-                    minLines: 2,
-                    maxLines: 5,
-                    decoration: const InputDecoration(
-                      labelText: 'الصور (رابط لكل سطر)',
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-          actions: [
-            TextButton(
-              onPressed: () => Navigator.pop(dialogContext),
-              child: const Text('إلغاء'),
-            ),
-            ElevatedButton(
-              onPressed: () async {
-                final usageLimitText = usageLimitController.text.trim();
-                final usageLimit = usageLimitText.isEmpty
-                    ? null
-                    : int.tryParse(usageLimitText);
-                if (usageLimitText.isNotEmpty && usageLimit == null) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('حد الاستخدام يجب أن يكون رقمًا صحيحًا'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                  return;
-                }
-
-                final images = imagesController.text
-                    .split('\n')
-                    .map((e) => e.trim())
-                    .where((e) => e.isNotEmpty)
-                    .toList();
-
-                try {
-                  await sl<ApiClient>().patch(
-                    '/admin/offers/${offer.id}',
-                    data: {
-                      'title': titleController.text.trim(),
-                      'description': descriptionController.text.trim(),
-                      'discount': discountController.text.trim(),
-                      'terms': termsController.text.trim().isEmpty
-                          ? null
-                          : termsController.text.trim(),
-                      'usageLimit': usageLimit,
-                      'startDate': startDateController.text.trim(),
-                      'endDate': endDateController.text.trim(),
-                      'status': status,
-                      'images': images,
-                    },
-                  );
-                  if (!context.mounted) return;
-                  Navigator.pop(dialogContext);
-                  context.read<OffersBloc>().add(
-                    LoadOffersEvent(status: _selectedStatus),
-                  );
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(
-                      content: Text('تم تحديث العرض بنجاح'),
-                      backgroundColor: Colors.green,
-                    ),
-                  );
-                } catch (e) {
-                  if (!context.mounted) return;
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(
-                      content: Text('فشل تحديث العرض: $e'),
-                      backgroundColor: Colors.red,
-                    ),
-                  );
-                }
-              },
-              child: const Text('حفظ التعديلات'),
-            ),
-          ],
-        ),
-      ),
-    ).then((_) {
-      titleController.dispose();
-      descriptionController.dispose();
-      discountController.dispose();
-      termsController.dispose();
-      usageLimitController.dispose();
-      imagesController.dispose();
-      startDateController.dispose();
-      endDateController.dispose();
-    });
-  }
-
-  Widget _buildInfoItem(String label, String value, IconData icon) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Row(
-          children: [
-            Icon(icon, size: 16, color: Colors.blueGrey[400]),
-            const SizedBox(width: 8),
-            Text(
-              label,
-              style: GoogleFonts.inter(fontSize: 12, color: Colors.blueGrey[400]),
-            ),
-          ],
-        ),
-        const SizedBox(height: 4),
-        Text(
-          value,
-          maxLines: 2,
-          overflow: TextOverflow.ellipsis,
-          style: GoogleFonts.inter(
-            fontSize: 14,
-            fontWeight: FontWeight.w600,
-            color: Colors.blueGrey[800],
-          ),
-        ),
-      ],
-    );
-  }
-
-  String _statusLabel(String status) {
-    switch (status) {
-      case 'ACTIVE':
-        return 'نشط';
-      case 'APPROVED':
-        return 'مقبول';
-      case 'REJECTED':
-        return 'مرفوض';
-      case 'EXPIRED':
-        return 'منتهي';
-      case 'PENDING':
-        return 'قيد الانتظار';
-      default:
-        return status;
-    }
-  }
-
-  Color _statusColor(String status) {
-    switch (status) {
-      case 'ACTIVE':
-        return Colors.green;
-      case 'APPROVED':
-        return Colors.teal;
-      case 'REJECTED':
-        return Colors.red;
-      case 'EXPIRED':
-        return Colors.blueGrey;
-      case 'PENDING':
-        return const Color(0xFFFF6B00);
-      default:
-        return Colors.blueGrey;
-    }
   }
 
   Widget _buildFilterChip(String? status, String label) {
@@ -926,11 +602,14 @@ class _OffersPageState extends State<OffersPage> {
           context.read<OffersBloc>().add(LoadOffersEvent(status: status));
         }
       },
-      selectedColor: Colors.orange[100],
+      selectedColor: AppColors.primary.withValues(alpha: 0.15),
       labelStyle: TextStyle(
-        color: isSelected ? Colors.orange[800] : Colors.blueGrey[600],
+        color: isSelected ? AppColors.primary : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontFamily: GoogleFonts.cairo().fontFamily,
       ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
+      showCheckmark: false,
     );
   }
 }
