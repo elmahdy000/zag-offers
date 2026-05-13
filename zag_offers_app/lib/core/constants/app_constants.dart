@@ -6,7 +6,7 @@ class AppConstants {
   ///     مثال: 'http://192.168.1.100:3001'
   ///   - Android Emulator (AVD): استخدم 'http://10.0.2.2:3001'
   ///   - iOS Simulator:          استخدم 'http://127.0.0.1:3001'
-  ///   - Production:             استخدم 'https://api.zagoffers.com'
+  ///   - Production:             استخدم 'https://api.zagoffers.online'
   ///
   /// الأفضل إنك تحط القيمة دي في --dart-define عند البناء:
   ///   flutter run --dart-define=BASE_URL=http://192.168.1.100:3001/api

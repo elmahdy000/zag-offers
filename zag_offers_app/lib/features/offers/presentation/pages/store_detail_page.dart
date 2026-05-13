@@ -42,11 +42,10 @@ class StoreDetailPage extends StatelessWidget {
         ),
       ],
       child: Scaffold(
-        backgroundColor: Colors.white,
         body: CustomScrollView(
           physics: const BouncingScrollPhysics(),
           slivers: [
-            _buildSliverAppBar(),
+            _buildSliverAppBar(context),
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.all(24.0),
@@ -89,7 +88,7 @@ class StoreDetailPage extends StatelessWidget {
     );
   }
 
-  Widget _buildSliverAppBar() {
+  Widget _buildSliverAppBar(BuildContext context) {
     return SliverAppBar(
       expandedHeight: 220,
       pinned: true,
@@ -103,8 +102,8 @@ class StoreDetailPage extends StatelessWidget {
             Center(
               child: Container(
                 padding: const EdgeInsets.all(4),
-                decoration: const BoxDecoration(
-                  color: Colors.white,
+                decoration: BoxDecoration(
+                  color: Theme.of(context).scaffoldBackgroundColor,
                   shape: BoxShape.circle,
                 ),
                 child: NetworkImageWidget(
@@ -122,12 +121,13 @@ class StoreDetailPage extends StatelessWidget {
   }
 
   Widget _buildStoreHeader(BuildContext context) {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
           store.name,
-          style: Theme.of(context).textTheme.displaySmall?.copyWith(
+          style: theme.textTheme.displaySmall?.copyWith(
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
           ),
@@ -143,23 +143,23 @@ class StoreDetailPage extends StatelessWidget {
               ),
               child: Text(
                 store.category ?? 'متجر',
-                style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                style: theme.textTheme.labelMedium?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
               ),
             ),
             const SizedBox(width: 12),
-            const Icon(
+            Icon(
               Icons.location_on_rounded,
               size: 18,
-              color: Colors.grey,
+              color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 4),
             Text(
               store.area,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: Colors.grey,
+              style: theme.textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
                 fontWeight: FontWeight.w500,
               ),
             ),
@@ -262,19 +262,13 @@ class StoreDetailPage extends StatelessWidget {
   }
 
   Widget _buildOfferCard(BuildContext context, dynamic offer) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[100]!),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.02),
-            blurRadius: 10,
-            offset: const Offset(0, 4),
-          ),
-        ],
+        border: Border.all(color: theme.dividerColor),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(12),
@@ -288,12 +282,12 @@ class StoreDetailPage extends StatelessWidget {
         ),
         title: Text(
           offer.title,
-          style: Theme.of(context).textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
         ),
         subtitle: Text(
           'خصم ${offer.discountPercentage.toInt()}%',
-          style: Theme.of(context).textTheme.labelMedium?.copyWith(
-            color: Colors.green,
+          style: theme.textTheme.labelMedium?.copyWith(
+            color: AppColors.success,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -309,6 +303,7 @@ class StoreDetailPage extends StatelessWidget {
   }
 
   Widget _buildReviewsList(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocBuilder<ReviewsBloc, ReviewsState>(
       builder: (context, state) {
         if (state is ReviewsLoading) {
@@ -335,8 +330,9 @@ class StoreDetailPage extends StatelessWidget {
                     margin: const EdgeInsets.only(bottom: 16),
                     padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.dividerColor),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -346,7 +342,7 @@ class StoreDetailPage extends StatelessWidget {
                           children: [
                             Text(
                               review.customerName,
-                              style: Theme.of(context).textTheme.titleSmall?.copyWith(
+                              style: theme.textTheme.titleSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                               ),
                             ),
@@ -358,7 +354,7 @@ class StoreDetailPage extends StatelessWidget {
                                   size: 16,
                                   color: i < review.rating
                                       ? Colors.amber
-                                      : Colors.grey[300],
+                                      : theme.dividerColor,
                                 ),
                               ),
                             ),
@@ -368,8 +364,8 @@ class StoreDetailPage extends StatelessWidget {
                           const SizedBox(height: 8),
                           Text(
                             review.comment!,
-                            style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[700],
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
                             ),
                           ),
                         ],

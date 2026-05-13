@@ -4,6 +4,7 @@ import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart' as di;
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 
 class FavoriteButton extends StatelessWidget {
   final String offerId;
@@ -31,12 +32,7 @@ class FavoriteButton extends StatelessWidget {
             
             if (token == null || token.isEmpty) {
               if (!context.mounted) return;
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(
-                  content: Text('يجب تسجيل الدخول لإضافة العروض للمفضلة'),
-                  backgroundColor: AppColors.primary,
-                ),
-              );
+              SnackBarUtils.showInfo(context, 'يجب تسجيل الدخول لإضافة العروض للمفضلة');
               return;
             }
             

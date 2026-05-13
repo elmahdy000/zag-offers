@@ -9,9 +9,9 @@ class LoginUseCase {
   LoginUseCase(this.repository);
 
   Future<Either<Failure, UserEntity>> call({
-    required String phone,
+    required String identifier,
     required String password,
   }) async {
-    return await repository.login(phone: phone, password: password);
+    return await repository.login(identifier: identifier, password: password);
   }
 }

@@ -6,6 +6,13 @@ class OffersSkeleton extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    
+    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
+    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
+    final containerColor = isDark ? Colors.grey[850]! : Colors.white;
+
     return SingleChildScrollView(
       padding: const EdgeInsets.symmetric(vertical: 16),
       child: Column(
@@ -15,12 +22,12 @@ class OffersSkeleton extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
+              baseColor: baseColor,
+              highlightColor: highlightColor,
               child: Container(
                 height: 48,
                 decoration: BoxDecoration(
-                  color: Colors.white,
+                  color: containerColor,
                   borderRadius: BorderRadius.circular(12),
                 ),
               ),
@@ -32,9 +39,9 @@ class OffersSkeleton extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(height: 20, width: 150, color: Colors.white),
+              baseColor: baseColor,
+              highlightColor: highlightColor,
+              child: Container(height: 20, width: 150, color: containerColor),
             ),
           ),
           const SizedBox(height: 12),
@@ -48,13 +55,13 @@ class OffersSkeleton extends StatelessWidget {
               itemCount: 3,
               itemBuilder: (context, index) {
                 return Shimmer.fromColors(
-                  baseColor: Colors.grey[300]!,
-                  highlightColor: Colors.grey[100]!,
+                  baseColor: baseColor,
+                  highlightColor: highlightColor,
                   child: Container(
                     width: 300,
                     margin: const EdgeInsets.only(right: 12),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: containerColor,
                       borderRadius: BorderRadius.circular(16),
                     ),
                   ),
@@ -69,9 +76,9 @@ class OffersSkeleton extends StatelessWidget {
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Shimmer.fromColors(
-              baseColor: Colors.grey[300]!,
-              highlightColor: Colors.grey[100]!,
-              child: Container(height: 20, width: 120, color: Colors.white),
+              baseColor: baseColor,
+              highlightColor: highlightColor,
+              child: Container(height: 20, width: 120, color: containerColor),
             ),
           ),
           const SizedBox(height: 12),
@@ -88,11 +95,11 @@ class OffersSkeleton extends StatelessWidget {
             itemCount: 4,
             itemBuilder: (context, index) {
               return Shimmer.fromColors(
-                baseColor: Colors.grey[300]!,
-                highlightColor: Colors.grey[100]!,
+                baseColor: baseColor,
+                highlightColor: highlightColor,
                 child: Container(
                   decoration: BoxDecoration(
-                    color: Colors.white,
+                    color: containerColor,
                     borderRadius: BorderRadius.circular(12),
                   ),
                 ),

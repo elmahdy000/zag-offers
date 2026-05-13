@@ -121,8 +121,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
       body: BlocBuilder<OffersBloc, OffersState>(
         builder: (context, state) {
           return CustomScrollView(
@@ -139,7 +139,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   centerTitle: false,
                   title: Text(
                     'استكشف العروض',
-                    style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                    style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                           color: Colors.white,
                         ),
@@ -183,8 +183,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
                       Container(
                         padding: const EdgeInsets.symmetric(horizontal: 16),
                         decoration: BoxDecoration(
-                          color: Colors.grey[100],
+                          color: theme.cardColor,
                           borderRadius: BorderRadius.circular(20),
+                          border: Border.all(color: theme.dividerColor),
                         ),
                         child: TextField(
                           controller: _searchController,
@@ -207,7 +208,6 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                     icon: const Icon(
                                       Icons.close_rounded,
                                       size: 18,
-                                      color: Colors.grey,
                                     ),
                                     onPressed: () => _clearSearch(context),
                                   )
@@ -224,12 +224,13 @@ class _AllOffersPageState extends State<AllOffersPage> {
                           itemCount: searchSidebarCategories.length,
                           itemBuilder: (context, index) {
                             final categoryItem = searchSidebarCategories[index];
-                            final isSelected = _selectedCategory == categoryItem.name;
+                            final categoryBackendName = categoryItem.backendName ?? categoryItem.name;
+                            final isSelected = _selectedCategory == categoryBackendName;
                             return Padding(
                               padding: const EdgeInsets.only(right: 16),
                               child: GestureDetector(
                                 onTap: () {
-                                  setState(() => _selectedCategory = categoryItem.name);
+                                  setState(() => _selectedCategory = categoryBackendName);
                                 },
                                 child: Column(
                                   children: [
@@ -260,11 +261,11 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                               ),
                                       ),
                                     ),
-                                    const SizedBox(height: 6),
+                                    const SizedBox(height: 2),
                                     Text(
                                       categoryItem.name,
-                                      style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                                            color: isSelected ? AppColors.primary : AppColors.textPrimary,
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
                                             fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
                                             fontSize: 11,
                                           ),
@@ -325,7 +326,6 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
                 style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
-                  color: AppColors.textPrimary,
                 ),
               ),
               const SizedBox(height: 12),
@@ -409,7 +409,6 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   textAlign: TextAlign.center,
                   style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.w900,
-                    color: AppColors.textPrimary,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -447,7 +446,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.68,
+          childAspectRatio: 0.67,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {

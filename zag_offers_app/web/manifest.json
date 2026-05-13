@@ -1,11 +1,11 @@
 {
-    "name": "zag_offers_app",
-    "short_name": "zag_offers_app",
+    "name": "زقازيق أوفرز - Zag Offers",
+    "short_name": "زقازيق أوفرز",
     "start_url": ".",
     "display": "standalone",
-    "background_color": "#0175C2",
-    "theme_color": "#0175C2",
-    "description": "A new Flutter project.",
+    "background_color": "#FFFFFF",
+    "theme_color": "#FF6B00",
+    "description": "اكتشف أفضل العروض والخصومات والكوبونات الحصرية في مدينة الزقازيق. وفر أكثر مع زقازيق أوفرز.",
     "orientation": "portrait-primary",
     "prefer_related_applications": false,
     "icons": [

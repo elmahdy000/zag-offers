@@ -102,7 +102,7 @@ class CategoriesSection extends StatelessWidget {
                         category.name,
                         style: Theme.of(context).textTheme.labelSmall?.copyWith(
                               fontWeight: FontWeight.bold,
-                              color: AppColors.textPrimary,
+
                             ),
                       ),
                     ],

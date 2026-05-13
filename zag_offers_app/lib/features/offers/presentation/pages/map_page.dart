@@ -136,21 +136,20 @@ class _MapPageState extends State<MapPage> {
                     Icon(
                       Icons.map_outlined,
                       size: 72,
-                      color: Colors.grey[300],
+                      color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
                     ),
                     const SizedBox(height: 16),
-                    const Text(
+                    Text(
                       'الخريطة غير مفعلة حاليًا',
-                      style: TextStyle(
-                        fontSize: 20,
-                        fontWeight: FontWeight.bold,
-                      ),
+                      style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(
+                    Text(
                       'أضف Google Maps API key لتفعيل عرض المتاجر على الخريطة بدون انهيار التطبيق.',
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.black54),
+                      style: Theme.of(context).textTheme.bodyMedium,
                     ),
                   ],
                 ),
@@ -166,21 +165,20 @@ class _MapPageState extends State<MapPage> {
                         Icon(
                           Icons.location_off_rounded,
                           size: 72,
-                          color: Colors.grey[300],
+                          color: Theme.of(context).disabledColor.withValues(alpha: 0.2),
                         ),
                         const SizedBox(height: 16),
-                        const Text(
+                        Text(
                           'لا توجد متاجر بموقع متاح حاليًا',
-                          style: TextStyle(
-                            fontSize: 20,
-                            fontWeight: FontWeight.bold,
-                          ),
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
                         ),
                         const SizedBox(height: 8),
-                        const Text(
+                        Text(
                           'ستظهر المتاجر هنا عندما تتوفر لها إحداثيات صحيحة.',
                           textAlign: TextAlign.center,
-                          style: TextStyle(color: Colors.black54),
+                          style: Theme.of(context).textTheme.bodyMedium,
                         ),
                       ],
                     ),
@@ -237,21 +235,23 @@ class _MapInfoChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(14),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: 0.08),
+            color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.4 : 0.08),
             blurRadius: 12,
           ),
         ],
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: Text(
         text,
-        style: const TextStyle(fontWeight: FontWeight.w600),
+        style: theme.textTheme.labelMedium?.copyWith(fontWeight: FontWeight.w600),
       ),
     );
   }

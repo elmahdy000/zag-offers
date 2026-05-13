@@ -4,7 +4,7 @@ import '../entities/user_entity.dart';
 
 abstract class AuthRepository {
   Future<Either<Failure, UserEntity>> login({
-    required String phone,
+    required String identifier,
     required String password,
   });
 
@@ -13,8 +13,15 @@ abstract class AuthRepository {
     required String password,
     required String name,
     String? area,
+    String? email,
   });
 
   Future<Either<Failure, void>> logout();
   Future<Either<Failure, void>> updateFcmToken(String token);
+  Future<Either<Failure, void>> forgotPassword(String email);
+  Future<Either<Failure, void>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  });
 }

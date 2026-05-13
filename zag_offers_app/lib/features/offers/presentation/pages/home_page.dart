@@ -61,7 +61,6 @@ class _HomePageState extends State<HomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       body: BlocBuilder<OffersBloc, OffersState>(
         builder: (context, state) {
           if (state is OffersLoading) {
@@ -168,27 +167,25 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSliverAppBar(BuildContext context, OffersLoaded state) {
     final hasMapData = state.featuredStores.isNotEmpty;
     final canOpenMap = AppConstants.mapsEnabled && hasMapData;
+    final theme = Theme.of(context);
 
     return SliverAppBar(
       expandedHeight: 80,
       floating: true,
       pinned: true,
       elevation: 0,
-      backgroundColor: Colors.white.withValues(alpha: 0.9),
-      surfaceTintColor: Colors.transparent,
       centerTitle: false,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Icon(IconlyBold.location, color: AppColors.primary, size: 16),
+              const Icon(IconlyBold.location, color: AppColors.primary, size: 16),
               const SizedBox(width: 4),
               Text(
                 'الزقازيق، الشرقية',
-                style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                style: theme.textTheme.labelLarge?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
                     ),
               ),
               const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.textSecondary),
@@ -196,7 +193,7 @@ class _HomePageState extends State<HomePage> {
           ),
           Text(
             'ZAG OFFERS',
-            style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            style: theme.textTheme.labelSmall?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.w900,
                   letterSpacing: 2,
@@ -208,7 +205,6 @@ class _HomePageState extends State<HomePage> {
         IconButton(
           icon: Icon(
             IconlyLight.notification,
-            color: AppColors.textPrimary,
           ),
           onPressed: () => Navigator.push(
             context,
@@ -221,8 +217,8 @@ class _HomePageState extends State<HomePage> {
           icon: Icon(
             IconlyLight.show,
             color: canOpenMap
-                ? AppColors.textPrimary
-                : AppColors.textSecondary.withValues(alpha: 0.5),
+                ? Theme.of(context).iconTheme.color
+                : Theme.of(context).disabledColor.withValues(alpha: 0.5),
           ),
           onPressed: canOpenMap
               ? () => Navigator.push(
@@ -254,7 +250,6 @@ class _HomePageState extends State<HomePage> {
           Text(
             'عروض النهاردة في الزقازيق 📍',
             style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  color: AppColors.textPrimary,
                   fontWeight: FontWeight.w800,
                 ),
           ),
@@ -357,9 +352,9 @@ class _HomePageState extends State<HomePage> {
               child: Container(
                 padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
                 decoration: BoxDecoration(
-                  color: Colors.grey[50],
+                  color: Theme.of(context).cardColor,
                   borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: Colors.grey[200]!),
+                  border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
                 ),
                 child: Row(
                   children: [
@@ -476,19 +471,26 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         SizedBox(
-          height: 242,
+          height: 280,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: 16, right: 4),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
             itemCount: offers.length,
             itemBuilder: (context, index) {
               final offer = offers[index];
-              return OfferCard(
-                offer: offer,
-                onTap: () => Navigator.push(
-                  context,
-                  MaterialPageRoute(
-                    builder: (context) => OfferDetailPage(offer: offer),
+              return Padding(
+                padding: const EdgeInsets.only(right: 12),
+                child: SizedBox(
+                  width: 175,
+                  child: OfferCard(
+                    offer: offer,
+                    isWide: true,
+                    onTap: () => Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => OfferDetailPage(offer: offer),
+                      ),
+                    ),
                   ),
                 ),
               );

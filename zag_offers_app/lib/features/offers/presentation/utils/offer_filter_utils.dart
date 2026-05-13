@@ -24,7 +24,7 @@ class OfferFilterUtils {
     final filtered = offers.where((offer) {
       final normalizedArea = offer.store.area.trim();
       final matchesCategory =
-          category == 'الكل' || offer.store.category == category;
+          category == 'الكل' || offer.store.category?.trim() == category.trim();
       final matchesArea = area == 'الكل' || normalizedArea == area.trim();
       final matchesDiscount = offer.discountPercentage >= minDiscount;
       return matchesCategory && matchesArea && matchesDiscount;

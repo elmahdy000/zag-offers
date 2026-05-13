@@ -9,79 +9,93 @@ class NotificationsPage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      appBar: AppBar(
-        title: const Text(
-          'الإشعارات',
-          style: TextStyle(fontWeight: FontWeight.w900),
-        ),
-        centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
-      ),
-      body: BlocBuilder<NotificationBloc, NotificationState>(
-        builder: (context, state) {
-          final feedState = state is NotificationFeedState
-              ? state
-              : NotificationFeedState(items: const []);
+    return BlocBuilder<NotificationBloc, NotificationState>(
+      builder: (context, state) {
+        final feedState = state is NotificationFeedState
+            ? state
+            : NotificationFeedState(items: const []);
 
-          if (feedState.items.isNotEmpty) {
-            return ListView.separated(
-              padding: const EdgeInsets.all(20),
-              itemCount: feedState.items.length,
-              separatorBuilder: (context, index) => const SizedBox(height: 16),
-              itemBuilder: (context, index) {
-                final item = feedState.items[index];
-                return _NotificationCard(
-                  title: item.title,
-                  subtitle: item.message,
-                  trailing: _formatRelativeTime(item.createdAt),
-                );
-              },
-            );
-          }
-
-          return Center(
-            child: Padding(
-              padding: const EdgeInsets.all(24),
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(24),
-                    decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      shape: BoxShape.circle,
-                    ),
-                    child: Icon(
-                      Icons.notifications_none_rounded,
-                      size: 72,
-                      color: Colors.grey[300],
-                    ),
-                  ),
-                  const SizedBox(height: 24),
-                  const Text(
-                    'لا توجد إشعارات حاليًا',
-                    style: TextStyle(
-                      fontSize: 20,
-                      fontWeight: FontWeight.bold,
-                      color: AppColors.textPrimary,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  const Text(
-                    'عندما تصل تنبيهات جديدة أو رسائل مباشرة ستظهر هنا.',
-                    textAlign: TextAlign.center,
-                    style: TextStyle(color: AppColors.textSecondary),
-                  ),
-                ],
-              ),
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text(
+              'الإشعارات',
+              style: TextStyle(fontWeight: FontWeight.w900),
             ),
-          );
-        },
-      ),
+            actions: [
+              if (feedState.items.isNotEmpty)
+                TextButton(
+                  onPressed: () {
+                    context.read<NotificationBloc>().add(ClearAllNotifications());
+                  },
+                  child: const Text(
+                    'مسح الكل',
+                    style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold),
+                  ),
+                ),
+              const SizedBox(width: 8),
+            ],
+          ),
+          body: feedState.items.isNotEmpty
+              ? ListView.separated(
+                  padding: const EdgeInsets.all(20),
+                  itemCount: feedState.items.length,
+                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  itemBuilder: (context, index) {
+                    final item = feedState.items[index];
+                    return _NotificationCard(
+                      title: item.title,
+                      subtitle: item.message,
+                      trailing: _formatRelativeTime(item.createdAt),
+                    );
+                  },
+                )
+              : Center(
+                  child: Padding(
+                    padding: const EdgeInsets.all(24),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(24),
+                          decoration: BoxDecoration(
+                            color: Theme.of(context).cardColor,
+                            shape: BoxShape.circle,
+                          ),
+                          child: Stack(
+                            alignment: Alignment.center,
+                            children: [
+                              Icon(
+                                Icons.notifications_none_rounded,
+                                size: 80,
+                                color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
+                              ),
+                              const Icon(
+                                Icons.notifications_off_outlined,
+                                size: 40,
+                                color: AppColors.textSecondary,
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        Text(
+                          'لا توجد إشعارات حاليًا',
+                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.bold,
+                              ),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'عندما تصل تنبيهات جديدة أو رسائل مباشرة ستظهر هنا.',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(color: AppColors.textSecondary),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+        );
+      },
     );
   }
 
@@ -107,11 +121,12 @@ class _NotificationCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
       decoration: BoxDecoration(
-        color: Colors.grey[50],
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: Colors.grey[100]!),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: ListTile(
         contentPadding: const EdgeInsets.all(16),
@@ -135,12 +150,19 @@ class _NotificationCard extends StatelessWidget {
           padding: const EdgeInsets.only(top: 4),
           child: Text(
             subtitle,
-            style: TextStyle(color: Colors.grey[600], fontSize: 13, height: 1.4),
+            style: theme.textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontSize: 13,
+                  height: 1.4,
+                ),
           ),
         ),
         trailing: Text(
           trailing,
-          style: const TextStyle(fontSize: 10, color: Colors.grey),
+          style: theme.textTheme.labelSmall?.copyWith(
+                fontSize: 10,
+                color: AppColors.textSecondary,
+              ),
         ),
       ),
     );

@@ -12,6 +12,10 @@ import '../../../../injection_container.dart';
 import '../bloc/coupons_bloc.dart';
 import '../bloc/coupons_event.dart';
 import '../bloc/coupons_state.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class MyCouponsPage extends StatefulWidget {
   const MyCouponsPage({super.key});
@@ -22,29 +26,34 @@ class MyCouponsPage extends StatefulWidget {
 
 class _MyCouponsPageState extends State<MyCouponsPage> {
   StreamSubscription<Map<String, dynamic>>? _couponSub;
+  bool _isLoggedIn = false;
 
   @override
   void initState() {
     super.initState();
-    context.read<CouponsBloc>().add(FetchUserCoupons());
+    _checkAuth();
+  }
 
-    // Listen for real-time coupon status changes (e.g. vendor redeems coupon)
-    _couponSub = sl<SocketService>().onCouponUpdate.listen((data) {
-      if (!mounted) return;
-      // Refresh the list so the status badge updates immediately
+  Future<void> _checkAuth() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token != null && token.isNotEmpty) {
+      setState(() => _isLoggedIn = true);
       context.read<CouponsBloc>().add(FetchUserCoupons());
 
-      final status = data['status'] as String? ?? '';
-      if (status == 'USED') {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تم استخدام الكوبون بنجاح!'),
-            backgroundColor: Colors.green,
-            behavior: SnackBarBehavior.floating,
-          ),
-        );
-      }
-    });
+      // Listen for real-time coupon status changes
+      _couponSub?.cancel();
+      _couponSub = sl<SocketService>().onCouponUpdate.listen((data) {
+        if (!mounted) return;
+        context.read<CouponsBloc>().add(FetchUserCoupons());
+        final status = data['status'] as String? ?? '';
+        if (status == 'USED') {
+          SnackBarUtils.showSuccess(context, 'تم استخدام الكوبون بنجاح!');
+        }
+      });
+    } else {
+      setState(() => _isLoggedIn = false);
+    }
   }
 
   @override
@@ -80,15 +89,9 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
   }
 
   Future<void> _copyCode(BuildContext context, String code) async {
-    final messenger = ScaffoldMessenger.of(context);
     await Clipboard.setData(ClipboardData(text: code));
     if (!mounted) return;
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('تم نسخ الكود'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
   }
 
   void _showQRDialog(BuildContext context, String code, String storeName) {
@@ -96,9 +99,11 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
       context: context,
       builder: (dialogContext) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
+        content: SizedBox(
+          width: MediaQuery.of(dialogContext).size.width * 0.85,
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
             Text(
               storeName,
               textAlign: TextAlign.center,
@@ -108,11 +113,11 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             Container(
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: Colors.white,
+                color: Colors.white, // Keep QR background white for readability
                 borderRadius: BorderRadius.circular(20),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.05),
+                    color: Colors.black.withValues(alpha: 0.1),
                     blurRadius: 15,
                   ),
                 ],
@@ -123,7 +128,11 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 size: 200,
                 eyeStyle: const QrEyeStyle(
                   eyeShape: QrEyeShape.circle,
-                  color: AppColors.primary,
+                  color: Colors.black, // Dark color for QR contrast
+                ),
+                dataModuleStyle: const QrDataModuleStyle(
+                  dataModuleShape: QrDataModuleShape.square,
+                  color: Colors.black,
                 ),
               ),
             ),
@@ -143,7 +152,8 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 ),
               ),
             ),
-          ],
+            ],
+          ),
         ),
         actions: [
           TextButton(
@@ -161,21 +171,19 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
         title: Text(
           'كوبوناتي',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+          style: theme.textTheme.headlineSmall?.copyWith(
             fontWeight: FontWeight.w900,
-            color: AppColors.textPrimary,
           ),
         ),
-        backgroundColor: Colors.white,
         elevation: 0,
         centerTitle: true,
       ),
-      body: BlocBuilder<CouponsBloc, CouponsState>(
+      body: !_isLoggedIn ? _buildLoginRequired() : BlocBuilder<CouponsBloc, CouponsState>(
         builder: (context, state) {
           if (state is CouponsLoading || state is CouponsInitial) {
             return const Center(child: CircularProgressIndicator());
@@ -209,7 +217,6 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل الكوبونات',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -266,22 +273,31 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.confirmation_num_outlined,
-                          size: 64,
-                          color: AppColors.primary,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.confirmation_num_rounded,
+                              size: 80,
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                            const Icon(
+                              Icons.qr_code_scanner_rounded,
+                              size: 40,
+                              color: AppColors.primary,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       Text(
                         'لا توجد كوبونات حاليًا',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                          color: AppColors.textPrimary,
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -289,9 +305,10 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       Text(
                         'عندما تحصل على كوبون جديد سيظهر هنا. ابدأ باستكشاف العروض المتاحة الآن!',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: TextStyle(
                           color: AppColors.textSecondary,
-                          height: 1.5,
+                          height: 1.6,
+                          fontSize: 15,
                         ),
                       ),
                     ],
@@ -314,7 +331,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                   return Container(
                     margin: const EdgeInsets.only(bottom: 20),
                     decoration: BoxDecoration(
-                      color: Colors.white,
+                      color: theme.cardColor,
                       borderRadius: BorderRadius.circular(24),
                       boxShadow: [
                         BoxShadow(
@@ -323,7 +340,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           offset: const Offset(0, 8),
                         ),
                       ],
-                      border: Border.all(color: Colors.grey[100]!),
+                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       children: [
@@ -404,6 +421,70 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
           return const SizedBox();
         },
+      ),
+    );
+  }
+
+  Widget _buildLoginRequired() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.confirmation_num_outlined,
+                size: 64,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'أين كوبوناتك؟',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'سجل دخولك لتتمكن من رؤية الكوبونات التي قمت بحفظها واستخدامها لدى المتاجر.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.cairo(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                ).then((_) => _checkAuth()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'تسجيل الدخول',
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

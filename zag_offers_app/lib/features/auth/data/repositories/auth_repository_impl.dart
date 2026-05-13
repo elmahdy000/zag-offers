@@ -19,11 +19,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, UserEntity>> login({
-    required String phone,
+    required String identifier,
     required String password,
   }) async {
     try {
-      final userModel = await remoteDataSource.login(phone, password);
+      final userModel = await remoteDataSource.login(identifier, password);
 
       if (userModel.token != null) {
         await localDataSource.cacheToken(userModel.token!);
@@ -50,6 +50,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String password,
     required String name,
     String? area,
+    String? email,
   }) async {
     try {
       final userModel = await remoteDataSource.register(
@@ -57,6 +58,7 @@ class AuthRepositoryImpl implements AuthRepository {
         password,
         name,
         area,
+        email,
       );
 
       if (userModel.token != null) {
@@ -97,6 +99,34 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(mapDioErrorToMessage(e)));
     } catch (e) {
       return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> forgotPassword(String email) async {
+    try {
+      await remoteDataSource.forgotPassword(email);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(mapDioErrorToMessage(e)));
+    } catch (e) {
+      return Left(ServerFailure(e.toString().replaceAll('Exception: ', '')));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> resetPassword({
+    required String email,
+    required String otp,
+    required String newPassword,
+  }) async {
+    try {
+      await remoteDataSource.resetPassword(email, otp, newPassword);
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(mapDioErrorToMessage(e)));
+    } catch (e) {
+      return Left(ServerFailure(e.toString().replaceAll('Exception: ', '')));
     }
   }
 }

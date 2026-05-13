@@ -49,15 +49,23 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     final areas = widget.availableAreas.isEmpty
         ? const ['الكل']
         : widget.availableAreas;
 
     return Container(
       padding: const EdgeInsets.fromLTRB(24, 24, 24, 32),
-      decoration: const BoxDecoration(
-        color: Colors.white,
-        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: theme.brightness == Brightness.dark ? 0.3 : 0.05),
+            blurRadius: 20,
+            offset: const Offset(0, -5),
+          ),
+        ],
       ),
       child: SafeArea(
         top: false,
@@ -70,7 +78,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               children: [
                 Text(
                   'تصفية النتائج',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 TextButton(
                   onPressed: _reset,
@@ -81,7 +89,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
             const SizedBox(height: 28),
             Text(
               'المنطقة',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             SizedBox(
@@ -99,12 +107,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                       selected: isSelected,
                       onSelected: (_) => setState(() => _currentArea = area),
                       selectedColor: AppColors.primary,
-                      labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color:
-                            isSelected ? Colors.white : AppColors.textPrimary,
+                      labelStyle: theme.textTheme.labelLarge?.copyWith(
+                        color: isSelected ? Colors.white : theme.textTheme.bodyMedium?.color,
                         fontWeight: FontWeight.bold,
                       ),
-                      backgroundColor: Colors.grey[100],
+                      backgroundColor: theme.scaffoldBackgroundColor,
+                      side: BorderSide(
+                        color: isSelected ? AppColors.primary : theme.dividerColor.withValues(alpha: 0.1),
+                      ),
                       showCheckmark: false,
                     ),
                   );
@@ -117,11 +127,11 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               children: [
                 Text(
                   'الحد الأدنى للخصم',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                  style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
                   '${_currentDiscount.toInt()}%+',
-                  style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                  style: theme.textTheme.titleMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
                   ),
@@ -134,12 +144,13 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
               max: 90,
               divisions: 9,
               activeColor: AppColors.primary,
+              inactiveColor: theme.dividerColor.withValues(alpha: 0.2),
               onChanged: (value) => setState(() => _currentDiscount = value),
             ),
             const SizedBox(height: 20),
             Text(
               'الترتيب',
-              style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             const SizedBox(height: 12),
             Wrap(
@@ -154,16 +165,14 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                     setState(() => _currentSort = option['value']!);
                   },
                   selectedColor: AppColors.primary.withValues(alpha: 0.12),
-                  labelStyle: Theme.of(context).textTheme.labelLarge?.copyWith(
-                    color: isSelected
-                        ? AppColors.primary
-                        : AppColors.textPrimary,
+                  labelStyle: theme.textTheme.labelLarge?.copyWith(
+                    color: isSelected ? AppColors.primary : theme.textTheme.bodyMedium?.color,
                     fontWeight: FontWeight.bold,
                   ),
-                  side: isSelected
-                      ? const BorderSide(color: AppColors.primary)
-                      : BorderSide.none,
-                  backgroundColor: Colors.grey[100],
+                  side: BorderSide(
+                    color: isSelected ? AppColors.primary : theme.dividerColor.withValues(alpha: 0.1),
+                  ),
+                  backgroundColor: theme.scaffoldBackgroundColor,
                   showCheckmark: false,
                 );
               }).toList(),

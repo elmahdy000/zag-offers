@@ -5,6 +5,7 @@ import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
+import 'package:zag_offers_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_app/injection_container.dart';
 
 class RegisterPage extends StatefulWidget {
@@ -18,6 +19,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _phoneController = TextEditingController();
+  final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _areaController = TextEditingController();
   bool _isPasswordVisible = false;
@@ -30,6 +32,17 @@ class _RegisterPageState extends State<RegisterPage> {
     }
     if (value.trim().length < 3) {
       return 'الاسم يجب أن يكون 3 أحرف على الأقل';
+    }
+    return null;
+  }
+
+  String? _validateEmail(String? value) {
+    if (value == null || value.trim().isEmpty) {
+      return 'برجاء إدخال البريد الإلكتروني';
+    }
+    final emailRegex = RegExp(r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$');
+    if (!emailRegex.hasMatch(value.trim())) {
+      return 'برجاء إدخال بريد إلكتروني صحيح';
     }
     return null;
   }
@@ -52,6 +65,7 @@ class _RegisterPageState extends State<RegisterPage> {
   void dispose() {
     _nameController.dispose();
     _phoneController.dispose();
+    _emailController.dispose();
     _passwordController.dispose();
     _areaController.dispose();
     super.dispose();
@@ -59,26 +73,17 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return BlocProvider(
       create: (_) => sl<AuthBloc>(),
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
 
           if (state is AuthSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم إنشاء الحساب وتسجيل الدخول بنجاح'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            SnackBarUtils.showSuccess(context, 'تم إنشاء الحساب وتسجيل الدخول بنجاح');
             Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const MainScreen()),
@@ -100,25 +105,23 @@ class _RegisterPageState extends State<RegisterPage> {
                       width: double.infinity,
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.08),
+                        color: theme.cardColor,
                         borderRadius: BorderRadius.circular(24),
+                        border: Border.all(color: theme.dividerColor),
                       ),
-                      child: const Column(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
                             'انضم إلينا الآن',
-                            style: TextStyle(
-                              fontSize: 24,
+                            style: theme.textTheme.headlineSmall?.copyWith(
                               fontWeight: FontWeight.w800,
-                              color: AppColors.textPrimary,
                             ),
                           ),
-                          SizedBox(height: 8),
+                          const SizedBox(height: 8),
                           Text(
                             'أنشئ حسابك مرة واحدة وابدأ في حفظ العروض والحصول على الكوبونات مباشرة.',
-                            style: TextStyle(
-                              color: AppColors.textSecondary,
+                            style: theme.textTheme.bodyMedium?.copyWith(
                               height: 1.45,
                             ),
                           ),
@@ -142,6 +145,16 @@ class _RegisterPageState extends State<RegisterPage> {
                       icon: Icons.phone_android_rounded,
                       validator: _validatePhone,
                       keyboardType: TextInputType.phone,
+                      textInputAction: TextInputAction.next,
+                    ),
+                    const SizedBox(height: 18),
+                    _buildField(
+                      controller: _emailController,
+                      label: 'البريد الإلكتروني',
+                      hint: 'mail@example.com',
+                      icon: Icons.email_outlined,
+                      validator: _validateEmail,
+                      keyboardType: TextInputType.emailAddress,
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 18),
@@ -203,6 +216,7 @@ class _RegisterPageState extends State<RegisterPage> {
       context.read<AuthBloc>().add(
             RegisterSubmitted(
               phone: _phoneController.text.trim(),
+              email: _emailController.text.trim(),
               password: _passwordController.text,
               name: _nameController.text.trim(),
               area: _areaController.text.trim().isEmpty

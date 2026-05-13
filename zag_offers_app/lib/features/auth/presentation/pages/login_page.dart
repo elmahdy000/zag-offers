@@ -5,7 +5,9 @@ import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_state.dart';
 import 'package:zag_offers_app/features/auth/presentation/pages/register_page.dart';
+import 'package:zag_offers_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
+import 'package:zag_offers_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_app/injection_container.dart';
 
 class LoginPage extends StatefulWidget {
@@ -17,16 +19,20 @@ class LoginPage extends StatefulWidget {
 
 class _LoginPageState extends State<LoginPage> {
   final _formKey = GlobalKey<FormState>();
-  final _phoneController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isPasswordVisible = false;
 
-  static final _egyptianPhone = RegExp(r'^01[0125][0-9]{8}$');
-
-  String? _validatePhone(String? value) {
-    if (value == null || value.isEmpty) return 'برجاء إدخال رقم الموبايل';
-    if (!_egyptianPhone.hasMatch(value.trim())) {
-      return 'رقم الموبايل غير صحيح مثل 01012345678';
+  String? _validateIdentifier(String? value) {
+    if (value == null || value.isEmpty) return 'برجاء إدخال رقم الموبايل أو البريد الإلكتروني';
+    final val = value.trim();
+    if (val.contains('@')) {
+      if (!val.contains('.') || val.length < 5) return 'برجاء إدخال بريد إلكتروني صحيح';
+    } else {
+      final egyptianPhone = RegExp(r'^01[0125][0-9]{8}$');
+      if (!egyptianPhone.hasMatch(val)) {
+        return 'رقم الموبايل غير صحيح أو بريد إلكتروني غير صالح';
+      }
     }
     return null;
   }
@@ -95,7 +101,7 @@ class _LoginPageState extends State<LoginPage> {
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
@@ -107,13 +113,7 @@ class _LoginPageState extends State<LoginPage> {
       child: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
           if (state is AuthSuccess) {
             Navigator.pushReplacement(
@@ -175,12 +175,12 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 28),
                     _buildField(
-                      controller: _phoneController,
-                      label: 'رقم الموبايل',
-                      hint: '01xxxxxxxxx',
-                      icon: Icons.phone_android_rounded,
-                      keyboardType: TextInputType.phone,
-                      validator: _validatePhone,
+                      controller: _identifierController,
+                      label: 'رقم الموبايل أو البريد الإلكتروني',
+                      hint: '01xxxxxxxxx أو mail@example.com',
+                      icon: Icons.person_outline_rounded,
+                      keyboardType: TextInputType.emailAddress,
+                      validator: _validateIdentifier,
                       textInputAction: TextInputAction.next,
                     ),
                     const SizedBox(height: 18),
@@ -202,7 +202,14 @@ class _LoginPageState extends State<LoginPage> {
                     Align(
                       alignment: Alignment.centerLeft,
                       child: TextButton(
-                        onPressed: _showForgotPasswordSheet,
+                        onPressed: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ForgotPasswordPage(),
+                            ),
+                          );
+                        },
                         child: const Text('نسيت كلمة السر؟'),
                       ),
                     ),
@@ -268,7 +275,7 @@ class _LoginPageState extends State<LoginPage> {
     if (_formKey.currentState!.validate()) {
       context.read<AuthBloc>().add(
             LoginSubmitted(
-              phone: _phoneController.text.trim(),
+              identifier: _identifierController.text.trim(),
               password: _passwordController.text,
             ),
           );

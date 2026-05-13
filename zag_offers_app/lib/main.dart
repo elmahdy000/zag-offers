@@ -30,6 +30,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  await di.init();
+
   // تهيئة Firebase
   try {
     await Firebase.initializeApp(
@@ -45,7 +47,6 @@ void main() async {
     debugPrint('Firebase initialization failed: $e');
   }
 
-  await di.init();
   runApp(const ZagOffersApp());
 }
 
@@ -67,6 +68,8 @@ class ZagOffersApp extends StatelessWidget {
         title: 'Zag Offers',
         debugShowCheckedModeBanner: false,
         theme: AppTheme.lightTheme,
+        darkTheme: AppTheme.darkTheme,
+        themeMode: ThemeMode.dark,
         routes: {
           '/coupons': (context) => const MyCouponsPage(),
         },
@@ -78,9 +81,14 @@ class ZagOffersApp extends StatelessWidget {
                 if (state is NotificationFeedState && state.latestItem != null) {
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
-                      content: Text(
-                        state.latestItem!.message,
-                        style: const TextStyle(fontWeight: FontWeight.bold),
+                      content: GestureDetector(
+                        onTap: () {
+                          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+                        },
+                        child: Text(
+                          state.latestItem!.message,
+                          style: const TextStyle(fontWeight: FontWeight.bold),
+                        ),
                       ),
                       backgroundColor: Colors.orange[800],
                       behavior: SnackBarBehavior.floating,

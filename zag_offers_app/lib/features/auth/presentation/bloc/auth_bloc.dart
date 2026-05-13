@@ -6,6 +6,8 @@ import '../../domain/usecases/login_usecase.dart';
 import '../../domain/usecases/logout_usecase.dart';
 import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/update_fcm_token_usecase.dart';
+import '../../domain/usecases/forgot_password_usecase.dart';
+import '../../domain/usecases/reset_password_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -14,16 +16,50 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final RegisterUseCase registerUseCase;
   final LogoutUseCase logoutUseCase;
   final UpdateFcmTokenUseCase updateFcmTokenUseCase;
+  final ForgotPasswordUseCase forgotPasswordUseCase;
+  final ResetPasswordUseCase resetPasswordUseCase;
 
   AuthBloc({
     required this.loginUseCase,
     required this.registerUseCase,
     required this.logoutUseCase,
     required this.updateFcmTokenUseCase,
+    required this.forgotPasswordUseCase,
+    required this.resetPasswordUseCase,
   }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<RegisterSubmitted>(_onRegisterSubmitted);
     on<LogoutRequested>(_onLogoutRequested);
+    on<ForgotPasswordRequested>(_onForgotPasswordRequested);
+    on<ResetPasswordSubmitted>(_onResetPasswordSubmitted);
+  }
+
+  Future<void> _onForgotPasswordRequested(
+    ForgotPasswordRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await forgotPasswordUseCase(event.email);
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(ForgotPasswordSent()),
+    );
+  }
+
+  Future<void> _onResetPasswordSubmitted(
+    ResetPasswordSubmitted event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    final result = await resetPasswordUseCase(
+      email: event.email,
+      otp: event.otp,
+      newPassword: event.newPassword,
+    );
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(ResetPasswordSuccess()),
+    );
   }
 
   Future<void> _onLogoutRequested(
@@ -42,7 +78,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   ) async {
     emit(AuthLoading());
     final result = await loginUseCase(
-      phone: event.phone,
+      identifier: event.identifier,
       password: event.password,
     );
 
@@ -70,13 +106,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       password: event.password,
       name: event.name,
       area: event.area,
+      email: event.email,
     );
 
     await registerResult.fold(
       (failure) async => emit(AuthError(failure.message)),
       (_) async {
         final loginResult = await loginUseCase(
-          phone: event.phone,
+          identifier: event.phone,
           password: event.password,
         );
 

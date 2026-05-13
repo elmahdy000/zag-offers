@@ -4,6 +4,9 @@ import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -13,30 +16,39 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
+  bool _isLoggedIn = false;
+
   @override
   void initState() {
     super.initState();
-    final state = context.read<FavoritesBloc>().state;
-    if (state is! FavoritesLoaded) {
-      context.read<FavoritesBloc>().add(FetchFavorites());
+    _checkAuth();
+  }
+
+  Future<void> _checkAuth() async {
+    final prefs = await SharedPreferences.getInstance();
+    final token = prefs.getString('auth_token');
+    if (token != null && token.isNotEmpty) {
+      setState(() => _isLoggedIn = true);
+      final state = context.read<FavoritesBloc>().state;
+      if (state is! FavoritesLoaded) {
+        context.read<FavoritesBloc>().add(FetchFavorites());
+      }
+    } else {
+      setState(() => _isLoggedIn = false);
     }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        title: Text(
+        title: const Text(
           'المفضلة',
-          style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+          style: TextStyle(fontWeight: FontWeight.w900),
         ),
         centerTitle: true,
-        elevation: 0,
-        backgroundColor: Colors.white,
-        foregroundColor: AppColors.textPrimary,
       ),
-      body: BlocBuilder<FavoritesBloc, FavoritesState>(
+      body: !_isLoggedIn ? _buildLoginRequired() : BlocBuilder<FavoritesBloc, FavoritesState>(
         builder: (context, state) {
           if (state is FavoritesLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -53,33 +65,52 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       Container(
-                        padding: const EdgeInsets.all(24),
+                        padding: const EdgeInsets.all(32),
                         decoration: BoxDecoration(
                           color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.favorite_border_rounded,
-                          size: 64,
-                          color: AppColors.primary,
+                        child: Stack(
+                          alignment: Alignment.center,
+                          children: [
+                            Icon(
+                              Icons.favorite_rounded,
+                              size: 80,
+                              color: AppColors.primary.withValues(alpha: 0.2),
+                            ),
+                            const Icon(
+                              Icons.favorite_outline_rounded,
+                              size: 40,
+                              color: AppColors.primary,
+                            ),
+                          ],
                         ),
                       ),
-                      const SizedBox(height: 24),
+                      const SizedBox(height: 32),
                       Text(
                         'قائمة المفضلة فارغة',
                         style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 12),
                       Text(
                         'ابدأ بإضافة العروض التي تعجبك لتجدها هنا بسهولة في أي وقت.',
                         textAlign: TextAlign.center,
-                        style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        style: TextStyle(
                           color: AppColors.textSecondary,
-                          height: 1.5,
+                          height: 1.6,
+                          fontSize: 15,
                         ),
+                      ),
+                      const SizedBox(height: 32),
+                      OutlinedButton(
+                        onPressed: () => Navigator.pop(context),
+                        style: OutlinedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
+                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                        ),
+                        child: const Text('استكشف العروض'),
                       ),
                     ],
                   ),
@@ -145,7 +176,6 @@ class _FavoritesPageState extends State<FavoritesPage> {
                       isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل المفضلة',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -194,6 +224,70 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
           return const SizedBox();
         },
+      ),
+    );
+  }
+
+  Widget _buildLoginRequired() {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.lock_outline_rounded,
+                size: 64,
+                color: AppColors.primary,
+              ),
+            ),
+            const SizedBox(height: 24),
+            Text(
+              'سجل دخولك أولاً',
+              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+              ),
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'يجب تسجيل الدخول لتتمكن من إضافة العروض للمفضلة والوصول إليها في أي وقت.',
+              textAlign: TextAlign.center,
+              style: GoogleFonts.cairo(
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              height: 55,
+              child: ElevatedButton(
+                onPressed: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (context) => const LoginPage()),
+                ).then((_) => _checkAuth()),
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'تسجيل الدخول',
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
+                ),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

@@ -1,6 +1,7 @@
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../injection_container.dart' as di;
 import '../network/api_client.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
@@ -9,12 +10,35 @@ import '../../features/offers/presentation/pages/offer_loading_page.dart';
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   static String? _fcmToken;
   static String? _lastSubscribedArea;
 
   static String? get currentToken => _fcmToken;
 
   static Future<void> initialize() async {
+    // إعداد الإشعارات المحلية للقنوات والصوت
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('ic_notification');
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+    
+    await _localNotifications.initialize(initializationSettings);
+
+    // إنشاء قناة الإشعارات مع الصوت المخصص
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'offers_channel',
+      'عروض زقازيق',
+      description: 'إشعارات العروض والخصومات الجديدة',
+      importance: Importance.max,
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+
     final settings = await _messaging.requestPermission(
       alert: true,
       badge: true,
@@ -22,8 +46,13 @@ class NotificationService {
     );
 
     if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+      debugPrint('🔔 Notification permissions granted');
       await _messaging.subscribeToTopic('all_users');
+      await _messaging.subscribeToTopic('all_customers');
+      debugPrint('🔔 Subscribed to all_users and all_customers');
+      
       _fcmToken = await _messaging.getToken();
+      debugPrint('🔔 FCM Token: $_fcmToken');
       
       if (_fcmToken != null) {
         final prefs = await SharedPreferences.getInstance();
@@ -32,6 +61,8 @@ class NotificationService {
         // Load last subscribed area from storage to sync
         _lastSubscribedArea = prefs.getString('last_area_topic');
       }
+    } else {
+      debugPrint('❌ Notification permissions denied');
     }
 
     _messaging.onTokenRefresh.listen((newToken) async {
@@ -120,8 +151,36 @@ class NotificationService {
     final title = message.notification?.title ?? 'تحديث جديد';
     final body = message.notification?.body ?? '';
     
+    // إظهار تنبيه محلي للمستخدم ليراه في الـ Foreground
+    _showLocalNotification(title, body);
+
     di.sl<NotificationBloc>().add(
       GeneralNotificationReceived(title: title, body: body),
+    );
+  }
+
+  static Future<void> _showLocalNotification(String title, String body) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'offers_channel',
+      'عروض زقازيق',
+      channelDescription: 'إشعارات العروض والخصومات الجديدة',
+      importance: Importance.max,
+      priority: Priority.high,
+      ticker: 'ticker',
+      icon: 'ic_notification',
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+    );
+    
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    
+    await _localNotifications.show(
+      DateTime.now().millisecond, // ID فريد
+      title,
+      body,
+      platformChannelSpecifics,
     );
   }
 

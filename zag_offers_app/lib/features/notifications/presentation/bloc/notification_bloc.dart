@@ -21,6 +21,8 @@ class NewSocialProofReceived extends NotificationEvent {
 
 class ClearLatestNotification extends NotificationEvent {}
 
+class ClearAllNotifications extends NotificationEvent {}
+
 class GeneralNotificationReceived extends NotificationEvent {
   final String title;
   final String body;
@@ -80,6 +82,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<NewSocialProofReceived>(_onNewSocialProofReceived);
     on<ClearLatestNotification>(_onClearLatestNotification);
     on<GeneralNotificationReceived>(_onGeneralNotificationReceived);
+    on<ClearAllNotifications>((event, emit) {
+      emit(NotificationFeedState(items: const []));
+    });
   }
 
   void _onNewSocialProofReceived(

@@ -1,6 +1,7 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/offers/domain/entities/offer_entity.dart';
@@ -12,6 +13,7 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
+import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -96,24 +98,20 @@ class _SearchPageState extends State<SearchPage> {
 
   @override
   Widget build(BuildContext context) {
+    final theme = Theme.of(context);
     return Scaffold(
-      backgroundColor: Colors.white,
       appBar: AppBar(
-        backgroundColor: Colors.white,
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(
-            Icons.arrow_back_ios_new_rounded,
-            color: AppColors.textPrimary,
-          ),
+          icon: const Icon(Icons.arrow_back_ios_new_rounded),
           onPressed: () => Navigator.pop(context),
         ),
         title: Container(
           height: 50,
           decoration: BoxDecoration(
-            color: Colors.grey[50],
+            color: theme.cardColor,
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.grey[100]!),
+            border: Border.all(color: theme.dividerColor),
           ),
           child: TextField(
             controller: _searchController,
@@ -137,7 +135,6 @@ class _SearchPageState extends State<SearchPage> {
                       icon: const Icon(
                         Icons.close_rounded,
                         size: 18,
-                        color: Colors.grey,
                       ),
                       onPressed: () => _clearSearch(context),
                     )
@@ -149,10 +146,7 @@ class _SearchPageState extends State<SearchPage> {
           Stack(
             children: [
               IconButton(
-                icon: const Icon(
-                  Icons.tune_rounded,
-                  color: AppColors.textPrimary,
-                ),
+                icon: const Icon(Icons.tune_rounded),
                 onPressed: _showFilterSheet,
               ),
               if (_currentArea != 'الكل' ||
@@ -195,7 +189,7 @@ class _SearchPageState extends State<SearchPage> {
 
             return Row(
               children: [
-                _buildSidebar(),
+                _buildSidebar(context),
                 Expanded(child: _buildOffersGrid(context, state)),
               ],
             );
@@ -229,7 +223,6 @@ class _SearchPageState extends State<SearchPage> {
                       isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
@@ -282,51 +275,93 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSidebar() {
+  Widget _buildSidebar(BuildContext context) {
+    final theme = Theme.of(context);
     return Container(
-      width: 92,
+      width: 96,
       decoration: BoxDecoration(
-        color: Colors.grey[50],
-        border: Border(left: BorderSide(color: Colors.grey[100]!)),
+        color: theme.cardColor.withValues(alpha: 0.8),
+        border: Border(
+          left: BorderSide(
+            color: theme.dividerColor.withValues(alpha: 0.1),
+            width: 1,
+          ),
+        ),
       ),
       child: ListView.builder(
+        padding: const EdgeInsets.symmetric(vertical: 12),
         itemCount: searchSidebarCategories.length,
         itemBuilder: (context, index) {
           final category = searchSidebarCategories[index];
-          final isSelected = _selectedCategory == category.name;
-          return InkWell(
-            onTap: () => setState(() => _selectedCategory = category.name),
-            child: AnimatedContainer(
-              duration: const Duration(milliseconds: 200),
-              padding: const EdgeInsets.symmetric(vertical: 18, horizontal: 8),
-              decoration: BoxDecoration(
-                color: isSelected ? Colors.white : Colors.transparent,
-                border: isSelected
-                    ? const Border(
-                        right: BorderSide(color: AppColors.primary, width: 3),
-                      )
-                    : null,
-              ),
-              child: Column(
-                children: [
-                  Icon(
-                    category.icon,
-                    color: isSelected ? AppColors.primary : Colors.grey[400],
-                    size: isSelected ? 26 : 22,
-                  ),
-                  const SizedBox(height: 6),
-                  Text(
-                    category.name,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 10,
-                      color:
-                          isSelected ? AppColors.primary : Colors.grey[600],
-                      fontWeight:
-                          isSelected ? FontWeight.bold : FontWeight.normal,
+          final categoryBackendName = category.backendName ?? category.name;
+          final isSelected = _selectedCategory == categoryBackendName;
+          
+          return Padding(
+            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            child: InkWell(
+              onTap: () {
+                setState(() {
+                  _selectedCategory = categoryBackendName;
+                });
+                HapticFeedback.lightImpact();
+              },
+              borderRadius: BorderRadius.circular(16),
+              child: AnimatedContainer(
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                decoration: BoxDecoration(
+                  color: isSelected 
+                      ? AppColors.primary.withValues(alpha: 0.1) 
+                      : Colors.transparent,
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Container(
+                      width: 48,
+                      height: 48,
+                      padding: const EdgeInsets.all(2),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        border: Border.all(
+                          color: isSelected 
+                              ? AppColors.primary 
+                              : theme.dividerColor.withValues(alpha: 0.1),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: ClipOval(
+                        child: category.imagePath != null
+                            ? NetworkImageWidget(
+                                imageUrl: category.imagePath!,
+                                fit: BoxFit.cover,
+                              )
+                            : Container(
+                                color: category.color.withValues(alpha: 0.1),
+                                child: Icon(
+                                  category.icon,
+                                  color: category.color,
+                                  size: 20,
+                                ),
+                              ),
+                      ),
                     ),
-                  ),
-                ],
+                    const SizedBox(height: 8),
+                    Text(
+                      category.name,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelSmall?.copyWith(
+                        fontSize: 10,
+                        color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                      ),
+                    ),
+                  ],
+                ),
               ),
             ),
           );
@@ -338,6 +373,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildOffersGrid(BuildContext context, OffersLoaded state) {
     final filtered = OfferFilterUtils.apply(
       offers: _getCurrentSourceOffers(state),
+      category: _selectedCategory,
       area: _currentArea,
       minDiscount: _minDiscount,
       sortBy: _sortBy,
@@ -357,6 +393,7 @@ class _SearchPageState extends State<SearchPage> {
   Widget _buildSearchResults(BuildContext context, OffersLoaded state) {
     final results = OfferFilterUtils.apply(
       offers: _getCurrentSourceOffers(state),
+      category: _selectedCategory,
       area: _currentArea,
       minDiscount: _minDiscount,
       sortBy: _sortBy,
@@ -389,7 +426,7 @@ class _SearchPageState extends State<SearchPage> {
             ? 0.8
             : crossAxisCount == 3
                 ? 0.75
-                : 0.68;
+                : 0.67;
 
         return GridView.builder(
           padding: const EdgeInsets.all(16),

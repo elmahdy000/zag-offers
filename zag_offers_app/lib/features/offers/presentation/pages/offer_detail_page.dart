@@ -32,6 +32,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   TextTheme get textTheme => Theme.of(context).textTheme;
   late final Future<bool> _canGenerateCouponFuture;
   int _selectedImageIndex = 0;
+  late final PageController _pageController;
 
   List<String> get _allImages {
     final images = widget.offer.images ?? [];
@@ -45,6 +46,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   void initState() {
     super.initState();
     _canGenerateCouponFuture = _canGenerateCoupon();
+    _pageController = PageController(initialPage: _selectedImageIndex);
+  }
+
+  @override
+  void dispose() {
+    _pageController.dispose();
+    super.dispose();
   }
 
   Future<bool> _canGenerateCoupon() async {
@@ -132,7 +140,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
         ],
         child: Scaffold(
-          backgroundColor: Colors.white,
           body: Stack(
             children: [
               CustomScrollView(
@@ -195,14 +202,16 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     required IconData icon,
     required VoidCallback onPressed,
   }) {
+    final theme = Theme.of(context);
     return Container(
       margin: const EdgeInsets.all(8),
-      decoration: const BoxDecoration(
-        color: Colors.white,
+      decoration: BoxDecoration(
+        color: theme.cardColor,
         shape: BoxShape.circle,
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
       ),
       child: IconButton(
-        icon: Icon(icon, size: 18, color: AppColors.textPrimary),
+        icon: Icon(icon, size: 18, color: theme.iconTheme.color),
         onPressed: onPressed,
       ),
     );
@@ -210,30 +219,101 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildAppBarBackground() {
     final images = _allImages;
-    final hasImages = images.isNotEmpty;
 
     return Stack(
       fit: StackFit.expand,
       children: [
-        NetworkImageWidget(
-          imageUrl: images.isNotEmpty ? images[_selectedImageIndex] : widget.offer.image,
-          fit: BoxFit.cover,
+        PageView.builder(
+          controller: _pageController,
+          itemCount: images.length,
+          onPageChanged: (index) {
+            setState(() => _selectedImageIndex = index);
+          },
+          itemBuilder: (context, index) {
+            return GestureDetector(
+              onTap: () => _showFullScreenImage(context, images, index),
+              child: NetworkImageWidget(
+                imageUrl: images[index],
+                fit: BoxFit.cover,
+              ),
+            );
+          },
         ),
         const DecoratedBox(
-          decoration: BoxDecoration(color: Colors.black26),
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              begin: Alignment.topCenter,
+              end: Alignment.bottomCenter,
+              colors: [
+                Colors.black45,
+                Colors.transparent,
+                Colors.black45,
+              ],
+            ),
+          ),
         ),
+        if (images.length > 1)
+          Positioned(
+            bottom: 45,
+            left: 0,
+            right: 0,
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: List.generate(
+                images.length,
+                (index) => AnimatedContainer(
+                  duration: const Duration(milliseconds: 300),
+                  margin: const EdgeInsets.symmetric(horizontal: 4),
+                  height: 6,
+                  width: _selectedImageIndex == index ? 24 : 6,
+                  decoration: BoxDecoration(
+                    color: _selectedImageIndex == index ? AppColors.primary : Colors.white60,
+                    borderRadius: BorderRadius.circular(3),
+                  ),
+                ),
+              ),
+            ),
+          ),
       ],
     );
   }
 
+  void _showFullScreenImage(BuildContext context, List<String> images, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: Center(
+            child: InteractiveViewer(
+              child: NetworkImageWidget(
+                imageUrl: images[initialIndex],
+                fit: BoxFit.contain,
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildContentSection(int usageCount) {
+    final theme = Theme.of(context);
     return SliverToBoxAdapter(
       child: Transform.translate(
         offset: const Offset(0, -30),
         child: Container(
-          decoration: const BoxDecoration(
-            color: Colors.white,
-            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          decoration: BoxDecoration(
+            color: theme.scaffoldBackgroundColor,
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           ),
           padding: const EdgeInsets.fromLTRB(24, 32, 24, 140),
           child: Column(
@@ -268,6 +348,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           decoration: BoxDecoration(
             color: AppColors.primary,
             borderRadius: BorderRadius.circular(12),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.25),
+                blurRadius: 8,
+                offset: const Offset(0, 4),
+              ),
+            ],
           ),
           child: Text(
             'خصم ${widget.offer.discountPercentage.toInt()}%',
@@ -321,7 +408,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 Text(
                   '${widget.offer.oldPrice} ج.م',
                   style: textTheme.bodyMedium?.copyWith(
-                    color: Colors.grey[500],
+                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.6),
                     decoration: TextDecoration.lineThrough,
                   ),
                 ),
@@ -334,6 +421,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildStoreCard() {
+    final theme = Theme.of(context);
     return GestureDetector(
       onTap: () => Navigator.push(
         context,
@@ -344,18 +432,19 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
-          color: Colors.grey[50],
+          color: theme.cardColor,
           borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: Colors.grey[200]!),
+          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
         ),
         child: Row(
           children: [
             Container(
               width: 50,
               height: 50,
-              decoration: const BoxDecoration(
-                color: Colors.white,
+              decoration: BoxDecoration(
+                color: theme.scaffoldBackgroundColor,
                 shape: BoxShape.circle,
+                border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
               ),
               child: Icon(
                 CategoryUtils.getIcon(widget.offer.store.category),
@@ -375,15 +464,15 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   ),
                   Text(
                     widget.offer.store.area,
-                    style: textTheme.bodySmall?.copyWith(color: Colors.grey[600]),
+                    style: textTheme.bodySmall,
                   ),
                 ],
               ),
             ),
-            const Icon(
+            Icon(
               Icons.arrow_forward_ios_rounded,
               size: 16,
-              color: Colors.grey,
+              color: theme.iconTheme.color?.withValues(alpha: 0.5),
             ),
           ],
         ),
@@ -403,7 +492,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         Text(
           widget.offer.description ??
               'استمتع بخصم مميز لفترة محدودة في ${widget.offer.store.name}.',
-          style: textTheme.bodyMedium?.copyWith(color: Colors.grey[700], height: 1.7),
+          style: textTheme.bodyMedium?.copyWith(height: 1.7),
         ),
       ],
     );
@@ -413,18 +502,19 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.red[50],
+        color: AppColors.error.withValues(alpha: 0.08),
         borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.error.withValues(alpha: 0.15)),
       ),
       child: Row(
         children: [
-          Icon(Icons.timer_outlined, color: Colors.red[700], size: 20),
+          const Icon(Icons.timer_outlined, color: AppColors.error, size: 20),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
               'صالح حتى: ${DateFormat('yyyy-MM-dd').format(widget.offer.expiryDate)}',
               style: textTheme.labelLarge?.copyWith(
-                color: Colors.red[700],
+                color: AppColors.error,
                 fontWeight: FontWeight.bold,
               ),
             ),
@@ -450,10 +540,11 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 children: [
                   Container(
                     height: 64,
+                    width: double.infinity,
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: AppColors.primary.withValues(alpha: 0.3),
+                          color: (canGenerate ? AppColors.primary : Colors.black).withValues(alpha: 0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
@@ -467,7 +558,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                               ),
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
-                            canGenerate ? AppColors.primary : Colors.grey,
+                            canGenerate ? AppColors.primary : Theme.of(context).disabledColor,
+                        foregroundColor: Colors.white,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -502,7 +594,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                       'سجّل بحساب عميل للحصول على كوبون هذا العرض',
                       textAlign: TextAlign.center,
                       style: textTheme.bodySmall?.copyWith(
-                        color: Colors.black54,
                         fontWeight: FontWeight.w600,
                       ),
                     ),
@@ -517,12 +608,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   void _showCouponDialog(BuildContext context, String code, int usageCount) {
+    final theme = Theme.of(context);
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
+        backgroundColor: theme.cardColor,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
         content: SizedBox(
-          width: MediaQuery.of(dialogContext).size.width * 0.8,
+          width: MediaQuery.of(dialogContext).size.width * 0.85,
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
@@ -531,65 +624,74 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 children: [
                   const Icon(
                     Icons.people_alt_rounded,
-                    size: 10,
+                    size: 14,
                     color: Colors.orange,
                   ),
-                  const SizedBox(width: 4),
+                  const SizedBox(width: 6),
                   Text(
                     '$usageCount مستفيد من العرض',
-                    style: const TextStyle(
-                      fontSize: 11,
+                    style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
-                      color: Colors.black87,
                     ),
                   ),
                 ],
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 20),
               const Icon(
                 Icons.check_circle_rounded,
-                color: Colors.green,
-                size: 64,
+                color: AppColors.success,
+                size: 72,
               ),
-              const SizedBox(height: 16),
-              const Text(
+              const SizedBox(height: 20),
+              Text(
                 'تم الحصول على العرض بنجاح',
-                style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
-              const SizedBox(height: 8),
-              const Text(
+              const SizedBox(height: 12),
+              Text(
                 'يرجى إبراز الكود للتاجر للاستفادة من الخصم',
                 textAlign: TextAlign.center,
-                style: TextStyle(color: Colors.grey),
+                style: theme.textTheme.bodyMedium,
               ),
-              const SizedBox(height: 24),
-              QrImageView(
-                data: code,
-                version: QrVersions.auto,
-                size: 160,
-                eyeStyle: const QrEyeStyle(
-                  eyeShape: QrEyeShape.circle,
-                  color: AppColors.primary,
+              const SizedBox(height: 28),
+              Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(20),
+                ),
+                child: QrImageView(
+                  data: code,
+                  version: QrVersions.auto,
+                  size: 160,
+                  eyeStyle: const QrEyeStyle(
+                    eyeShape: QrEyeShape.circle,
+                    color: Colors.black,
+                  ),
+                  dataModuleStyle: const QrDataModuleStyle(
+                    dataModuleShape: QrDataModuleShape.square,
+                    color: Colors.black,
+                  ),
                 ),
               ),
-              const SizedBox(height: 16),
+              const SizedBox(height: 24),
               Container(
                 padding: const EdgeInsets.symmetric(
-                  horizontal: 20,
-                  vertical: 10,
+                  horizontal: 24,
+                  vertical: 14,
                 ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   code,
-                  style: const TextStyle(
-                    fontSize: 22,
+                  style: theme.textTheme.headlineMedium?.copyWith(
                     fontWeight: FontWeight.bold,
                     color: AppColors.primary,
-                    letterSpacing: 2,
+                    letterSpacing: 4,
                   ),
                 ),
               ),
@@ -618,6 +720,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildThumbnailsRow() {
     final images = _allImages;
+    final theme = Theme.of(context);
     return SizedBox(
       height: 60,
       child: ListView.builder(
@@ -626,14 +729,21 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         itemBuilder: (context, index) {
           final isSelected = _selectedImageIndex == index;
           return GestureDetector(
-            onTap: () => setState(() => _selectedImageIndex = index),
+            onTap: () {
+              setState(() => _selectedImageIndex = index);
+              _pageController.animateToPage(
+                index,
+                duration: const Duration(milliseconds: 300),
+                curve: Curves.easeInOut,
+              );
+            },
             child: Container(
               width: 60,
               margin: const EdgeInsets.only(left: 12),
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : Colors.grey[200]!,
+                  color: isSelected ? AppColors.primary : theme.dividerColor.withValues(alpha: 0.15),
                   width: 2,
                 ),
               ),
@@ -650,6 +760,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildReviewsSection() {
+    final theme = Theme.of(context);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -681,9 +792,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             if (state is ReviewsLoaded) {
               if (state.reviews.isEmpty) {
                 return Center(
-                  child: Text(
-                    'لا توجد تقييمات بعد. كن أول من يقيّم',
-                    style: textTheme.bodyMedium?.copyWith(color: Colors.grey[500]),
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(vertical: 20),
+                    child: Text(
+                      'لا توجد تقييمات بعد. كن أول من يقيّم',
+                      style: textTheme.bodyMedium,
+                    ),
                   ),
                 );
               }
@@ -696,10 +810,11 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 itemBuilder: (context, index) {
                   final review = state.reviews[index];
                   return Container(
-                    padding: const EdgeInsets.all(12),
+                    padding: const EdgeInsets.all(16),
                     decoration: BoxDecoration(
-                      color: Colors.grey[50],
-                      borderRadius: BorderRadius.circular(12),
+                      color: theme.cardColor,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -720,10 +835,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                 5,
                                 (i) => Icon(
                                   Icons.star_rounded,
-                                  size: 14,
+                                  size: 16,
                                   color: i < review.rating
                                       ? Colors.amber
-                                      : Colors.grey[300],
+                                      : theme.disabledColor.withValues(alpha: 0.3),
                                 ),
                               ),
                             ),
@@ -731,12 +846,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         ),
                         if (review.comment != null &&
                             review.comment!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 8),
+                          const SizedBox(height: 10),
                           Text(
                             review.comment!,
-                            style: textTheme.bodySmall?.copyWith(
-                              color: Colors.grey[700],
-                            ),
+                            style: textTheme.bodySmall?.copyWith(height: 1.5),
                           ),
                         ],
                       ],
@@ -755,10 +868,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   void _showAddReviewBottomSheet() {
     int selectedRating = 5;
     final commentController = TextEditingController();
+    final theme = Theme.of(context);
 
     showModalBottomSheet<void>(
       context: context,
       isScrollControlled: true,
+      backgroundColor: theme.cardColor,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -775,7 +890,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             children: [
               Text(
                 'ما رأيك في هذا العرض؟',
-                style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 16),
               Row(
@@ -786,9 +901,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     onPressed: () => setModalState(() => selectedRating = i + 1),
                     icon: Icon(
                       Icons.star_rounded,
-                      size: 32,
+                      size: 36,
                       color:
-                          i < selectedRating ? Colors.amber : Colors.grey[300],
+                          i < selectedRating ? Colors.amber : theme.disabledColor.withValues(alpha: 0.3),
                     ),
                   ),
                 ),
@@ -796,30 +911,32 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               const SizedBox(height: 16),
               TextField(
                 controller: commentController,
+                maxLines: 3,
                 decoration: InputDecoration(
                   hintText: 'اكتب تجربتك هنا (اختياري)',
+                  hintStyle: theme.textTheme.bodyMedium?.copyWith(
+                    color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.5),
+                  ),
                   filled: true,
-                  fillColor: Colors.grey[100],
+                  fillColor: theme.scaffoldBackgroundColor,
                   border: OutlineInputBorder(
                     borderRadius: BorderRadius.circular(16),
                     borderSide: BorderSide.none,
                   ),
                 ),
-                maxLines: 3,
               ),
               const SizedBox(height: 24),
               SizedBox(
                 width: double.infinity,
-                height: 54,
+                height: 56,
                 child: ElevatedButton(
                   onPressed: () {
                     context.read<ReviewsBloc>().add(
                           AddReviewRequested(
-                            offerId: widget.offer.id,
                             storeId: widget.offer.store.id,
                             rating: selectedRating,
-                            comment: commentController.text.trim().isEmpty
-                                ? null
+                            comment: commentController.text.trim().isEmpty 
+                                ? null 
                                 : commentController.text.trim(),
                           ),
                         );
@@ -827,16 +944,15 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   },
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
+                    foregroundColor: Colors.white,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),
                     ),
+                    elevation: 0,
                   ),
                   child: const Text(
                     'إرسال التقييم',
-                    style: TextStyle(
-                      color: Colors.white,
-                      fontWeight: FontWeight.bold,
-                    ),
+                    style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
                   ),
                 ),
               ),
@@ -844,6 +960,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
         ),
       ),
-    ).whenComplete(commentController.dispose);
+    ).then((_) => commentController.dispose());
   }
 }
