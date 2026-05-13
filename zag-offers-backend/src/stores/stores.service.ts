@@ -112,76 +112,97 @@ export class StoresService {
     const startOfDay = new Date();
     startOfDay.setHours(0, 0, 0, 0);
 
-    // التحسين: جلب الـ IDs بتاعة العروض مرة واحدة لاستخدامها في العد المباشر بدل الـ nested queries
-    const storeOffers = await this.prisma.offer.findMany({
-      where: { storeId: store.id },
-      select: { id: true, views: true },
-    });
-    const offerIds = storeOffers.map((o) => o.id);
-    
-    console.log(`[Stats Debug] Store ID: ${store.id}, Found ${storeOffers.length} offers, Offer IDs:`, offerIds);
+    const storeId = store.id;
 
-    const [activeOffers, scansToday, claimsToday, totalClaims, recentCoupons, topOffers] =
-      await Promise.all([
-        this.prisma.offer.count({
-          where: { storeId: store.id, status: 'ACTIVE' },
-        }),
-        this.prisma.coupon.count({
-          where: {
-            offer: { storeId: store.id },
-            status: 'USED',
-            redeemedAt: { gte: startOfDay },
-          },
-        }),
-        this.prisma.coupon.count({
-          where: {
-            offer: { storeId: store.id },
-            createdAt: { gte: startOfDay },
-          },
-        }),
-        this.prisma.coupon.count({
-          where: {
-            offer: { storeId: store.id },
-          },
-        }),
-        this.prisma.coupon.findMany({
-          where: {
-            offer: { storeId: store.id },
-          },
-          orderBy: { createdAt: 'desc' },
-          take: 5,
-          select: {
-            id: true,
-            code: true,
-            status: true,
-            createdAt: true,
-            redeemedAt: true,
-            offer: { select: { title: true } },
-            customer: { select: { name: true } },
-          },
-        }),
-        (this.prisma.offer as any).findMany({
-          where: { storeId: store.id, status: 'ACTIVE' },
-          orderBy: { coupons: { _count: 'desc' } },
-          take: 3,
-          select: {
-            id: true,
-            title: true,
-            discount: true,
-            views: true,
-            _count: { select: { coupons: true } },
-          },
-        }),
-      ]);
+    // Use a cleaner Promise.all approach to get all stats
+    const [
+      activeOffersCount,
+      scansToday,
+      claimsToday,
+      totalClaimsCount,
+      totalOffersCount,
+      totalFavoritesCount,
+      totalReviewsCount,
+      viewsAgg,
+      recentCoupons,
+      topOffers,
+    ] = await Promise.all([
+      this.prisma.offer.count({
+        where: { storeId, status: 'APPROVED' },
+      }),
+      this.prisma.coupon.count({
+        where: {
+          offer: { storeId },
+          status: 'USED',
+          redeemedAt: { gte: startOfDay },
+        },
+      }),
+      this.prisma.coupon.count({
+        where: {
+          offer: { storeId },
+          createdAt: { gte: startOfDay },
+        },
+      }),
+      this.prisma.coupon.count({
+        where: { offer: { storeId } },
+      }),
+      this.prisma.offer.count({ where: { storeId } }),
+      this.prisma.favorite.count({
+        where: { offer: { storeId } },
+      }),
+      this.prisma.review.count({ where: { storeId } }),
+      this.prisma.offer.aggregate({
+        where: { storeId },
+        _sum: { views: true },
+      }),
+      this.prisma.coupon.findMany({
+        where: { offer: { storeId } },
+        orderBy: { createdAt: 'desc' },
+        take: 5,
+        select: {
+          id: true,
+          code: true,
+          status: true,
+          createdAt: true,
+          redeemedAt: true,
+          offer: { select: { title: true } },
+          customer: { select: { name: true } },
+        },
+      }),
+      this.prisma.offer.findMany({
+        where: { storeId },
+        orderBy: { views: 'desc' },
+        take: 3,
+        select: {
+          id: true,
+          title: true,
+          discount: true,
+          views: true,
+          _count: { select: { coupons: true } },
+        },
+      }),
+    ]);
 
-    return {
+    const stats = {
+      // Basic info
       storeName: store.name,
       storeId: store.id,
       storeStatus: store.status,
-      activeOffers,
-      scansToday,
-      claimsToday,
-      totalClaims,
+
+      // Statistics with double naming for compatibility
+      activeOffers: activeOffersCount,
+      scansToday, // Flutter
+      todayScans: scansToday, // Web
+      claimsToday, // Flutter
+      todayClaims: claimsToday, // Web
+      totalClaims: totalClaimsCount, // Flutter
+      totalClaimsCount, // Web
+      totalOffers: totalOffersCount,
+      totalFavorites: totalFavoritesCount,
+      totalReviews: totalReviewsCount,
+      totalViewsCount: viewsAgg._sum.views || 0,
+
+      // UI Lists
       recentCoupons: recentCoupons.map((c) => ({
         id: c.id,
         code: c.code,
@@ -191,14 +212,16 @@ export class StoresService {
         offerTitle: c.offer.title,
         customerName: c.customer.name,
       })),
-      topOffers: (topOffers as any[]).map(o => ({
+      topOffers: topOffers.map((o) => ({
         id: o.id,
         title: o.title,
         discount: o.discount,
         views: o.views,
-        couponsCount: o._count?.coupons || 0
-      }))
+        couponsCount: o._count.coupons,
+      })),
     };
+
+    return stats;
   }
 
   async update(id: string, data: Prisma.StoreUpdateInput): Promise<Store> {

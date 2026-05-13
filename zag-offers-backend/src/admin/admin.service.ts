@@ -403,8 +403,8 @@ export class AdminService {
 
     this.eventsGateway.notifyMerchant(store.ownerId, {
       type: 'STORE_APPROVED',
-      title: 'Store approved',
-      body: `Your store "${store.name}" has been approved.`,
+      title: 'تم اعتماد المتجر',
+      body: `مبروك! تم اعتماد متجرك "${store.name}" بنجاح.`,
       payload: { storeId: store.id, storeName: store.name },
     });
 
@@ -440,8 +440,8 @@ export class AdminService {
 
     this.eventsGateway.notifyMerchant(store.ownerId, {
       type: 'STORE_REJECTED',
-      title: 'Store rejected',
-      body: reason || 'The store request was rejected.',
+      title: 'تم رفض طلب المتجر',
+      body: reason || 'نعتذر، لم يتم اعتماد طلب المتجر الحالي.',
       payload: { storeId: store.id, storeName: store.name },
     });
 
@@ -482,16 +482,16 @@ export class AdminService {
 
     this.eventsGateway.notifyMerchant(store.ownerId, {
       type: 'STORE_SUSPENDED',
-      title: 'تم إيقاف المتجر',
-      body: reason || 'تم إيقاف المتجر مؤقتاً من قبل الإدارة.',
+      title: 'تنبيه: تم إيقاف المتجر',
+      body: reason || 'تم إيقاف نشاط المتجر مؤقتاً لمراجعة البيانات.',
       payload: { storeId: store.id, storeName: store.name },
     });
 
     if (store.owner.fcmToken) {
       void this.notificationsService.sendToUser(
         store.owner.fcmToken,
-        'تم إيقاف المتجر',
-        reason || 'تم إيقاف المتجر مؤقتاً من قبل الإدارة.',
+        'تنبيه: تم إيقاف المتجر',
+        reason || 'تم إيقاف نشاط المتجر مؤقتاً لمراجعة البيانات.',
         { storeId: store.id, type: 'STORE_SUSPENDED' },
       );
     }
@@ -690,16 +690,16 @@ export class AdminService {
     if (updated.store?.ownerId) {
       this.eventsGateway.notifyMerchant(updated.store.ownerId, {
         type: 'OFFER_UPDATED',
-        title: 'تم تعديل العرض',
-        body: `تم تعديل عرض "${updated.title}" من قبل الإدارة.`,
+        title: 'تحديث في بيانات العرض',
+        body: `تم إجراء تحديث على عرضك "${updated.title}".`,
         payload: { offerId: updated.id, offerTitle: updated.title },
       });
 
       if (updated.store.owner.fcmToken) {
         void this.notificationsService.sendToUser(
           updated.store.owner.fcmToken,
-          'تم تعديل العرض',
-          `تم تعديل عرض "${updated.title}" من قبل الإدارة.`,
+          'تحديث في بيانات العرض',
+          `تم إجراء تحديث على عرضك "${updated.title}".`,
           { offerId: updated.id, type: 'OFFER_UPDATED' },
         );
       }
@@ -768,8 +768,8 @@ export class AdminService {
 
     this.eventsGateway.notifyMerchant(offer.store.ownerId, {
       type: 'OFFER_REJECTED',
-      title: 'Offer rejected',
-      body: reason || 'The offer was rejected by admin.',
+      title: 'تم رفض العرض',
+      body: reason || 'نعتذر، لم يتم اعتماد العرض المرسل.',
       payload: { offerId: offer.id, offerTitle: offer.title },
     });
 
@@ -1141,6 +1141,7 @@ export class AdminService {
         { code: { contains: search, mode: 'insensitive' } },
         { customer: { name: { contains: search, mode: 'insensitive' } } },
         { customer: { phone: { contains: search } } },
+        { offer: { store: { name: { contains: search, mode: 'insensitive' } } } },
       ];
     }
 

@@ -87,10 +87,15 @@ export class AuthService {
   }
 
   async validateUser(
-    phone: string,
+    identifier: string,
     pass: string,
   ): Promise<SanitizedUser | null> {
-    const user = await this.usersService.findOne(phone);
+    // Try to find user by phone first, then by email
+    let user = await this.usersService.findOne(identifier);
+    if (!user && identifier.includes('@')) {
+      user = await this.usersService.findByEmail(identifier);
+    }
+
     if (user && user.password && (await bcrypt.compare(pass, user.password))) {
       return this.sanitizeUser(user);
     }
@@ -120,11 +125,20 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    const existing = await this.usersService.findOne(data.phone);
-    if (existing) {
+    const existingPhone = await this.usersService.findOne(data.phone);
+    if (existingPhone) {
       throw new ConflictException(
         'الرقم ده مسجل عندنا قبل كدة، جرب تدخل بحسابك',
       );
+    }
+
+    if (data.email) {
+      const existingEmail = await this.usersService.findByEmail(data.email);
+      if (existingEmail) {
+        throw new ConflictException(
+          'البريد الإلكتروني ده مسجل عندنا قبل كدة، جرب تدخل بحسابك',
+        );
+      }
     }
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
