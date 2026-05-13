@@ -6,6 +6,7 @@ import {
   IsDateString,
   IsEnum,
   IsInt,
+  IsNumber,
   IsOptional,
   IsString,
   IsUrl,
@@ -75,4 +76,10 @@ export class UpdateOfferDto {
     { each: true, message: 'Each image must be a valid absolute URL' },
   )
   images?: string[];
+
+  @ApiPropertyOptional({ example: 100 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  originalPrice?: number;
 }
