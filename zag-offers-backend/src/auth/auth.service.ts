@@ -125,15 +125,27 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    const existingPhone = await this.usersService.findOne(data.phone);
-    if (existingPhone) {
-      throw new ConflictException(
-        'الرقم ده مسجل عندنا قبل كدة، جرب تدخل بحسابك',
-      );
+    let phone: string | null = data.phone;
+    let email: string | null = data.email || null;
+
+    // Detect if the provided "phone" is actually an email
+    if (data.phone.includes('@')) {
+      email = data.phone;
+      phone = null;
     }
 
-    if (data.email) {
-      const existingEmail = await this.usersService.findByEmail(data.email);
+    // Check if account already exists
+    if (phone) {
+      const existingPhone = await this.usersService.findOne(phone);
+      if (existingPhone) {
+        throw new ConflictException(
+          'الرقم ده مسجل عندنا قبل كدة، جرب تدخل بحسابك',
+        );
+      }
+    }
+
+    if (email) {
+      const existingEmail = await this.usersService.findByEmail(email);
       if (existingEmail) {
         throw new ConflictException(
           'البريد الإلكتروني ده مسجل عندنا قبل كدة، جرب تدخل بحسابك',
@@ -145,6 +157,8 @@ export class AuthService {
 
     const user = await this.usersService.create({
       ...data,
+      phone,
+      email,
       password: hashedPassword,
     });
 

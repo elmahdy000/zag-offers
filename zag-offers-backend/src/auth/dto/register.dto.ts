@@ -10,11 +10,13 @@ import {
 } from 'class-validator';
 
 export class RegisterDto {
-  @ApiProperty({ description: 'رقم الموبايل', example: '01012345678' })
+  @ApiProperty({ description: 'رقم الموبايل أو البريد الإلكتروني', example: '01012345678' })
   @IsNotEmpty()
   @IsString()
-  @Matches(/^01[0-2,5]\d{8}$/, { message: 'رقم الموبايل غير صحيح' })
-  @MaxLength(11)
+  @Matches(/^01[0-2,5]\d{8}$|^[a-zA-Z0-9+_.-]+@[a-zA-Z0-9.-]+$/, {
+    message: 'يرجى إدخال رقم موبايل أو بريد إلكتروني صحيح',
+  })
+  @MaxLength(255)
   phone: string;
 
   @ApiProperty({
