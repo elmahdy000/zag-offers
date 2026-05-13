@@ -26,8 +26,8 @@ export class RegisterDto {
   @IsString()
   @MinLength(6)
   @MaxLength(128)
-  @Matches(/^(?=.*[a-zA-Z])(?=.*\d).{6,}$/, {
-    message: 'كلمة السر يجب أن تحتوي على حروف وأرقام',
+  @MinLength(6, {
+    message: 'كلمة السر يجب أن تحتوي على 6 أرقام أو حروف على الأقل',
   })
   password: string;
 
