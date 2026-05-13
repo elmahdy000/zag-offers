@@ -13,9 +13,6 @@ export class RegisterDto {
   @ApiProperty({ description: 'رقم الموبايل أو البريد الإلكتروني', example: '01012345678' })
   @IsNotEmpty()
   @IsString()
-  @Matches(/^.*@.*\..*$|^01\d{9}$/, {
-    message: 'يرجى إدخال رقم موبايل أو بريد إلكتروني صحيح',
-  })
   @MaxLength(255)
   phone: string;
 
@@ -26,11 +23,10 @@ export class RegisterDto {
   })
   @IsNotEmpty()
   @IsString()
-  @MinLength(6)
-  @MaxLength(128)
   @MinLength(6, {
     message: 'كلمة السر يجب أن تحتوي على 6 أرقام أو حروف على الأقل',
   })
+  @MaxLength(128)
   password: string;
 
   @ApiProperty({ description: 'الاسم بالكامل', example: 'أحمد محمد' })
@@ -38,9 +34,6 @@ export class RegisterDto {
   @IsString()
   @MinLength(2)
   @MaxLength(100)
-  @Matches(/^[\u0600-\u06FF\sa-zA-Z]+$/, {
-    message: 'الاسم يجب أن يحتوي على حروف فقط',
-  })
   name: string;
 
   @ApiProperty({
