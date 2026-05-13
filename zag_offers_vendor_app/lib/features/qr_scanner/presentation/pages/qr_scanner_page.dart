@@ -72,13 +72,68 @@ class _QRScannerPageState extends State<QRScannerPage> {
             // Torch Button
             Positioned(
               bottom: 48,
-              left: 0,
-              right: 0,
-              child: Center(
-                child: IconButton(
-                  onPressed: () => _controller.toggleTorch(),
-                  icon: const Icon(Icons.flash_on_rounded, color: Colors.white, size: 32),
+              left: 48,
+              child: IconButton(
+                onPressed: () => _controller.toggleTorch(),
+                icon: const Icon(Icons.flash_on_rounded, color: Colors.white, size: 32),
+              ),
+            ),
+
+            // Manual Input Button
+            Positioned(
+              bottom: 48,
+              right: 48,
+              child: IconButton(
+                onPressed: () => _showManualInputDialog(context),
+                icon: const Icon(Icons.keyboard_rounded, color: Colors.white, size: 32),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  void _showManualInputDialog(BuildContext context) {
+    final controller = TextEditingController();
+    showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        title: Text('إدخال الكود يدوياً', style: GoogleFonts.cairo(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            TextField(
+              controller: controller,
+              decoration: InputDecoration(
+                hintText: 'أدخل كود الكوبون هنا',
+                hintStyle: GoogleFonts.cairo(fontSize: 14),
+                filled: true,
+                fillColor: AppColors.surface,
+                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+              ),
+              textAlign: TextAlign.center,
+              style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2),
+            ),
+            const SizedBox(height: 24),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  final code = controller.text.trim();
+                  if (code.isNotEmpty) {
+                    Navigator.pop(context);
+                    setState(() => _isScanned = true);
+                    context.read<QRScannerBloc>().add(CouponScanned(code, storeId: widget.storeId));
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
+                child: Text('تفعيل الكوبون', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white)),
               ),
             ),
           ],

@@ -10,12 +10,15 @@ class DashboardStatsEntity extends Equatable {
   final String? storeId;
   final String? storeStatus;
 
+  final List<TopOfferEntity> topOffers;
+
   const DashboardStatsEntity({
     required this.activeOffers,
     required this.scansToday,
     required this.claimsToday,
     required this.totalClaims,
     required this.recentCoupons,
+    this.topOffers = const [],
     this.storeName,
     this.storeId,
     this.storeStatus,
@@ -28,10 +31,30 @@ class DashboardStatsEntity extends Equatable {
         claimsToday,
         totalClaims,
         recentCoupons,
+        topOffers,
         storeName,
         storeId,
         storeStatus
       ];
+}
+
+class TopOfferEntity extends Equatable {
+  final String id;
+  final String title;
+  final String discount;
+  final int views;
+  final int claims;
+
+  const TopOfferEntity({
+    required this.id,
+    required this.title,
+    required this.discount,
+    required this.views,
+    required this.claims,
+  });
+
+  @override
+  List<Object?> get props => [id, title, discount, views, claims];
 }
 
 class RecentCouponEntity extends Equatable {

@@ -30,6 +30,32 @@ class DashboardStatsModel extends DashboardStatsEntity {
               .map((e) => RecentCouponModel.fromJson(e))
               .toList()
           : [],
+      topOffers: json['topOffers'] is List
+          ? (json['topOffers'] as List)
+              .whereType<Map<String, dynamic>>()
+              .map((e) => TopOfferModel.fromJson(e))
+              .toList()
+          : [],
+    );
+  }
+}
+
+class TopOfferModel extends TopOfferEntity {
+  const TopOfferModel({
+    required super.id,
+    required super.title,
+    required super.discount,
+    required super.views,
+    required super.claims,
+  });
+
+  factory TopOfferModel.fromJson(Map<String, dynamic> json) {
+    return TopOfferModel(
+      id: json['id']?.toString() ?? '',
+      title: json['title'] ?? '',
+      discount: json['discount'] ?? '',
+      views: (json['views'] as int?) ?? 0,
+      claims: (json['_count']?['coupons'] as int?) ?? 0,
     );
   }
 }

@@ -96,8 +96,8 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
-      firstDate: DateTime.now().subtract(const Duration(days: 365)),
-      lastDate: DateTime.now().add(const Duration(days: 365)),
+      firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
+      lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
       builder: (context, child) {
         return Theme(
           data: Theme.of(context).copyWith(
@@ -223,7 +223,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       label: 'السعر قبل',
                       hint: '0.0',
                       icon: Icons.money_off_rounded,
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) {
+                        if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+                          return 'رقم غير صحيح';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                   const SizedBox(width: 12),
@@ -233,7 +239,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       label: 'السعر بعد',
                       hint: '0.0',
                       icon: Icons.attach_money_rounded,
-                      keyboardType: TextInputType.number,
+                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      validator: (v) {
+                        if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+                          return 'رقم غير صحيح';
+                        }
+                        return null;
+                      },
                     ),
                   ),
                 ],
@@ -247,6 +259,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       label: 'الخصم (%)',
                       hint: 'مثال: 20%',
                       icon: Icons.percent_rounded,
+                      keyboardType: TextInputType.number,
                       validator: (v) => v!.isEmpty ? 'مطلوب' : null,
                     ),
                   ),

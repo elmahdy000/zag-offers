@@ -15,8 +15,8 @@ class AuthRepositoryImpl implements AuthRepository {
   });
 
   @override
-  Future<UserEntity> login(String phone, String password) async {
-    final userModel = await remoteDataSource.login(phone, password);
+  Future<UserEntity> login(String identifier, String password) async {
+    final userModel = await remoteDataSource.login(identifier, password);
 
     // Convert to entity
     return UserEntity(

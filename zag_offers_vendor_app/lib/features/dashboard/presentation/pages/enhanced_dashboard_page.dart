@@ -1,14 +1,16 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../../core/theme/app_colors.dart';
 import '../../../../../core/theme/app_theme.dart';
 import '../../../../../core/widgets/stat_card.dart';
 import '../../../../../core/widgets/glass_card.dart';
 import '../../../../../core/widgets/notification_bubble.dart';
-import '../../../../../core/widgets/sparkline_chart.dart';
 import '../../../offers/presentation/pages/add_edit_offer_page.dart';
+import '../../../offers/presentation/pages/offers_page.dart';
+import '../../../qr_scanner/presentation/pages/qr_scanner_page.dart';
+import '../../domain/entities/dashboard_stats_entity.dart';
 import '../bloc/dashboard_bloc.dart';
-import '../../data/models/dashboard_stats_model.dart';
 
 class EnhancedDashboardPage extends StatefulWidget {
   const EnhancedDashboardPage({super.key});
@@ -59,8 +61,8 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
   }
 
   void _loadData() {
-    _statsController.forward();
-    _actionController.forward();
+    _statsController.forward(from: 0);
+    _actionController.forward(from: 0);
     context.read<DashboardBloc>().add(GetDashboardStatsRequested());
   }
 
@@ -71,19 +73,12 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
   }
 
   Future<void> _refreshData() async {
-    setState(() {
-      _isRefreshing = true;
-    });
-    
+    setState(() => _isRefreshing = true);
     _loadData();
     _updateTimestamp();
-    
     await Future.delayed(const Duration(milliseconds: 800));
-    
     if (!mounted) return;
-    setState(() {
-      _isRefreshing = false;
-    });
+    setState(() => _isRefreshing = false);
   }
 
   @override
@@ -92,36 +87,34 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
       backgroundColor: AppColors.background,
       body: NotificationOverlay(
         notifications: _notifications,
-        child: _buildBody(),
-      ),
-    );
-  }
-
-  Widget _buildBody() {
-    return Stack(
-      children: [
-        // Background decorations
-        _buildBackground(),
-        
-        // Main content
-        SafeArea(
-          child: SingleChildScrollView(
-            padding: const EdgeInsets.all(24),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                _buildHeader(),
-                const SizedBox(height: 32),
-                _buildStatsGrid(),
-                const SizedBox(height: 40),
-                _buildQuickActions(),
-                const SizedBox(height: 40),
-                _buildInsightsSection(),
-              ],
+        child: Stack(
+          children: [
+            _buildBackground(),
+            SafeArea(
+              child: RefreshIndicator(
+                onRefresh: _refreshData,
+                color: AppColors.primary,
+                child: SingleChildScrollView(
+                  physics: const BouncingScrollPhysics(),
+                  padding: const EdgeInsets.all(24),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildHeader(),
+                      const SizedBox(height: 32),
+                      _buildStatsGrid(),
+                      const SizedBox(height: 32),
+                      _buildQuickActions(),
+                      const SizedBox(height: 32),
+                      _buildInsightsSection(),
+                    ],
+                  ),
+                ),
+              ),
             ),
-          ),
+          ],
         ),
-      ],
+      ),
     );
   }
 
@@ -134,43 +127,15 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
             Positioned(
               top: -200,
               right: -200,
-              child: AnimatedContainer(
-                duration: const Duration(seconds: 20),
-                transform: Matrix4.rotationZ(_backgroundController.value * 0.1),
+              child: Transform.rotate(
+                angle: _backgroundController.value * 2 * 3.14159,
                 child: Container(
                   width: 600,
                   height: 600,
                   decoration: BoxDecoration(
                     gradient: RadialGradient(
-                      center: Alignment.bottomLeft,
-                      radius: 1.5,
-                      colors: [
-                        AppColors.secondary.withOpacity(0.05),
-                        Colors.transparent,
-                      ],
+                      colors: [AppColors.primary.withValues(alpha: 0.05), Colors.transparent],
                     ),
-                  ),
-                ),
-              ),
-            ),
-            Positioned(
-              bottom: -150,
-              left: -150,
-              child: AnimatedContainer(
-                duration: const Duration(seconds: 15),
-                transform: Matrix4.rotationZ(-_backgroundController.value * 0.08),
-                child: Container(
-                  width: 500,
-                  height: 500,
-                  decoration: BoxDecoration(
-                    color: AppColors.secondary.withValues(alpha: 0.05),
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: AppColors.secondary.withValues(alpha: 0.2),
-                        blurRadius: 120,
-                      ),
-                    ],
                   ),
                 ),
               ),
@@ -185,132 +150,36 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Status indicator
-        AnimatedBuilder(
-          animation: _statsController,
-          builder: (context, child) {
-            return FadeTransition(
-              opacity: _statsController,
-              child: SlideTransition(
-                position: Tween<Offset>(
-                  begin: const Offset(-1, 0),
-                  end: Offset.zero,
-                ).animate(CurvedAnimation(
-                  parent: _statsController,
-                  curve: Curves.easeOutBack,
-                )),
-                child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-                  decoration: BoxDecoration(
-                    color: AppColors.glassBackground,
-                    borderRadius: BorderRadius.circular(20),
-                    border: Border.all(
-                      color: AppColors.glassBorder,
-                      width: 1,
-                    ),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 8,
-                        height: 8,
-                        decoration: BoxDecoration(
-                          color: AppColors.success,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 8),
-                      Text(
-                        'المتجر نشط الآن',
-                        style: AppTheme.small.copyWith(
-                          color: AppColors.textDimmer,
-                          letterSpacing: 0.5,
-                        ),
-                      ),
-                      if (_lastUpdated.isNotEmpty) ...[
-                        const SizedBox(width: 8),
-                        Text(
-                          '• تحديث $_lastUpdated',
-                          style: AppTheme.small.copyWith(
-                            color: AppColors.textDimmer,
-                            letterSpacing: 0.5,
-                          ),
-                        ),
-                      ],
-                      if (_isRefreshing) ...[
-                        const SizedBox(width: 8),
-                        SizedBox(
-                          width: 12,
-                          height: 12,
-                          child: CircularProgressIndicator(
-                            strokeWidth: 2,
-                            valueColor: AlwaysStoppedAnimation(AppColors.primary),
-                          ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ),
-              ),
-            );
-          },
-        ),
-        
-        const SizedBox(height: 16),
-        
-        // Welcome message
-        Text(
-          'مرحبًا بك،\nمتجر زاج',
-          style: AppTheme.heading1.copyWith(
-            fontSize: 42,
-            height: 1.2,
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          decoration: BoxDecoration(
+            color: AppColors.glassBackground,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: AppColors.glassBorder, width: 1),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(width: 8, height: 8, decoration: const BoxDecoration(color: AppColors.success, shape: BoxShape.circle)),
+              const SizedBox(width: 8),
+              Text('المتجر نشط الآن', style: AppTheme.small.copyWith(color: AppColors.textDimmer)),
+              if (_lastUpdated.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                Text('• تحديث $_lastUpdated', style: AppTheme.small.copyWith(color: AppColors.textDimmer)),
+              ],
+            ],
           ),
         ),
-        
         const SizedBox(height: 16),
-        
-        // Action buttons
-        Row(
-          children: [
-            Expanded(
-              child: GlassButton(
-                onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
-                  );
-                },
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 20),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.add, size: 20),
-                    const SizedBox(width: 8),
-                    Text(
-                      'إضافة عرض',
-                      style: AppTheme.body.copyWith(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            const SizedBox(width: 16),
-            GlassButton(
-              onPressed: _refreshData,
-              padding: const EdgeInsets.all(16),
-              child: Icon(
-                _isRefreshing ? Icons.refresh : Icons.refresh,
-                color: AppColors.text,
-                size: 24,
-              ),
-            ),
-          ],
+        BlocBuilder<DashboardBloc, DashboardState>(
+          builder: (context, state) {
+            String name = 'متجر زاج';
+            if (state is DashboardLoaded) name = state.stats.storeName ?? name;
+            return Text(
+              'مرحبًا بك،\n$name',
+              style: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w900, height: 1.2, color: AppColors.text),
+            );
+          },
         ),
       ],
     );
@@ -319,86 +188,25 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
   Widget _buildStatsGrid() {
     return BlocBuilder<DashboardBloc, DashboardState>(
       builder: (context, state) {
-        if (state is DashboardLoading) {
-          return _buildLoadingStats();
-        }
-        
         if (state is DashboardLoaded) {
-          return _buildStatsCards(state.stats);
+          final s = state.stats;
+          return GridView.count(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            crossAxisCount: 2,
+            crossAxisSpacing: 16,
+            mainAxisSpacing: 16,
+            childAspectRatio: 1.1,
+            children: [
+              StatCard(label: 'نشاط اليوم', value: s.claimsToday.toString(), icon: Icons.local_activity, color: AppColors.primary, index: 0),
+              StatCard(label: 'عروض نشطة', value: s.activeOffers.toString(), icon: Icons.star, color: AppColors.secondary, index: 1),
+              StatCard(label: 'المسح اليومي', value: s.scansToday.toString(), icon: Icons.qr_code_scanner, color: AppColors.blue, index: 2),
+              StatCard(label: 'إجمالي الطلبات', value: s.totalClaims.toString(), icon: Icons.people, color: AppColors.purple, index: 3),
+            ],
+          );
         }
-        
-        return _buildLoadingStats();
+        return const Center(child: CircularProgressIndicator());
       },
-    );
-  }
-
-  Widget _buildLoadingStats() {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.0,
-      children: List.generate(4, (index) {
-        return StatCard(
-          label: '...',
-          value: '...',
-          icon: Icons.analytics,
-          color: AppColors.textDimmer,
-          bgColor: AppColors.glassBackground,
-          loading: true,
-          index: index,
-        );
-      }),
-    );
-  }
-
-  Widget _buildStatsCards(DashboardStats stats) {
-    return GridView.count(
-      shrinkWrap: true,
-      physics: const NeverScrollableScrollPhysics(),
-      crossAxisCount: 2,
-      crossAxisSpacing: 16,
-      mainAxisSpacing: 16,
-      childAspectRatio: 1.0,
-      children: [
-        StatCard(
-          label: 'نشاط اليوم',
-          value: stats.claimsToday.toString(),
-          icon: Icons.local_activity,
-          color: AppColors.primary,
-          bgColor: AppColors.primary.withOpacity(0.1),
-          trend: '+15%',
-          index: 0,
-        ),
-        StatCard(
-          label: 'الزيارات',
-          value: '0', // Placeholder until API provides views data
-          icon: Icons.visibility,
-          color: AppColors.blue,
-          bgColor: AppColors.blue.withOpacity(0.1),
-          trend: '+8%',
-          index: 1,
-        ),
-        StatCard(
-          label: 'عروض نشطة',
-          value: stats.activeOffers.toString(),
-          icon: Icons.star,
-          color: AppColors.secondary,
-          bgColor: AppColors.secondary.withOpacity(0.1),
-          index: 2,
-        ),
-        StatCard(
-          label: 'قاعدة العملاء',
-          value: stats.totalClaims.toString(),
-          icon: Icons.people,
-          color: AppColors.purple,
-          bgColor: AppColors.purple.withOpacity(0.1),
-          trend: '+12%',
-          index: 3,
-        ),
-      ],
     );
   }
 
@@ -406,12 +214,7 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(
-          'الإجراءات السريعة',
-          style: AppTheme.title.copyWith(
-            color: AppColors.text,
-          ),
-        ),
+        Text('الإجراءات السريعة', style: AppTheme.title.copyWith(fontWeight: FontWeight.w900)),
         const SizedBox(height: 16),
         GridView.count(
           shrinkWrap: true,
@@ -419,275 +222,149 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           crossAxisCount: 4,
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
-          childAspectRatio: 1,
           children: [
-            _buildActionButton(
-              'العروض',
-              Icons.local_offer,
-              AppColors.emerald,
-              () {},
-            ),
-            _buildActionButton(
-              'مسح الكود',
-              Icons.qr_code_scanner,
-              AppColors.primary,
-              () {},
-            ),
-            _buildActionButton(
-              'الكوبونات',
-              Icons.receipt_long,
-              AppColors.purple,
-              () {},
-            ),
-            _buildActionButton(
-              'الملف',
-              Icons.store,
-              AppColors.blue,
-              () {},
-            ),
+            _buildActionItem('العروض', Icons.local_offer, AppColors.emerald, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OffersPage()))),
+            _buildActionItem('مسح الكود', Icons.qr_code_scanner, AppColors.primary, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerPage(storeId: '')))), // ID handled by Bloc
+            _buildActionItem('إضافة', Icons.add_circle_outline, AppColors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditOfferPage()))),
+            _buildActionItem('الملف', Icons.store, AppColors.blue, () {}),
           ],
         ),
       ],
     );
   }
 
-  Widget _buildActionButton(
-    String label,
-    IconData icon,
-    Color color,
-    VoidCallback onTap,
-  ) {
-    return AnimatedBuilder(
-      animation: _actionController,
-      builder: (context, child) {
-        return FadeTransition(
-          opacity: _actionController,
-          child: ScaleTransition(
-            scale: Tween<double>(
-              begin: 0.8,
-              end: 1.0,
-            ).animate(CurvedAnimation(
-              parent: _actionController,
-              curve: Curves.elasticOut,
-            )),
-            child: GlassCard(
-              onTap: onTap,
-              padding: const EdgeInsets.all(16),
-              borderRadius: 24,
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Container(
-                    width: 48,
-                    height: 48,
-                    decoration: BoxDecoration(
-                      color: color.withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                    child: Icon(
-                      icon,
-                      color: color,
-                      size: 24,
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Text(
-                    label,
-                    style: AppTheme.caption.copyWith(
-                      color: AppColors.text,
-                      fontWeight: FontWeight.w900,
-                    ),
-                    textAlign: TextAlign.center,
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
+  Widget _buildActionItem(String label, IconData icon, Color color, VoidCallback onTap) {
+    return GlassCard(
+      onTap: onTap,
+      padding: const EdgeInsets.all(8),
+      borderRadius: 20,
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Icon(icon, color: color, size: 28),
+          const SizedBox(height: 4),
+          Text(label, style: AppTheme.caption.copyWith(fontWeight: FontWeight.bold, fontSize: 10), textAlign: TextAlign.center),
+        ],
+      ),
     );
   }
 
   Widget _buildInsightsSection() {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Text(
-          'الرؤى والتحليلات',
-          style: AppTheme.title.copyWith(
-            color: AppColors.text,
-          ),
-        ),
-        const SizedBox(height: 16),
-        Row(
-          children: [
-            Expanded(child: _buildTopOffers()),
-            const SizedBox(width: 16),
-            Expanded(child: _buildActivityFeed()),
-          ],
-        ),
-      ],
+    return BlocBuilder<DashboardBloc, DashboardState>(
+      builder: (context, state) {
+        if (state is DashboardLoaded) {
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              _buildTopOffers(state.stats),
+              const SizedBox(height: 24),
+              _buildRecentActivity(state.stats),
+            ],
+          );
+        }
+        return const SizedBox();
+      },
     );
   }
 
-  Widget _buildTopOffers() {
+  Widget _buildTopOffers(DashboardStatsEntity stats) {
     return GlassContainer(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.secondary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.trending_up,
-                  color: AppColors.secondary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'الأكثر تأثيرًا',
-                      style: AppTheme.body.copyWith(
-                        color: AppColors.text,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    Text(
-                      'أعلى العروض تفاعلاً',
-                      style: AppTheme.caption.copyWith(
-                        color: AppColors.textDimmer,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const Icon(Icons.trending_up, color: AppColors.secondary, size: 20),
+              const SizedBox(width: 8),
+              Text('أفضل العروض أداءً', style: AppTheme.body.copyWith(fontWeight: FontWeight.w900)),
             ],
           ),
-          const SizedBox(height: 20),
-          
-          // Placeholder for top offers
+          const SizedBox(height: 16),
+          if (stats.topOffers.isEmpty)
+            _buildEmptyState('لا توجد عروض نشطة حالياً')
+          else
+            ...stats.topOffers.map((o) => _buildOfferRow(o)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildOfferRow(TopOfferEntity offer) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(offer.title, style: const TextStyle(fontWeight: FontWeight.bold), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text('${offer.claims} طلب • ${offer.views} مشاهدة', style: AppTheme.caption.copyWith(color: AppColors.textDimmer)),
+              ],
+            ),
+          ),
           Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.glassBackground,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.glassBorder,
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.analytics_outlined,
-                    color: AppColors.textDimmer,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'ابدأ بإضافة عروضك',
-                    style: AppTheme.caption.copyWith(
-                      color: AppColors.textDimmer,
-                    ),
-                  ),
-                ],
-              ),
-            ),
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(color: AppColors.secondary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(8)),
+            child: Text(offer.discount, style: TextStyle(color: AppColors.secondary, fontWeight: FontWeight.bold, fontSize: 12)),
           ),
         ],
       ),
     );
   }
 
-  Widget _buildActivityFeed() {
+  Widget _buildRecentActivity(DashboardStatsEntity stats) {
     return GlassContainer(
-      padding: const EdgeInsets.all(24),
+      padding: const EdgeInsets.all(20),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
             children: [
-              Container(
-                width: 40,
-                height: 40,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withOpacity(0.1),
-                  borderRadius: BorderRadius.circular(12),
-                ),
-                child: Icon(
-                  Icons.analytics,
-                  color: AppColors.primary,
-                  size: 20,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'النشاط المباشر',
-                      style: AppTheme.body.copyWith(
-                        color: AppColors.text,
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
+              const Icon(Icons.history, color: AppColors.primary, size: 20),
+              const SizedBox(width: 8),
+              Text('آخر العمليات', style: AppTheme.body.copyWith(fontWeight: FontWeight.w900)),
             ],
           ),
-          const SizedBox(height: 20),
-          
-          // Placeholder for activity feed
-          Container(
-            height: 200,
-            decoration: BoxDecoration(
-              color: AppColors.glassBackground,
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(
-                color: AppColors.glassBorder,
-                width: 1,
-              ),
-            ),
-            child: Center(
-              child: Column(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.history,
-                    color: AppColors.textDimmer,
-                    size: 48,
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    'بانتظار تفاعل العملاء',
-                    style: AppTheme.caption.copyWith(
-                      color: AppColors.textDimmer,
-                    ),
-                  ),
-                ],
-              ),
+          const SizedBox(height: 16),
+          if (stats.recentCoupons.isEmpty)
+            _buildEmptyState('لا توجد عمليات مؤخراً')
+          else
+            ...stats.recentCoupons.take(3).map((c) => _buildCouponRow(c)),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCouponRow(RecentCouponEntity coupon) {
+    return Padding(
+      padding: const EdgeInsets.only(bottom: 12),
+      child: Row(
+        children: [
+          CircleAvatar(backgroundColor: AppColors.primary.withValues(alpha: 0.1), radius: 18, child: const Icon(Icons.person, size: 18, color: AppColors.primary)),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(coupon.customerName, style: const TextStyle(fontWeight: FontWeight.bold)),
+                Text(coupon.offerTitle, style: AppTheme.caption, maxLines: 1, overflow: TextOverflow.ellipsis),
+              ],
             ),
           ),
+          Text(coupon.status == 'USED' ? 'تم الاستخدام' : 'متاح', style: TextStyle(color: coupon.status == 'USED' ? AppColors.success : AppColors.secondary, fontSize: 11, fontWeight: FontWeight.bold)),
         ],
+      ),
+    );
+  }
+
+  Widget _buildEmptyState(String message) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 20),
+        child: Text(message, style: AppTheme.caption.copyWith(color: AppColors.textDimmer)),
       ),
     );
   }
 }
-
-
-

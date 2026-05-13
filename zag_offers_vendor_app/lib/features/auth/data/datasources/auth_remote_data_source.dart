@@ -6,7 +6,7 @@ import '../../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<UserModel> login(String phone, String password);
+  Future<UserModel> login(String identifier, String password);
   Future<void> updateFcmToken(String fcmToken);
   Future<void> removeFcmToken();
 }
@@ -21,11 +21,11 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   });
 
   @override
-  Future<UserModel> login(String phone, String password) async {
+  Future<UserModel> login(String identifier, String password) async {
     try {
       final response = await apiClient.dio.post(
         '/auth/login',
-        data: {'phone': phone, 'password': password},
+        data: {'phone': identifier, 'password': password},
       );
 
       final token = response.data['access_token'];

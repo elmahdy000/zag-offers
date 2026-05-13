@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -12,30 +12,30 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  final _phoneController = TextEditingController();
+  final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
 
   @override
   void dispose() {
-    _phoneController.dispose();
+    _identifierController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
   void _onLogin() {
-    final phone = _phoneController.text.trim();
+    final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
-    if (phone.isEmpty || password.isEmpty) {
+    if (identifier.isEmpty || password.isEmpty) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
-          content: Text('الرجاء إدخال رقم الهاتف وكلمة المرور'),
+          content: Text('الرجاء إدخال رقم الهاتف أو البريد الإلكتروني وكلمة المرور'),
         ),
       );
       return;
     }
     context.read<AuthBloc>().add(
-      LoginRequested(phone: phone, password: password),
+      LoginRequested(identifier: identifier, password: password),
     );
   }
 
@@ -109,13 +109,13 @@ class _LoginPageState extends State<LoginPage> {
                         ],
                       ),
                       child: TextField(
-                        controller: _phoneController,
-                        keyboardType: TextInputType.phone,
+                        controller: _identifierController,
+                        keyboardType: TextInputType.emailAddress,
                         textDirection: TextDirection.ltr,
                         decoration: InputDecoration(
-                          hintText: 'رقم الهاتف',
+                          hintText: 'رقم الهاتف أو البريد الإلكتروني',
                           prefixIcon: const Icon(
-                            Icons.phone_android_outlined,
+                            Icons.person_outline_rounded,
                             color: AppColors.primary,
                           ),
                           border: OutlineInputBorder(

@@ -13,13 +13,13 @@ abstract class AuthEvent extends Equatable {
 }
 
 class LoginRequested extends AuthEvent {
-  final String phone;
+  final String identifier;
   final String password;
 
-  LoginRequested({required this.phone, required this.password});
+  LoginRequested({required this.identifier, required this.password});
 
   @override
-  List<Object?> get props => [phone, password];
+  List<Object?> get props => [identifier, password];
 }
 
 class CheckAuthStatus extends AuthEvent {}
@@ -71,7 +71,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final user = await loginUseCase(
-        LoginParams(phone: event.phone, password: event.password),
+        LoginParams(identifier: event.identifier, password: event.password),
       );
       // Register FCM token with backend now that the user is authenticated
       await NotificationService.sendTokenToBackend();
