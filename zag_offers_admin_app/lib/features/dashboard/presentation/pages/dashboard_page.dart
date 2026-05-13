@@ -65,7 +65,7 @@ class _DashboardPageState extends State<DashboardPage> {
         content: Text(notification.body.isEmpty
             ? notification.title
             : '${notification.title}\n${notification.body}'),
-        backgroundColor: const Color(0xFF0F172A),
+        backgroundColor: AppColors.textPrimary,
         behavior: SnackBarBehavior.floating,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
       ),
@@ -75,7 +75,7 @@ class _DashboardPageState extends State<DashboardPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF1F5F9),
+      backgroundColor: AppColors.background,
       body: BlocBuilder<DashboardBloc, DashboardState>(
         builder: (context, state) {
           return RefreshIndicator(
@@ -144,19 +144,26 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       width: double.infinity,
       padding: const EdgeInsets.fromLTRB(24, 60, 24, 40),
-      decoration: const BoxDecoration(
-        gradient: LinearGradient(
+      decoration: BoxDecoration(
+        gradient: const LinearGradient(
           begin: Alignment.topLeft,
           end: Alignment.bottomRight,
           colors: [
-            Color(0xFF1E293B),
-            Color(0xFF0F172A),
+            Color(0xFF2D3436),
+            Color(0xFF000000),
           ],
         ),
-        borderRadius: BorderRadius.only(
+        borderRadius: const BorderRadius.only(
           bottomLeft: Radius.circular(32),
           bottomRight: Radius.circular(32),
         ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 20,
+            offset: const Offset(0, 10),
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -232,7 +239,7 @@ class _DashboardPageState extends State<DashboardPage> {
       style: GoogleFonts.cairo(
         fontSize: 18,
         fontWeight: FontWeight.bold,
-        color: const Color(0xFF1E293B),
+        color: AppColors.textPrimary,
       ),
     );
   }
@@ -258,7 +265,7 @@ class _DashboardPageState extends State<DashboardPage> {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
         boxShadow: [
           BoxShadow(
@@ -288,14 +295,14 @@ class _DashboardPageState extends State<DashboardPage> {
                 style: GoogleFonts.inter(
                   fontSize: 22,
                   fontWeight: FontWeight.bold,
-                  color: const Color(0xFF0F172A),
+                  color: AppColors.textPrimary,
                 ),
               ),
               Text(
                 title,
                 style: GoogleFonts.cairo(
                   fontSize: 12,
-                  color: const Color(0xFF64748B),
+                  color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
               ),
@@ -321,7 +328,7 @@ class _DashboardPageState extends State<DashboardPage> {
         _buildQuickAction(context, 'الكوبونات', IconlyLight.ticket, Colors.amber, const CouponsPage()),
         _buildQuickAction(context, 'التنبيهات', IconlyLight.send, Colors.purple, const BroadcastPage()),
         _buildQuickAction(context, 'السجلات', IconlyLight.document, Colors.blueGrey, const AuditLogsPage()),
-        _buildQuickAction(context, 'الإعدادات', IconlyLight.setting, Colors.blueGrey.shade900, const ProfilePage()),
+        _buildQuickAction(context, 'الإعدادات', IconlyLight.setting, AppColors.textPrimary, const ProfilePage()),
       ],
     );
   }
@@ -345,7 +352,7 @@ class _DashboardPageState extends State<DashboardPage> {
         const SizedBox(height: 8),
         Text(
           label,
-          style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.bold, color: const Color(0xFF1E293B)),
+          style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -369,7 +376,7 @@ class _DashboardPageState extends State<DashboardPage> {
       height: 240,
       padding: const EdgeInsets.all(20),
       decoration: BoxDecoration(
-        color: Colors.white,
+        color: AppColors.white,
         borderRadius: BorderRadius.circular(24),
         boxShadow: [
           BoxShadow(
@@ -385,7 +392,7 @@ class _DashboardPageState extends State<DashboardPage> {
           gridData: FlGridData(
             show: true,
             drawVerticalLine: false,
-            getDrawingHorizontalLine: (_) => FlLine(color: Colors.blueGrey.withValues(alpha: 0.05), strokeWidth: 1),
+            getDrawingHorizontalLine: (_) => FlLine(color: AppColors.textSecondary.withValues(alpha: 0.05), strokeWidth: 1),
           ),
           borderData: FlBorderData(show: false),
           titlesData: FlTitlesData(
@@ -400,7 +407,7 @@ class _DashboardPageState extends State<DashboardPage> {
                   if (idx < 0 || idx >= bars.length) return const SizedBox();
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(bars[idx].label, style: GoogleFonts.cairo(fontSize: 10, color: Colors.blueGrey[500], fontWeight: FontWeight.bold)),
+                    child: Text(bars[idx].label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
                   );
                 },
               ),
@@ -433,22 +440,16 @@ class _DashboardPageState extends State<DashboardPage> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(IconlyBold.shieldFail, size: 64, color: Colors.redAccent),
+            const Icon(IconlyBold.shieldFail, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
             Text('خطأ في جلب البيانات', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold)),
             const SizedBox(height: 8),
-            Text(state.message, textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 14, color: Colors.blueGrey[500])),
+            Text(state.message, textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => context.read<DashboardBloc>().add(LoadDashboardStatsEvent()),
               icon: const Icon(IconlyLight.swap),
               label: const Text('إعادة المحاولة'),
-              style: ElevatedButton.styleFrom(
-                backgroundColor: AppColors.primary,
-                foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              ),
             ),
           ],
         ),

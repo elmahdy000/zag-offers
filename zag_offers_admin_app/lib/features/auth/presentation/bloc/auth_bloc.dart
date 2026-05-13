@@ -13,7 +13,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   AuthBloc({required this.repository}) : super(AuthInitial()) {
     on<LoginEvent>((event, emit) async {
       emit(AuthLoading());
-      final result = await repository.login(event.phone, event.password);
+      final result = await repository.login(event.identifier, event.password);
       result.fold(
         (failure) => emit(AuthError(message: failure.message)),
         (user) => emit(AuthAuthenticated(user: user)),

@@ -3,7 +3,7 @@ import 'package:zag_offers_admin_app/core/network/api_client.dart';
 import 'package:zag_offers_admin_app/features/auth/data/models/admin_user_model.dart';
 
 abstract class AuthRemoteDataSource {
-  Future<Map<String, dynamic>> login(String phone, String password);
+  Future<Map<String, dynamic>> login(String identifier, String password);
   Future<AdminUserModel> getProfile();
   Future<AdminUserModel> updateProfile({String? name, String? area});
   Future<void> updatePassword(String currentPassword, String newPassword);
@@ -15,10 +15,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   AuthRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<Map<String, dynamic>> login(String phone, String password) async {
+  Future<Map<String, dynamic>> login(String identifier, String password) async {
     final response = await client.post(
       '/auth/login',
-      data: {'phone': phone, 'password': password},
+      data: {'phone': identifier, 'password': password},
     );
     return response.data;
   }

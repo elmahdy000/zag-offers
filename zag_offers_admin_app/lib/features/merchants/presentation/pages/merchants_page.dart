@@ -8,6 +8,7 @@ import 'package:zag_offers_admin_app/core/widgets/bottom_sheet.dart';
 import 'package:zag_offers_admin_app/core/widgets/network_image.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/widgets/merchant_card.dart';
+import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 
 class MerchantsPage extends StatefulWidget {
   const MerchantsPage({super.key});
@@ -36,66 +37,36 @@ class _MerchantsPageState extends State<MerchantsPage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: const Color(0xFFF8FAFC),
+      backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'إدارة التجار',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('إدارة التجار'),
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(120),
+          preferredSize: const Size.fromHeight(130),
           child: Column(
             children: [
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0),
+                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
                 child: TextField(
                   controller: _searchController,
                   decoration: InputDecoration(
                     hintText: 'البحث عن التجار...',
-                    prefixIcon: const Icon(
-                      Icons.search,
-                      color: Color(0xFFFF6B00),
-                    ),
+                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
                     suffixIcon: _searchQuery.isNotEmpty
                         ? IconButton(
-                            icon: const Icon(Icons.clear),
+                            icon: const Icon(Icons.clear_rounded),
                             onPressed: () {
                               _searchController.clear();
                               setState(() => _searchQuery = '');
                             },
                           )
                         : null,
-                    filled: true,
-                    fillColor: Colors.white,
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide.none,
-                    ),
-                    enabledBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: BorderSide(
-                        color: Colors.orange.withValues(alpha: 0.1),
-                      ),
-                    ),
-                    focusedBorder: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(16),
-                      borderSide: const BorderSide(
-                        color: Color(0xFFFF6B00),
-                        width: 1,
-                      ),
-                    ),
-                    contentPadding: const EdgeInsets.symmetric(vertical: 0),
                   ),
                   onChanged: (value) =>
                       setState(() => _searchQuery = value.toLowerCase()),
                 ),
               ),
-              const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 16.0,
-                  vertical: 8.0,
-                ),
+                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -111,6 +82,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                   ),
                 ),
               ),
+              const SizedBox(height: 8),
             ],
           ),
         ),
@@ -124,24 +96,22 @@ class _MerchantsPageState extends State<MerchantsPage> {
           if (state is MerchantStatusUpdated) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
-                content: Text(
-                  'تم تحديث حالة التاجر بنجاح',
-                ),
-                backgroundColor: Colors.green,
+                content: Text('تم تحديث حالة التاجر بنجاح'),
+                backgroundColor: AppColors.success,
               ),
             );
           } else if (state is MerchantDeleted) {
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('تم حذف التاجر بنجاح'),
-                backgroundColor: Colors.green,
+                backgroundColor: AppColors.success,
               ),
             );
           } else if (state is MerchantsError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
                 content: Text(state.message),
-                backgroundColor: Colors.red,
+                backgroundColor: AppColors.error,
               ),
             );
           }
@@ -155,7 +125,6 @@ class _MerchantsPageState extends State<MerchantsPage> {
           if (state is MerchantsLoading) {
             return const ListSkeleton(itemCount: 5);
           } else if (state is MerchantsLoaded) {
-            // Client-side search filter
             final filtered = _searchQuery.isEmpty
                 ? state.merchants
                 : state.merchants.where((m) {
@@ -174,13 +143,13 @@ class _MerchantsPageState extends State<MerchantsPage> {
                       Container(
                         padding: const EdgeInsets.all(24),
                         decoration: BoxDecoration(
-                          color: Colors.orange.withValues(alpha: 0.1),
+                          color: AppColors.primary.withValues(alpha: 0.1),
                           shape: BoxShape.circle,
                         ),
                         child: Icon(
                           _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.storefront_rounded,
                           size: 64,
-                          color: Colors.orange[400],
+                          color: AppColors.primary.withValues(alpha: 0.7),
                         ),
                       ),
                       const SizedBox(height: 24),
@@ -190,7 +159,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                         style: GoogleFonts.cairo(
                           fontWeight: FontWeight.w900,
                           fontSize: 20,
-                          color: const Color(0xFF1E293B),
+                          color: AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 12),
@@ -200,7 +169,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                             : 'لا يوجد تجار مسجلين حالياً في النظام.',
                         textAlign: TextAlign.center,
                         style: GoogleFonts.cairo(
-                          color: Colors.blueGrey[600],
+                          color: AppColors.textSecondary,
                           height: 1.5,
                         ),
                       ),
@@ -228,10 +197,6 @@ class _MerchantsPageState extends State<MerchantsPage> {
               ),
             );
           } else if (state is MerchantsError) {
-            final isConnectionError = state.message.toLowerCase().contains('connection') || 
-                                     state.message.toLowerCase().contains('network') ||
-                                     state.message.toLowerCase().contains('socket');
-
             return Center(
               child: Padding(
                 padding: const EdgeInsets.all(40),
@@ -241,63 +206,40 @@ class _MerchantsPageState extends State<MerchantsPage> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(
-                        color: Colors.red.withValues(alpha: 0.1),
+                        color: AppColors.error.withValues(alpha: 0.1),
                         shape: BoxShape.circle,
                       ),
-                      child: Icon(
-                        isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                      child: const Icon(
+                        Icons.wifi_off_rounded,
                         size: 64,
-                        color: Colors.red[400],
+                        color: AppColors.error,
                       ),
                     ),
                     const SizedBox(height: 24),
                     Text(
-                      isConnectionError ? 'مشكلة في الاتصال' : 'حدث خطأ غير متوقع',
+                      'حدث خطأ في جلب البيانات',
                       style: GoogleFonts.cairo(
                         fontWeight: FontWeight.w900,
                         fontSize: 20,
-                        color: const Color(0xFF1E293B),
+                        color: AppColors.textPrimary,
                       ),
                     ),
                     const SizedBox(height: 12),
                     Text(
-                      isConnectionError 
-                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
-                          : state.message,
+                      state.message,
                       textAlign: TextAlign.center,
                       style: GoogleFonts.cairo(
-                        color: Colors.blueGrey[600],
+                        color: AppColors.textSecondary,
                         height: 1.5,
                       ),
                     ),
                     const SizedBox(height: 32),
-                    SizedBox(
-                      width: 200,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => context.read<MerchantsBloc>().add(
-                          LoadMerchantsEvent(status: _selectedStatus),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6B00),
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            const Icon(Icons.refresh_rounded, size: 20),
-                            const SizedBox(width: 8),
-                            Text(
-                              'إعادة المحاولة',
-                              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
+                    ElevatedButton.icon(
+                      onPressed: () => context.read<MerchantsBloc>().add(
+                        LoadMerchantsEvent(status: _selectedStatus),
                       ),
+                      icon: const Icon(Icons.refresh_rounded),
+                      label: const Text('إعادة المحاولة'),
                     ),
                   ],
                 ),
@@ -333,7 +275,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                   width: 80,
                   height: 80,
                   decoration: BoxDecoration(
-                    color: Colors.orange[50],
+                    color: AppColors.primary.withValues(alpha: 0.05),
                     shape: BoxShape.circle,
                   ),
                   child: (merchant.logoUrl != null && merchant.logoUrl!.isNotEmpty)
@@ -343,7 +285,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                             fit: BoxFit.cover,
                           ),
                         )
-                      : Icon(Icons.store, size: 40, color: Colors.orange[400]),
+                      : const Icon(Icons.storefront_rounded, size: 40, color: AppColors.primary),
                 ),
               ),
               const SizedBox(height: 16),
@@ -351,38 +293,37 @@ class _MerchantsPageState extends State<MerchantsPage> {
                 child: Text(
                   merchant.storeName,
                   style: GoogleFonts.cairo(
-                    fontSize: 18,
+                    fontSize: 20,
                     fontWeight: FontWeight.bold,
+                    color: AppColors.textPrimary,
                   ),
                 ),
               ),
-              const SizedBox(height: 24),
-              _buildDetailItem('المالك', merchant.ownerName, Icons.person_outline),
-              _buildDetailItem('الهاتف', merchant.phone, Icons.phone_outlined),
+              const SizedBox(height: 32),
+              _buildDetailItem('المالك', merchant.ownerName, Icons.person_outline_rounded),
+              _buildDetailItem('الهاتف', merchant.phone, Icons.phone_android_rounded),
               if (merchant.category != null)
                 _buildDetailItem('القسم', merchant.category!, Icons.category_outlined),
               _buildDetailItem(
                 'تاريخ الانضمام',
                 DateFormat('yyyy/MM/dd hh:mm a', 'ar').format(merchant.createdAt),
-                Icons.calendar_today_outlined,
+                Icons.calendar_today_rounded,
               ),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               if (merchant.status == 'PENDING') ...[
                 Row(
                   children: [
                     Expanded(
-                      child: ElevatedButton(
+                      child: TextButton(
                         onPressed: () {
                           Navigator.pop(sheetContext);
                           _showRejectionDialog(context, merchant);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.red[50],
-                          foregroundColor: Colors.red,
-                          elevation: 0,
+                        style: TextButton.styleFrom(
+                          foregroundColor: AppColors.error,
                           padding: const EdgeInsets.symmetric(vertical: 16),
                         ),
-                        child: const Text('رفض'),
+                        child: const Text('رفض الطلب', style: TextStyle(fontWeight: FontWeight.bold)),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -397,13 +338,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                           );
                           Navigator.pop(sheetContext);
                         },
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: const Color(0xFFFF6B00),
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          padding: const EdgeInsets.symmetric(vertical: 16),
-                        ),
-                        child: const Text('قبول'),
+                        child: const Text('قبول التاجر'),
                       ),
                     ),
                   ],
@@ -411,15 +346,14 @@ class _MerchantsPageState extends State<MerchantsPage> {
               ] else
                 SizedBox(
                   width: double.infinity,
-                  child: ElevatedButton(
+                  child: OutlinedButton(
                     onPressed: () => Navigator.pop(sheetContext),
-                    style: ElevatedButton.styleFrom(
-                      backgroundColor: const Color(0xFFFF6B00),
-                      foregroundColor: Colors.white,
-                      elevation: 0,
+                    style: OutlinedButton.styleFrom(
                       padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: BorderSide(color: Colors.grey.shade200),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                     ),
-                    child: const Text('إغلاق'),
+                    child: const Text('إغلاق', style: TextStyle(color: AppColors.textPrimary)),
                   ),
                 ),
             ],
@@ -429,24 +363,17 @@ class _MerchantsPageState extends State<MerchantsPage> {
     );
   }
 
-  /// Shows a dialog to collect a rejection reason before firing the event.
   void _showRejectionDialog(BuildContext context, Merchant merchant) {
     final reasonController = TextEditingController();
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
-        backgroundColor: Colors.white,
-        title: Text(
-          'سبب الرفض',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
-        ),
+        title: const Text('سبب الرفض'),
         content: TextField(
           controller: reasonController,
           maxLines: 3,
-          decoration: InputDecoration(
-            hintText:
-                'يرجى توضيح سبب رفض هذا التاجر...',
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
+          decoration: const InputDecoration(
+            hintText: 'يرجى توضيح سبب رفض هذا التاجر...',
           ),
         ),
         actions: [
@@ -467,10 +394,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
               );
               Navigator.pop(dialogContext);
             },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
+            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
             child: const Text('تأكيد الرفض'),
           ),
         ],
@@ -478,56 +402,33 @@ class _MerchantsPageState extends State<MerchantsPage> {
     ).then((_) => reasonController.dispose());
   }
 
-  // ignore: unused_element
-  void _confirmDeleteMerchant(BuildContext context, Merchant merchant) {
-    showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: Text('تأكيد الحذف', style: GoogleFonts.cairo()),
-        content: Text(
-          'هل تريد حذف "${merchant.storeName}" نهائياً؟',
-          style: GoogleFonts.cairo(),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إلغاء'),
-          ),
-          ElevatedButton(
-            onPressed: () {
-              context.read<MerchantsBloc>().add(DeleteMerchantEvent(id: merchant.id));
-              Navigator.pop(dialogContext);
-            },
-            style: ElevatedButton.styleFrom(
-              backgroundColor: Colors.red,
-              foregroundColor: Colors.white,
-            ),
-            child: const Text('حذف'),
-          ),
-        ],
-      ),
-    );
-  }
-
   Widget _buildDetailItem(String label, String value, IconData icon) {
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         children: [
-          Icon(icon, size: 20, color: Colors.grey[400]),
-          const SizedBox(width: 12),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
+          const SizedBox(width: 16),
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Text(
                 label,
-                style: GoogleFonts.inter(fontSize: 12, color: Colors.grey[400]),
+                style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary),
               ),
               Text(
                 value,
-                style: GoogleFonts.inter(
-                  fontSize: 14,
-                  fontWeight: FontWeight.w600,
+                style: GoogleFonts.cairo(
+                  fontSize: 15,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
                 ),
               ),
             ],
@@ -548,11 +449,19 @@ class _MerchantsPageState extends State<MerchantsPage> {
           context.read<MerchantsBloc>().add(LoadMerchantsEvent(status: status));
         }
       },
-      selectedColor: Colors.orange[100],
+      selectedColor: AppColors.primary.withValues(alpha: 0.15),
       labelStyle: TextStyle(
-        color: isSelected ? Colors.orange[800] : Colors.blueGrey[600],
+        color: isSelected ? AppColors.primary : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontFamily: GoogleFonts.cairo().fontFamily,
       ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? AppColors.primary : Colors.grey.shade200,
+        ),
+      ),
+      showCheckmark: false,
     );
   }
 }

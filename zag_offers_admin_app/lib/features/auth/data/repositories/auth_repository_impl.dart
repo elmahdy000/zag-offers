@@ -14,11 +14,11 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<Either<Failure, AdminUser>> login(
-    String phone,
+    String identifier,
     String password,
   ) async {
     try {
-      final response = await remoteDataSource.login(phone, password);
+      final response = await remoteDataSource.login(identifier, password);
       final token = response['access_token'];
       final user = AdminUserModel.fromJson(response['user']);
 
