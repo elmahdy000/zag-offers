@@ -31,7 +31,7 @@ import { useToast } from '@/components/shared/Toast';
 interface StoreItem {
   id: string;
   name: string;
-  category: string;
+  category: string | { id: string; name: string };
   area: string;
   phone?: string;
   email?: string;
@@ -198,7 +198,7 @@ export default function StoresPage() {
       setEditingStore(store);
       setFormData({
         name: store.name,
-        category: store.category,
+        category: typeof store.category === 'string' ? store.category : store.category.name,
         area: store.area,
         phone: store.phone || '',
         whatsapp: store.whatsapp || '',
@@ -331,7 +331,12 @@ export default function StoresPage() {
               </div>
               
               <h3 className="text-lg font-bold text-slate-900 mb-1 truncate">{store.name}</h3>
-              <p className="text-xs font-medium text-slate-500 mb-3">{DISPLAY_NAMES[store.category] || store.category}</p>
+              <p className="text-xs font-medium text-slate-500 mb-3">
+                {typeof store.category === 'string' 
+                  ? (DISPLAY_NAMES[store.category] || store.category)
+                  : (DISPLAY_NAMES[store.category.name] || store.category.name)
+                }
+              </p>
               
               <div className="space-y-2 mb-4">
                 <div className="flex items-center gap-2 text-xs text-slate-600">
@@ -425,7 +430,13 @@ export default function StoresPage() {
 
               {/* Info Grid */}
               <div className="grid gap-4 sm:grid-cols-2 mb-8">
-                <DetailItem label="الفئة" value={DISPLAY_NAMES[storeDetails.category] || storeDetails.category} />
+                <DetailItem 
+                  label="الفئة" 
+                  value={typeof storeDetails.category === 'string' 
+                    ? (DISPLAY_NAMES[storeDetails.category] || storeDetails.category)
+                    : (DISPLAY_NAMES[storeDetails.category.name] || storeDetails.category.name)
+                  } 
+                />
                 <DetailItem label="المنطقة" value={storeDetails.area} icon={MapPin} />
                 <DetailItem label="رقم الهاتف" value={storeDetails.phone || 'غير متوفر'} icon={Phone} colorClass={storeDetails.phone ? 'text-slate-900' : 'text-slate-400'} />
                 <DetailItem label="واتساب" value={storeDetails.whatsapp || 'غير متوفر'} icon={MessageCircle} colorClass={storeDetails.whatsapp ? 'text-slate-900' : 'text-slate-400'} />
@@ -604,9 +615,11 @@ export default function StoresPage() {
                       } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer`}
                     >
                       <option value="">اختر الفئة</option>
-                      {categories?.filter(c => c.name !== 'سوبرماركت' && c.name !== 'خدمات محلية').map((cat) => (
-                        <option key={cat.id} value={cat.name}>{DISPLAY_NAMES[cat.name] || cat.name}</option>
-                      ))}
+                        {categories?.filter(c => c.name !== 'سوبرماركت' && c.name !== 'خدمات محلية').map((cat) => (
+                          <option key={cat.id} value={typeof formData.category === 'string' ? cat.name : cat.id}>
+                            {DISPLAY_NAMES[cat.name] || cat.name}
+                          </option>
+                        ))}
                     </select>
                     {formErrors.category && <p className="text-xs text-rose-600">{formErrors.category}</p>}
                   </div>
