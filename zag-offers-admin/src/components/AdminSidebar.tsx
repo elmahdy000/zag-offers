@@ -28,7 +28,7 @@ import { adminApi } from '@/lib/api';
 const menuItems = [
   { name: 'نظرة عامة', icon: Grid2X2, href: '/dashboard' },
   { name: 'مركز الموافقات', icon: ShieldCheck, href: '/dashboard/approvals' },
-  { name: 'إدارة المتاجر', icon: ShoppingBag, href: '/dashboard/merchants' },
+  { name: 'إدارة المتاجر', icon: ShoppingBag, href: '/dashboard/stores' },
   { name: 'إدارة العروض', icon: Sparkles, href: '/dashboard/offers' },
   { name: 'إدارة التصنيفات', icon: ListFilter, href: '/dashboard/categories' },
   { name: 'قائمة الكوبونات', icon: TicketPercent, href: '/dashboard/coupons' },
