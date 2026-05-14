@@ -90,10 +90,12 @@ export class AuthService {
     identifier: string,
     pass: string,
   ): Promise<SanitizedUser | null> {
+    const cleanIdentifier = identifier.trim().toLowerCase();
+
     // Try to find user by phone first, then by email
-    let user = await this.usersService.findOne(identifier);
-    if (!user && identifier.includes('@')) {
-      user = await this.usersService.findByEmail(identifier);
+    let user = await this.usersService.findOne(cleanIdentifier);
+    if (!user && cleanIdentifier.includes('@')) {
+      user = await this.usersService.findByEmail(cleanIdentifier);
     }
 
     if (user && user.password && (await bcrypt.compare(pass, user.password))) {
@@ -125,12 +127,13 @@ export class AuthService {
   }
 
   async register(data: RegisterDto) {
-    let phone: string | null = data.phone;
-    let email: string | null = data.email || null;
+    const cleanPhoneEmail = data.phone.trim().toLowerCase();
+    let phone: string | null = cleanPhoneEmail;
+    let email: string | null = data.email?.trim().toLowerCase() || null;
 
     // Detect if the provided "phone" is actually an email
-    if (data.phone.includes('@')) {
-      email = data.phone;
+    if (cleanPhoneEmail.includes('@')) {
+      email = cleanPhoneEmail;
       phone = null;
     }
 
@@ -155,8 +158,11 @@ export class AuthService {
 
     const hashedPassword = await bcrypt.hash(data.password, 10);
 
+    // Create final object avoiding spreading the original raw 'phone' from DTO
+    const { phone: _, email: __, ...otherData } = data;
+
     const user = await this.usersService.create({
-      ...data,
+      ...otherData,
       phone,
       email,
       password: hashedPassword,
