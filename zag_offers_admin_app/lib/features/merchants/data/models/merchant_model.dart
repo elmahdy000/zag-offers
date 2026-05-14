@@ -33,4 +33,11 @@ class MerchantModel extends Merchant {
       'id': id,
       'storeName': storeName,
       'ownerName': ownerName,
-  
+      'phone': phone,
+      'status': status,
+      'logoUrl': logoUrl,
+      'category': category,
+      'createdAt': createdAt.toIso8601String(),
+    };
+  }
+}

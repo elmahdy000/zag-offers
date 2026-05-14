@@ -8,8 +8,22 @@ import { register } from "@/lib/register-sw";
 import OnlineStatusBanner from "@/components/online-status-banner";
 
 export const metadata: Metadata = {
-  title: "Zag Offers | أفضل عروض الزقازيق",
-  description: "اكتشف أفضل الخصومات والكوبونات الحصرية في مدينة الزقازيق. وفر أكثر مع زقازيق أوفرز.",
+  title: "Zag Offers | زقازيق أوفرز - أفضل عروض الزقازيق",
+  description: "اكتشف أفضل الخصومات والكوبونات الحصرية في مدينة الزقازيق. وفر أكثر مع زقازيق أوفرز في المطاعم، الكافيهات، والخدمات.",
+  keywords: ["زقازيق", "عروض الزقازيق", "خصومات الزقازيق", "كوبونات", "Zag Offers", "دليل الزقازيق", "توفير", "مطاعم الزقازيق"],
+  openGraph: {
+    title: "زقازيق أوفرز | أفضل عروض الزقازيق",
+    description: "وفر أكثر مع أفضل الخصومات الحصرية في الزقازيق.",
+    url: "https://zagoffers.online",
+    siteName: "Zag Offers",
+    locale: "ar_EG",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "زقازيق أوفرز | أفضل عروض الزقازيق",
+    description: "اكتشف ووفر في مدينة الزقازيق.",
+  },
 };
 
 export const viewport = {

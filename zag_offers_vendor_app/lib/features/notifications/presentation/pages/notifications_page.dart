@@ -1,9 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
-import 'package:zag_offers_vendor_app/core/network/api_client.dart';
-import 'package:zag_offers_vendor_app/injection_container.dart';
 import 'package:intl/intl.dart';
+import '../../../../core/theme/app_colors.dart';
+import '../bloc/notifications_bloc.dart';
+import '../../domain/entities/notification_entity.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -13,78 +14,10 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
-  final ApiClient _apiClient = sl<ApiClient>();
-  List<dynamic> _notifications = [];
-  bool _isLoading = true;
-
   @override
   void initState() {
     super.initState();
-    _fetchNotifications();
-  }
-
-  Future<void> _fetchNotifications() async {
-    if (!mounted) return;
-    setState(() => _isLoading = true);
-    try {
-      final response = await _apiClient.dio.get('/notifications');
-      final data = response.data;
-      if (!mounted) return;
-      setState(() {
-        if (data is List) {
-          _notifications = List<dynamic>.from(data);
-        } else if (data is Map && data['items'] is List) {
-          _notifications = List<dynamic>.from(data['items'] as List);
-        } else {
-          _notifications = [];
-        }
-        _isLoading = false;
-      });
-    } catch (e) {
-      if (!mounted) return;
-      setState(() => _isLoading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('خطأ في جلب الإشعارات: $e', style: GoogleFonts.cairo()),
-          backgroundColor: AppColors.error,
-        ),
-      );
-    }
-  }
-
-  Future<void> _markAsRead(String id) async {
-    try {
-      await _apiClient.dio.post('/notifications/$id/read');
-      if (!mounted) return;
-      setState(() {
-        final index = _notifications.indexWhere((n) => n['id'] == id);
-        if (index != -1) {
-          _notifications[index]['isRead'] = true;
-        }
-      });
-    } catch (e) {
-      debugPrint('Error marking notification as read: $e');
-    }
-  }
-
-  Future<void> _markAllAsRead() async {
-    try {
-      await _apiClient.dio.post('/notifications/read-all');
-      if (!mounted) return;
-      setState(() {
-        for (var n in _notifications) {
-          n['isRead'] = true;
-        }
-      });
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('تم تحديد الكل كمقروء', style: GoogleFonts.cairo()),
-          backgroundColor: AppColors.success,
-        ),
-      );
-    } catch (e) {
-      debugPrint('Error marking all notifications as read: $e');
-    }
+    context.read<NotificationsBloc>().add(GetNotificationsRequested());
   }
 
   @override
@@ -100,34 +33,59 @@ class _NotificationsPageState extends State<NotificationsPage> {
         backgroundColor: AppColors.background,
         elevation: 0,
         actions: [
-          if (_notifications.any((n) => n['isRead'] == false))
-            IconButton(
-              icon: const Icon(Icons.done_all_rounded, color: AppColors.primary),
-              tooltip: 'تحديد الكل كمقروء',
-              onPressed: _markAllAsRead,
-            ),
+          BlocBuilder<NotificationsBloc, NotificationsState>(
+            builder: (context, state) {
+              if (state is NotificationsLoaded && state.notifications.isNotEmpty) {
+                return IconButton(
+                  icon: const Icon(Icons.done_all_rounded, color: AppColors.primary),
+                  tooltip: 'تحديد الكل كمقروء',
+                  onPressed: () => context.read<NotificationsBloc>().add(MarkAllAsReadRequested()),
+                );
+              }
+              return const SizedBox.shrink();
+            },
+          ),
         ],
       ),
-      body: _isLoading
-          ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
-          : RefreshIndicator(
-              onRefresh: _fetchNotifications,
+      body: BlocBuilder<NotificationsBloc, NotificationsState>(
+        builder: (context, state) {
+          if (state is NotificationsLoading) {
+            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+          } else if (state is NotificationsError) {
+            return Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(state.message, style: GoogleFonts.cairo(color: AppColors.error)),
+                  const SizedBox(height: 16),
+                  ElevatedButton(
+                    onPressed: () => context.read<NotificationsBloc>().add(GetNotificationsRequested()),
+                    child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                  ),
+                ],
+              ),
+            );
+          } else if (state is NotificationsLoaded) {
+            if (state.notifications.isEmpty) {
+              return _buildEmptyState();
+            }
+            return RefreshIndicator(
+              onRefresh: () async {
+                context.read<NotificationsBloc>().add(GetNotificationsRequested());
+              },
               color: AppColors.primary,
-              child: _notifications.isEmpty
-                  ? _buildEmptyState()
-                  : ListView.builder(
-                      padding: const EdgeInsets.symmetric(vertical: 12),
-                      itemCount: _notifications.length,
-                      itemBuilder: (context, index) {
-                        final notification = _notifications[index];
-                        final isRead = notification['isRead'] == true;
-                        final dateStr = notification['createdAt'] as String?;
-                        final date = dateStr != null ? DateTime.tryParse(dateStr) : null;
-                        
-                        return _buildNotificationCard(notification, isRead, date);
-                      },
-                    ),
-            ),
+              child: ListView.builder(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                itemCount: state.notifications.length,
+                itemBuilder: (context, index) {
+                  return _buildNotificationCard(state.notifications[index]);
+                },
+              ),
+            );
+          }
+          return const SizedBox.shrink();
+        },
+      ),
     );
   }
 
@@ -173,12 +131,13 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 
-  Widget _buildNotificationCard(dynamic notification, bool isRead, DateTime? date) {
+  Widget _buildNotificationCard(NotificationEntity notification) {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.card,
+        color: notification.isRead ? AppColors.card.withValues(alpha: 0.6) : AppColors.card,
         borderRadius: BorderRadius.circular(20),
+        border: notification.isRead ? null : Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.03),
@@ -186,56 +145,32 @@ class _NotificationsPageState extends State<NotificationsPage> {
             offset: const Offset(0, 4),
           ),
         ],
-        border: !isRead ? Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 1) : null,
       ),
       child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
         onTap: () {
-          if (!isRead) {
-            _markAsRead(notification['id']);
+          if (!notification.isRead) {
+            context.read<NotificationsBloc>().add(MarkNotificationAsReadRequested(notification.id));
           }
         },
-        leading: Stack(
-          children: [
-            Container(
-              width: 52,
-              height: 52,
-              decoration: BoxDecoration(
-                color: isRead ? AppColors.background : AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: ClipOval(
-                child: notification['imageUrl'] != null 
-                    ? Image.network(
-                        notification['imageUrl'],
-                        fit: BoxFit.cover,
-                        errorBuilder: (_, __, ___) => Icon(Icons.notifications_rounded, color: isRead ? AppColors.textSecondary : AppColors.primary),
-                      )
-                    : Icon(Icons.notifications_rounded, color: isRead ? AppColors.textSecondary : AppColors.primary),
-              ),
-            ),
-            if (!isRead)
-              Positioned(
-                right: 0,
-                top: 0,
-                child: Container(
-                  width: 12,
-                  height: 12,
-                  decoration: BoxDecoration(
-                    color: AppColors.accent,
-                    shape: BoxShape.circle,
-                    border: Border.all(color: Colors.white, width: 2),
-                  ),
-                ),
-              ),
-          ],
+        contentPadding: const EdgeInsets.all(16),
+        leading: Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: notification.isRead ? Colors.grey.withValues(alpha: 0.1) : AppColors.primary.withValues(alpha: 0.1),
+            shape: BoxShape.circle,
+          ),
+          child: Icon(
+            notification.isRead ? Icons.notifications_none_rounded : Icons.notifications_active_rounded, 
+            color: notification.isRead ? Colors.grey : AppColors.primary
+          ),
         ),
         title: Text(
-          notification['title'] ?? '',
+          notification.title,
           style: GoogleFonts.cairo(
-            fontWeight: isRead ? FontWeight.w600 : FontWeight.w900,
+            fontWeight: notification.isRead ? FontWeight.bold : FontWeight.w900,
             fontSize: 15,
-            color: isRead ? AppColors.textSecondary : AppColors.textPrimary,
+            color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
           ),
         ),
         subtitle: Column(
@@ -243,29 +178,28 @@ class _NotificationsPageState extends State<NotificationsPage> {
           children: [
             const SizedBox(height: 6),
             Text(
-              notification['body'] ?? '',
+              notification.body,
               style: GoogleFonts.cairo(
                 fontSize: 13,
                 height: 1.4,
-                color: isRead ? AppColors.textSecondary.withValues(alpha: 0.7) : AppColors.textSecondary,
+                color: AppColors.textSecondary,
               ),
             ),
             const SizedBox(height: 8),
-            if (date != null)
-              Row(
-                children: [
-                  Icon(Icons.access_time_rounded, size: 12, color: AppColors.textSecondary.withValues(alpha: 0.5)),
-                  const SizedBox(width: 4),
-                  Text(
-                    DateFormat('yyyy/MM/dd - hh:mm a').format(date.toLocal()),
-                    style: GoogleFonts.cairo(
-                      fontSize: 10,
-                      color: AppColors.textSecondary.withValues(alpha: 0.5),
-                      fontWeight: FontWeight.w600,
-                    ),
+            Row(
+              children: [
+                Icon(Icons.access_time_rounded, size: 12, color: AppColors.textSecondary.withValues(alpha: 0.5)),
+                const SizedBox(width: 4),
+                Text(
+                  DateFormat('yyyy/MM/dd - hh:mm a', 'ar').format(notification.createdAt.toLocal()),
+                  style: GoogleFonts.cairo(
+                    fontSize: 10,
+                    color: AppColors.textSecondary.withValues(alpha: 0.5),
+                    fontWeight: FontWeight.w600,
                   ),
-                ],
-              ),
+                ),
+              ],
+            ),
           ],
         ),
       ),

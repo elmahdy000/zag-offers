@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,8 +13,10 @@ import '../../features/offers/presentation/pages/offer_loading_page.dart';
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  static bool _isInitialized = false;
   static String? _fcmToken;
   static String? _lastSubscribedArea;
+  static Map<String, dynamic>? _pendingNotificationData;
 
   static String? get currentToken => _fcmToken;
 
@@ -24,7 +27,22 @@ class NotificationService {
     const InitializationSettings initializationSettings =
         InitializationSettings(android: initializationSettingsAndroid);
 
-    await _localNotifications.initialize(initializationSettings);
+    await _localNotifications.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        if (response.payload != null) {
+          debugPrint('🔔 Local Notification Tap Received with payload: ${response.payload}');
+          try {
+            final data = _parsePayload(response.payload!);
+            // تأخير بسيط لضمان استقرار الـ Navigator
+            await Future.delayed(const Duration(milliseconds: 500));
+            handleNotificationTapFromData(data);
+          } catch (e) {
+            debugPrint('❌ Error parsing local notification payload: $e');
+          }
+        }
+      },
+    );
 
     // إنشاء قناة الإشعارات مع الصوت المخصص
     const AndroidNotificationChannel channel = AndroidNotificationChannel(
@@ -40,6 +58,9 @@ class NotificationService {
         .resolvePlatformSpecificImplementation<
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
+        
+    _isInitialized = true;
+    debugPrint('✅ Local Notifications Initialized');
   }
 
   static Future<void> initialize() async {
@@ -158,14 +179,14 @@ class NotificationService {
     final body = message.notification?.body ?? '';
     
     // إظهار تنبيه محلي للمستخدم ليراه في الـ Foreground
-    showLocalNotification(title, body);
+    showLocalNotification(title, body, data: message.data);
 
     di.sl<NotificationBloc>().add(
       GeneralNotificationReceived(title: title, body: body),
     );
   }
 
-  static Future<void> showLocalNotification(String title, String body) async {
+  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data}) async {
     const AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'offers_channel',
@@ -187,40 +208,113 @@ class NotificationService {
       title,
       body,
       platformChannelSpecifics,
+      payload: data != null ? _encodePayload(data) : null,
     );
   }
 
+  static String _encodePayload(Map<String, dynamic> data) {
+    return jsonEncode(data);
+  }
+
+  static Map<String, dynamic> _parsePayload(String payload) {
+    try {
+      return jsonDecode(payload) as Map<String, dynamic>;
+    } catch (e) {
+      debugPrint('❌ JSON Decode Error: $e');
+      return {};
+    }
+  }
+
   static void _handleNotificationTap(RemoteMessage message) {
-    final data = message.data;
-    final type = data['type'];
-    final id = data['offerId'] ?? data['storeId'];
+    debugPrint('🔔 FCM Notification Tap Received: ${message.data}');
+    handleNotificationTapFromData(message.data);
+  }
+
+  static void handleNotificationTapFromData(Map<String, dynamic> data) {
+    debugPrint('🔔 --- Notification Data Debug ---');
+    data.forEach((key, value) {
+      debugPrint('   🔑 Key: $key | Value: $value (${value.runtimeType})');
+    });
+    debugPrint('🔔 ------------------------------');
+
+    final type = data['type']?.toString();
+    final id = data['offerId']?.toString() ?? data['storeId']?.toString();
     
-    debugPrint('🔔 Navigating from notification: $type (ID: $id)');
+    debugPrint('🔔 Processing Notification Data - Type: $type, ID: $id');
+
+    final state = NavigationService.navigatorKey.currentState;
+    if (state == null) {
+      debugPrint('⏳ Navigator not ready. Saving notification as pending.');
+      _pendingNotificationData = data;
+      return;
+    }
 
     if ((type == 'NEW_OFFER' || type == 'OFFER_APPROVED') && id != null) {
-      _navigateToOffer(id);
-    } else if (type == 'COUPON_REDEEMED' || type == 'NEW_COUPON') {
-      _navigateNamed('/coupons');
+      debugPrint('🚀 Navigating to Offer: $id');
+      navigateToOffer(id);
+    } else if (type == 'COUPON_REDEEMED' || type == 'NEW_COUPON' || type == 'COUPON_GENERATED') {
+      debugPrint('🚀 Navigating to Coupons Tab');
+      _navigateNamed('/'); // Go to MainScreen first
+      _navigateTab(2); // Index 2 is Coupons
+    } else if (type == 'DIGEST_NEW_OFFERS') {
+      debugPrint('🚀 Navigating to All Offers Tab');
+      _navigateNamed('/');
+      _navigateTab(1); // Index 1 is All Offers
+    } else if (type == 'ANNOUNCEMENT' || type == 'GENERAL') {
+      debugPrint('🚀 Navigating to Notifications Page');
+      _navigateNamed('/notifications');
     } else if (type == 'STORE_APPROVED') {
-       _navigateNamed('/'); // Refresh home
-    } else {
+       debugPrint('🚀 Navigating to Home (Store Approved)');
        _navigateNamed('/');
+       _navigateTab(0);
+    } else {
+       debugPrint('⚠️ Unknown notification type or missing ID. Defaulting to Home.');
+       _navigateNamed('/');
+       _navigateTab(0);
     }
+  }
+
+  static void _navigateTab(int index) {
+    // نستخدم Delay بسيط لضمان أن الـ MainScreen قد تم بناؤها
+    Future.delayed(const Duration(milliseconds: 300), () {
+      final state = NavigationService.navigatorKey.currentState;
+      if (state != null) {
+        MainScreen.of(state.context)?.setSelectedIndex(index);
+      }
+    });
   }
 
   static void _navigateNamed(String route) {
-    final context = NavigationService.navigatorKey.currentContext;
-    if (context != null) {
-      Navigator.of(context).pushNamedAndRemoveUntil(route, (r) => r.isFirst);
+    final state = NavigationService.navigatorKey.currentState;
+    if (state != null) {
+      // إذا كنا في صفحة فرعية، نعود للرئيسية أولاً لو المسار هو '/'
+      if (route == '/') {
+        state.popUntil((r) => r.isFirst);
+      } else {
+        state.pushNamed(route);
+      }
+    } else {
+      debugPrint('❌ Navigation Error: NavigatorState is null');
     }
   }
 
-  static void _navigateToOffer(String id) {
-    final context = NavigationService.navigatorKey.currentContext;
-    if (context != null) {
-      Navigator.of(context).push(
+  static void navigateToOffer(String id) {
+    final state = NavigationService.navigatorKey.currentState;
+    if (state != null) {
+      state.push(
         MaterialPageRoute(builder: (_) => OfferLoadingPage(offerId: id)),
       );
+    } else {
+      debugPrint('❌ Navigation Error: NavigatorState is null for Offer: $id');
+    }
+  }
+
+  static void checkPendingNotification() {
+    if (_pendingNotificationData != null) {
+      debugPrint('🔔 Processing pending notification...');
+      final data = _pendingNotificationData!;
+      _pendingNotificationData = null;
+      handleNotificationTapFromData(data);
     }
   }
 }

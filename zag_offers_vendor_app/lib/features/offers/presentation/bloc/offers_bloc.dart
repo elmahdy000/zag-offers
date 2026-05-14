@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/network/dio_error_mapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/offer_entity.dart';
@@ -89,6 +91,8 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     try {
       final offers = await getMyOffersUseCase(NoParams());
       emit(OffersLoaded(offers));
+    } on DioException catch (e) {
+      emit(OffersError(mapDioErrorToMessage(e)));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -101,6 +105,8 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       await createOfferUseCase(event.offer);
       emit(OfferActionSuccess('تم إضافة العرض بنجاح وبانتظار المراجعة'));
       add(GetMyOffersRequested());
+    } on DioException catch (e) {
+      emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل إضافة العرض')));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -113,6 +119,8 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       await updateOfferUseCase(event.offer);
       emit(OfferActionSuccess('تم تحديث العرض بنجاح'));
       add(GetMyOffersRequested());
+    } on DioException catch (e) {
+      emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تحديث العرض')));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -125,6 +133,8 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       await deleteOfferUseCase(event.id);
       emit(OfferActionSuccess('تم حذف العرض بنجاح'));
       add(GetMyOffersRequested());
+    } on DioException catch (e) {
+      emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل حذف العرض')));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }

@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
@@ -16,7 +18,9 @@ import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'features/qr_scanner/presentation/bloc/qr_scanner_bloc.dart';
 import 'features/offers/presentation/bloc/offers_bloc.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
+import 'features/notifications/presentation/bloc/notifications_bloc.dart';
 
+import 'core/utils/navigation_service.dart';
 import 'core/network/notification_service.dart';
 import 'injection_container.dart' as di;
 import 'core/widgets/splash_screen.dart';
@@ -25,10 +29,40 @@ import 'core/widgets/splash_screen.dart';
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('FCM background message (vendor): ${message.notification?.title}');
-}
+  
+  // Initialize local notifications for background
+  await NotificationService.initializeLocalNotifications();
+  
+  final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
+  final body = message.notification?.body ?? message.data['body'] ?? '';
 
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+  if (title.isNotEmpty || body.isNotEmpty) {
+    await NotificationService.showLocalNotification(title, body, data: message.data);
+    
+    // حفظ الإشعار في الـ Background
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      const storageKey = 'notifications_history';
+      final String? data = prefs.getString(storageKey);
+      List<dynamic> items = [];
+      if (data != null) {
+        items = json.decode(data);
+      }
+      
+      final newItem = {
+        'title': title,
+        'body': body,
+        'data': message.data,
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+      
+      items.insert(0, newItem);
+      if (items.length > 50) items = items.sublist(0, 50);
+      
+      await prefs.setString(storageKey, json.encode(items));
+    } catch (_) {}
+  }
+}
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -38,12 +72,14 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    
+    // Initialize our NotificationService
+    await NotificationService.initialize();
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
   }
 
   await di.init();
-  await NotificationService.initialize();
   runApp(const ZagOffersVendorApp());
 }
 
@@ -69,10 +105,13 @@ class ZagOffersVendorApp extends StatelessWidget {
         BlocProvider(
           create: (_) => di.sl<ProfileBloc>(),
         ),
+        BlocProvider(
+          create: (_) => di.sl<NotificationsBloc>(),
+        ),
       ],
       child: MaterialApp(
         title: 'Zag Offers Vendor',
-        navigatorKey: navigatorKey,
+        navigatorKey: NavigationService.navigatorKey,
         debugShowCheckedModeBanner: false,
         theme: AppTheme.darkTheme.copyWith(
           inputDecorationTheme: InputDecorationTheme(
@@ -129,6 +168,7 @@ class AuthWrapper extends StatelessWidget {
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+          NotificationService.sendTokenToBackend();
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(

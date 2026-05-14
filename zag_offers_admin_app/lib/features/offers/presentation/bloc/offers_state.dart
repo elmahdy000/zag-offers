@@ -25,6 +25,10 @@ class OfferStatusUpdated extends OffersState {}
 
 class OfferDeleted extends OffersState {}
 
+class OfferCreated extends OffersState {}
+
+class OfferUpdated extends OffersState {}
+
 class OffersError extends OffersState {
   final String message;
   const OffersError({required this.message});

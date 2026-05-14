@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/network/dio_error_mapper.dart';
+import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/usecases/login_usecase.dart';
@@ -76,6 +78,8 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       // Register FCM token with backend now that the user is authenticated
       await NotificationService.sendTokenToBackend();
       emit(AuthAuthenticated(user));
+    } on DioException catch (e) {
+      emit(AuthError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تسجيل الدخول')));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll('Exception: ', '')));
     }

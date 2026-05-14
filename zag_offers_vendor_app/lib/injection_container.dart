@@ -30,8 +30,13 @@ import 'features/qr_scanner/data/repositories/qr_scanner_repository_impl.dart';
 import 'features/qr_scanner/domain/repositories/qr_scanner_repository.dart';
 import 'features/qr_scanner/domain/usecases/redeem_coupon_usecase.dart';
 import 'features/qr_scanner/presentation/bloc/qr_scanner_bloc.dart';
-import 'features/upload/data/datasources/upload_remote_data_source.dart';
 import 'features/upload/domain/repositories/upload_repository.dart';
+import 'features/upload/data/repositories/upload_repository_impl.dart';
+import 'features/upload/data/datasources/upload_remote_data_source.dart';
+import 'features/upload/domain/usecases/upload_usecase.dart';
+import 'features/notifications/domain/repositories/notifications_repository.dart';
+import 'features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'features/notifications/presentation/bloc/notifications_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -133,6 +138,14 @@ Future<void> init() async {
       () => UploadRepositoryImpl(remoteDataSource: sl()));
   sl.registerLazySingleton<UploadRemoteDataSource>(
       () => UploadRemoteDataSourceImpl(apiClient: sl()));
+
+  // --- Features - Notifications ---
+  // BLoC
+  sl.registerFactory(() => NotificationsBloc(repository: sl()));
+
+  // Repository
+  sl.registerLazySingleton<NotificationsRepository>(
+      () => NotificationsRepositoryImpl(apiClient: sl()));
 
   // --- Core ---
   sl.registerLazySingleton(() => ApiClient());

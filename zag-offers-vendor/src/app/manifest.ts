@@ -1,0 +1,68 @@
+import { MetadataRoute } from 'next';
+
+export default function manifest(): MetadataRoute.Manifest {
+  return {
+    name: "Zag Offers - بوابة التُجار",
+    short_name: "Zag Offers",
+    description: "بوابة التُجار لإدارة العروض وتفعيل الكوبونات في مدينة الزقازيق",
+    start_url: "/dashboard",
+    display: "standalone",
+    background_color: "#141414",
+    theme_color: "#FF6B00",
+    orientation: "portrait",
+    dir: "rtl",
+    lang: "ar",
+    icons: [
+      {
+        src: "/icon-192.svg",
+        sizes: "192x192",
+        type: "image/svg+xml",
+        purpose: "any",
+      },
+      {
+        src: "/icon-512.svg",
+        sizes: "512x512",
+        type: "image/svg+xml",
+        purpose: "any",
+      },
+    ],
+    categories: ["business", "shopping", "deals", "coupons"],
+    shortcuts: [
+      {
+        name: "لوحة التحكم",
+        short_name: "لوحة التحكم",
+        description: "عرض لوحة التحكم",
+        url: "/dashboard",
+        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+      },
+      {
+        name: "العروض",
+        short_name: "العروض",
+        description: "إدارة العروض",
+        url: "/dashboard/offers",
+        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+      },
+      {
+        name: "الكوبونات",
+        short_name: "الكوبونات",
+        description: "سجل الكوبونات",
+        url: "/dashboard/coupons",
+        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+      },
+      {
+        name: "المتجر",
+        short_name: "المتجر",
+        description: "إعدادات المتجر",
+        url: "/dashboard/profile",
+        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+      },
+      {
+        name: "المسح",
+        short_name: "المسح",
+        description: "مسح الكوبونات",
+        url: "/dashboard/scan",
+        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+      }
+    ]
+  };
+}

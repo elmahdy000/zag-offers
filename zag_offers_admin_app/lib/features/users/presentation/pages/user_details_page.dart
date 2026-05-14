@@ -222,8 +222,16 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
           Icon(icon, size: 18, color: AppColors.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(width: 12),
           Text(label, style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary)),
-          const Spacer(),
-          Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

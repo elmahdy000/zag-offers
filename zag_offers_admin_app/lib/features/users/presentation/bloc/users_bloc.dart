@@ -15,7 +15,10 @@ class UsersBloc extends Bloc<UsersEvent, UsersState> {
       final result = await repository.getUsers(search: event.search);
       result.fold(
         (failure) => emit(UsersError(message: failure.message)),
-        (users) => emit(UsersLoaded(users: users)),
+        (result) => emit(UsersLoaded(
+          users: result.items,
+          totalCount: result.total,
+        )),
       );
     });
 

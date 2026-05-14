@@ -37,3 +37,36 @@ class DeleteMerchantEvent extends MerchantsEvent {
   @override
   List<Object?> get props => [id];
 }
+class CreateMerchantEvent extends MerchantsEvent {
+  final String ownerName;
+  final String phone;
+  final String? email;
+  final String password;
+  final String storeName;
+  final String categoryId;
+  final String? area;
+  final String? address;
+
+  const CreateMerchantEvent({
+    required this.ownerName,
+    required this.phone,
+    this.email,
+    required this.password,
+    required this.storeName,
+    required this.categoryId,
+    this.area,
+    this.address,
+  });
+
+  @override
+  List<Object?> get props => [
+        ownerName,
+        phone,
+        email,
+        password,
+        storeName,
+        categoryId,
+        area,
+        address,
+      ];
+}

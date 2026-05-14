@@ -22,11 +22,10 @@ class OfferModel extends Offer {
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
-    // Backend returns images as a list — safely pick first
     String? imageUrl;
-    final images = json['images'];
-    if (images is List && images.isNotEmpty) {
-      imageUrl = ImageUrlHelper.resolveNullable(images[0]?.toString());
+    final imagesJson = json['images'];
+    if (imagesJson is List && imagesJson.isNotEmpty) {
+      imageUrl = ImageUrlHelper.resolveNullable(imagesJson[0]?.toString());
     } else if (json['imageUrl'] != null) {
       imageUrl = ImageUrlHelper.resolveNullable(json['imageUrl']?.toString());
     }
@@ -37,8 +36,8 @@ class OfferModel extends Offer {
       description: json['description']?.toString() ?? '',
       status: json['status']?.toString() ?? 'PENDING',
       imageUrl: imageUrl,
-      images: json['images'] != null
-          ? List<String>.from(json['images'].map((x) => ImageUrlHelper.resolve(x.toString())))
+      images: imagesJson is List
+          ? List<String>.from(imagesJson.map((x) => ImageUrlHelper.resolve(x.toString())))
           : (imageUrl != null ? [imageUrl] : []),
       storeName: json['store']?['name']?.toString() ??
           json['storeName']?.toString() ??
@@ -56,4 +55,34 @@ class OfferModel extends Offer {
       createdAt: json['createdAt'] != null
           ? DateTime.tryParse(json['createdAt'].toString()) ?? DateTime.now()
           : DateTime.now(),
-      oldPrice: json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) :
+      oldPrice: json['originalPrice'] != null
+          ? double.tryParse(json['originalPrice'].toString())
+          : (json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null),
+      newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
+      rejectionReason: json['rejectionReason']?.toString(),
+      viewCount: json['viewCount'] ?? 0,
+      isFeatured: json['isFeatured'] ?? false,
+    );
+  }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'status': status,
+      'imageUrl': imageUrl,
+      'images': images,
+      'storeName': storeName,
+      'merchantId': merchantId,
+      'startDate': startDate.toIso8601String(),
+      'endDate': endDate.toIso8601String(),
+      'createdAt': createdAt.toIso8601String(),
+      'oldPrice': oldPrice,
+      'newPrice': newPrice,
+      'rejectionReason': rejectionReason,
+      'viewCount': viewCount,
+      'isFeatured': isFeatured,
+    };
+  }
+}

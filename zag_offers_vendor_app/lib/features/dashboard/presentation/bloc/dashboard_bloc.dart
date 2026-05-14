@@ -1,4 +1,6 @@
 import 'package:equatable/equatable.dart';
+import 'package:dio/dio.dart';
+import '../../../../core/network/dio_error_mapper.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/dashboard_stats_entity.dart';
@@ -55,6 +57,8 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
     try {
       final stats = await getDashboardStatsUseCase(NoParams());
       emit(DashboardLoaded(stats, storeId: stats.storeId));
+    } on DioException catch (e) {
+      emit(DashboardError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تحميل الإحصائيات')));
     } catch (e) {
       emit(DashboardError(e.toString().replaceAll('Exception: ', '')));
     }

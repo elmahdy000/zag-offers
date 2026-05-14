@@ -3,6 +3,8 @@ import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/entities/admin_user.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/repositories/auth_repository.dart';
+import 'package:zag_offers_admin_app/core/services/notification_service.dart';
+import 'package:zag_offers_admin_app/injection_container.dart';
 
 part 'auth_event.dart';
 part 'auth_state.dart';
@@ -43,6 +45,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
 
     on<LogoutEvent>((event, emit) async {
       await repository.logout();
+      sl<NotificationService>().reset();
       emit(AuthUnauthenticated());
     });
 

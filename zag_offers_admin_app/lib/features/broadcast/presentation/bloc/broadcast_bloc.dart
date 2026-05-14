@@ -16,6 +16,7 @@ class BroadcastBloc extends Bloc<BroadcastEvent, BroadcastState> {
         body: event.body,
         imageUrl: event.imageUrl,
         area: event.area,
+        target: event.target,
       );
       result.fold(
         (failure) => emit(BroadcastError(message: failure.message)),

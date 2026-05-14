@@ -34,18 +34,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       // Vendor mobile app must use merchant accounts only.
       // Most vendor endpoints are protected with MERCHANT role on backend.
       if (user.role != 'MERCHANT') {
-        throw Exception('This app is for merchant accounts only.');
+        throw Exception('هذا التطبيق مخصص لحسابات التجار فقط.');
       }
 
       await sharedPreferences.setString('auth_token', token);
       await sharedPreferences.setString('user_data', jsonEncode(response.data['user']));
 
       return user;
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        throw Exception('Invalid phone or password');
-      }
-      throw Exception(e.message);
+    } catch (e) {
+      rethrow;
     }
   }
 

@@ -2,9 +2,11 @@ import 'package:zag_offers_admin_app/core/network/api_client.dart';
 import 'package:zag_offers_admin_app/features/offers/data/models/offer_model.dart';
 
 abstract class OfferRemoteDataSource {
-  Future<List<OfferModel>> getOffers({String? status});
+  Future<List<OfferModel>> getOffers({String? status, String? merchantId});
   Future<void> updateOfferStatus(String id, String status, {String? reason});
   Future<void> deleteOffer(String id);
+  Future<void> createOffer(Map<String, dynamic> offerData);
+  Future<void> updateOffer(String id, Map<String, dynamic> offerData);
 }
 
 class OfferRemoteDataSourceImpl implements OfferRemoteDataSource {
@@ -13,10 +15,14 @@ class OfferRemoteDataSourceImpl implements OfferRemoteDataSource {
   OfferRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<List<OfferModel>> getOffers({String? status}) async {
+  Future<List<OfferModel>> getOffers({String? status, String? merchantId}) async {
+    final queryParams = <String, dynamic>{};
+    if (status != null) queryParams['status'] = status;
+    if (merchantId != null) queryParams['storeId'] = merchantId;
+
     final response = await client.get(
       '/admin/offers',
-      queryParameters: status != null ? {'status': status} : null,
+      queryParameters: queryParams.isNotEmpty ? queryParams : null,
     );
 
     final List items = response.data is Map
@@ -51,5 +57,15 @@ class OfferRemoteDataSourceImpl implements OfferRemoteDataSource {
   @override
   Future<void> deleteOffer(String id) async {
     await client.delete('/admin/offers/$id');
+  }
+
+  @override
+  Future<void> createOffer(Map<String, dynamic> offerData) async {
+    await client.post('/admin/offers', data: offerData);
+  }
+
+  @override
+  Future<void> updateOffer(String id, Map<String, dynamic> offerData) async {
+    await client.put('/admin/offers/$id', data: offerData);
   }
 }

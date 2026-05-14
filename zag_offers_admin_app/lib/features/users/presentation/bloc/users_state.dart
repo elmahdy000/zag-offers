@@ -13,10 +13,11 @@ class UsersLoading extends UsersState {}
 
 class UsersLoaded extends UsersState {
   final List<AppUser> users;
-  const UsersLoaded({required this.users});
+  final int totalCount;
+  const UsersLoaded({required this.users, required this.totalCount});
 
   @override
-  List<Object?> get props => [users];
+  List<Object?> get props => [users, totalCount];
 }
 
 class UserDeleted extends UsersState {}

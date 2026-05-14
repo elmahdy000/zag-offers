@@ -3,7 +3,7 @@ import 'package:zag_offers_admin_app/features/users/data/models/user_details_mod
 import 'package:zag_offers_admin_app/features/users/data/models/user_model.dart';
 
 abstract class UserRemoteDataSource {
-  Future<List<UserModel>> getUsers({String? search});
+  Future<({List<UserModel> items, int total})> getUsers({String? search});
   Future<UserDetailsModel> getUserDetails(String id);
   Future<void> deleteUser(String id);
   Future<void> updateUser(String id, {int? points, String? role});
@@ -16,21 +16,25 @@ class UserRemoteDataSourceImpl implements UserRemoteDataSource {
   UserRemoteDataSourceImpl({required this.client});
 
   @override
-  Future<List<UserModel>> getUsers({String? search}) async {
+  Future<({List<UserModel> items, int total})> getUsers({String? search}) async {
     final response = await client.get(
       '/admin/users',
       queryParameters: {if (search != null) 'search': search},
     );
 
-    // Support both direct list and paginated {items: []} response
     final data = response.data;
     final List list = (data is Map && data['items'] is List)
         ? data['items']
         : (data is List ? data : []);
 
-    return list
-        .map((e) => UserModel.fromJson(Map<String, dynamic>.from(e)))
-        .toList();
+    final int total = (data is Map && data['meta'] != null && data['meta']['total'] != null)
+        ? (data['meta']['total'] as num).toInt()
+        : list.length;
+
+    return (
+      items: list.map((e) => UserModel.fromJson(Map<String, dynamic>.from(e))).toList(),
+      total: total,
+    );
   }
 
   @override

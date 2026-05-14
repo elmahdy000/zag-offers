@@ -343,7 +343,7 @@ export class CouponsService {
     const isStoreOwner = coupon.offer.store.ownerId === requesterId;
     if (!isAdmin && !isStoreOwner) {
       throw new BadRequestException(
-        'Ø¹ÙÙˆØ§Ù‹ØŒ Ø§Ù„ÙƒÙˆØ¨ÙˆÙ† Ø¯Ù‡ Ù…Ø´ Ø®Ø§Øµ Ø¨Ù…ØªØ¬Ø±Ùƒ',
+        'عفواً، الكوبون ده مش خاص بمتجرك',
       );
     }
 

@@ -15,10 +15,11 @@ class MerchantActionLoading extends MerchantsState {}
 
 class MerchantsLoaded extends MerchantsState {
   final List<Merchant> merchants;
-  const MerchantsLoaded({required this.merchants});
+  final int totalCount;
+  const MerchantsLoaded({required this.merchants, this.totalCount = 0});
 
   @override
-  List<Object?> get props => [merchants];
+  List<Object?> get props => [merchants, totalCount];
 }
 
 class MerchantStatusUpdated extends MerchantsState {}
@@ -32,3 +33,4 @@ class MerchantsError extends MerchantsState {
   @override
   List<Object?> get props => [message];
 }
+class MerchantCreated extends MerchantsState {}

@@ -9,10 +9,11 @@ abstract class OffersEvent extends Equatable {
 
 class LoadOffersEvent extends OffersEvent {
   final String? status;
-  const LoadOffersEvent({this.status});
+  final String? merchantId;
+  const LoadOffersEvent({this.status, this.merchantId});
 
   @override
-  List<Object?> get props => [status];
+  List<Object?> get props => [status, merchantId];
 }
 
 class UpdateOfferStatusEvent extends OffersEvent {
@@ -36,4 +37,21 @@ class DeleteOfferEvent extends OffersEvent {
 
   @override
   List<Object?> get props => [id];
+}
+
+class CreateOfferEvent extends OffersEvent {
+  final Map<String, dynamic> offerData;
+  const CreateOfferEvent({required this.offerData});
+
+  @override
+  List<Object?> get props => [offerData];
+}
+
+class UpdateOfferEvent extends OffersEvent {
+  final String id;
+  final Map<String, dynamic> offerData;
+  const UpdateOfferEvent({required this.id, required this.offerData});
+
+  @override
+  List<Object?> get props => [id, offerData];
 }

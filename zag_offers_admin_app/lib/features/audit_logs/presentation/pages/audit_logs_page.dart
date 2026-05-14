@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/audit_logs/domain/entities/audit_log.dart';
 import 'package:zag_offers_admin_app/features/audit_logs/presentation/bloc/audit_logs_bloc.dart';
@@ -41,7 +43,7 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                     Container(
                       padding: const EdgeInsets.all(24),
                       decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                      child: Icon(Icons.history_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
+                      child: Icon(IconlyBold.document, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
                     ),
                     const SizedBox(height: 24),
                     Text('لا توجد سجلات بعد', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
@@ -56,7 +58,10 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
               child: ListView.builder(
                 padding: const EdgeInsets.all(16),
                 itemCount: state.logs.length,
-                itemBuilder: (context, index) => _buildLogItem(state.logs[index]),
+                itemBuilder: (context, index) => _buildLogItem(state.logs[index])
+                    .animate(delay: (index * 50).ms)
+                    .fadeIn(duration: 400.ms)
+                    .slideY(begin: 0.1, curve: Curves.easeOutCubic),
               ),
             );
           } else if (state is AuditLogsError) {
@@ -72,7 +77,7 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () => context.read<AuditLogsBloc>().add(LoadAuditLogsEvent()),
-                      icon: const Icon(Icons.refresh_rounded),
+                      icon: const Icon(IconlyLight.swap),
                       label: const Text('إعادة المحاولة'),
                     ),
                   ],
@@ -158,16 +163,16 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
               const SizedBox(height: 32),
               Row(
                 children: [
-                  Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(Icons.history_rounded, color: actionColor, size: 28)),
+                  Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(IconlyBold.activity, color: actionColor, size: 28)),
                   const SizedBox(width: 16),
                   Expanded(child: Text(description, style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
                 ],
               ),
               const SizedBox(height: 32),
-              _buildDetailRow(Icons.person_outline_rounded, 'القائم بالعملية', log.adminName),
-              _buildDetailRow(Icons.category_outlined, 'الكيان المستهدف', log.entityType),
-              _buildDetailRow(Icons.fingerprint_rounded, 'معرف الكيان', log.entityId),
-              _buildDetailRow(Icons.access_time_rounded, 'تاريخ العملية', DateFormat('yyyy/MM/dd hh:mm a', 'ar').format(log.createdAt)),
+              _buildDetailRow(IconlyBold.user2, 'القائم بالعملية', log.adminName),
+              _buildDetailRow(IconlyBold.category, 'الكيان المستهدف', log.entityType),
+              _buildDetailRow(IconlyBold.infoSquare, 'معرف الكيان', log.entityId),
+              _buildDetailRow(IconlyBold.timeCircle, 'تاريخ العملية', DateFormat('yyyy/MM/dd hh:mm a', 'ar').format(log.createdAt)),
               if (log.details != null && log.details!.isNotEmpty) ...[
                 const SizedBox(height: 12),
                 Text('تفاصيل إضافية:', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
@@ -202,8 +207,16 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
           Icon(icon, size: 18, color: AppColors.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(width: 12),
           Text(label, style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary)),
-          const Spacer(),
-          Text(value, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary)),
+          const SizedBox(width: 8),
+          Expanded(
+            child: Text(
+              value,
+              textAlign: TextAlign.end,
+              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+            ),
+          ),
         ],
       ),
     );

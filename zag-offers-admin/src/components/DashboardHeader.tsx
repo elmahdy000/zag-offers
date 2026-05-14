@@ -51,26 +51,35 @@ export default function DashboardHeader() {
   useEffect(() => {
     if (!socket) return;
 
-    socket.on('admin_notification', (data: any) => {
+    const handleAdminNotification = (data: any) => {
       console.log('Received admin notification:', data);
       
+      // Safety check: if data is null/undefined or not an object, ignore
+      if (!data || typeof data !== 'object') {
+        console.warn('Received malformed socket data:', data);
+        return;
+      }
+
       // Invalidate queries to refresh the UI
       queryClient.invalidateQueries({ queryKey: ['pending-count'] });
       queryClient.invalidateQueries({ queryKey: ['pending-items'] });
       queryClient.invalidateQueries({ queryKey: ['global-stats'] });
 
-      // Show Toast
-      const message = `${data.title || 'إشعار جديد'}: ${data.body || ''}`;
+      // Show Toast with fallback values
+      const title = data.title || 'إشعار جديد';
+      const body = data.body || '';
+      const message = body ? `${title}: ${body}` : title;
+      
       showToast(
         message,
         data.type === 'NEW_PENDING_STORE' || data.type === 'NEW_PENDING_OFFER' ? 'success' : 'info'
       );
+    };
 
-      // Play sound? (Optional)
-    });
+    socket.on('admin_notification', handleAdminNotification);
 
     return () => {
-      socket.off('admin_notification');
+      socket.off('admin_notification', handleAdminNotification);
     };
   }, [socket, queryClient, showToast]);
 

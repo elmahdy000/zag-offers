@@ -7,5 +7,6 @@ abstract class BroadcastRepository {
     required String body,
     String? imageUrl,
     String? area,
+    String? target,
   });
 }

@@ -8,7 +8,9 @@ class ApiClient {
   final SharedPreferences _prefs;
 
   ApiClient(this._dio, this._prefs) {
-    _dio.options.baseUrl = AppConfig.baseUrl;
+    _dio.options.baseUrl = AppConfig.baseUrl.endsWith('/') 
+        ? AppConfig.baseUrl 
+        : '${AppConfig.baseUrl}/';
     _dio.options.connectTimeout = const Duration(seconds: 20);
     _dio.options.receiveTimeout = const Duration(seconds: 20);
 
@@ -70,27 +72,45 @@ class ApiClient {
     }
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters}) {
-    return _dio.get(path, queryParameters: queryParameters);
+  Future<Response> get(String path, {Map<String, dynamic>? queryParameters, Options? options}) {
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return _dio.get(cleanPath, queryParameters: queryParameters, options: options);
   }
 
-  Future<Response> post(String path, {dynamic data}) {
-    return _dio.post(path, data: data);
+  Future<Response> post(String path, {dynamic data, Options? options}) {
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return _dio.post(cleanPath, data: data, options: options);
   }
 
-  Future<Response> patch(String path, {dynamic data}) {
-    return _dio.patch(path, data: data);
+  Future<Response> patch(String path, {dynamic data, Options? options}) {
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return _dio.patch(cleanPath, data: data, options: options);
+  }
+
+  Future<Response> put(String path, {dynamic data, Options? options}) {
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return _dio.put(cleanPath, data: data, options: options);
   }
 
   Future<Response> delete(String path) {
-    return _dio.delete(path);
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return _dio.delete(cleanPath);
+  }
+
+  Future<Response> upload(String path, FormData data) {
+    final cleanPath = path.startsWith('/') ? path.substring(1) : path;
+    return _dio.post(
+      cleanPath,
+      data: data,
+      options: Options(contentType: 'multipart/form-data'),
+    );
   }
 
   /// Lightweight connectivity probe — used by the Profile page health indicator.
   Future<bool> checkHealth() async {
     try {
-      await _dio.get(
-        '/admin/stats/global',
+      await get(
+        'admin/stats/global',
         options: Options(
           sendTimeout: const Duration(seconds: 5),
           receiveTimeout: const Duration(seconds: 5),

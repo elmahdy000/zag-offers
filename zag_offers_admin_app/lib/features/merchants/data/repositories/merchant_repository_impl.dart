@@ -10,10 +10,10 @@ class MerchantRepositoryImpl implements MerchantRepository {
   MerchantRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, List<Merchant>>> getMerchants({String? status}) async {
+  Future<Either<Failure, ({List<Merchant> items, int total})>> getMerchants({String? status}) async {
     try {
-      final merchants = await remoteDataSource.getMerchants(status: status);
-      return Right(merchants);
+      final result = await remoteDataSource.getMerchants(status: status);
+      return Right(result);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }
@@ -47,6 +47,34 @@ class MerchantRepositoryImpl implements MerchantRepository {
   Future<Either<Failure, void>> deleteMerchant(String id) async {
     try {
       await remoteDataSource.deleteMerchant(id);
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> createMerchant({
+    required String ownerName,
+    required String phone,
+    String? email,
+    required String password,
+    required String storeName,
+    required String categoryId,
+    String? area,
+    String? address,
+  }) async {
+    try {
+      await remoteDataSource.createMerchant(
+        ownerName: ownerName,
+        phone: phone,
+        email: email,
+        password: password,
+        storeName: storeName,
+        categoryId: categoryId,
+        area: area,
+        address: address,
+      );
       return const Right(null);
     } catch (e) {
       return Left(ServerFailure(e.toString()));

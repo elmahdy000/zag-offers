@@ -47,62 +47,85 @@ class CategoriesSection extends StatelessWidget {
         ),
         const SizedBox(height: 12),
         SizedBox(
-          height: 110,
+          height: 135,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.only(left: 20),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: previewCategories.length,
             itemBuilder: (context, index) {
               final category = previewCategories[index];
 
               return Padding(
-                padding: const EdgeInsets.only(right: 24),
+                padding: const EdgeInsets.only(right: 16),
                 child: GestureDetector(
                   onTap: () {
                     Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) =>
-                            AllOffersPage(initialCategory: category.name),
+                        builder: (context) => AllOffersPage(
+                          initialCategory: category.backendName ?? category.name,
+                        ),
                       ),
                     );
                   },
                   child: Column(
                     children: [
                       Container(
-                        width: 72,
-                        height: 72,
+                        width: 76,
+                        height: 76,
+                        padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
-                          color: category.color.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(22),
+                          shape: BoxShape.circle,
+                          gradient: LinearGradient(
+                            colors: [
+                              category.color,
+                              category.color.withValues(alpha: 0.3),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
                           boxShadow: [
                             BoxShadow(
-                              color: category.color.withValues(alpha: 0.05),
-                              blurRadius: 10,
+                              color: category.color.withValues(alpha: 0.2),
+                              blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
                           ],
                         ),
-                        child: ClipRRect(
-                          borderRadius: BorderRadius.circular(22),
-                          child: category.imagePath != null
-                              ? NetworkImageWidget(
-                                  imageUrl: category.imagePath!,
-                                  fit: BoxFit.cover,
-                                )
-                              : Icon(
-                                  category.icon,
-                                  color: category.color,
-                                  size: 28,
-                                ),
+                        child: Container(
+                          decoration: const BoxDecoration(
+                            color: Colors.white,
+                            shape: BoxShape.circle,
+                          ),
+                          padding: const EdgeInsets.all(2),
+                          child: ClipRRect(
+                            borderRadius: BorderRadius.circular(40),
+                            child: category.imagePath != null
+                                ? NetworkImageWidget(
+                                    imageUrl: category.imagePath!,
+                                    fit: BoxFit.cover,
+                                  )
+                                : Container(
+                                    color: category.color.withValues(alpha: 0.1),
+                                    child: Icon(
+                                      category.icon,
+                                      color: category.color,
+                                      size: 30,
+                                    ),
+                                  ),
+                          ),
                         ),
                       ),
                       const SizedBox(height: 10),
                       Text(
                         category.name,
-                        style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                              fontWeight: FontWeight.bold,
-
+                        textAlign: TextAlign.center,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: Theme.of(context).textTheme.labelMedium?.copyWith(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 12,
+                              color: Colors.white,
                             ),
                       ),
                     ],

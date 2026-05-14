@@ -3,9 +3,11 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/categories/domain/entities/category.dart';
 import 'package:zag_offers_admin_app/features/categories/presentation/bloc/categories_bloc.dart';
-import 'package:zag_offers_admin_app/core/widgets/bottom_sheet.dart';
+import 'package:zag_offers_admin_app/core/widgets/custom_dialogs.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:flutter_animate/flutter_animate.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class CategoriesPage extends StatefulWidget {
   const CategoriesPage({super.key});
@@ -35,6 +37,14 @@ class _CategoriesPageState extends State<CategoriesPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: const Text('إدارة الأقسام'),
+        actions: [
+          IconButton(
+            onPressed: _showAddCategoryDialog,
+            icon: const Icon(IconlyBold.plus, color: AppColors.primary),
+            tooltip: 'إضافة قسم جديد',
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: BlocConsumer<CategoriesBloc, CategoriesState>(
         listenWhen: (_, state) =>
@@ -97,7 +107,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 context.read<CategoriesBloc>().add(LoadCategoriesEvent());
               },
               child: ListView.builder(
-                padding: const EdgeInsets.all(16),
+                padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                 itemCount: state.categories.length,
                 itemBuilder: (context, index) {
                   final category = state.categories[index];
@@ -113,15 +123,23 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           offset: const Offset(0, 4),
                         ),
                       ],
+                      border: Border.all(color: Colors.grey.shade100),
                     ),
                     child: ListTile(
-                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
                       leading: Container(
-                        width: 48,
-                        height: 48,
+                        width: 52,
+                        height: 52,
                         decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(12),
+                          gradient: LinearGradient(
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                            colors: [
+                              AppColors.primary.withValues(alpha: 0.2),
+                              AppColors.primary.withValues(alpha: 0.05),
+                            ],
+                          ),
+                          borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
                           child: Text(
@@ -129,26 +147,35 @@ class _CategoriesPageState extends State<CategoriesPage> {
                             style: GoogleFonts.cairo(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 18,
+                              fontSize: 20,
                             ),
                           ),
                         ),
                       ),
                       title: Text(
                         category.name,
-                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 16),
                       ),
-                      subtitle: Text(
-                        '${category.offersCount} عرض',
-                        style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary),
+                      subtitle: Row(
+                        children: [
+                          Icon(IconlyLight.discount, size: 14, color: AppColors.textSecondary),
+                          const SizedBox(width: 4),
+                          Text(
+                            '${category.offersCount} عرض متاح حالياً',
+                            style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
                       onTap: () => _showCategoryDetails(context, category),
-                      trailing: IconButton(
-                        icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error),
-                        onPressed: () => _confirmDelete(context, category),
+                      trailing: Container(
+                        decoration: BoxDecoration(color: AppColors.error.withValues(alpha: 0.05), borderRadius: BorderRadius.circular(10)),
+                        child: IconButton(
+                          icon: const Icon(IconlyLight.delete, color: AppColors.error, size: 20),
+                          onPressed: () => _confirmDelete(context, category),
+                        ),
                       ),
                     ),
-                  );
+                  ).animate().fadeIn(delay: (index * 50).ms).slideX(begin: 0.1);
                 },
               ),
             );
@@ -172,59 +199,72 @@ class _CategoriesPageState extends State<CategoriesPage> {
           return const SizedBox();
         },
       ),
-      floatingActionButton: FloatingActionButton(
-        onPressed: _showAddCategoryDialog,
-        child: const Icon(Icons.add_rounded, color: Colors.white),
-      ),
     );
   }
 
-  void _confirmDelete(BuildContext context, Category category) {
+  void _confirmDelete(BuildContext context, Category category) async {
     final bloc = context.read<CategoriesBloc>();
-    showDialog(
+    final confirmed = await CustomDialogs.showConfirmDialog(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تأكيد الحذف'),
-        content: Text('هل أنت متأكد من حذف قسم "${category.name}"؟ لا يمكن التراجع عن هذا الإجراء.'),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              Navigator.pop(dialogContext);
-              bloc.add(DeleteCategoryEvent(id: category.id));
-            },
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
-            child: const Text('حذف'),
-          ),
-        ],
-      ),
+      title: 'تأكيد الحذف',
+      message: 'هل أنت متأكد من حذف قسم "${category.name}"؟ لا يمكن التراجع عن هذا الإجراء وسيتم إلغاء تصنيف جميع العروض المرتبطة به.',
+      isDestructive: true,
+      confirmText: 'حذف القسم',
     );
+    
+    if (confirmed == true) {
+      bloc.add(DeleteCategoryEvent(id: category.id));
+    }
   }
 
   void _showAddCategoryDialog() {
     _nameController.clear();
     final bloc = context.read<CategoriesBloc>();
-    showDialog(
+    
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('إضافة قسم جديد'),
-        content: TextField(
-          controller: _nameController,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'اسم القسم'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              if (_nameController.text.trim().isNotEmpty) {
-                bloc.add(CreateCategoryEvent(name: _nameController.text.trim()));
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('إضافة'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('إضافة قسم جديد', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 8),
+              Text('أدخل اسماً معبراً للقسم الجديد ليظهر للتجار والعملاء', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary)),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _nameController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'اسم القسم',
+                  hintText: 'مثال: مطاعم، ملابس...',
+                  prefixIcon: const Icon(IconlyLight.category, color: AppColors.primary),
+                  filled: true,
+                  fillColor: AppColors.background,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_nameController.text.trim().isNotEmpty) {
+                      bloc.add(CreateCategoryEvent(name: _nameController.text.trim()));
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('إنشاء القسم'),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }
@@ -286,27 +326,49 @@ class _CategoriesPageState extends State<CategoriesPage> {
 
   void _showEditDialog(BuildContext context, Category category) {
     _nameController.text = category.name;
-    showDialog(
+    final bloc = context.read<CategoriesBloc>();
+    
+    showModalBottomSheet(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تعديل القسم'),
-        content: TextField(
-          controller: _nameController,
-          autofocus: true,
-          decoration: const InputDecoration(labelText: 'اسم القسم'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () {
-              if (_nameController.text.trim().isNotEmpty) {
-                context.read<CategoriesBloc>().add(UpdateCategoryEvent(id: category.id, name: _nameController.text.trim()));
-                Navigator.pop(dialogContext);
-              }
-            },
-            child: const Text('حفظ التعديلات'),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => Padding(
+        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        child: Container(
+          decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text('تعديل القسم', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold)),
+              const SizedBox(height: 24),
+              TextField(
+                controller: _nameController,
+                autofocus: true,
+                decoration: InputDecoration(
+                  labelText: 'اسم القسم',
+                  prefixIcon: const Icon(IconlyLight.edit, color: AppColors.primary),
+                  filled: true,
+                  fillColor: AppColors.background,
+                ),
+              ),
+              const SizedBox(height: 32),
+              SizedBox(
+                width: double.infinity,
+                child: ElevatedButton(
+                  onPressed: () {
+                    if (_nameController.text.trim().isNotEmpty) {
+                      bloc.add(UpdateCategoryEvent(id: category.id, name: _nameController.text.trim()));
+                      Navigator.pop(context);
+                    }
+                  },
+                  child: const Text('حفظ التعديلات'),
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

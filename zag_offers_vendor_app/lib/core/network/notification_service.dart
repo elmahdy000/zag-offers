@@ -1,24 +1,64 @@
+import 'dart:convert';
 import 'dart:developer';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_local_notifications/flutter_local_notifications.dart';
 import '../../injection_container.dart' as di;
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
-import '../../main.dart' show navigatorKey;
+import '../utils/navigation_service.dart';
+import '../../features/dashboard/presentation/pages/main_layout.dart';
 
-/// NOTE: Firebase.initializeApp() and onBackgroundMessage() are registered
-/// in main.dart — do NOT call them here to avoid duplicate initialization.
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
+  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   static String? _fcmToken;
 
   static String? get currentToken => _fcmToken;
 
+  static Future<void> initializeLocalNotifications() async {
+    const AndroidInitializationSettings initializationSettingsAndroid =
+        AndroidInitializationSettings('ic_notification');
+    const InitializationSettings initializationSettings =
+        InitializationSettings(android: initializationSettingsAndroid);
+
+    await _localNotifications.initialize(
+      initializationSettings,
+      onDidReceiveNotificationResponse: (NotificationResponse response) async {
+        if (response.payload != null) {
+          try {
+            final data = jsonDecode(response.payload!) as Map<String, dynamic>;
+            await Future.delayed(const Duration(milliseconds: 500));
+            handleNotificationTapFromData(data);
+          } catch (e) {
+            debugPrint('❌ Error parsing local notification payload: $e');
+          }
+        }
+      },
+    );
+
+    const AndroidNotificationChannel channel = AndroidNotificationChannel(
+      'merchants_channel',
+      'تنبيهات التجار',
+      description: 'إشعارات العمليات والطلبات الجديدة',
+      importance: Importance.max,
+      playSound: true,
+      // Note: Make sure notification_sound.wav exists in res/raw
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+    );
+
+    await _localNotifications
+        .resolvePlatformSpecificImplementation<
+            AndroidFlutterLocalNotificationsPlugin>()
+        ?.createNotificationChannel(channel);
+  }
+
   static Future<void> initialize() async {
     try {
-      // ── 1. Request permission ────────────────────────────────────────────
+      await initializeLocalNotifications();
+
       final settings = await _messaging.requestPermission(
         alert: true,
         badge: true,
@@ -29,64 +69,45 @@ class NotificationService {
       if (settings.authorizationStatus == AuthorizationStatus.authorized ||
           settings.authorizationStatus == AuthorizationStatus.provisional) {
         log('✅ Notification permission granted');
-
-        // الاشتراك في القناة العامة للتجار
         await _messaging.subscribeToTopic('all_merchants');
-
-        // ── 2. Get & cache FCM token ─────────────────────────────────────
         _fcmToken = await _messaging.getToken();
-        log('📱 FCM Token: $_fcmToken');
-
+        
         if (_fcmToken != null) {
           final prefs = await SharedPreferences.getInstance();
           await prefs.setString('fcm_token', _fcmToken!);
         }
-      } else {
-        log('⚠️ Notification permission denied');
       }
 
-      // ── 3. Token refresh listener ────────────────────────────────────────
       _messaging.onTokenRefresh.listen((newToken) async {
-        log('🔄 FCM Token refreshed');
         _fcmToken = newToken;
         final prefs = await SharedPreferences.getInstance();
         await prefs.setString('fcm_token', newToken);
-        // Only send to backend if user is already logged in
         await sendTokenToBackend();
       });
 
-      // ── 4. Foreground messages ───────────────────────────────────────────
       FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+      FirebaseMessaging.onMessageOpenedApp.listen((message) {
+        handleNotificationTapFromData(message.data);
+      });
 
-      // ── 5. Notification tapped from background ───────────────────────────
-      FirebaseMessaging.onMessageOpenedApp.listen(_handleNotificationTap);
-
-      // ── 6. App launched from terminated state ────────────────────────────
       final initialMessage = await _messaging.getInitialMessage();
       if (initialMessage != null) {
-        _handleNotificationTap(initialMessage);
+        handleNotificationTapFromData(initialMessage.data);
       }
     } catch (e) {
       log('❌ Notification Initialization Error: $e');
     }
   }
 
-  /// Send the cached FCM token to the backend. Call this after login.
   static Future<void> sendTokenToBackend() async {
-    if (_fcmToken == null) {
-      _fcmToken = await _messaging.getToken();
-    }
+    _fcmToken ??= await _messaging.getToken();
     if (_fcmToken != null) {
       try {
         await di.sl<AuthRemoteDataSource>().updateFcmToken(_fcmToken!);
-        log('✅ FCM token sent to backend');
-      } catch (e) {
-        log('❌ Failed to send FCM token: $e');
-      }
+      } catch (_) {}
     }
   }
 
-  /// Remove FCM token from backend and delete it locally. Call this on logout.
   static Future<void> removeTokenFromBackend() async {
     try {
       if (_fcmToken != null) {
@@ -96,35 +117,91 @@ class NotificationService {
       _fcmToken = null;
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('fcm_token');
-      log('✅ FCM token removed');
-    } catch (e) {
-      log('❌ Failed to remove FCM token: $e');
-    }
+    } catch (_) {}
   }
 
-  // ── Message handlers ─────────────────────────────────────────────────────
-
   static void _handleForegroundMessage(RemoteMessage message) {
-    log('📩 Foreground message: ${message.notification?.title}');
+    final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
+    final body = message.notification?.body ?? message.data['body'] ?? '';
+    
+    showLocalNotification(title, body, data: message.data);
+    _saveToHistory(title, body, message.data);
 
-    // Refresh dashboard stats when a coupon is redeemed
     if (message.data['type'] == 'COUPON_REDEEMED') {
       di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
     }
   }
 
-  static void _handleNotificationTap(RemoteMessage message) {
-    log('Notification tapped: ${message.data}');
-    final type = message.data['type'];
+  static Future<void> _saveToHistory(String title, String body, Map<String, dynamic> data) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      final String? existingData = prefs.getString('notifications_history');
+      List<dynamic> history = [];
+      
+      if (existingData != null) {
+        history = List<dynamic>.from(json.decode(existingData));
+      }
+      
+      final newNotification = {
+        'title': title,
+        'body': body,
+        'data': data,
+        'createdAt': DateTime.now().toIso8601String(),
+      };
+      
+      history.insert(0, newNotification);
+      
+      if (history.length > 50) {
+        history = history.sublist(0, 50);
+      }
+      
+      await prefs.setString('notifications_history', json.encode(history));
+    } catch (e) {
+      log('Error saving notification history: $e');
+    }
+  }
 
+  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data}) async {
+    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+        AndroidNotificationDetails(
+      'merchants_channel',
+      'تنبيهات التجار',
+      channelDescription: 'إشعارات العمليات والطلبات الجديدة',
+      importance: Importance.max,
+      priority: Priority.high,
+      icon: 'ic_notification',
+      playSound: true,
+      sound: RawResourceAndroidNotificationSound('notification_sound'),
+    );
+    
+    const NotificationDetails platformChannelSpecifics =
+        NotificationDetails(android: androidPlatformChannelSpecifics);
+    
+    await _localNotifications.show(
+      DateTime.now().millisecond,
+      title,
+      body,
+      platformChannelSpecifics,
+      payload: data != null ? jsonEncode(data) : null,
+    );
+  }
+
+  static void handleNotificationTapFromData(Map<String, dynamic> data) {
+    final type = data['type']?.toString();
+    
     if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED') {
       di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
     }
 
-    // Default Navigation to Notifications Page
-    final ctx = navigatorKey.currentContext;
-    if (ctx != null) {
-      Navigator.of(ctx).push(
+    final context = NavigationService.navigatorKey.currentContext;
+    if (context == null) return;
+
+    if (type == 'COUPON_REDEEMED') {
+      MainLayout.of(context)?.setIndex(0); // Dashboard
+    } else if (type == 'NEW_OFFER') {
+      MainLayout.of(context)?.setIndex(1); // Offers
+    } else {
+      Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const NotificationsPage()),
       );
     }

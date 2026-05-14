@@ -17,6 +17,10 @@ import 'dashboard_page.dart';
 class MainLayout extends StatefulWidget {
   const MainLayout({super.key});
 
+  static MainLayoutState? of(BuildContext context) {
+    return context.findAncestorStateOfType<MainLayoutState>();
+  }
+
   @override
   State<MainLayout> createState() => MainLayoutState();
 }

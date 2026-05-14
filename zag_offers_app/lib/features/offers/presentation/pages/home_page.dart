@@ -6,6 +6,7 @@ import 'package:zag_offers_app/core/constants/app_constants.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
+import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
@@ -202,16 +203,46 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: Icon(
-            IconlyLight.notification,
-          ),
-          onPressed: () => Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (context) => const NotificationsPage(),
-            ),
-          ),
+        BlocBuilder<NotificationBloc, NotificationState>(
+          builder: (context, state) {
+            bool hasUnread = false;
+            if (state is NotificationFeedState) {
+              hasUnread = state.items.any((n) => !n.isRead);
+            }
+
+            return IconButton(
+              icon: Stack(
+                children: [
+                  const Icon(IconlyLight.notification),
+                  if (hasUnread)
+                    Positioned(
+                      right: 0,
+                      top: 0,
+                      child: Container(
+                        padding: const EdgeInsets.all(1),
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        constraints: const BoxConstraints(
+                          minWidth: 10,
+                          minHeight: 10,
+                        ),
+                      ),
+                    ),
+                ],
+              ),
+              onPressed: () => Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => const NotificationsPage(),
+                ),
+              ).then((_) {
+                // Refresh unread status when coming back
+                context.read<NotificationBloc>().add(LoadNotifications(fromServer: true));
+              }),
+            );
+          },
         ),
         IconButton(
           icon: Icon(

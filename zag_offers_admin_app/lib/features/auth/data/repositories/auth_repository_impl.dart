@@ -5,6 +5,7 @@ import 'package:zag_offers_admin_app/features/auth/domain/entities/admin_user.da
 import 'package:zag_offers_admin_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:zag_offers_admin_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:zag_offers_admin_app/features/auth/data/models/admin_user_model.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
@@ -26,7 +27,7 @@ class AuthRepositoryImpl implements AuthRepository {
 
       return Right(user);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -40,7 +41,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await remoteDataSource.getProfile();
       return Right(user);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -53,7 +54,7 @@ class AuthRepositoryImpl implements AuthRepository {
       final user = await remoteDataSource.updateProfile(name: name, area: area);
       return Right(user);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -66,12 +67,13 @@ class AuthRepositoryImpl implements AuthRepository {
       await remoteDataSource.updatePassword(currentPassword, newPassword);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
   @override
   Future<void> logout() async {
+    await remoteDataSource.logout();
     await prefs.remove('token');
   }
 }

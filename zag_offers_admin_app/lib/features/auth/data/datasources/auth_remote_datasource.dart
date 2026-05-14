@@ -7,6 +7,7 @@ abstract class AuthRemoteDataSource {
   Future<AdminUserModel> getProfile();
   Future<AdminUserModel> updateProfile({String? name, String? area});
   Future<void> updatePassword(String currentPassword, String newPassword);
+  Future<void> logout();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -54,5 +55,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       '/auth/password',
       data: {'currentPassword': currentPassword, 'newPassword': newPassword},
     );
+  }
+
+  @override
+  Future<void> logout() async {
+    try {
+      await client.post('/auth/logout');
+    } catch (e) {
+      debugPrint('Logout error (ignored): $e');
+    }
   }
 }

@@ -116,10 +116,15 @@ export class OffersService {
       [key: string]: unknown;
     };
 
+    const now = new Date();
+    // Start of today (00:00:00) to allow offers ending today to remain visible
+    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+
     const finalWhere: Prisma.OfferWhereInput = {
       ...safeWhere,
-      status: OfferStatus.ACTIVE, // دايمًا ACTIVE فقط
-      store: { status: StoreStatus.APPROVED }, // من محلات معتمدة فقط
+      status: OfferStatus.ACTIVE,
+      endDate: { gte: startOfToday }, // Hide if expired before today
+      store: { status: StoreStatus.APPROVED },
     };
 
     // Optimized query with better select and indexing

@@ -34,7 +34,7 @@ export class CreateOfferDto {
   })
   @IsOptional()
   @IsArray()
-  @ArrayMaxSize(10)
+  @ArrayMaxSize(5)
   @IsString({ each: true })
   images?: string[];
 

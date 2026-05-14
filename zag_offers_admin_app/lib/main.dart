@@ -19,18 +19,54 @@ import 'features/coupons/presentation/bloc/coupons_bloc.dart';
 import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'features/auth/presentation/pages/login_page.dart';
 import 'features/dashboard/presentation/pages/dashboard_page.dart';
+import 'features/dashboard/presentation/pages/main_shell.dart';
 import 'firebase_options.dart';
 
-/// Global navigator key — used by NotificationService to show SnackBars and
-/// navigate to pages when the app is in the background or foreground.
-final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
+import 'dart:convert';
+import 'package:shared_preferences/shared_preferences.dart';
+import 'core/services/notification_service.dart';
+import 'core/utils/navigation_service.dart';
 
 /// Must be a top-level function annotated with @pragma so the Dart VM keeps
 /// it alive in an isolate when the app is terminated.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  debugPrint('FCM background message: ${message.notification?.title}');
+  
+  // Initialize local notifications for this isolate
+  await NotificationService.initializeLocalNotifications();
+  
+  final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه إداري';
+  final body = message.notification?.body ?? message.data['body'] ?? '';
+  
+  if (title.isNotEmpty || body.isNotEmpty) {
+    await NotificationService.showLocalNotification(title, body, data: message.data);
+    
+    // Save notification to history
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      const storageKey = 'notifications_history';
+      final String? data = prefs.getString(storageKey);
+      List<dynamic> items = [];
+      if (data != null) {
+        items = json.decode(data);
+      }
+      
+      final newItem = {
+        'title': title,
+        'message': body,
+        'createdAt': DateTime.now().toIso8601String(),
+        'isRead': false,
+      };
+      
+      items.insert(0, newItem);
+      if (items.length > 50) items = items.sublist(0, 50);
+      
+      await prefs.setString(storageKey, json.encode(items));
+    } catch (e) {
+      debugPrint("Error saving background notification: $e");
+    }
+  }
 }
 
 void main() async {
@@ -41,6 +77,9 @@ void main() async {
       options: DefaultFirebaseOptions.currentPlatform,
     ).timeout(const Duration(seconds: 4));
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
+    
+    // Initialize our NotificationService
+    await NotificationService.initStatic();
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
   }
@@ -67,7 +106,7 @@ class MyApp extends StatelessWidget {
         BlocProvider(create: (_) => di.sl<CouponsBloc>()),
       ],
       child: MaterialApp(
-        navigatorKey: navigatorKey,
+        navigatorKey: NavigationService.navigatorKey,
         title: 'Zag Offers Admin',
         debugShowCheckedModeBanner: false,
         locale: const Locale('ar'),
@@ -81,7 +120,7 @@ class MyApp extends StatelessWidget {
         home: BlocBuilder<AuthBloc, AuthState>(
           builder: (context, state) {
             if (state is AuthAuthenticated) {
-              return const DashboardPage();
+              return const MainShell();
             } else if (state is AuthInitial || state is AuthLoading) {
               return const Scaffold(
                 body: CardSkeleton(),

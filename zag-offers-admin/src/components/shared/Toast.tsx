@@ -52,8 +52,9 @@ export const ToastProvider: React.FC<{ children: React.ReactNode }> = ({ childre
               initial={{ opacity: 0, y: -20, scale: 0.9 }}
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={{ opacity: 0, scale: 0.9, transition: { duration: 0.2 } }}
+              onClick={() => removeToast(toast.id)}
               className={`
-                pointer-events-auto
+                pointer-events-auto cursor-pointer
                 relative flex items-center gap-3 w-full rounded-2xl px-6 py-4 shadow-[0_20px_50px_-10px_rgba(0,0,0,0.2)] 
                 border border-white/20 backdrop-blur-xl
                 ${toast.tone === 'success' ? 'bg-emerald-600/95 text-white' : ''}

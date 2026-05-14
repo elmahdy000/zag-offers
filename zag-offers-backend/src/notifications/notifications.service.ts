@@ -172,6 +172,10 @@ export class NotificationsService implements OnModuleInit {
             .messaging()
             .unsubscribeFromTopic([existing.fcmToken], 'all_merchants')
             .catch(() => {});
+          await admin
+            .messaging()
+            .unsubscribeFromTopic([existing.fcmToken], 'all_admins')
+            .catch(() => {});
 
           if (existing.area) {
             await admin
@@ -187,8 +191,10 @@ export class NotificationsService implements OnModuleInit {
       }
 
       // Subscribe to role-specific topic
-      const roleTopic =
-        user?.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
+      let roleTopic = 'all_customers';
+      if (user?.role === 'MERCHANT') roleTopic = 'all_merchants';
+      else if (user?.role === 'ADMIN') roleTopic = 'all_admins';
+      
       await admin.messaging().subscribeToTopic([token], roleTopic);
 
       if (user?.area) {
@@ -212,8 +218,10 @@ export class NotificationsService implements OnModuleInit {
 
     if (this.isFirebaseReady) {
       try {
-        const roleTopic =
-          user.role === 'MERCHANT' ? 'all_merchants' : 'all_customers';
+        let roleTopic = 'all_customers';
+        if (user.role === 'MERCHANT') roleTopic = 'all_merchants';
+        else if (user.role === 'ADMIN') roleTopic = 'all_admins';
+        
         await admin
           .messaging()
           .unsubscribeFromTopic([user.fcmToken], roleTopic);
@@ -237,29 +245,13 @@ export class NotificationsService implements OnModuleInit {
     });
   }
 
-  async sendToAll(
+  async sendToTopic(
+    topic: string,
     title: string,
     body: string,
     data?: Record<string, string>,
     imageUrl?: string,
   ): Promise<void> {
-    // Save to DB for all customers (instead of all users)
-    try {
-      const targetUsers = await this.prisma.user.findMany({
-        where: { role: 'CUSTOMER' },
-        select: { id: true },
-      });
-      await this.saveNotificationsForUsers(
-        targetUsers.map((u) => u.id),
-        { title, body, data, imageUrl },
-        data?.type,
-      );
-    } catch (e) {
-      this.logger.error(
-        'Failed fetching customers for broadcast: ' + (e as Error).message,
-      );
-    }
-
     if (!this.isFirebaseReady) return;
 
     try {
@@ -270,7 +262,7 @@ export class NotificationsService implements OnModuleInit {
           body,
           ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
         },
-        topic: 'all_customers',
+        topic,
         data: {
           ...(data || {}),
           ...(sanitizedImageUrl
@@ -281,27 +273,88 @@ export class NotificationsService implements OnModuleInit {
           priority: 'high',
           notification: {
             sound: 'default',
-            channelId: 'offers_channel',
+            channelId:
+              topic === 'all_merchants' ? 'merchants_channel' : 
+              topic === 'all_admins' ? 'admin_channel' : 'offers_channel',
             imageUrl: sanitizedImageUrl,
           },
         },
         apns: {
-          payload: {
-            aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
-          },
+          payload: { aps: { 'mutable-content': 1 } },
           fcmOptions: { imageUrl: sanitizedImageUrl },
         },
       };
-      this.logger.debug(
-        `Sending FCM broadcast to all_users. Payload: ${JSON.stringify(message)}`,
-      );
       await admin.messaging().send(message);
-      this.logger.log('FCM broadcast sent successfully');
+      this.logger.log(`FCM topic broadcast to ${topic} sent successfully`);
+    } catch (error) {
+      this.logger.error(`sendToTopic failed for ${topic}: ${(error as Error).message}`);
+    }
+  }
+
+  async sendToAll(
+    title: string,
+    body: string,
+    data?: Record<string, string>,
+    imageUrl?: string,
+  ): Promise<void> {
+    // Save to DB for ALL users
+    try {
+      const targetUsers = await this.prisma.user.findMany({
+        select: { id: true },
+      });
+      await this.saveNotificationsForUsers(
+        targetUsers.map((u) => u.id),
+        { title, body, data, imageUrl },
+        data?.type,
+      );
+    } catch (e) {
+      this.logger.error(
+        'Failed fetching users for broadcast: ' + (e as Error).message,
+      );
+    }
+
+    if (!this.isFirebaseReady) return;
+
+    try {
+      const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
+      
+      // Send to both topics
+      const topics = ['all_customers', 'all_merchants'];
+      
+      for (const topic of topics) {
+        const message: admin.messaging.Message = {
+          notification: {
+            title,
+            body,
+            ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
+          },
+          topic,
+          data: {
+            ...(data || {}),
+            ...(sanitizedImageUrl
+              ? { image: sanitizedImageUrl, imageUrl: sanitizedImageUrl }
+              : {}),
+          },
+          android: {
+            priority: 'high',
+            notification: {
+              sound: 'default',
+              channelId: topic === 'all_merchants' ? 'merchants_channel' : 'offers_channel',
+              imageUrl: sanitizedImageUrl,
+            },
+          },
+          apns: {
+            payload: {
+              aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
+            },
+            fcmOptions: { imageUrl: sanitizedImageUrl },
+          },
+        };
+        await admin.messaging().send(message);
+      }
+      this.logger.log('FCM broadcast sent successfully to all topics');
     } catch (error) {
       this.logger.error(`sendToAll failed: ${(error as Error).message}`);
-      if ((error as Error).stack) {
-        this.logger.debug((error as Error).stack);
-      }
     }
   }
 

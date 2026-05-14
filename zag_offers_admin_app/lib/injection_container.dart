@@ -40,6 +40,9 @@ import 'features/coupons/data/datasources/coupon_remote_datasource.dart';
 import 'features/coupons/data/repositories/coupon_repository_impl.dart';
 import 'features/coupons/domain/repositories/coupon_repository.dart';
 import 'features/coupons/presentation/bloc/coupons_bloc.dart';
+import 'features/upload/domain/repositories/upload_repository.dart';
+import 'features/upload/data/datasources/upload_remote_datasource.dart';
+import 'features/upload/data/repositories/upload_repository_impl.dart';
 
 final sl = GetIt.instance;
 
@@ -89,6 +92,10 @@ Future<void> init() async {
   sl.registerLazySingleton<CouponRepository>(
     () => CouponRepositoryImpl(remoteDataSource: sl()),
   );
+  sl.registerLazySingleton<UploadRepository>(
+    () => UploadRepositoryImpl(remoteDataSource: sl()),
+  );
+  sl.registerLazySingleton(() => UploadUseCase(sl()));
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
@@ -119,10 +126,13 @@ Future<void> init() async {
   sl.registerLazySingleton<CouponRemoteDataSource>(
     () => CouponRemoteDataSourceImpl(client: sl()),
   );
+  sl.registerLazySingleton<UploadRemoteDataSource>(
+    () => UploadRemoteDataSourceImpl(client: sl()),
+  );
 
   //! Core
   sl.registerLazySingleton(() => ApiClient(sl(), sl()));
-  sl.registerLazySingleton(() => NotificationService(sl()));
+  sl.registerLazySingleton(() => NotificationService());
   sl.registerLazySingleton(() => RealtimeService(sl()));
 
   // External

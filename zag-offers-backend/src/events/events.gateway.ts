@@ -112,6 +112,8 @@ interface JoinRoomPayload {
   room?: string;
 }
 
+import { NotificationsService } from '../notifications/notifications.service';
+
 @WebSocketGateway({
   cors: {
     origin: (
@@ -139,7 +141,10 @@ export class EventsGateway
   private readonly logger = new Logger(EventsGateway.name);
   private connectedClients = new Map<string, ConnectedClient>();
 
-  constructor(private jwtService: JwtService) {}
+  constructor(
+    private jwtService: JwtService,
+    private notificationsService: NotificationsService,
+  ) {}
 
   afterInit() {
     this.logger.log('WebSocket Gateway initialized');
@@ -333,10 +338,22 @@ export class EventsGateway
       ...data,
       timestamp: new Date().toISOString(),
     });
+    
+    // Send FCM push to all admins
+    void this.notificationsService.sendToTopic(
+      'all_admins',
+      data.title,
+      data.body,
+      {
+        type: data.type,
+        ...(data.payload ? { payload: JSON.stringify(data.payload) } : {}),
+      },
+    );
+    
     this.logger.log(`Admin notified: ${data.type} - ${data.title}`);
   }
 
-  notifyMerchant(
+  async notifyMerchant(
     merchantId: string,
     data: Omit<WsMerchantNotification, 'timestamp'>,
   ) {
@@ -344,6 +361,21 @@ export class EventsGateway
       ...data,
       timestamp: new Date().toISOString(),
     });
+    
+    // Get merchant's FCM token and send push
+    // For simplicity, we can also use a personal topic if implemented,
+    // but the backend already has sendToUserId.
+    // However, merchantId here is likely the user.id.
+    
+    void this.notificationsService.sendToUserId(merchantId, {
+      title: data.title,
+      body: data.body,
+      data: {
+        type: data.type,
+        ...(data.payload ? { payload: JSON.stringify(data.payload) } : {}),
+      },
+    });
+
     this.logger.log(`Merchant ${merchantId} notified: ${data.type}`);
   }
 

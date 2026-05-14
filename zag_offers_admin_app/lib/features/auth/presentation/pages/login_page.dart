@@ -15,18 +15,6 @@ class _LoginPageState extends State<LoginPage> {
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
-
-  String _friendlyError(String raw) {
-    final msg = raw.toLowerCase();
-    if (msg.contains('connection timeout') || msg.contains('connection error')) {
-      return 'لا يمكن الاتصال بالسيرفر. تأكد أن الباك شغال وأن API_BASE_URL صحيح.';
-    }
-    if (msg.contains('401') || msg.contains('unauthorized')) {
-      return 'بيانات الدخول غير صحيحة.';
-    }
-    return 'حدث خطأ أثناء تسجيل الدخول. حاول مرة أخرى.';
-  }
-
   @override
   void dispose() {
     _identifierController.dispose();
@@ -43,7 +31,7 @@ class _LoginPageState extends State<LoginPage> {
           if (state is AuthError) {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(
-                content: Text(_friendlyError(state.message)),
+                content: Text(state.message, style: GoogleFonts.cairo()),
                 backgroundColor: AppColors.error,
               ),
             );

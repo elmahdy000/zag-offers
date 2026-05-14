@@ -10,6 +10,7 @@ class DashboardStatsModel extends DashboardStatsEntity {
     required super.claimsToday,
     required super.totalClaims,
     required super.recentCoupons,
+    super.topOffers = const [],
     super.storeName,
     super.storeId,
     super.storeStatus,

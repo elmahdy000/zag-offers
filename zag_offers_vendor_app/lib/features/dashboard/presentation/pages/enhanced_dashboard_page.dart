@@ -11,6 +11,8 @@ import '../../../offers/presentation/pages/offers_page.dart';
 import '../../../qr_scanner/presentation/pages/qr_scanner_page.dart';
 import '../../domain/entities/dashboard_stats_entity.dart';
 import '../bloc/dashboard_bloc.dart';
+import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 class EnhancedDashboardPage extends StatefulWidget {
   const EnhancedDashboardPage({super.key});
@@ -171,17 +173,45 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           ),
         ),
         const SizedBox(height: 16),
-        BlocBuilder<DashboardBloc, DashboardState>(
-          builder: (context, state) {
-            String name = 'متجر زاج';
-            if (state is DashboardLoaded) name = state.stats.storeName ?? name;
-            return Text(
-              'مرحبًا بك،\n$name',
-              style: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w900, height: 1.2, color: AppColors.text),
-            );
-          },
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            BlocBuilder<DashboardBloc, DashboardState>(
+              builder: (context, state) {
+                String name = 'متجر زاج';
+                if (state is DashboardLoaded) name = state.stats.storeName ?? name;
+                return Expanded(
+                  child: Text(
+                    'مرحبًا بك،\n$name',
+                    style: GoogleFonts.cairo(
+                        fontSize: 32,
+                        fontWeight: FontWeight.w900,
+                        height: 1.2,
+                        color: AppColors.text),
+                  ),
+                );
+              },
+            ),
+            _buildNotificationButton(),
+          ],
         ),
       ],
+    );
+  }
+
+  Widget _buildNotificationButton() {
+    return GlassCard(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+      ),
+      padding: const EdgeInsets.all(12),
+      borderRadius: 18,
+      child: Icon(
+        IconlyLight.notification,
+        color: AppColors.text,
+        size: 28,
+      ),
     );
   }
 
@@ -198,10 +228,10 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
             mainAxisSpacing: 16,
             childAspectRatio: 1.1,
             children: [
-              StatCard(label: 'نشاط اليوم', value: s.claimsToday.toString(), icon: Icons.local_activity, color: AppColors.primary, index: 0),
-              StatCard(label: 'عروض نشطة', value: s.activeOffers.toString(), icon: Icons.star, color: AppColors.secondary, index: 1),
-              StatCard(label: 'المسح اليومي', value: s.scansToday.toString(), icon: Icons.qr_code_scanner, color: AppColors.blue, index: 2),
-              StatCard(label: 'إجمالي الطلبات', value: s.totalClaims.toString(), icon: Icons.people, color: AppColors.purple, index: 3),
+              StatCard(label: 'نشاط اليوم', value: s.claimsToday.toString(), icon: Icons.local_activity, color: AppColors.primary, bgColor: AppColors.primary, index: 0),
+              StatCard(label: 'عروض نشطة', value: s.activeOffers.toString(), icon: Icons.star, color: AppColors.secondary, bgColor: AppColors.secondary, index: 1),
+              StatCard(label: 'المسح اليومي', value: s.scansToday.toString(), icon: Icons.qr_code_scanner, color: AppColors.blue, bgColor: AppColors.blue, index: 2),
+              StatCard(label: 'إجمالي الطلبات', value: s.totalClaims.toString(), icon: Icons.people, color: AppColors.purple, bgColor: AppColors.purple, index: 3),
             ],
           );
         }

@@ -26,7 +26,7 @@ class StatsModel extends DashboardStats {
 
       final model = StatsModel(
         totalMerchants: _toInt(
-          users['totalMerchants'] ?? json['totalMerchants'],
+          stores['totalStores'] ?? json['totalMerchants'],
         ),
         pendingMerchants: _toInt(
           stores['pendingStores'] ?? json['pendingMerchants'],

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
+import '../../../../core/services/notification_service.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -43,9 +44,17 @@ class NotificationsPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final item = feedState.items[index];
                     return _NotificationCard(
-                      title: item.title,
-                      subtitle: item.message,
-                      trailing: _formatRelativeTime(item.createdAt),
+                      item: item,
+                      onTap: () {
+                        if (!item.isRead) {
+                          context.read<NotificationBloc>().add(MarkAsRead(item.id));
+                        }
+                        // إذا كان الإشعار يحتوي على بيانات، يمكننا محاولة التنقل
+                        if (item.data != null) {
+                          NotificationService.checkPendingNotification(); // Clear any old pending
+                          NotificationService.handleNotificationTapFromData(item.data!); 
+                        }
+                      },
                     );
                   },
                 )
@@ -102,69 +111,211 @@ class NotificationsPage extends StatelessWidget {
   String _formatRelativeTime(DateTime dateTime) {
     final difference = DateTime.now().difference(dateTime);
     if (difference.inMinutes < 1) return 'الآن';
-    if (difference.inHours < 1) return 'منذ ${difference.inMinutes} د';
-    if (difference.inDays < 1) return 'منذ ${difference.inHours} س';
-    return 'منذ ${difference.inDays} يوم';
+    if (difference.inMinutes < 60) return 'منذ ${difference.inMinutes} دقيقة';
+    if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';
+    if (difference.inDays < 7) return 'منذ ${difference.inDays} أيام';
+    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
   }
 }
 
 class _NotificationCard extends StatelessWidget {
-  final String title;
-  final String subtitle;
-  final String trailing;
+  final NotificationItem item;
+  final VoidCallback? onTap;
 
   const _NotificationCard({
-    required this.title,
-    required this.subtitle,
-    required this.trailing,
+    required this.item,
+    this.onTap,
   });
 
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final categoryInfo = _getCategoryInfo(item);
+    
     return Container(
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(20),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        color: item.isRead ? theme.cardColor.withValues(alpha: 0.6) : theme.cardColor,
+        borderRadius: BorderRadius.circular(24),
+        border: Border.all(
+          color: item.isRead 
+              ? theme.dividerColor.withValues(alpha: 0.08)
+              : AppColors.primary.withValues(alpha: 0.2),
+          width: 1.5,
+        ),
+        boxShadow: item.isRead ? null : [
+          BoxShadow(
+            color: AppColors.primary.withValues(alpha: 0.08),
+            blurRadius: 15,
+            offset: const Offset(0, 8),
+          ),
+        ],
       ),
-      child: ListTile(
-        contentPadding: const EdgeInsets.all(16),
-        leading: Container(
-          padding: const EdgeInsets.all(12),
-          decoration: BoxDecoration(
-            color: AppColors.primary.withValues(alpha: 0.1),
-            shape: BoxShape.circle,
-          ),
-          child: const Icon(
-            Icons.notifications_active_rounded,
-            color: AppColors.primary,
-            size: 24,
-          ),
-        ),
-        title: Text(
-          title,
-          style: const TextStyle(fontWeight: FontWeight.bold, fontSize: 15),
-        ),
-        subtitle: Padding(
-          padding: const EdgeInsets.only(top: 4),
-          child: Text(
-            subtitle,
-            style: theme.textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                  fontSize: 13,
-                  height: 1.4,
+      clipBehavior: Clip.antiAlias,
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: onTap,
+          child: Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                _buildLeading(context, categoryInfo),
+                const SizedBox(width: 16),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          if (categoryInfo != null)
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: categoryInfo.color.withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(10),
+                              ),
+                              child: Text(
+                                categoryInfo.label,
+                                style: TextStyle(
+                                  color: categoryInfo.color,
+                                  fontSize: 10,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                            ),
+                          Text(
+                            _formatTime(item.createdAt),
+                            style: theme.textTheme.labelSmall?.copyWith(
+                              color: AppColors.textSecondary.withValues(alpha: 0.5),
+                              fontSize: 10,
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: 8),
+                      Text(
+                        item.title,
+                        style: TextStyle(
+                          fontWeight: item.isRead ? FontWeight.bold : FontWeight.w900,
+                          fontSize: 15,
+                          color: item.isRead ? AppColors.textSecondary : AppColors.textPrimary,
+                        ),
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        item.message,
+                        maxLines: 2,
+                        overflow: TextOverflow.ellipsis,
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontSize: 13,
+                          height: 1.4,
+                        ),
+                      ),
+                      if (item.imageUrl != null) ...[
+                        const SizedBox(height: 12),
+                        ClipRRect(
+                          borderRadius: BorderRadius.circular(12),
+                          child: Image.network(
+                            item.imageUrl!,
+                            height: 100,
+                            width: double.infinity,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                          ),
+                        ),
+                      ],
+                    ],
+                  ),
                 ),
+              ],
+            ),
           ),
-        ),
-        trailing: Text(
-          trailing,
-          style: theme.textTheme.labelSmall?.copyWith(
-                fontSize: 10,
-                color: AppColors.textSecondary,
-              ),
         ),
       ),
     );
   }
+
+  Widget _buildLeading(BuildContext context, _CategoryInfo? info) {
+    return Stack(
+      children: [
+        Container(
+          width: 52,
+          height: 52,
+          decoration: BoxDecoration(
+            color: (info?.color ?? AppColors.primary).withValues(alpha: 0.1),
+            borderRadius: BorderRadius.circular(18),
+          ),
+          child: Icon(
+            info?.icon ?? (item.isRead ? Icons.notifications_none_rounded : Icons.notifications_active_rounded),
+            color: info?.color ?? (item.isRead ? AppColors.textSecondary : AppColors.primary),
+            size: 26,
+          ),
+        ),
+        if (!item.isRead)
+          Positioned(
+            right: 0,
+            top: 0,
+            child: Container(
+              width: 14,
+              height: 14,
+              decoration: BoxDecoration(
+                color: AppColors.primary,
+                shape: BoxShape.circle,
+                border: Border.all(color: Colors.white, width: 2.5),
+              ),
+            ),
+          ),
+      ],
+    );
+  }
+
+  String _formatTime(DateTime dateTime) {
+    final now = DateTime.now();
+    if (now.day == dateTime.day && now.month == dateTime.month && now.year == dateTime.year) {
+      return '${dateTime.hour.toString().padLeft(2, '0')}:${dateTime.minute.toString().padLeft(2, '0')}';
+    }
+    return '${dateTime.day}/${dateTime.month}';
+  }
+
+  _CategoryInfo? _getCategoryInfo(NotificationItem item) {
+    final type = item.type;
+    final area = item.data?['area'];
+    
+    if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED' || type == 'DIGEST_NEW_OFFERS') {
+      return _CategoryInfo(
+        label: area ?? 'عرض جديد',
+        icon: Icons.local_offer_outlined,
+        color: Colors.orange,
+      );
+    }
+    
+    if (type == 'COUPON_REDEEMED' || type == 'NEW_COUPON' || type == 'COUPON_GENERATED') {
+      return _CategoryInfo(
+        label: 'كوبونات',
+        icon: Icons.confirmation_number_outlined,
+        color: Colors.blue,
+      );
+    }
+    
+    if (type == 'STORE_APPROVED') {
+      return _CategoryInfo(
+        label: 'المتجر',
+        icon: Icons.storefront_outlined,
+        color: Colors.green,
+      );
+    }
+
+    return null;
+  }
+}
+
+class _CategoryInfo {
+  final String label;
+  final IconData icon;
+  final Color color;
+
+  _CategoryInfo({required this.label, required this.icon, required this.color});
 }

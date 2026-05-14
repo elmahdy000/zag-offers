@@ -12,6 +12,8 @@ import { OAuth2Client } from 'google-auth-library';
 import * as nodemailer from 'nodemailer';
 import { RegisterDto } from './dto/register.dto';
 import { UsersService } from '../users/users.service';
+import { PrismaService } from '../prisma/prisma.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 type SanitizedUser = Omit<
   User,
@@ -56,8 +58,10 @@ export class AuthService {
   private transporter: nodemailer.Transporter;
 
   constructor(
+    private prisma: PrismaService,
     private usersService: UsersService,
     private jwtService: JwtService,
+    private notificationsService: NotificationsService,
   ) {
     this.googleClient = new OAuth2Client(process.env.GOOGLE_CLIENT_ID);
 
@@ -300,18 +304,27 @@ export class AuthService {
     userId: string,
     data: { name?: string; area?: string; avatar?: string },
   ) {
+    const oldUser = await this.usersService.findById(userId);
     const user = await this.usersService.update(userId, data);
+
+    // If area changed and user has an FCM token, update subscriptions
+    if (data.area && oldUser?.area !== data.area && user.fcmToken) {
+      void this.notificationsService
+        .saveFcmToken(userId, user.fcmToken)
+        .catch(() => {});
+    }
+
     return this.sanitizeUser(user);
   }
 
   async updateFcmToken(userId: string, token: string) {
-    await this.usersService.update(userId, { fcmToken: token });
+    await this.notificationsService.saveFcmToken(userId, token);
     return { success: true, message: 'تم تسجيل توكن الإشعارات بنجاح' };
   }
 
   async logout(userId: string) {
-    // Clear the FCM token so the device stops receiving push notifications
-    await this.usersService.update(userId, { fcmToken: null });
+    // Clear the FCM token and unsubscribe from topics
+    await this.notificationsService.removeFcmToken(userId);
     return { success: true, message: 'تم تسجيل الخروج بنجاح' };
   }
 

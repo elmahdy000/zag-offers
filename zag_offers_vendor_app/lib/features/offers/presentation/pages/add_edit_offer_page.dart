@@ -10,6 +10,7 @@ import '../../../../core/constants/app_constants.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../upload/domain/repositories/upload_repository.dart';
+import '../../../upload/domain/usecases/upload_usecase.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../../../core/utils/image_url_helper.dart';
 import '../bloc/offers_bloc.dart';
@@ -59,6 +60,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   String _resolveImageUrl(String url) => ImageUrlHelper.resolve(url);
 
   Future<void> _pickImage() async {
+    if (_imageUrls.length >= 5) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text('الحد الأقصى للصور هو 5 فقط', style: GoogleFonts.cairo()), backgroundColor: AppColors.error),
+      );
+      return;
+    }
+
     final picker = ImagePicker();
     final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
 

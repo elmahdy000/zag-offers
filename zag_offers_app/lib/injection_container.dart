@@ -53,13 +53,16 @@ import 'features/reviews/domain/repositories/reviews_repository.dart';
 import 'features/reviews/domain/usecases/review_usecases.dart';
 
 // Notifications
+import 'features/notifications/data/repositories/notifications_repository_impl.dart';
+import 'features/notifications/domain/repositories/notifications_repository.dart';
 import 'features/notifications/presentation/bloc/notification_bloc.dart';
 
 final sl = GetIt.instance;
 
 Future<void> init() async {
   //! Features - Notifications
-  sl.registerLazySingleton(() => NotificationBloc());
+  sl.registerFactory(() => NotificationBloc(repository: sl()));
+  sl.registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(apiClient: sl()));
   
   //! Features - Auth
   sl.registerFactory(() => AuthBloc(

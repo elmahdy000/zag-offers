@@ -11,10 +11,10 @@ class UserRepositoryImpl implements UserRepository {
   UserRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<Either<Failure, List<AppUser>>> getUsers({String? search}) async {
+  Future<Either<Failure, ({List<AppUser> items, int total})>> getUsers({String? search}) async {
     try {
-      final users = await remoteDataSource.getUsers(search: search);
-      return Right(users);
+      final result = await remoteDataSource.getUsers(search: search);
+      return Right(result);
     } catch (e) {
       return Left(ServerFailure(e.toString()));
     }

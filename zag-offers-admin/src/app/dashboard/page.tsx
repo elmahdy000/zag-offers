@@ -1039,36 +1039,38 @@ export default function AdminDashboard() {
       {/* Dynamic Stats Grid */}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
-          label="مستخدمين جدد"
-          value={pStatsLoading ? '...' : format(pStats?.newUsers ?? 0)}
+          label="إجمالي المستخدمين"
+          value={statsLoading ? '...' : format(stats?.users.totalUsers ?? 0)}
           icon={Users}
           color="text-blue-600"
           bg="bg-blue-50"
-          trend="+12%"
+          trend={pStats?.newUsers ? `+${pStats.newUsers} جديد` : undefined}
         />
         <StatCard
-          label="متاجر جديدة"
-          value={pStatsLoading ? '...' : format(pStats?.newStores ?? 0)}
+          label="إجمالي المتاجر"
+          value={statsLoading ? '...' : format(stats?.stores.totalStores ?? 0)}
           icon={Store}
           color="text-emerald-600"
           bg="bg-emerald-50"
-          trend="+5%"
+          trend={pStats?.newStores ? `+${pStats.newStores} جديد` : undefined}
+          subValue={`${stats?.stores.pendingStores ?? 0} بانتظار الاعتماد`}
         />
         <StatCard
-          label="عروض مضافة"
-          value={pStatsLoading ? '...' : format(pStats?.newOffers ?? 0)}
+          label="إجمالي العروض"
+          value={statsLoading ? '...' : format(stats?.offers.totalOffers ?? 0)}
           icon={Zap}
           color="text-orange-600"
           bg="bg-orange-50"
-          trend="+18%"
+          trend={pStats?.newOffers ? `+${pStats.newOffers} جديد` : undefined}
+          subValue={`${stats?.offers.activeOffers ?? 0} عرض نشط الآن`}
         />
         <StatCard
-          label="طلبات الكوبونات"
-          value={pStatsLoading ? '...' : format(pStats?.newCoupons ?? 0)}
+          label="إجمالي الكوبونات"
+          value={statsLoading ? '...' : format(stats?.coupons.totalCouponsGenerated ?? 0)}
           icon={TicketPercent}
           color="text-violet-600"
           bg="bg-violet-50"
-          trend="+24%"
+          trend={pStats?.newCoupons ? `+${pStats.newCoupons} جديد` : undefined}
         />
         <StatCard
           label="معدل التحويل"
@@ -1076,7 +1078,7 @@ export default function AdminDashboard() {
           icon={TrendingUp}
           color="text-pink-600"
           bg="bg-pink-50"
-          subValue={`${stats?.coupons.totalCouponsUsed ?? 0} مسح فعلي`}
+          subValue={`${stats?.coupons.totalCouponsUsed ?? 0} عملية مسح`}
         />
       </div>
 

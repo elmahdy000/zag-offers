@@ -45,9 +45,25 @@
 		<true/>
 		<key>UIApplicationSupportsIndirectInputEvents</key>
 		<true/>
-		<key>UIStatusBarHidden</key>
-		<true/>
-		<key>UIViewControllerBasedStatusBarAppearance</key>
+		<key>CFBundleLocalizations</key>
+		<array>
+			<string>ar</string>
+			<string>en</string>
+		</array>
+		<key>NSLocationWhenInUseUsageDescription</key>
+		<string>نحتاج للوصول إلى موقعك لعرض العروض والمتاجر القريبة منك.</string>
+		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+		<string>نحتاج للوصول إلى موقعك لعرض العروض والمتاجر القريبة منك بشكل دقيق.</string>
+		<key>NSCameraUsageDescription</key>
+		<string>نحتاج للوصول إلى الكاميرا لالتقاط الصور الشخصية وتحديث حسابك.</string>
+		<key>NSPhotoLibraryUsageDescription</key>
+		<string>نحتاج للوصول إلى مكتبة الصور لاختيار صور لملفك الشخصي.</string>
+		<key>FirebaseAppDelegateProxyEnabled</key>
 		<false/>
+		<key>UIBackgroundModes</key>
+		<array>
+			<string>fetch</string>
+			<string>remote-notification</string>
+		</array>
 	</dict>
 </plist>

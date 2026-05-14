@@ -4,7 +4,7 @@ import 'package:zag_offers_admin_app/features/users/domain/entities/app_user.dar
 import 'package:zag_offers_admin_app/features/users/domain/entities/app_user_details.dart';
 
 abstract class UserRepository {
-  Future<Either<Failure, List<AppUser>>> getUsers({String? search});
+  Future<Either<Failure, ({List<AppUser> items, int total})>> getUsers({String? search});
   Future<Either<Failure, AppUserDetails>> getUserDetails(String id);
   Future<Either<Failure, void>> deleteUser(String id);
   Future<Either<Failure, void>> updateUser(
