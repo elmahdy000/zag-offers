@@ -43,7 +43,7 @@ class OfferModel extends OfferEntity {
       expiryDate: dateStr != null ? DateTime.tryParse(dateStr) ?? DateTime.now() : DateTime.now(),
       store: StoreModel.fromJson(json['store'] ?? {}),
       terms: json['terms']?.toString(),
-      oldPrice: json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null,
+      oldPrice: (json['oldPrice'] ?? json['originalPrice']) != null ? double.tryParse((json['oldPrice'] ?? json['originalPrice']).toString()) : null,
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       viewCount: json['viewCount'] ?? 0,
       isFeatured: json['isFeatured'] ?? false,

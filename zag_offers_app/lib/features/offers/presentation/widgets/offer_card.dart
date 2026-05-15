@@ -28,9 +28,7 @@ class OfferCard extends StatelessWidget {
         borderRadius: BorderRadius.circular(22),
         child: Container(
           width: isWide ? null : 280,
-          constraints: const BoxConstraints(
-            minHeight: 0,
-          ),
+          clipBehavior: Clip.hardEdge,
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(22),
@@ -46,17 +44,27 @@ class OfferCard extends StatelessWidget {
               ),
             ],
           ),
-          child: ClipRRect(
-            borderRadius: BorderRadius.circular(22),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                _buildImageHeader(context),
-                _buildDetailsSection(context),
-              ],
-            ),
-          ),
+          child: isWide
+              ? Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: _buildImageHeader(context),
+                    ),
+                    Flexible(
+                      flex: 0,
+                      child: _buildDetailsSection(context),
+                    ),
+                  ],
+                )
+              : Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    _buildImageHeader(context),
+                    _buildDetailsSection(context),
+                  ],
+                ),
         ),
       ),
     );
@@ -64,15 +72,25 @@ class OfferCard extends StatelessWidget {
 
   Widget _buildImageHeader(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    
+    final imageWidget = isWide
+        ? SizedBox.expand(
+            child: NetworkImageWidget(
+              imageUrl: offer.image,
+              fit: BoxFit.cover,
+            ),
+          )
+        : AspectRatio(
+            aspectRatio: 1.1,
+            child: NetworkImageWidget(
+              imageUrl: offer.image,
+              fit: BoxFit.cover,
+            ),
+          );
+    
     return Stack(
       children: [
-        AspectRatio(
-          aspectRatio: 1.1,
-          child: NetworkImageWidget(
-            imageUrl: offer.image,
-            fit: BoxFit.cover,
-          ),
-        ),
+        imageWidget,
         Positioned(
           top: 10,
           right: 10,
@@ -86,7 +104,10 @@ class OfferCard extends StatelessWidget {
               offer.discount.isNotEmpty
                   ? offer.discount
                   : '${offer.discountPercentage.toInt()}%',
-              style: textTheme.labelSmall?.copyWith(color: Colors.white, fontWeight: FontWeight.bold),
+              style: textTheme.labelMedium?.copyWith(
+                color: Colors.white,
+                fontWeight: FontWeight.w900,
+              ),
             ),
           ),
         ),
@@ -119,7 +140,7 @@ class OfferCard extends StatelessWidget {
                   const SizedBox(width: 6),
                 ],
                 Text(
-                  offer.store?.category ?? 'عرض خاص',
+                  offer.store.category ?? 'عرض خاص',
                   style: Theme.of(context).textTheme.labelSmall?.copyWith(
                     color: AppColors.textSecondary,
                     fontWeight: FontWeight.w600,
@@ -133,32 +154,21 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImageFallback() {
-    return Container(
-      color: AppColors.primary.withValues(alpha: 0.08),
-      child: Center(
-        child: Icon(
-          CategoryUtils.getIcon(offer.store?.category),
-          size: 34,
-          color: AppColors.primary.withValues(alpha: 0.45),
-        ),
-      ),
-    );
-  }
-
   Widget _buildDetailsSection(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
+        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
             offer.title,
             style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w800,
-              height: 1.1,
-              fontSize: 13,
+              fontWeight: FontWeight.w900,
+              height: 1.2,
+              fontSize: 15,
+              letterSpacing: -0.2,
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
@@ -167,17 +177,18 @@ class OfferCard extends StatelessWidget {
           Row(
             children: [
               Icon(
-                CategoryUtils.getIcon(offer.store?.category),
+                CategoryUtils.getIcon(offer.store.category),
                 size: 13,
                 color: AppColors.primary,
               ),
               const SizedBox(width: 6),
               Expanded(
                 child: Text(
-                  offer.store?.name ?? '',
-                  style: Theme.of(context).textTheme.titleSmall?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: Theme.of(context).textTheme.titleLarge?.color,
+                  offer.store.name,
+                  style: textTheme.bodySmall?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: AppColors.textSecondary,
+                    fontSize: 12,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -185,30 +196,30 @@ class OfferCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 2),
-          Row(
-            children: [
-              Icon(
-                IconlyLight.location,
-                size: 13,
-                color: AppColors.textSecondary,
-              ),
-              const SizedBox(width: 4),
-              Expanded(
-                child: Text(
-                  offer.store?.area ?? '',
-                  style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w600),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+          const SizedBox(height: 8),
+          if (offer.newPrice != null)
+            Row(
+              children: [
+                Text(
+                  '${offer.newPrice!.toStringAsFixed(0)} ج.م',
+                  style: textTheme.titleLarge?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                    fontSize: 18,
+                  ),
                 ),
-              ),
-              const SizedBox(width: 8),
-              Text(
-                'انتهاؤه قريبًا',
-                style: textTheme.labelSmall?.copyWith(color: Colors.orange[700], fontWeight: FontWeight.w700),
-              ),
-            ],
-          ),
+                const SizedBox(width: 8),
+                if (offer.oldPrice != null)
+                  Text(
+                    '${offer.oldPrice!.toStringAsFixed(0)} ج.م',
+                    style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary.withValues(alpha: 0.6),
+                      decoration: TextDecoration.lineThrough,
+                      fontSize: 11,
+                    ),
+                  ),
+              ],
+            ),
         ],
       ),
     );

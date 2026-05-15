@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
@@ -25,8 +24,6 @@ class AllOffersPage extends StatefulWidget {
 
 class _AllOffersPageState extends State<AllOffersPage> {
   late String _selectedCategory;
-  final TextEditingController _searchController = TextEditingController();
-  Timer? _debounceTimer;
 
   String _currentArea = 'الكل';
   double _minDiscount = 0;
@@ -44,31 +41,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
 
   @override
   void dispose() {
-    _debounceTimer?.cancel();
-    _searchController.dispose();
     super.dispose();
   }
 
-  void _onSearchChanged(String query, BuildContext context) {
-    _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 500), () {
-      final trimmed = query.trim();
-      if (OfferFilterUtils.shouldRunSearch(trimmed)) {
-        context.read<OffersBloc>().add(SearchOffers(trimmed));
-      } else if (trimmed.isEmpty) {
-        context.read<OffersBloc>().add(SearchOffers(''));
-      }
-    });
-    setState(() {});
-  }
-
-  void _clearSearch(BuildContext context) {
-    _debounceTimer?.cancel();
-    setState(() {
-      _searchController.clear();
-    });
-    context.read<OffersBloc>().add(SearchOffers(''));
-  }
 
   void _resetAllFilters(BuildContext context) {
     setState(() {
@@ -77,17 +52,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
       _minDiscount = 0;
       _sortBy = 'newest';
     });
-    _clearSearch(context);
   }
 
   List<OfferEntity> _getSourceOffers(OffersLoaded state) {
-    if (_searchController.text.trim().isNotEmpty &&
-        !OfferFilterUtils.shouldRunSearch(_searchController.text)) {
-      return const <OfferEntity>[];
-    }
-    if (_searchController.text.trim().isNotEmpty) {
-      return (state.searchResults ?? const <OfferEntity>[]).cast<OfferEntity>();
-    }
     if (state.allOffers.isNotEmpty) {
       return state.allOffers;
     }
@@ -189,42 +156,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
                   child: Column(
                     children: [
-                      Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 16),
-                        decoration: BoxDecoration(
-                          color: theme.cardColor,
-                          borderRadius: BorderRadius.circular(20),
-                          border: Border.all(color: theme.dividerColor),
-                        ),
-                        child: TextField(
-                          controller: _searchController,
-                          onChanged: (val) => _onSearchChanged(val, context),
-                          decoration: InputDecoration(
-                            hintText: 'ابحث عن عرض أو محل...',
-                            helperText: _searchController.text.isNotEmpty &&
-                                    !OfferFilterUtils.shouldRunSearch(
-                                      _searchController.text,
-                                    )
-                                ? 'اكتب 3 أحرف على الأقل لبدء البحث'
-                                : null,
-                            border: InputBorder.none,
-                            icon: const Icon(
-                              Icons.search,
-                              color: AppColors.primary,
-                            ),
-                            suffixIcon: _searchController.text.isNotEmpty
-                                ? IconButton(
-                                    icon: const Icon(
-                                      Icons.close_rounded,
-                                      size: 18,
-                                    ),
-                                    onPressed: () => _clearSearch(context),
-                                  )
-                                : null,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(height: 20),
+                      const SizedBox(height: 8),
                       SizedBox(
                         height: 90,
                         child: ListView.builder(
@@ -455,7 +387,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.67,
+          childAspectRatio: 0.62,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {

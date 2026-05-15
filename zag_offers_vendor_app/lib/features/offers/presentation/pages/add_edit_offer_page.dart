@@ -55,6 +55,31 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     if (widget.offer?.images != null) {
       _imageUrls.addAll(widget.offer!.images);
     }
+    
+    _oldPriceController.addListener(_calculateDiscount);
+    _newPriceController.addListener(_calculateDiscount);
+  }
+
+  void _calculateDiscount() {
+    final oldPriceText = _oldPriceController.text;
+    final newPriceText = _newPriceController.text;
+
+    if (oldPriceText.isEmpty || newPriceText.isEmpty) {
+      _discountController.text = '';
+      return;
+    }
+
+    final oldPrice = double.tryParse(oldPriceText);
+    final newPrice = double.tryParse(newPriceText);
+
+    if (oldPrice != null && newPrice != null && oldPrice > 0) {
+      final discount = ((oldPrice - newPrice) / oldPrice) * 100;
+      if (discount > 0) {
+        _discountController.text = '${discount.toStringAsFixed(0)}%';
+      } else {
+        _discountController.text = '0%';
+      }
+    }
   }
 
   String _resolveImageUrl(String url) => ImageUrlHelper.resolve(url);
@@ -62,28 +87,54 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   Future<void> _pickImage() async {
     if (_imageUrls.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('الحد الأقصى للصور هو 5 فقط', style: GoogleFonts.cairo()), backgroundColor: AppColors.error),
+        SnackBar(
+          content: Text('الحد الأقصى للصور هو 5 فقط', style: GoogleFonts.cairo()),
+          backgroundColor: AppColors.error,
+        ),
       );
       return;
     }
 
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 80);
+    final List<XFile> pickedFiles = await picker.pickMultiImage(
+      imageQuality: 80,
+    );
 
-    if (pickedFile != null) {
+    if (pickedFiles.isNotEmpty) {
       setState(() => _isUploading = true);
       try {
         final uploadUseCase = sl<UploadUseCase>();
-        final url = await uploadUseCase(File(pickedFile.path));
-        setState(() {
-          _imageUrls.add(url);
-          _isUploading = false;
-        });
+        
+        // Only take what fits in the remaining slots
+        final remainingSlots = 5 - _imageUrls.length;
+        final imagesToUpload = pickedFiles.take(remainingSlots).toList();
+
+        for (var file in imagesToUpload) {
+          final url = await uploadUseCase(File(file.path));
+          setState(() {
+            _imageUrls.add(url);
+          });
+        }
+        
+        setState(() => _isUploading = false);
+        
+        if (pickedFiles.length > remainingSlots) {
+          if (!mounted) return;
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: Text('تم رفع $remainingSlots صور فقط (الحد الأقصى 5)', style: GoogleFonts.cairo()),
+              backgroundColor: AppColors.warning,
+            ),
+          );
+        }
       } catch (e) {
         setState(() => _isUploading = false);
         if (!mounted) return;
         ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('فشل رفع الصورة', style: GoogleFonts.cairo()), backgroundColor: AppColors.error),
+          SnackBar(
+            content: Text('فشل رفع بعض الصور', style: GoogleFonts.cairo()),
+            backgroundColor: AppColors.error,
+          ),
         );
       }
     }
@@ -265,8 +316,9 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                     child: _buildTextField(
                       controller: _discountController,
                       label: 'الخصم (%)',
-                      hint: 'مثال: 20%',
+                      hint: 'سيتم حسابه تلقائياً',
                       icon: Icons.percent_rounded,
+                      readOnly: true,
                       keyboardType: TextInputType.number,
                       validator: (v) => v!.isEmpty ? 'مطلوب' : null,
                     ),
@@ -320,25 +372,42 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
               ),
               
               const SizedBox(height: 40),
-              ElevatedButton(
-                onPressed: _onPreview,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: AppColors.secondary,
-                  foregroundColor: Colors.white,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                  elevation: 0,
-                ),
-                child: Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    const Icon(Icons.remove_red_eye_rounded, size: 20),
-                    const SizedBox(width: 10),
-                    Text(
-                      'معاينة العرض',
-                      style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+              Container(
+                decoration: BoxDecoration(
+                  gradient: AppColors.primaryGradient,
+                  borderRadius: BorderRadius.circular(32),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.3),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
                   ],
+                ),
+                child: ElevatedButton(
+                  onPressed: _onPreview,
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.transparent,
+                    foregroundColor: Colors.white,
+                    shadowColor: Colors.transparent,
+                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                  ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(Icons.remove_red_eye_rounded, size: 22),
+                      const SizedBox(width: 12),
+                      Text(
+                        'معاينة العرض',
+                        style: GoogleFonts.cairo(
+                          fontSize: 16,
+                          fontWeight: FontWeight.w900,
+                          letterSpacing: 0.5,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 40),
@@ -457,6 +526,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     TextInputType keyboardType = TextInputType.text,
     void Function(String)? onChanged,
     String? initialValue,
+    bool readOnly = false,
   }) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -469,6 +539,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
           maxLines: maxLines,
           validator: validator,
           onChanged: onChanged,
+          readOnly: readOnly,
           keyboardType: keyboardType,
           style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
           decoration: InputDecoration(

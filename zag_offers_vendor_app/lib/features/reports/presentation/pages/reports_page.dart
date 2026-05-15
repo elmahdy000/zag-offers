@@ -198,31 +198,48 @@ class ReportsPage extends StatelessWidget {
 
   Widget _buildSummaryCard(String title, String value, IconData icon, Color color) {
     return Container(
-      padding: const EdgeInsets.all(16),
-      decoration: AppTheme.glassCard,
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+      decoration: AppTheme.glassCard.copyWith(
+        borderRadius: BorderRadius.circular(24),
+      ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: color.withValues(alpha: 0.12),
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(icon, color: color, size: 20),
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: color.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: Icon(icon, color: color, size: 16),
+              ),
+              const Icon(Icons.trending_up_rounded, size: 14, color: AppColors.secondary),
+            ],
           ),
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
           Text(
             value,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTheme.heading2.copyWith(color: AppColors.text, fontWeight: FontWeight.w900),
+            style: AppTheme.title.copyWith(
+              color: AppColors.text,
+              fontWeight: FontWeight.w900,
+              fontSize: 20,
+            ),
           ),
+          const SizedBox(height: 2),
           Text(
             title,
             maxLines: 1,
             overflow: TextOverflow.ellipsis,
-            style: AppTheme.caption.copyWith(color: AppColors.textSecondary),
+            style: AppTheme.caption.copyWith(
+              color: AppColors.textSecondary,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
           ),
         ],
       ),
@@ -231,19 +248,21 @@ class ReportsPage extends StatelessWidget {
 
   Widget _buildHistoryItem(dynamic coupon) {
     return Container(
-      margin: const EdgeInsets.only(bottom: 10),
-      padding: const EdgeInsets.all(14),
-      decoration: AppTheme.glassCard,
+      margin: const EdgeInsets.only(bottom: 8),
+      padding: const EdgeInsets.all(12),
+      decoration: AppTheme.glassCard.copyWith(
+        borderRadius: BorderRadius.circular(20),
+      ),
       child: Row(
         children: [
           Container(
-            width: 42,
-            height: 42,
+            width: 36,
+            height: 36,
             decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.12),
-              shape: BoxShape.circle,
+              color: AppColors.success.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.check_rounded, color: AppColors.success),
+            child: const Icon(Icons.check_rounded, color: AppColors.success, size: 18),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -253,15 +272,19 @@ class ReportsPage extends StatelessWidget {
                 Text(
                   coupon.offerTitle,
                   style: AppTheme.body.copyWith(
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w800,
                     color: AppColors.text,
+                    fontSize: 13,
                   ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
                 Text(
-                  'العميل: ${coupon.customerName}',
-                  style: AppTheme.caption.copyWith(color: AppColors.textSecondary),
+                  coupon.customerName,
+                  style: AppTheme.caption.copyWith(
+                    color: AppColors.textDim,
+                    fontSize: 10,
+                  ),
                 ),
               ],
             ),
@@ -272,14 +295,14 @@ class ReportsPage extends StatelessWidget {
               Text(
                 '#${coupon.code}',
                 style: GoogleFonts.cairo(
-                  fontWeight: FontWeight.bold,
-                  fontSize: 13,
+                  fontWeight: FontWeight.w900,
+                  fontSize: 12,
                   color: AppColors.primary,
                 ),
               ),
               Text(
                 TimeUtils.getRelativeTime(coupon.redeemedAt),
-                style: AppTheme.caption.copyWith(color: AppColors.textDim),
+                style: AppTheme.small.copyWith(color: AppColors.textDimmer),
               ),
             ],
           ),

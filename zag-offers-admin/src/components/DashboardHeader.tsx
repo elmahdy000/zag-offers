@@ -85,16 +85,8 @@ export default function DashboardHeader() {
 
   return (
     <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur-md lg:px-10">
-      {/* Search Bar */}
-      <div className="relative flex-1 max-w-md">
-        <Search className="absolute right-3.5 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-        <input
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          placeholder="البحث السريع..."
-          className="h-[44px] w-full rounded-2xl border border-slate-200 bg-slate-50/50 pr-11 pl-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all shadow-inner"
-        />
-      </div>
+      {/* Global Actions Container (formerly search was here) */}
+      <div className="flex-1" />
 
       {/* Actions */}
       <div className="flex items-center gap-4 mr-4">

@@ -219,25 +219,7 @@ export default function OffersListPage() {
             {searchQuery ? `تم العثور على ${filtered.length} نتيجة بحث` : `لديك ${counts.ACTIVE} عرض نشط من إجمالي ${counts.ALL}`}
           </p>
         </div>
-        
         <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
-          <div className="relative flex-1 sm:min-w-[320px]">
-             <input 
-               type="text"
-               placeholder="ابحث بالعنوان، الوصف، أو قيمة الخصم..."
-               value={searchQuery}
-               onChange={(e) => setSearchQuery(e.target.value)}
-               className="w-full bg-white/5 border border-white/10 rounded-2xl py-4 pr-4 pl-12 text-sm font-bold focus:border-primary transition-all text-right placeholder:text-text-dimmer"
-             />
-             <div className="absolute left-4 top-1/2 -translate-y-1/2 flex items-center gap-2">
-               {searchQuery && (
-                 <button onClick={() => setSearchQuery('')} className="text-text-dimmer hover:text-white transition-colors">
-                    <XCircle size={18} />
-                 </button>
-               )}
-               <Tag size={18} className="text-white/20" />
-             </div>
-          </div>
           <Link
             href="/dashboard/offers/new"
             className="bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border border-primary/20"

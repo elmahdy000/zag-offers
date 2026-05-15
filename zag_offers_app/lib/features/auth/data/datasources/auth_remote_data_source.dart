@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
@@ -9,6 +9,7 @@ abstract class AuthRemoteDataSource {
   Future<void> updateFcmToken(String token);
   Future<void> forgotPassword(String email);
   Future<void> resetPassword(String email, String otp, String newPassword);
+  Future<void> deleteAccount();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -85,6 +86,17 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       throw Exception(e.response?.data['message'] ?? 'فشل إعادة تعيين كلمة السر');
     } catch (e) {
       throw Exception('حدث خطأ غير متوقع');
+    }
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    try {
+      await apiClient.dio.delete('/users/profile');
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['message'] ?? 'فشل حذف الحساب');
+    } catch (e) {
+      throw ServerException('حدث خطأ غير متوقع');
     }
   }
 }

@@ -1,6 +1,5 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_state.dart';

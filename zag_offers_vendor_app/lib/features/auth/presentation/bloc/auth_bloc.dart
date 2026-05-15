@@ -75,6 +75,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await loginUseCase(
         LoginParams(identifier: event.identifier, password: event.password),
       );
+      // Enforce merchant/admin role for this app
+      if (user.role != 'MERCHANT' && user.role != 'ADMIN') {
+        await authRepository.logout();
+        emit(AuthError('عفواً، لا تملك صلاحية الدخول لبوابة التجار'));
+        return;
+      }
+      
       // Register FCM token with backend now that the user is authenticated
       await NotificationService.sendTokenToBackend();
       emit(AuthAuthenticated(user));

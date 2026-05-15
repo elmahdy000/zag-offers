@@ -91,6 +91,9 @@ class SocketService {
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
+    _newOfferController.close();
+    _couponUpdateController.close();
+    _socialProofController.close();
     _isInitialized = false;
   }
 

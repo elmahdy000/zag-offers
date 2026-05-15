@@ -50,6 +50,7 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
+    if (!context.mounted) return;
     if (result != null) {
       setState(() {
         _currentArea = result['area'];
@@ -108,8 +109,7 @@ class _HomePageState extends State<HomePage> {
                             _buildNoticeBanner(context, state.noticeMessage!),
                           ],
                           const SizedBox(height: 24),
-                          _buildSearchBar(context, state),
-                          const SizedBox(height: 24),
+                          // _buildSearchBar(context, state), // Removed search bar
                           const AdsSlider(),
                           const SizedBox(height: 20),
                           const CategoriesSection(),
@@ -139,14 +139,14 @@ class _HomePageState extends State<HomePage> {
                           _buildCategoryFilteredSection(
                             context,
                             state,
-                            category: 'مطاعم',
+                            category: 'دلع كرشك',
                             title: 'ركن الأكل',
                             subtitle: 'أفضل العروض القريبة لتجربة سريعة',
                           ),
                           _buildCategoryFilteredSection(
                             context,
                             state,
-                            category: 'ملابس',
+                            category: 'شياكة',
                             title: 'اختيارات الموضة',
                             subtitle: 'عروض مختارة على الملابس والإطلالات',
                           ),
@@ -239,6 +239,7 @@ class _HomePageState extends State<HomePage> {
                 ),
               ).then((_) {
                 // Refresh unread status when coming back
+                if (!context.mounted) return;
                 context.read<NotificationBloc>().add(LoadNotifications(fromServer: true));
               }),
             );
@@ -267,6 +268,31 @@ class _HomePageState extends State<HomePage> {
                     );
                   },
         ),
+        IconButton(
+          icon: Stack(
+            children: [
+              const Icon(Icons.tune_rounded),
+              if (_currentArea != 'الكل' || _minDiscount > 0 || _sortBy != 'newest')
+                Positioned(
+                  right: 0,
+                  top: 0,
+                  child: Container(
+                    width: 8,
+                    height: 8,
+                    decoration: const BoxDecoration(
+                      color: AppColors.primary,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          onPressed: () {
+            if (state is OffersLoaded) {
+              _showFilterSheet(context, state);
+            }
+          },
+        ),
         const SizedBox(width: 8),
       ],
     );
@@ -278,11 +304,25 @@ class _HomePageState extends State<HomePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            'عروض النهاردة في الزقازيق 📍',
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                  fontWeight: FontWeight.w800,
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  'عروض النهاردة في الزقازيق',
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.w800,
+                      ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
+              ),
+              const SizedBox(width: 6),
+              const Icon(
+                IconlyBold.location,
+                color: AppColors.primary,
+                size: 22,
+              ),
+            ],
           ),
           const SizedBox(height: 4),
           Text(
@@ -368,88 +408,6 @@ class _HomePageState extends State<HomePage> {
     );
   }
 
-  Widget _buildSearchBar(BuildContext context, OffersLoaded state) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Row(
-        children: [
-          Expanded(
-            child: InkWell(
-              borderRadius: BorderRadius.circular(18),
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(builder: (context) => const SearchPage()),
-              ),
-              child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
-                decoration: BoxDecoration(
-                  color: Theme.of(context).cardColor,
-                  borderRadius: BorderRadius.circular(18),
-                  border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
-                ),
-                child: Row(
-                  children: [
-                    Icon(
-                      IconlyLight.search,
-                      color: AppColors.textSecondary,
-                      size: 22,
-                    ),
-                    const SizedBox(width: 12),
-                    Text(
-                      'بتدور على إيه؟',
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-          ),
-          const SizedBox(width: 12),
-          GestureDetector(
-            onTap: () => _showFilterSheet(context, state),
-            child: Container(
-              padding: const EdgeInsets.all(12),
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                borderRadius: BorderRadius.circular(16),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.2),
-                    blurRadius: 10,
-                    offset: const Offset(0, 4),
-                  ),
-                ],
-              ),
-              child: Stack(
-                children: [
-                  const Icon(
-                    Icons.tune_rounded,
-                    color: Colors.white,
-                    size: 24,
-                  ),
-                  if (_currentArea != 'الكل' || _minDiscount > 0 || _sortBy != 'newest')
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        width: 8,
-                        height: 8,
-                        decoration: const BoxDecoration(
-                          color: Colors.white,
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-            ),
-          ),
-        ],
-      ),
-    );
-  }
 
   Widget _buildOffersSection(
     BuildContext context, {
@@ -626,7 +584,7 @@ class _HomeErrorState extends StatelessWidget {
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Icon(Icons.refresh_rounded, size: 20),
-                    const SizedBox(width: 8),
+                    SizedBox(width: 8),
                     Text(
                       'إعادة المحاولة',
                       style: TextStyle(fontWeight: FontWeight.bold),

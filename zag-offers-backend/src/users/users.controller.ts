@@ -1,7 +1,8 @@
-﻿import {
+import {
   Controller,
   Get,
   Patch,
+  Delete,
   Body,
   UseGuards,
   Request,
@@ -37,5 +38,12 @@ export class UsersController {
     @Body() updateData: UpdateProfileDto,
   ) {
     return this.usersService.update(req.user.id, updateData);
+  }
+
+  @Delete('profile')
+  @ApiOperation({ summary: 'حذف الحساب نهائياً' })
+  @ApiResponse({ status: 200, description: 'تم حذف الحساب بنجاح' })
+  removeProfile(@Request() req: { user: { id: string } }) {
+    return this.usersService.remove(req.user.id);
   }
 }

@@ -227,28 +227,24 @@ export default function UsersPage() {
         </button>
       </div>
 
-      {/* Filters Area */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="relative lg:col-span-3">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="ابحث بالاسم، الموبايل، أو البريد..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-medium shadow-sm focus:border-orange-500 focus:outline-none transition-all"
-          />
+      {/* Filters Area (Search removed for premium look) */}
+      <div className="flex items-center justify-end">
+        <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
+          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl text-slate-400">
+             <Filter size={14} />
+             <span className="text-[10px] font-black uppercase tracking-widest">تصفية حسب:</span>
+          </div>
+          <select 
+            value={roleFilter}
+            onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
+            className="h-[40px] px-4 bg-transparent text-sm font-bold text-slate-700 focus:outline-none cursor-pointer"
+          >
+            <option value="">كل الصلاحيات</option>
+            <option value="CUSTOMER">العملاء</option>
+            <option value="MERCHANT">التجار</option>
+            <option value="ADMIN">المدراء</option>
+          </select>
         </div>
-        <select 
-          value={roleFilter}
-          onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer"
-        >
-          <option value="">كل الصلاحيات</option>
-          <option value="CUSTOMER">العملاء فقط</option>
-          <option value="MERCHANT">التجار فقط</option>
-          <option value="ADMIN">المدراء فقط</option>
-        </select>
       </div>
 
       {isLoading ? (

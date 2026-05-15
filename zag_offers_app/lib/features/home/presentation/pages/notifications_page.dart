@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -108,18 +108,10 @@ class NotificationsPage extends StatelessWidget {
     );
   }
 
-  String _formatRelativeTime(DateTime dateTime) {
-    final difference = DateTime.now().difference(dateTime);
-    if (difference.inMinutes < 1) return 'الآن';
-    if (difference.inMinutes < 60) return 'منذ ${difference.inMinutes} دقيقة';
-    if (difference.inHours < 24) return 'منذ ${difference.inHours} ساعة';
-    if (difference.inDays < 7) return 'منذ ${difference.inDays} أيام';
-    return '${dateTime.day}/${dateTime.month}/${dateTime.year}';
-  }
 }
 
 class _NotificationCard extends StatelessWidget {
-  final NotificationItem item;
+  final NotificationItemEntity item;
   final VoidCallback? onTap;
 
   const _NotificationCard({
@@ -280,7 +272,7 @@ class _NotificationCard extends StatelessWidget {
     return '${dateTime.day}/${dateTime.month}';
   }
 
-  _CategoryInfo? _getCategoryInfo(NotificationItem item) {
+  _CategoryInfo? _getCategoryInfo(NotificationItemEntity item) {
     final type = item.type;
     final area = item.data?['area'];
     

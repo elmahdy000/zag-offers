@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -254,7 +254,7 @@ class _SearchPageState extends State<SearchPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.refresh_rounded, size: 20),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text(
                               'إعادة المحاولة',
                               style: TextStyle(fontWeight: FontWeight.bold),

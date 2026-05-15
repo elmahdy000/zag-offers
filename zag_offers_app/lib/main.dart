@@ -1,25 +1,27 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
-import 'core/theme/app_theme.dart';
-import 'features/onboarding/presentation/pages/splash_page.dart';
-import 'core/services/notification_service.dart';
-
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'features/notifications/presentation/bloc/notification_bloc.dart';
-import 'injection_container.dart' as di;
-import 'features/auth/presentation/bloc/auth_bloc.dart';
-import 'features/offers/presentation/bloc/offers_bloc.dart';
-import 'features/offers/presentation/bloc/offers_event.dart';
-import 'features/coupons/presentation/bloc/coupons_bloc.dart';
-import 'features/favorites/presentation/bloc/favorites_bloc.dart';
-
-import 'firebase_options.dart';
-import 'core/utils/navigation_service.dart';
-import 'features/coupons/presentation/pages/my_coupons_page.dart';
-import 'features/home/presentation/pages/notifications_page.dart';
+import 'package:zag_offers_app/core/theme/app_theme.dart';
+import 'package:zag_offers_app/features/offers/presentation/pages/animated_splash_page.dart';
+import 'package:zag_offers_app/core/services/notification_service.dart';
+import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:zag_offers_app/injection_container.dart' as di;
+import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
+import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
+import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
+import 'package:zag_offers_app/features/coupons/presentation/bloc/coupons_bloc.dart';
+import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:zag_offers_app/firebase_options.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
+import 'package:zag_offers_app/features/coupons/presentation/pages/my_coupons_page.dart';
+import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
+import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
+import 'package:zag_offers_app/features/offers/presentation/pages/home_page.dart';
+import 'package:zag_offers_app/features/onboarding/presentation/pages/onboarding_page.dart';
 
 // دالة لمعالجة الرسائل في الخلفية (Background Handler)
 @pragma('vm:entry-point')
@@ -70,6 +72,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   
+  // Lock portrait orientation globally
+  await SystemChrome.setPreferredOrientations([
+    DeviceOrientation.portraitUp,
+    DeviceOrientation.portraitDown,
+  ]);
+  
   await di.init();
 
   // تهيئة Firebase
@@ -110,17 +118,28 @@ class ZagOffersApp extends StatelessWidget {
         theme: AppTheme.lightTheme,
         darkTheme: AppTheme.darkTheme,
         themeMode: ThemeMode.dark,
+        home: const AnimatedSplashPage(),
         routes: {
+          '/home': (context) => const MainScreen(),
+          '/onboarding': (context) => const OnboardingPage(),
           '/coupons': (context) => const MyCouponsPage(),
           '/notifications': (context) => const NotificationsPage(),
         },
         builder: (context, child) {
-          return Directionality(
-            textDirection: TextDirection.rtl,
-            child: child!,
+          final data = MediaQuery.of(context);
+          return MediaQuery(
+            data: data.copyWith(
+              textScaler: data.textScaler.clamp(
+                minScaleFactor: 0.8,
+                maxScaleFactor: 1.15,
+              ),
+            ),
+            child: Directionality(
+              textDirection: TextDirection.rtl,
+              child: child!,
+            ),
           );
         },
-        home: const SplashPage(),
       ),
     );
   }

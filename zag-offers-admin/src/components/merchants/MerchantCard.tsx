@@ -1,6 +1,6 @@
 'use client';
 
-import { Store, Eye, Pencil } from 'lucide-react';
+import { Store, Eye, Pencil, PlusCircle } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 
@@ -72,6 +72,16 @@ export function MerchantCard({ merchant, onView, onEdit, index }: MerchantCardPr
             title="تعديل سريع"
           >
             <Pencil size={16} />
+          </button>
+          <button
+            onClick={(e) => { 
+              e.stopPropagation(); 
+              router.push(`/dashboard/stores?ownerId=${merchant.id}&openCreate=true`); 
+            }}
+            className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm border border-orange-100"
+            title="إضافة متجر لهذا التاجر"
+          >
+            <PlusCircle size={16} />
           </button>
           <div
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-indigo-50 text-indigo-600 group-hover:bg-indigo-600 group-hover:text-white transition-all shadow-sm"

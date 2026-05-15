@@ -74,19 +74,19 @@ async function main() {
 
   // 4. Create Categories
   const categories = [
-    'مطاعم',
-    'كافيهات',
-    'ملابس',
-    'جيم',
-    'تجميل',
-    'دورات',
-    'خدمات سيارات',
-    'ألعاب',
-    'أطفال',
-    'أدوات منزلية',
-    'مناسبات',
-    'حلويات',
-    'حلاقين'
+    'دلع كرشك',
+    'روقان',
+    'شياكة',
+    'فورمة',
+    'دلع بنات',
+    'طور نفسك',
+    'دلع عربيتك',
+    'اون فاير',
+    'عيالنا',
+    'ست البيت',
+    'عروستي',
+    'حلى بوقك',
+    'نعيماً'
   ];
 
   const catMap: Record<string, string> = {};
@@ -106,7 +106,7 @@ async function main() {
       address: 'شارع القومية، الزقازيق',
       area: 'القومية',
       phone: '01011122233',
-      categoryId: catMap['مطاعم'],
+      categoryId: catMap['دلع كرشك'],
       ownerId: merchant1.id,
       status: StoreStatus.APPROVED,
     },
@@ -115,7 +115,7 @@ async function main() {
       address: 'بجوار بوابة الجامعة الرئيسية',
       area: 'الجامعة',
       phone: '01099887766',
-      categoryId: catMap['كافيهات'],
+      categoryId: catMap['روقان'],
       ownerId: merchant1.id,
       status: StoreStatus.APPROVED,
     },
@@ -124,7 +124,7 @@ async function main() {
       address: 'فلل الجامعة، الزقازيق',
       area: 'الفلل',
       phone: '01234567890',
-      categoryId: catMap['ملابس'],
+      categoryId: catMap['شياكة'],
       ownerId: merchant2.id,
       status: StoreStatus.APPROVED,
     },
@@ -133,7 +133,7 @@ async function main() {
       address: 'شارع طلبة عويضة، الزقازيق',
       area: 'طلبة عويضة',
       phone: '01555443322',
-      categoryId: catMap['جيم'],
+      categoryId: catMap['فورمة'],
       ownerId: merchant1.id,
       status: StoreStatus.APPROVED,
     },
@@ -142,7 +142,7 @@ async function main() {
       address: 'وسط البلد، خلف سينما عرابي',
       area: 'وسط البلد',
       phone: '01012345678',
-      categoryId: catMap['دورات'],
+      categoryId: catMap['طور نفسك'],
       ownerId: admin.id,
       status: StoreStatus.APPROVED,
     }
@@ -160,7 +160,7 @@ async function main() {
     });
 
     // 6. Create Offers for each store
-    if (s.categoryId === catMap['مطاعم']) {
+    if (s.categoryId === catMap['دلع كرشك']) {
       await prisma.offer.create({
         data: {
           title: 'وجبة العيلة الاقتصادية',
@@ -173,7 +173,7 @@ async function main() {
           storeId: store.id,
         },
       });
-    } else if (s.categoryId === catMap['دورات']) {
+    } else if (s.categoryId === catMap['طور نفسك']) {
       await prisma.offer.create({
         data: {
           title: 'منحة البرمجة للشباب',

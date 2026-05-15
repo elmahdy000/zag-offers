@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../injection_container.dart' as di;
 import '../../data/datasources/offers_remote_data_source.dart';
 import 'offer_detail_page.dart';
@@ -33,9 +34,7 @@ class _OfferLoadingPageState extends State<OfferLoadingPage> {
       }
     } catch (e) {
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('فشل تحميل العرض.')),
-        );
+        SnackBarUtils.showError(context, 'فشل تحميل العرض، يرجى المحاولة مرة أخرى.');
         Navigator.of(context).pop();
       }
     }

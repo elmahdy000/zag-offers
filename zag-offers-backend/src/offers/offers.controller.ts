@@ -94,6 +94,7 @@ export class OffersController {
       where: {
         status: OfferStatus.ACTIVE,
         store: {
+          status: 'APPROVED',
           categoryId: categoryId,
           area: area,
         },
@@ -138,6 +139,7 @@ export class OffersController {
         OR: [
           { title: { contains: query, mode: 'insensitive' } },
           { description: { contains: query, mode: 'insensitive' } },
+          { store: { name: { contains: query, mode: 'insensitive' } } },
         ],
         status: OfferStatus.ACTIVE,
       },

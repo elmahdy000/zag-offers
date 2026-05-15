@@ -78,7 +78,7 @@ class OfferModel extends Offer {
       'startDate': startDate.toIso8601String(),
       'endDate': endDate.toIso8601String(),
       'createdAt': createdAt.toIso8601String(),
-      'oldPrice': oldPrice,
+      'originalPrice': oldPrice,
       'newPrice': newPrice,
       'rejectionReason': rejectionReason,
       'viewCount': viewCount,

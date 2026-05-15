@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';
@@ -26,6 +26,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
 
   Future<void> _checkAuth() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final token = prefs.getString('auth_token');
     if (token != null && token.isNotEmpty) {
       setState(() => _isLoggedIn = true);
@@ -207,7 +208,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.refresh_rounded, size: 20),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text(
                               'إعادة المحاولة',
                               style: TextStyle(fontWeight: FontWeight.bold),

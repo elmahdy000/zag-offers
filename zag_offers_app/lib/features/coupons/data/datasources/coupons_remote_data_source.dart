@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/coupon_model.dart';
 
@@ -18,9 +19,19 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
       final response = await apiClient.dio.post('/coupons/generate', data: {
         'offerId': offerId,
       });
+      
+      if (response.data == null) {
+        throw ServerException('السيرفر لم يرجع أي بيانات');
+      }
+      
       return CouponModel.fromJson(response.data);
     } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'فشل الحصول على الكوبون');
+      final message = e.response?.data is Map 
+          ? (e.response?.data['message'] ?? 'فشل الحصول على الكوبون')
+          : 'فشل الحصول على الكوبون';
+      throw ServerException(message);
+    } catch (e) {
+      throw ServerException('حدث خطأ غير متوقع أثناء توليد الكوبون');
     }
   }
 
@@ -42,8 +53,12 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
       }
       return [];
     } on DioException catch (e) {
-      throw Exception(e.message);
+      final message = e.response?.data is Map 
+          ? (e.response?.data['message'] ?? 'فشل تحميل الكوبونات')
+          : 'فشل تحميل الكوبونات';
+      throw ServerException(message);
+    } catch (e) {
+      throw ServerException('حدث خطأ غير متوقع أثناء تحميل الكوبونات');
     }
   }
 }
-

@@ -186,17 +186,8 @@ export default function MerchantsPage() {
         </div>
       </div>
 
-      {/* Filters & Search */}
+      {/* Filters (Search removed for premium look) */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="relative lg:col-span-2">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث عن متجر..."
-            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-medium focus:border-orange-500 focus:outline-none transition-all shadow-sm"
-          />
-        </div>
         <select
           value={status}
           onChange={(e) => { setStatus(e.target.value); setPage(1); }}

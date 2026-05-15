@@ -52,7 +52,7 @@ interface OfferDetails extends OfferRow {
 
 const statusLabels: Record<string, string> = {
   PENDING: 'معلق للمراجعة',
-  APPROVED: 'مقبول / نشط',
+  ACTIVE: 'مقبول / نشط',
   REJECTED: 'مرفوض',
   EXPIRED: 'منتهي الصلاحية',
   PAUSED: 'متوقف مؤقتاً',
@@ -211,21 +211,12 @@ export default function OffersManagementPage() {
         </button>
       </div>
 
-      {/* Filters */}
+      {/* Filters (Search removed for premium look) */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="relative lg:col-span-3">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث عن عرض بالاسم أو المتجر..."
-            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-xs font-black shadow-sm focus:border-indigo-500 focus:outline-none transition-all"
-          />
-        </div>
         <select
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm"
+          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm lg:col-span-1"
         >
           <option value="">كل الحالات</option>
           {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -412,7 +403,7 @@ export default function OffersManagementPage() {
                 createOfferMutation.mutate({
                   ...data,
                   images: tempImages,
-                  status: 'APPROVED' // Admin-created offers are auto-approved
+                  status: 'ACTIVE' // Admin-created offers are auto-active
                 });
               }} className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">

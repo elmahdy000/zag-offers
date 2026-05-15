@@ -1,52 +1,13 @@
-import 'package:equatable/equatable.dart';
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
-import '../../../offers/domain/entities/offer_entity.dart';
 import '../../domain/usecases/get_favorites_usecase.dart';
 import '../../domain/usecases/toggle_favorite_usecase.dart';
+import 'favorites_event.dart';
+import 'favorites_state.dart';
 
-abstract class FavoritesEvent extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
-
-class FetchFavorites extends FavoritesEvent {}
-
-class ToggleFavorite extends FavoritesEvent {
-  final String offerId;
-
-  ToggleFavorite(this.offerId);
-
-  @override
-  List<Object?> get props => [offerId];
-}
-
-abstract class FavoritesState extends Equatable {
-  @override
-  List<Object?> get props => [];
-}
-
-class FavoritesInitial extends FavoritesState {}
-
-class FavoritesLoading extends FavoritesState {}
-
-class FavoritesLoaded extends FavoritesState {
-  final List<OfferEntity> favorites;
-
-  FavoritesLoaded(this.favorites);
-
-  @override
-  List<Object?> get props => [favorites];
-}
-
-class FavoritesError extends FavoritesState {
-  final String message;
-
-  FavoritesError(this.message);
-
-  @override
-  List<Object?> get props => [message];
-}
+export 'favorites_event.dart';
+export 'favorites_state.dart';
 
 class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
   final GetFavoritesUseCase getFavoritesUseCase;

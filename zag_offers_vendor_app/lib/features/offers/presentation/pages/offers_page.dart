@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/constants/app_constants.dart';
@@ -10,6 +10,7 @@ import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_vendor_app/features/offers/domain/entities/offer_entity.dart';
 import 'package:zag_offers_vendor_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_vendor_app/features/offers/presentation/pages/add_edit_offer_page.dart';
+import 'package:zag_offers_vendor_app/features/offers/presentation/pages/offer_details_page.dart';
 
 class OffersPage extends StatefulWidget {
   const OffersPage({super.key});
@@ -20,8 +21,6 @@ class OffersPage extends StatefulWidget {
 
 class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateMixin {
   late TabController _tabController;
-  final TextEditingController _searchController = TextEditingController();
-  String _searchQuery = '';
 
   @override
   void initState() {
@@ -33,23 +32,14 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
   @override
   void dispose() {
     _tabController.dispose();
-    _searchController.dispose();
     super.dispose();
   }
 
   String _resolveImageUrl(String url) => ImageUrlHelper.resolve(url);
 
   List<OfferEntity> _filterOffers(List<OfferEntity> offers, String status) {
-    var filtered = offers;
-    if (status != 'ALL') {
-      filtered = offers.where((o) => o.status == status).toList();
-    }
-    if (_searchQuery.isNotEmpty) {
-      filtered = filtered
-          .where((o) => o.title.toLowerCase().contains(_searchQuery.toLowerCase()))
-          .toList();
-    }
-    return filtered;
+    if (status == 'ALL') return offers;
+    return offers.where((o) => o.status == status).toList();
   }
 
   @override
@@ -68,31 +58,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
           preferredSize: const Size.fromHeight(100),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
-                child: Container(
-                  height: 40,
-                  decoration: BoxDecoration(
-                    color: AppColors.card,
-                    borderRadius: BorderRadius.circular(10),
-                    border: Border.all(color: AppColors.border),
-                  ),
-                  child: TextField(
-                    controller: _searchController,
-                    onChanged: (v) => setState(() => _searchQuery = v),
-                    style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textPrimary),
-                    decoration: InputDecoration(
-                      hintText: 'ابحث عن عرض...',
-                      hintStyle: GoogleFonts.cairo(fontSize: 12, color: AppColors.textTertiary),
-                      prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary, size: 18),
-                      enabledBorder: InputBorder.none,
-                      focusedBorder: InputBorder.none,
-                      border: InputBorder.none,
-                      contentPadding: const EdgeInsets.symmetric(vertical: 8),
-                    ),
-                  ),
-                ),
-              ),
+              const SizedBox(height: 8),
               TabBar(
                 controller: _tabController,
                 isScrollable: true,
@@ -124,7 +90,28 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
       ),
-      body: BlocBuilder<OffersBloc, OffersState>(
+      body: BlocConsumer<OffersBloc, OffersState>(
+        listener: (context, state) {
+          if (state is OfferActionSuccess) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message, style: GoogleFonts.cairo(fontSize: 13)),
+                backgroundColor: AppColors.success,
+              ),
+            );
+          } else if (state is OffersError) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(state.message, style: GoogleFonts.cairo(fontSize: 13)),
+                backgroundColor: AppColors.error,
+              ),
+            );
+          }
+        },
+        buildWhen: (previous, current) => 
+            current is OffersLoading || 
+            current is OffersLoaded || 
+            current is OffersError,
         builder: (context, state) {
           if (state is OffersLoading) {
             return const ListSkeleton(itemCount: 5);
@@ -166,128 +153,178 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
   }
 
   Widget _buildOfferCard(BuildContext context, OfferEntity offer) {
-    final firstImage = offer.images.isNotEmpty ? _resolveImageUrl(offer.images.first) : null;
+    final hasImage = offer.images.isNotEmpty;
+    final firstImage = hasImage ? _resolveImageUrl(offer.images.first) : null;
 
-    return Container(
-      margin: const EdgeInsets.only(bottom: 16),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
+    return InkWell(
+      onTap: () => Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => OfferDetailsPage(offer: offer)),
       ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(16),
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Stack(
-              children: [
-                SizedBox(
-                  height: 140,
-                  width: double.infinity,
-                  child: firstImage != null
-                      ? NetworkImageWithPlaceholder(
-                          imageUrl: firstImage,
-                          fit: BoxFit.cover,
-                        )
-                      : _buildImagePlaceholder(),
-                ),
-                Positioned(
-                  top: 12,
-                  left: 12,
-                  child: _buildStatusBadge(offer.status),
-                ),
-                Positioned(
-                  bottom: 12,
-                  right: 12,
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                    decoration: BoxDecoration(
-                      color: AppColors.primary,
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Text(
-                      offer.discount,
-                      style: GoogleFonts.cairo(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                ),
-                Positioned(
-                  top: 4,
-                  right: 4,
-                  child: IconButton(
-                    icon: const Icon(Icons.more_vert_rounded, color: Colors.white, size: 20),
-                    onPressed: () => _showOfferOptions(context, offer),
-                  ),
-                ),
-              ],
-            ),
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
+      borderRadius: BorderRadius.circular(16),
+      child: Container(
+        margin: const EdgeInsets.only(bottom: 16),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Stack(
                 children: [
-                  Text(
-                    offer.title,
-                    style: GoogleFonts.cairo(
-                      fontSize: 15,
-                      fontWeight: FontWeight.w900,
-                      color: AppColors.textPrimary,
-                    ),
+                  SizedBox(
+                    height: 140,
+                    width: double.infinity,
+                    child: firstImage != null
+                        ? NetworkImageWithPlaceholder(
+                            imageUrl: firstImage,
+                            fit: BoxFit.cover,
+                          )
+                        : _buildImagePlaceholder(),
                   ),
-                  const SizedBox(height: 2),
-                  Text(
-                    offer.description,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.cairo(
-                      fontSize: 11,
-                      color: AppColors.textSecondary,
-                    ),
+                  Positioned(
+                    top: 12,
+                    left: 12,
+                    child: _buildStatusBadge(offer.status),
                   ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                    children: [
-                      Row(
-                        children: [
-                          Icon(Icons.visibility_rounded, size: 14, color: AppColors.textTertiary),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${offer.viewCount}',
-                            style: GoogleFonts.cairo(fontSize: 11, color: AppColors.textTertiary),
-                          ),
-                          const SizedBox(width: 12),
-                          Icon(Icons.confirmation_num_rounded, size: 14, color: AppColors.accent),
-                          const SizedBox(width: 4),
-                          Text(
-                            '${offer.couponsCount}',
-                            style: GoogleFonts.cairo(
-                              fontSize: 11,
-                              color: AppColors.accent,
-                              fontWeight: FontWeight.bold,
-                            ),
-                          ),
-                        ],
+                  Positioned(
+                    bottom: 12,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                      decoration: BoxDecoration(
+                        color: AppColors.primary,
+                        borderRadius: BorderRadius.circular(8),
                       ),
-                      Text(
-                        'ينتهي ${TimeUtils.getRelativeTime(offer.endDate)}',
+                      child: Text(
+                        offer.discount,
                         style: GoogleFonts.cairo(
-                          fontSize: 10,
-                          color: AppColors.textTertiary,
-                          fontWeight: FontWeight.w600,
+                          color: Colors.white,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 12,
                         ),
                       ),
-                    ],
+                    ),
+                  ),
+                  Positioned(
+                    top: 4,
+                    right: 4,
+                    child: Material(
+                      color: Colors.transparent,
+                      child: IconButton(
+                        icon: Icon(
+                          Icons.more_vert_rounded, 
+                          color: hasImage ? Colors.white : AppColors.textPrimary, 
+                          size: 24
+                        ),
+                        onPressed: () => _showOfferOptions(context, offer),
+                      ),
+                    ),
                   ),
                 ],
               ),
-            ),
-          ],
+              Padding(
+                padding: const EdgeInsets.all(12),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      offer.title,
+                      style: GoogleFonts.cairo(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w900,
+                        color: AppColors.textPrimary,
+                        height: 1.2,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      offer.description,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: GoogleFonts.cairo(
+                        fontSize: 11,
+                        color: AppColors.textSecondary,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    if (offer.newPrice != null)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: 12.0),
+                        child: Row(
+                          children: [
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withOpacity(0.1),
+                                borderRadius: BorderRadius.circular(8),
+                              ),
+                              child: Text(
+                                '${offer.newPrice} ج.م',
+                                style: GoogleFonts.cairo(
+                                  color: AppColors.primary,
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 18,
+                                ),
+                              ),
+                            ),
+                            const SizedBox(width: 10),
+                            if (offer.oldPrice != null)
+                              Text(
+                                '${offer.oldPrice} ج.م',
+                                style: GoogleFonts.cairo(
+                                  color: AppColors.textTertiary,
+                                  decoration: TextDecoration.lineThrough,
+                                  decorationThickness: 2,
+                                  fontSize: 12,
+                                ),
+                              ),
+                          ],
+                        ),
+                      ),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.visibility_rounded, size: 14, color: AppColors.textTertiary),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${offer.viewCount}',
+                              style: GoogleFonts.cairo(fontSize: 11, color: AppColors.textTertiary),
+                            ),
+                            const SizedBox(width: 12),
+                            Icon(Icons.confirmation_num_rounded, size: 14, color: AppColors.accent),
+                            const SizedBox(width: 4),
+                            Text(
+                              '${offer.couponsCount}',
+                              style: GoogleFonts.cairo(
+                                fontSize: 11,
+                                color: AppColors.accent,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ],
+                        ),
+                        Text(
+                          'ينتهي ${TimeUtils.getRelativeTime(offer.endDate)}',
+                          style: GoogleFonts.cairo(
+                            fontSize: 10,
+                            color: AppColors.textTertiary,
+                            fontWeight: FontWeight.w600,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
@@ -391,7 +428,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
   Widget _buildImagePlaceholder() {
     return Container(
       color: AppColors.surface,
-      child: Icon(Icons.image_rounded, size: 32, color: AppColors.textTertiary),
+      child: const Icon(Icons.image_rounded, size: 32, color: AppColors.textTertiary),
     );
   }
 
@@ -465,4 +502,3 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
     );
   }
 }
-

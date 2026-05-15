@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -13,7 +13,6 @@ import '../../features/offers/presentation/pages/offer_loading_page.dart';
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  static bool _isInitialized = false;
   static String? _fcmToken;
   static String? _lastSubscribedArea;
   static Map<String, dynamic>? _pendingNotificationData;
@@ -59,7 +58,6 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
         
-    _isInitialized = true;
     debugPrint('✅ Local Notifications Initialized');
   }
 
@@ -277,9 +275,10 @@ class NotificationService {
   static void _navigateTab(int index) {
     // نستخدم Delay بسيط لضمان أن الـ MainScreen قد تم بناؤها
     Future.delayed(const Duration(milliseconds: 300), () {
-      final state = NavigationService.navigatorKey.currentState;
-      if (state != null) {
-        MainScreen.of(state.context)?.setSelectedIndex(index);
+      final currentContext = NavigationService.navigatorKey.currentContext;
+      if (currentContext != null) {
+        // ignore: use_build_context_synchronously
+        MainScreen.of(currentContext)?.setSelectedIndex(index);
       }
     });
   }
@@ -318,4 +317,3 @@ class NotificationService {
     }
   }
 }
-

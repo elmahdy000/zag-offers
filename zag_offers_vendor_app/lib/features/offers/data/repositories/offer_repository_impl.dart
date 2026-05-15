@@ -25,6 +25,8 @@ class OfferRepositoryImpl implements OfferRepository {
       usageLimit: offer.usageLimit,
       status: offer.status,
       storeId: offer.storeId,
+      oldPrice: offer.oldPrice,
+      newPrice: offer.newPrice,
     );
     return await remoteDataSource.createOffer(model);
   }
@@ -43,6 +45,8 @@ class OfferRepositoryImpl implements OfferRepository {
       usageLimit: offer.usageLimit,
       status: offer.status,
       storeId: offer.storeId,
+      oldPrice: offer.oldPrice,
+      newPrice: offer.newPrice,
     );
     return await remoteDataSource.updateOffer(offer.id, model.toJson());
   }

@@ -21,6 +21,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useSearchParams } from 'next/navigation';
 import { adminApi } from '@/lib/api';
 import { ZAGAZIG_AREAS, DISPLAY_NAMES } from '@/lib/constants';
 
@@ -99,6 +100,16 @@ export default function StoresPage() {
     ownerId: '',
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const ownerId = searchParams.get('ownerId');
+    const openCreate = searchParams.get('openCreate');
+    if (ownerId && openCreate === 'true') {
+      setFormData(prev => ({ ...prev, ownerId }));
+      setIsUpsertOpen(true);
+    }
+  }, [searchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -264,21 +275,12 @@ export default function StoresPage() {
       </div>
 
       {/* Filters Area */}
+      {/* Filters (Search removed for premium look) */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <div className="relative lg:col-span-2">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input 
-            type="text" 
-            placeholder="ابحث بالاسم، المنطقة، أو المالك..." 
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-medium shadow-sm focus:border-orange-500 focus:outline-none transition-all"
-          />
-        </div>
         <select 
           value={statusFilter}
           onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer"
+          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer lg:col-span-1"
         >
           <option value="">كل الحالات</option>
           <option value="PENDING">بانتظار الموافقة</option>
@@ -288,7 +290,7 @@ export default function StoresPage() {
         <select 
           value={categoryFilter}
           onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer"
+          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer lg:col-span-1"
         >
           <option value="">كل الفئات</option>
           {categories?.map((cat) => (

@@ -8,6 +8,7 @@ import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashb
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/widgets/dashboard_skeleton.dart';
 import 'package:zag_offers_vendor_app/features/offers/presentation/pages/add_edit_offer_page.dart';
 import 'package:zag_offers_vendor_app/features/main/presentation/layout/main_layout.dart';
+import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -92,7 +93,13 @@ class DashboardPage extends StatelessWidget {
                                         ),
                                       ],
                                     ),
-                                    _buildIconButton(Icons.notifications_none_rounded),
+                                    _buildIconButton(
+                                      Icons.notifications_none_rounded,
+                                      () => Navigator.push(
+                                        context,
+                                        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                                      ),
+                                    ),
                                   ],
                                 ),
                                 const SizedBox(height: 24),
@@ -100,26 +107,35 @@ class DashboardPage extends StatelessWidget {
                                 Row(
                                   children: [
                                     Expanded(
-                                      child: _buildHeaderStat(
-                                        'عروض نشطة',
-                                        state is DashboardLoaded ? state.stats.activeOffers.toString() : '...',
-                                        Icons.local_fire_department_rounded,
+                                      child: InkWell(
+                                        onTap: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(1),
+                                        child: _buildHeaderStat(
+                                          'عروض نشطة',
+                                          state is DashboardLoaded ? state.stats.activeOffers.toString() : '...',
+                                          Icons.local_fire_department_rounded,
+                                        ),
                                       ),
                                     ),
                                     _buildVerticalDivider(),
                                     Expanded(
-                                      child: _buildHeaderStat(
-                                        'طلبات اليوم',
-                                        state is DashboardLoaded ? state.stats.claimsToday.toString() : '...',
-                                        Icons.confirmation_num_outlined,
+                                      child: InkWell(
+                                        onTap: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
+                                        child: _buildHeaderStat(
+                                          'طلبات اليوم',
+                                          state is DashboardLoaded ? state.stats.claimsToday.toString() : '...',
+                                          Icons.confirmation_num_outlined,
+                                        ),
                                       ),
                                     ),
                                     _buildVerticalDivider(),
                                     Expanded(
-                                      child: _buildHeaderStat(
-                                        'مسح اليوم',
-                                        state is DashboardLoaded ? state.stats.scansToday.toString() : '...',
-                                        Icons.qr_code_scanner_rounded,
+                                      child: InkWell(
+                                        onTap: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
+                                        child: _buildHeaderStat(
+                                          'مسح اليوم',
+                                          state is DashboardLoaded ? state.stats.scansToday.toString() : '...',
+                                          Icons.qr_code_scanner_rounded,
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -163,7 +179,9 @@ class DashboardPage extends StatelessWidget {
                               Icons.star_rounded,
                               'التقييمات',
                               Colors.amber,
-                              () {},
+                              () => ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('ميزة التقييمات ستتوفر قريباً')),
+                              ),
                             ),
                             _buildCompactAction(
                               Icons.settings_rounded,
@@ -225,15 +243,19 @@ class DashboardPage extends StatelessWidget {
     );
   }
 
-  Widget _buildIconButton(IconData icon) {
-    return Container(
-      padding: const EdgeInsets.all(10),
-      decoration: BoxDecoration(
-        color: Colors.white.withValues(alpha: 0.1),
-        borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+  Widget _buildIconButton(IconData icon, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(12),
+      child: Container(
+        padding: const EdgeInsets.all(10),
+        decoration: BoxDecoration(
+          color: Colors.white.withValues(alpha: 0.1),
+          borderRadius: BorderRadius.circular(12),
+          border: Border.all(color: Colors.white.withValues(alpha: 0.1)),
+        ),
+        child: Icon(icon, color: Colors.white, size: 22),
       ),
-      child: Icon(icon, color: Colors.white, size: 22),
     );
   }
 

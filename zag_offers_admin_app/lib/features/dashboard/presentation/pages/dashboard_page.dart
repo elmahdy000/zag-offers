@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -419,7 +419,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
                 const SizedBox(width: 8),
                 Container(width: 3, height: 3, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
                 const SizedBox(width: 8),
-                Text(log.adminName ?? 'مدير النظام', style: GoogleFonts.cairo(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                Text(log.adminName, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
               ],
             ),
           ],

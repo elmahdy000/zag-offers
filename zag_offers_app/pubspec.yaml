@@ -19,7 +19,7 @@ publish_to: 'none' # Remove this line if you wish to publish to pub.dev
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.2
+  sdk: ^3.0.0
 
 # Dependencies specify other packages that your package needs in order to work.
 # To automatically upgrade your package dependencies to the latest versions
@@ -72,21 +72,22 @@ dev_dependencies:
   flutter_native_splash: ^2.4.4
 
 flutter_launcher_icons:
-  android: true
+  android: "launcher_icon"
   ios: true
   image_path: "assets/app_icon.png"
-  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_background: "#FF6A00"
   adaptive_icon_foreground: "assets/app_icon.png"
   notification_icon:
     android: true
     image_path: "assets/notification_icon.png"
 
 flutter_native_splash:
-  color: "#FFFFFF"
-  image: assets/splash_logo.png
+  color: "#FF6A00"
+  android: true
+  ios: true
+  web: false
   android_12:
-    image: assets/splash_logo.png
-    color: "#FFFFFF"
+    color: "#FF6A00"
   fullscreen: true
 
 
@@ -101,6 +102,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
-    - assets/app_icon.png
-    - assets/splash_logo.png
+    - assets/branding/app_icon.png
+    - assets/notification_icon.png
+    - assets/branding/splash_logo.png
     - assets/categories/

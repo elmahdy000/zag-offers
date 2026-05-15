@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -36,6 +36,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
   Future<void> _checkAuth() async {
     final prefs = await SharedPreferences.getInstance();
+    if (!mounted) return;
     final token = prefs.getString('auth_token');
     if (token != null && token.isNotEmpty) {
       setState(() => _isLoggedIn = true);
@@ -90,7 +91,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
   Future<void> _copyCode(BuildContext context, String code) async {
     await Clipboard.setData(ClipboardData(text: code));
-    if (!mounted) return;
+    if (!context.mounted) return;
     SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
   }
 
@@ -248,7 +249,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
                             Icon(Icons.refresh_rounded, size: 20),
-                            const SizedBox(width: 8),
+                            SizedBox(width: 8),
                             Text(
                               'إعادة المحاولة',
                               style: TextStyle(fontWeight: FontWeight.bold),

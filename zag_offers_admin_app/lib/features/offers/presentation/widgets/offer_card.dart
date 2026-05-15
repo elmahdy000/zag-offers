@@ -83,9 +83,24 @@ class OfferCard extends StatelessWidget {
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(offer.title, style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 17, color: AppColors.textPrimary, height: 1.2)),
+                            Text(
+                              offer.title,
+                              style: GoogleFonts.cairo(
+                                fontWeight: FontWeight.w900,
+                                fontSize: 15,
+                                color: AppColors.textPrimary,
+                                height: 1.2,
+                              ),
+                            ),
                             const SizedBox(height: 4),
-                            Text(offer.storeName, style: GoogleFonts.cairo(color: AppColors.primary, fontSize: 13, fontWeight: FontWeight.bold)),
+                            Text(
+                              offer.storeName,
+                              style: GoogleFonts.cairo(
+                                color: AppColors.primary,
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
                           ],
                         ),
                       ),
@@ -94,9 +109,23 @@ class OfferCard extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.end,
                           children: [
-                            Text('${offer.newPrice} ج.م', style: GoogleFonts.inter(color: AppColors.textPrimary, fontSize: 18, fontWeight: FontWeight.w900)),
+                            Text(
+                              '${offer.newPrice} ج.م',
+                              style: GoogleFonts.cairo(
+                                color: AppColors.textPrimary,
+                                fontSize: 18,
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
                             if (offer.oldPrice != null)
-                              Text('${offer.oldPrice}', style: GoogleFonts.inter(color: AppColors.textSecondary.withValues(alpha: 0.5), fontSize: 13, decoration: TextDecoration.lineThrough)),
+                              Text(
+                                '${offer.oldPrice}',
+                                style: GoogleFonts.cairo(
+                                  color: AppColors.textSecondary.withValues(alpha: 0.5),
+                                  fontSize: 12,
+                                  decoration: TextDecoration.lineThrough,
+                                ),
+                              ),
                           ],
                         ),
                       ],

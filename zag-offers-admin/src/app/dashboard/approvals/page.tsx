@@ -148,7 +148,7 @@ export default function ApprovalsPage() {
   const { data: approvedOffers = [] } = useQuery({
     queryKey: ['approved-offers'],
     queryFn: async () => {
-      const response = await adminApi().get<{ items: PendingOffer[] }>('/admin/offers?status=APPROVED&limit=50');
+      const response = await adminApi().get<{ items: PendingOffer[] }>('/admin/offers?status=ACTIVE&limit=50');
       return response.data.items;
     },
     enabled: activeTab === 'history',
@@ -247,17 +247,6 @@ export default function ApprovalsPage() {
         </div>
       </div>
 
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-        <div className="relative w-full max-w-md">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
-          <input
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            placeholder="ابحث في الطلبات..."
-            className="h-[48px] w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-medium shadow-sm focus:border-orange-500 focus:outline-none transition-all"
-          />
-        </div>
-      </div>
 
       {/* Table Section */}
       <div className="overflow-hidden border border-slate-200 bg-white shadow-sm rounded-2xl transition-all hover:shadow-md">

@@ -1,4 +1,4 @@
-import 'dart:ui';
+﻿import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
@@ -13,15 +13,15 @@ import 'package:zag_offers_admin_app/features/broadcast/presentation/pages/broad
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
 
-  static _MainShellState? of(BuildContext context) {
-    return context.findAncestorStateOfType<_MainShellState>();
+  static MainShellState? of(BuildContext context) {
+    return context.findAncestorStateOfType<MainShellState>();
   }
 
   @override
-  State<MainShell> createState() => _MainShellState();
+  State<MainShell> createState() => MainShellState();
 }
 
-class _MainShellState extends State<MainShell> {
+class MainShellState extends State<MainShell> {
   int _selectedIndex = 0;
 
   void setSelectedIndex(int index) {

@@ -1,8 +1,7 @@
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/network/dio_error_mapper.dart';
 import '../../domain/entities/coupon_entity.dart';
 import '../../domain/repositories/coupons_repository.dart';
 import '../datasources/coupons_remote_data_source.dart';
@@ -17,12 +16,8 @@ class CouponsRepositoryImpl implements CouponsRepository {
     try {
       final coupon = await remoteDataSource.generateCoupon(offerId);
       return Right(coupon);
-    } on DioException catch (e) {
-      final message = mapDioErrorToMessage(
-        e,
-        fallbackMessage: 'عفوًا، فشل توليد الكوبون',
-      );
-      return Left(ServerFailure(message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'عفوًا، فشل توليد الكوبون'));
     } catch (_) {
       return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
     }
@@ -33,12 +28,8 @@ class CouponsRepositoryImpl implements CouponsRepository {
     try {
       final coupons = await remoteDataSource.getUserCoupons();
       return Right(coupons);
-    } on DioException catch (e) {
-      final message = mapDioErrorToMessage(
-        e,
-        fallbackMessage: 'عفوًا، فشل تحميل كوبوناتك',
-      );
-      return Left(ServerFailure(message));
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'عفوًا، فشل تحميل كوبوناتك'));
     } catch (_) {
       return const Left(ServerFailure('عفوًا، فشل تحميل كوبوناتك'));
     }

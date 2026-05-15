@@ -8,6 +8,7 @@ import '../../domain/usecases/register_usecase.dart';
 import '../../domain/usecases/update_fcm_token_usecase.dart';
 import '../../domain/usecases/forgot_password_usecase.dart';
 import '../../domain/usecases/reset_password_usecase.dart';
+import '../../domain/usecases/delete_account_usecase.dart';
 import 'auth_event.dart';
 import 'auth_state.dart';
 
@@ -18,6 +19,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final UpdateFcmTokenUseCase updateFcmTokenUseCase;
   final ForgotPasswordUseCase forgotPasswordUseCase;
   final ResetPasswordUseCase resetPasswordUseCase;
+  final DeleteAccountUseCase deleteAccountUseCase;
 
   AuthBloc({
     required this.loginUseCase,
@@ -26,12 +28,28 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     required this.updateFcmTokenUseCase,
     required this.forgotPasswordUseCase,
     required this.resetPasswordUseCase,
+    required this.deleteAccountUseCase,
   }) : super(AuthInitial()) {
     on<LoginSubmitted>(_onLoginSubmitted);
     on<RegisterSubmitted>(_onRegisterSubmitted);
     on<LogoutRequested>(_onLogoutRequested);
+    on<DeleteAccountRequested>(_onDeleteAccountRequested);
     on<ForgotPasswordRequested>(_onForgotPasswordRequested);
     on<ResetPasswordSubmitted>(_onResetPasswordSubmitted);
+  }
+
+  Future<void> _onDeleteAccountRequested(
+    DeleteAccountRequested event,
+    Emitter<AuthState> emit,
+  ) async {
+    emit(AuthLoading());
+    // Remove FCM token from backend first
+    await NotificationService.removeTokenFromBackend();
+    final result = await deleteAccountUseCase();
+    result.fold(
+      (failure) => emit(AuthError(failure.message)),
+      (_) => emit(AuthInitial()),
+    );
   }
 
   Future<void> _onForgotPasswordRequested(

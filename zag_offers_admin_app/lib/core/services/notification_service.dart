@@ -1,4 +1,4 @@
-import 'dart:convert';
+﻿import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -12,7 +12,6 @@ import '../../features/notifications/presentation/pages/notifications_page.dart'
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
-  static bool _isInitialized = false;
 
   Future<void> init() => NotificationService.initStatic();
 
@@ -51,7 +50,6 @@ class NotificationService {
             AndroidFlutterLocalNotificationsPlugin>()
         ?.createNotificationChannel(channel);
         
-    _isInitialized = true;
   }
 
   static Future<void> initStatic() async {

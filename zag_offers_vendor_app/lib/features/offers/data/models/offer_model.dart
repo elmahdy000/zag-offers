@@ -38,7 +38,9 @@ class OfferModel extends OfferEntity {
       usageLimit: json['usageLimit'],
       status: json['status'] ?? 'PENDING',
       storeId: json['storeId'] ?? '',
-      oldPrice: json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null,
+      oldPrice: (json['oldPrice'] ?? json['originalPrice']) != null 
+          ? double.tryParse((json['oldPrice'] ?? json['originalPrice']).toString()) 
+          : null,
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       rejectionReason: json['rejectionReason'],
       viewCount: json['viewCount'] ?? 0,
@@ -58,7 +60,8 @@ class OfferModel extends OfferEntity {
       'endDate': endDate.toIso8601String(),
       'usageLimit': usageLimit,
       'storeId': storeId,
-      'originalPrice': oldPrice ?? newPrice,
+      'originalPrice': oldPrice,
+      'newPrice': newPrice,
       'rejectionReason': rejectionReason,
       'viewCount': viewCount,
       'isFeatured': isFeatured,

@@ -419,6 +419,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
     );
     
     if (confirmed == true) {
+      if (!context.mounted) return;
       context.read<MerchantsBloc>().add(DeleteMerchantEvent(id: merchant.id));
       Navigator.pop(context);
     }

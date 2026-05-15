@@ -141,6 +141,7 @@ export class OffersService {
         status: true,
         images: true,
         originalPrice: true,
+        newPrice: true,
         createdAt: true,
         store: {
           select: {
@@ -309,7 +310,13 @@ export class OffersService {
       }
     }
 
-    // حذف الصور من الهارد ديسك
+    // Delete related records that might block deletion (Foreign Key constraints)
+    await this.prisma.analyticsEvent.deleteMany({ where: { offerId: id } });
+    await this.prisma.favorite.deleteMany({ where: { offerId: id } });
+    await this.prisma.review.deleteMany({ where: { offerId: id } });
+    await this.prisma.coupon.deleteMany({ where: { offerId: id } });
+
+    // Delete images from storage
     if (offer.images && Array.isArray(offer.images)) {
       for (const img of offer.images) {
         await this.uploadService.deleteImage(img);

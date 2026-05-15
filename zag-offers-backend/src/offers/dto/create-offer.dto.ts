@@ -88,4 +88,13 @@ export class CreateOfferDto {
   @IsOptional()
   @IsNumber()
   originalPrice?: number;
+
+  @ApiProperty({
+    description: 'السعر بعد الخصم',
+    example: 80,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  newPrice?: number;
 }

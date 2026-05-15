@@ -7,8 +7,7 @@ import '../../../../../core/widgets/stat_card.dart';
 import '../../../../../core/widgets/glass_card.dart';
 import '../../../../../core/widgets/notification_bubble.dart';
 import '../../../offers/presentation/pages/add_edit_offer_page.dart';
-import '../../../offers/presentation/pages/offers_page.dart';
-import '../../../qr_scanner/presentation/pages/qr_scanner_page.dart';
+import '../../../main/presentation/layout/main_layout.dart';
 import '../../domain/entities/dashboard_stats_entity.dart';
 import '../bloc/dashboard_bloc.dart';
 import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
@@ -28,7 +27,6 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
   late AnimationController _actionController;
   
   final List<NotificationData> _notifications = [];
-  bool _isRefreshing = false;
   String _lastUpdated = '';
 
   @override
@@ -75,12 +73,14 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
   }
 
   Future<void> _refreshData() async {
-    setState(() => _isRefreshing = true);
     _loadData();
     _updateTimestamp();
     await Future.delayed(const Duration(milliseconds: 800));
     if (!mounted) return;
-    setState(() => _isRefreshing = false);
+  }
+
+  void _navigateToTab(int index) {
+    context.findAncestorStateOfType<MainLayoutState>()?.setIndex(index);
   }
 
   @override
@@ -228,15 +228,23 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
             mainAxisSpacing: 16,
             childAspectRatio: 1.1,
             children: [
-              StatCard(label: 'نشاط اليوم', value: s.claimsToday.toString(), icon: Icons.local_activity, color: AppColors.primary, bgColor: AppColors.primary, index: 0),
-              StatCard(label: 'عروض نشطة', value: s.activeOffers.toString(), icon: Icons.star, color: AppColors.secondary, bgColor: AppColors.secondary, index: 1),
-              StatCard(label: 'المسح اليومي', value: s.scansToday.toString(), icon: Icons.qr_code_scanner, color: AppColors.blue, bgColor: AppColors.blue, index: 2),
-              StatCard(label: 'إجمالي الطلبات', value: s.totalClaims.toString(), icon: Icons.people, color: AppColors.purple, bgColor: AppColors.purple, index: 3),
+              _wrapWithOnTap(StatCard(label: 'نشاط اليوم', value: s.claimsToday.toString(), icon: Icons.local_activity, color: AppColors.primary, bgColor: AppColors.primary, index: 0), () => _navigateToTab(2)),
+              _wrapWithOnTap(StatCard(label: 'عروض نشطة', value: s.activeOffers.toString(), icon: Icons.star, color: AppColors.secondary, bgColor: AppColors.secondary, index: 1), () => _navigateToTab(1)),
+              _wrapWithOnTap(StatCard(label: 'المسح اليومي', value: s.scansToday.toString(), icon: Icons.qr_code_scanner, color: AppColors.blue, bgColor: AppColors.blue, index: 2), () => _navigateToTab(2)),
+              _wrapWithOnTap(StatCard(label: 'إجمالي الطلبات', value: s.totalClaims.toString(), icon: Icons.people, color: AppColors.purple, bgColor: AppColors.purple, index: 3), () => _navigateToTab(2)),
             ],
           );
         }
         return const Center(child: CircularProgressIndicator());
       },
+    );
+  }
+
+  Widget _wrapWithOnTap(Widget child, VoidCallback onTap) {
+    return InkWell(
+      onTap: onTap,
+      borderRadius: BorderRadius.circular(20),
+      child: child,
     );
   }
 
@@ -253,10 +261,10 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
           crossAxisSpacing: 12,
           mainAxisSpacing: 12,
           children: [
-            _buildActionItem('العروض', Icons.local_offer, AppColors.emerald, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const OffersPage()))),
-            _buildActionItem('مسح الكود', Icons.qr_code_scanner, AppColors.primary, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const QRScannerPage(storeId: '')))), // ID handled by Bloc
+            _buildActionItem('العروض', Icons.local_offer, AppColors.emerald, () => _navigateToTab(1)),
+            _buildActionItem('مسح الكود', Icons.qr_code_scanner, AppColors.primary, () => _navigateToTab(2)),
             _buildActionItem('إضافة', Icons.add_circle_outline, AppColors.purple, () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditOfferPage()))),
-            _buildActionItem('الملف', Icons.store, AppColors.blue, () {}),
+            _buildActionItem('الملف', Icons.store, AppColors.blue, () => _navigateToTab(3)),
           ],
         ),
       ],
@@ -304,10 +312,19 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.trending_up, color: AppColors.secondary, size: 20),
-              const SizedBox(width: 8),
-              Text('أفضل العروض أداءً', style: AppTheme.body.copyWith(fontWeight: FontWeight.w900)),
+              Row(
+                children: [
+                  const Icon(Icons.trending_up, color: AppColors.secondary, size: 20),
+                  const SizedBox(width: 8),
+                  Text('أفضل العروض أداءً', style: AppTheme.body.copyWith(fontWeight: FontWeight.w900)),
+                ],
+              ),
+              TextButton(
+                onPressed: () => _navigateToTab(1),
+                child: Text('الكل', style: AppTheme.small.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
           const SizedBox(height: 16),
@@ -351,10 +368,19 @@ class _EnhancedDashboardPageState extends State<EnhancedDashboardPage>
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              const Icon(Icons.history, color: AppColors.primary, size: 20),
-              const SizedBox(width: 8),
-              Text('آخر العمليات', style: AppTheme.body.copyWith(fontWeight: FontWeight.w900)),
+              Row(
+                children: [
+                  const Icon(Icons.history, color: AppColors.primary, size: 20),
+                  const SizedBox(width: 8),
+                  Text('آخر العمليات', style: AppTheme.body.copyWith(fontWeight: FontWeight.w900)),
+                ],
+              ),
+              TextButton(
+                onPressed: () => _navigateToTab(2),
+                child: Text('الكل', style: AppTheme.small.copyWith(color: AppColors.primary, fontWeight: FontWeight.bold)),
+              ),
             ],
           ),
           const SizedBox(height: 16),

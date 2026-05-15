@@ -134,4 +134,19 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(e.toString().replaceAll('Exception: ', '')));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> deleteAccount() async {
+    try {
+      await remoteDataSource.deleteAccount();
+      await localDataSource.clearCache();
+      return const Right(null);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'فشل حذف الحساب'));
+    } on DioException catch (e) {
+      return Left(ServerFailure(mapDioErrorToMessage(e)));
+    } catch (_) {
+      return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
+    }
+  }
 }

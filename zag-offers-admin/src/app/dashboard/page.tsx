@@ -754,19 +754,6 @@ export default function AdminDashboard() {
           )}
         </div>
         <div className="flex flex-col md:flex-row md:items-center gap-3 flex-wrap">
-          {/* Search with shortcut hint */}
-          <div className="relative">
-            <input
-              ref={searchInputRef}
-              type="text"
-              placeholder="بحث سريع..."
-              value={search}
-              onChange={(e) => setSearch(e.target.value)}
-              className="w-48 lg:w-56 pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 transition-all"
-            />
-            <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-            <span className="absolute left-10 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold">⌘K</span>
-          </div>
 
           {/* Date Range Filter */}
           <div className="flex items-center gap-2 bg-white border border-slate-200 rounded-xl px-2 py-1.5">

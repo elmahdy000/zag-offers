@@ -25,7 +25,6 @@ class _OffersPageState extends State<OffersPage> {
   String? _selectedMerchantId;
   String? _selectedMerchantName;
   String _searchQuery = '';
-  final _searchController = TextEditingController();
 
   @override
   void initState() {
@@ -36,7 +35,6 @@ class _OffersPageState extends State<OffersPage> {
 
   @override
   void dispose() {
-    _searchController.dispose();
     super.dispose();
   }
 
@@ -70,26 +68,7 @@ class _OffersPageState extends State<OffersPage> {
           preferredSize: const Size.fromHeight(130),
           child: Column(
             children: [
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 0, 16, 12),
-                child: TextField(
-                  controller: _searchController,
-                  decoration: InputDecoration(
-                    hintText: 'البحث عن العروض...',
-                    prefixIcon: const Icon(Icons.search_rounded, color: AppColors.primary),
-                    suffixIcon: _searchQuery.isNotEmpty
-                        ? IconButton(
-                            icon: const Icon(Icons.clear_rounded),
-                            onPressed: () {
-                              _searchController.clear();
-                              setState(() => _searchQuery = '');
-                            },
-                          )
-                        : null,
-                  ),
-                  onChanged: (value) => setState(() => _searchQuery = value.toLowerCase()),
-                ),
-              ),
+              const SizedBox(height: 8),
               Padding(
                 padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
                 child: SingleChildScrollView(
@@ -100,7 +79,7 @@ class _OffersPageState extends State<OffersPage> {
                       const SizedBox(width: 8),
                       _buildFilterChip('PENDING', 'قيد الانتظار'),
                       const SizedBox(width: 8),
-                      _buildFilterChip('APPROVED', 'مقبول'),
+                      _buildFilterChip('ACTIVE', 'مقبول'),
                       const SizedBox(width: 8),
                       _buildFilterChip('REJECTED', 'مرفوض'),
                       const SizedBox(width: 8),
@@ -167,11 +146,7 @@ class _OffersPageState extends State<OffersPage> {
                 if (state is OffersLoading) {
                   return const ListSkeleton(itemCount: 5);
                 } else if (state is OffersLoaded) {
-                  final filtered = _searchQuery.isEmpty
-                      ? state.offers
-                      : state.offers.where((o) {
-                          return o.title.toLowerCase().contains(_searchQuery) || o.storeName.toLowerCase().contains(_searchQuery) || o.description.toLowerCase().contains(_searchQuery);
-                        }).toList();
+                  final filtered = state.offers;
 
                   if (filtered.isEmpty) {
                     return Center(
@@ -429,7 +404,7 @@ class _OffersPageState extends State<OffersPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<OffersBloc>().add(UpdateOfferStatusEvent(id: offer.id, status: 'APPROVED'));
+                          context.read<OffersBloc>().add(const UpdateOfferStatusEvent(id: offer.id, status: 'ACTIVE'));
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
@@ -549,7 +524,7 @@ class _OffersPageState extends State<OffersPage> {
 
   String _statusLabel(String status) {
     switch (status) {
-      case 'APPROVED': return 'مقبول';
+      case 'ACTIVE': return 'مقبول';
       case 'PENDING': return 'قيد الانتظار';
       case 'REJECTED': return 'مرفوض';
       case 'EXPIRED': return 'منتهي';
@@ -559,7 +534,7 @@ class _OffersPageState extends State<OffersPage> {
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'APPROVED': return AppColors.success;
+      case 'ACTIVE': return AppColors.success;
       case 'PENDING': return AppColors.primary;
       case 'REJECTED': return AppColors.error;
       case 'EXPIRED': return AppColors.textSecondary;
@@ -631,6 +606,7 @@ class _OffersPageState extends State<OffersPage> {
     );
     
     if (confirmed == true) {
+      if (!context.mounted) return;
       context.read<OffersBloc>().add(DeleteOfferEvent(id: offer.id));
     }
   }

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/socket_service.dart';
@@ -92,6 +93,45 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _deleteAccount() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('حذف الحساب نهائياً'),
+        content: const Text(
+          'هل أنت متأكد من رغبتك في حذف الحساب؟ هذا الإجراء سيقوم بمسح كل بياناتك ولا يمكن التراجع عنه.',
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: Colors.red),
+            child: const Text('نعم، احذف حسابي'),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && mounted) {
+      setState(() => _isLoggingOut = true);
+      context.read<AuthBloc>().add(DeleteAccountRequested());
+    }
+  }
+
+  Future<void> _openPrivacyPolicy() async {
+    final url = Uri.parse('https://zagoffers.online/privacy');
+    if (await canLaunchUrl(url)) {
+      await launchUrl(url, mode: LaunchMode.externalApplication);
+    } else {
+      if (mounted) {
+        SnackBarUtils.showError(context, 'تعذر فتح سياسة الخصوصية');
+      }
+    }
+  }
+
   void _showHelpDialog() {
     showDialog<void>(
       context: context,
@@ -179,6 +219,22 @@ class _ProfilePageState extends State<ProfilePage> {
                   onTap: () {
                     Navigator.pop(context);
                     _showAboutDialogSheet();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.privacy_tip_outlined),
+                  title: const Text('سياسة الخصوصية'),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _openPrivacyPolicy();
+                  },
+                ),
+                ListTile(
+                  leading: const Icon(Icons.no_accounts_outlined, color: Colors.red),
+                  title: const Text('حذف الحساب', style: TextStyle(color: Colors.red)),
+                  onTap: () {
+                    Navigator.pop(context);
+                    _deleteAccount();
                   },
                 ),
                 ListTile(
@@ -410,6 +466,18 @@ class _ProfilePageState extends State<ProfilePage> {
           label: 'عن التطبيق',
           color: Colors.teal,
           onTap: _showAboutDialogSheet,
+        ),
+        _buildMenuOption(
+          icon: Icons.privacy_tip_rounded,
+          label: 'سياسة الخصوصية',
+          color: Colors.indigo,
+          onTap: _openPrivacyPolicy,
+        ),
+        _buildMenuOption(
+          icon: Icons.no_accounts_rounded,
+          label: 'حذف الحساب',
+          color: Colors.blueGrey,
+          onTap: _deleteAccount,
         ),
       ],
     );

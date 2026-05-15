@@ -190,6 +190,9 @@ export class NotificationsService implements OnModuleInit {
         }
       }
 
+      // Every logged in user gets all_users
+      await admin.messaging().subscribeToTopic([token], 'all_users');
+
       // Subscribe to role-specific topic
       let roleTopic = 'all_customers';
       if (user?.role === 'MERCHANT') roleTopic = 'all_merchants';
@@ -318,8 +321,8 @@ export class NotificationsService implements OnModuleInit {
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
       
-      // Send to both topics
-      const topics = ['all_customers', 'all_merchants'];
+      // Send to all role topics
+      const topics = ['all_customers', 'all_merchants', 'all_admins'];
       
       for (const topic of topics) {
         const message: admin.messaging.Message = {

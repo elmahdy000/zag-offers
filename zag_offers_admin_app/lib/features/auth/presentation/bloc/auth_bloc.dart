@@ -18,7 +18,14 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final result = await repository.login(event.identifier, event.password);
       result.fold(
         (failure) => emit(AuthError(message: failure.message)),
-        (user) => emit(AuthAuthenticated(user: user)),
+        (user) {
+          if (user.role != 'ADMIN') {
+            repository.logout();
+            emit(const AuthError(message: 'عفواً، لا تملك صلاحية الدخول لبوابة الإدارة'));
+          } else {
+            emit(AuthAuthenticated(user: user));
+          }
+        },
       );
     });
 

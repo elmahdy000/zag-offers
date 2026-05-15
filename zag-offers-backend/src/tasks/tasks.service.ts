@@ -66,7 +66,7 @@ export class TasksService {
       // 1. Expire Offers that passed their end date
       const expiredOffers = await this.prisma.offer.updateMany({
         where: {
-          status: OfferStatus.ACTIVE,
+          status: { in: [OfferStatus.ACTIVE, OfferStatus.PENDING] },
           endDate: { lt: new Date() },
         },
         data: { status: OfferStatus.EXPIRED },

@@ -1,4 +1,4 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/widgets/network_image_widget.dart';
@@ -42,7 +42,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   Future<void> _launchUrl(BuildContext context, String url) async {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
-      if (!mounted) return;
+      if (!context.mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('تعذر فتح التطبيق المطلوب على هذا الجهاز'),

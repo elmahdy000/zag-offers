@@ -9,7 +9,8 @@ import {
   Trash2,
   Shield,
   Briefcase,
-  Star
+  Star,
+  PlusCircle
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import Link from 'next/link';
@@ -79,6 +80,18 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) =>
 
       <div className="mt-6 flex items-center justify-between border-t border-slate-50 pt-4">
         <div className="flex gap-2">
+          {user.role === 'MERCHANT' && (
+            <button
+              onClick={(e) => { 
+                e.stopPropagation(); 
+                window.location.href = `/dashboard/stores?ownerId=${user.id}&openCreate=true`;
+              }}
+              className="flex h-9 w-9 items-center justify-center rounded-xl bg-orange-50 text-orange-600 hover:bg-orange-600 hover:text-white transition-all shadow-sm border border-orange-100"
+              title="إضافة متجر"
+            >
+              <PlusCircle size={16} />
+            </button>
+          )}
           <button
             onClick={(e) => { e.stopPropagation(); onEdit(user); }}
             className="flex h-9 w-9 items-center justify-center rounded-xl bg-slate-50 text-slate-400 hover:bg-slate-900 hover:text-white transition-all shadow-sm border border-slate-100"

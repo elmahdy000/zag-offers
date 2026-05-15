@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -165,9 +165,15 @@ class _UsersPageState extends State<UsersPage> {
       ),
       child: ListTile(
         onTap: () {
-          Navigator.push(context, MaterialPageRoute(builder: (_) => UserDetailsPage(user: user))).then((r) {
-            if (r == true) context.read<UsersBloc>().add(LoadUsersEvent());
-          });
+          () async {
+            final usersBloc = context.read<UsersBloc>();
+            final r = await Navigator.push(
+              context,
+              MaterialPageRoute(builder: (_) => UserDetailsPage(user: user)),
+            );
+            if (!mounted) return;
+            if (r == true) usersBloc.add(LoadUsersEvent());
+          }();
         },
         contentPadding: const EdgeInsets.all(16),
         leading: Hero(
