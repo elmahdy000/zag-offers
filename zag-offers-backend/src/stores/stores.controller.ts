@@ -9,7 +9,6 @@ import {
   Request,
   Query,
   Logger,
-  NotFoundException,
 } from '@nestjs/common';
 
 import { StoresService } from './stores.service';

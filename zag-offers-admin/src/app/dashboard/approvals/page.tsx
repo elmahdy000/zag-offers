@@ -236,14 +236,25 @@ export default function ApprovalsPage() {
         icon={ClipboardCheck}
       />
 
-      {/* Tabs and Summary */}
-      <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-        <div className="lg:col-span-3 flex p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-inner">
-          <button onClick={() => setActiveTab('stores')} className={`flex-1 rounded-xl py-3 text-sm font-bold transition-all ${activeTab === 'stores' ? 'bg-white text-orange-600 shadow-md ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-900'}`}>طلبات المتاجر ({stores.length})</button>
-          <button onClick={() => setActiveTab('offers')} className={`flex-1 rounded-xl py-3 text-sm font-bold transition-all ${activeTab === 'offers' ? 'bg-white text-orange-600 shadow-md ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-900'}`}>طلبات العروض ({offers.length})</button>
-          <button onClick={() => setActiveTab('history')} className={`flex-1 rounded-xl py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 ${activeTab === 'history' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-900'}`}>
+      {/* Tabs and Search */}
+      <div className="flex flex-col lg:flex-row gap-6 items-center justify-between">
+        <div className="flex p-1.5 bg-slate-100/80 backdrop-blur-sm rounded-2xl border border-slate-200 shadow-inner w-full lg:w-auto overflow-x-auto">
+          <button onClick={() => { setActiveTab('stores'); setSearch(''); }} className={`px-6 rounded-xl py-3 text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'stores' ? 'bg-white text-orange-600 shadow-md ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-900'}`}>طلبات المتاجر ({stores.length})</button>
+          <button onClick={() => { setActiveTab('offers'); setSearch(''); }} className={`px-6 rounded-xl py-3 text-sm font-bold transition-all whitespace-nowrap ${activeTab === 'offers' ? 'bg-white text-orange-600 shadow-md ring-1 ring-slate-200' : 'text-slate-500 hover:text-slate-900'}`}>طلبات العروض ({offers.length})</button>
+          <button onClick={() => { setActiveTab('history'); setSearch(''); }} className={`px-6 rounded-xl py-3 text-sm font-bold transition-all flex items-center justify-center gap-2 whitespace-nowrap ${activeTab === 'history' ? 'bg-slate-900 text-white shadow-lg' : 'text-slate-500 hover:text-slate-900'}`}>
             <History size={16} /> المعتمدة حديثاً
           </button>
+        </div>
+
+        <div className="relative w-full lg:max-w-xs group">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={16} />
+          <input
+            type="text"
+            placeholder="بحث سريح..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-11 w-full pr-10 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all shadow-sm"
+          />
         </div>
       </div>
 

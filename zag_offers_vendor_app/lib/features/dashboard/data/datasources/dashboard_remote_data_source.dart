@@ -16,8 +16,10 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     try {
       final response = await apiClient.dio.get('/stores/my-dashboard');
       return DashboardStatsModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.message);
+    } on DioException {
+      rethrow;
+    } catch (e) {
+      throw Exception(e.toString());
     }
   }
 }

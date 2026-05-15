@@ -1,6 +1,7 @@
 import 'dart:io';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
@@ -85,6 +86,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   String _resolveImageUrl(String url) => ImageUrlHelper.resolve(url);
 
   Future<void> _pickImage() async {
+    HapticFeedback.lightImpact();
     if (_imageUrls.length >= 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         SnackBar(
@@ -152,6 +154,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   }
 
   Future<void> _selectDate(BuildContext context, bool isStart) async {
+    HapticFeedback.lightImpact();
     final DateTime? picked = await showDatePicker(
       context: context,
       initialDate: isStart ? _startDate : _endDate,
@@ -183,6 +186,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   }
 
   void _onPreview() {
+    HapticFeedback.mediumImpact();
     if (_formKey.currentState!.validate()) {
       if (_imageUrls.isEmpty) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -499,7 +503,10 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       top: 4,
                       right: 4,
                       child: GestureDetector(
-                        onTap: () => setState(() => _imageUrls.removeAt(index)),
+                        onTap: () {
+                          HapticFeedback.lightImpact();
+                          setState(() => _imageUrls.removeAt(index));
+                        },
                         child: Container(
                           padding: const EdgeInsets.all(4),
                           decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),

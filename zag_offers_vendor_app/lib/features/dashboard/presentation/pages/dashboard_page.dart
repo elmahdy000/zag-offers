@@ -9,6 +9,9 @@ import 'package:zag_offers_vendor_app/features/dashboard/presentation/widgets/da
 import 'package:zag_offers_vendor_app/features/offers/presentation/pages/add_edit_offer_page.dart';
 import 'package:zag_offers_vendor_app/features/main/presentation/layout/main_layout.dart';
 import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/store_setup_page.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/store_setup_bloc.dart';
+import 'package:zag_offers_vendor_app/injection_container.dart';
 
 class DashboardPage extends StatelessWidget {
   const DashboardPage({super.key});
@@ -31,6 +34,9 @@ class DashboardPage extends StatelessWidget {
         },
         child: BlocBuilder<DashboardBloc, DashboardState>(
           builder: (context, state) {
+            if (state is DashboardNoStore) {
+              return _buildNoStoreState(context);
+            }
             return CustomScrollView(
               physics: const AlwaysScrollableScrollPhysics(),
               slivers: [
@@ -423,6 +429,75 @@ class DashboardPage extends StatelessWidget {
             Text(
               'لا توجد نشاطات حالياً',
               style: GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 14),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildNoStoreState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(40),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(Icons.storefront_rounded, size: 80, color: AppColors.primary),
+            ),
+            const SizedBox(height: 32),
+            Text(
+              'أهلاً بك في زاج أوفرز!',
+              style: GoogleFonts.cairo(
+                fontSize: 24,
+                fontWeight: FontWeight.w900,
+                color: AppColors.textPrimary,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              'لم نجد متجراً مرتبطاً بحسابك بعد. ابدأ بإعداد متجرك الآن لتتمكن من إضافة العروض.',
+              style: GoogleFonts.cairo(
+                fontSize: 14,
+                color: AppColors.textSecondary,
+                height: 1.5,
+              ),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 48),
+            SizedBox(
+              width: double.infinity,
+              height: 56,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (_) => BlocProvider(
+                        create: (_) => sl<StoreSetupBloc>(),
+                        child: const StoreSetupPage(),
+                      ),
+                    ),
+                  );
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: AppColors.primary,
+                  foregroundColor: Colors.white,
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  elevation: 0,
+                ),
+                child: Text(
+                  'إعداد المتجر الآن',
+                  style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+                ),
+              ),
             ),
           ],
         ),

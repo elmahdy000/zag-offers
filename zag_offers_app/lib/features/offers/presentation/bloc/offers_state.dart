@@ -1,6 +1,7 @@
 import 'package:equatable/equatable.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../domain/entities/store_entity.dart';
+import '../../domain/entities/category_entity.dart';
 
 abstract class OffersState extends Equatable {
   @override
@@ -20,6 +21,7 @@ class OffersLoaded extends OffersState {
   final List<OfferEntity> allOffers;
   final List<OfferEntity> trendingOffers;
   final List<StoreEntity> featuredStores;
+  final List<CategoryEntity> categories;
   final List<OfferEntity>? recommendedOffers;
   final List<OfferEntity>? searchResults;
   final String? noticeMessage;
@@ -28,6 +30,7 @@ class OffersLoaded extends OffersState {
     this.allOffers = const [],
     required this.trendingOffers,
     required this.featuredStores,
+    this.categories = const [],
     this.recommendedOffers,
     this.searchResults,
     this.noticeMessage,
@@ -38,6 +41,7 @@ class OffersLoaded extends OffersState {
         allOffers,
         trendingOffers,
         featuredStores,
+        categories,
         recommendedOffers,
         searchResults,
         noticeMessage,

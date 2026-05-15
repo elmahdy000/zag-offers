@@ -177,7 +177,7 @@ class OfferCard extends StatelessWidget {
           Row(
             children: [
               Icon(
-                CategoryUtils.getIcon(offer.store.category),
+                CategoryUtils.getIcon(offer.store.category ?? ''),
                 size: 13,
                 color: AppColors.primary,
               ),

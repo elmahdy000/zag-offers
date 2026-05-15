@@ -123,8 +123,9 @@ class NotificationService {
   static void _handleForegroundMessage(RemoteMessage message) {
     final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
     final body = message.notification?.body ?? message.data['body'] ?? '';
+    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
     
-    showLocalNotification(title, body, data: message.data);
+    showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
     _saveToHistory(title, body, message.data);
 
     if (message.data['type'] == 'COUPON_REDEEMED') {
@@ -161,8 +162,16 @@ class NotificationService {
     }
   }
 
-  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data}) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data, String? imageUrl}) async {
+    // Premium BigTextStyle for better readability of merchant alerts
+    final styleInformation = BigTextStyleInformation(
+      body,
+      contentTitle: title,
+      htmlFormatContentTitle: true,
+      htmlFormatSummaryText: true,
+    );
+
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'merchants_channel',
       'تنبيهات التجار',
@@ -170,11 +179,12 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
       icon: 'ic_notification',
+      styleInformation: styleInformation,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
     );
     
-    const NotificationDetails platformChannelSpecifics =
+    final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
     
     await _localNotifications.show(

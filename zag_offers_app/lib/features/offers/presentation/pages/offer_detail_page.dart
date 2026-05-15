@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
@@ -70,16 +71,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   void _shareOffer() {
+    HapticFeedback.lightImpact();
     final discountText = widget.offer.discount.isNotEmpty
         ? widget.offer.discount
         : '${widget.offer.discountPercentage.toInt()}%';
-    SharePlus.instance.share(
-      ShareParams(
-        text:
-            'شاهد هذا العرض من ${widget.offer.store.name}\n'
-            '${widget.offer.title}\n'
-            'الخصم: $discountText',
-      ),
+    Share.share(
+      'شاهد هذا العرض من ${widget.offer.store.name}\n'
+      '${widget.offer.title}\n'
+      'الخصم: $discountText',
     );
   }
 
@@ -87,6 +86,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     BuildContext context,
     String code,
   ) async {
+    HapticFeedback.mediumImpact();
     final messenger = ScaffoldMessenger.of(context);
     await Clipboard.setData(ClipboardData(text: code));
     if (!mounted) return;
@@ -452,7 +452,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
               ),
               child: Icon(
-                CategoryUtils.getIcon(widget.offer.store.category),
+                CategoryUtils.getIcon(widget.offer.store.category ?? ''),
                 color: AppColors.primary,
               ),
             ),
@@ -517,7 +517,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'صالح حتى: ${DateFormat('yyyy-MM-dd').format(widget.offer.expiryDate)}',
+              'ينتهي في: ${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)}',
               style: textTheme.labelLarge?.copyWith(
                 color: AppColors.error,
                 fontWeight: FontWeight.bold,
@@ -558,9 +558,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     child: ElevatedButton(
                       onPressed: (state is CouponsLoading || !canGenerate)
                           ? null
-                          : () => _couponsBloc.add(
+                          : () {
+                              HapticFeedback.lightImpact();
+                              _couponsBloc.add(
                                 GenerateCouponRequested(widget.offer.id),
-                              ),
+                              );
+                            },
                       style: ElevatedButton.styleFrom(
                         backgroundColor:
                             canGenerate ? AppColors.primary : Theme.of(context).disabledColor,
@@ -972,7 +975,7 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
               onPressed: () {
                 // Focus out to close keyboard before popping
                 FocusManager.instance.primaryFocus?.unfocus();
-                
+                HapticFeedback.mediumImpact();
                 context.read<ReviewsBloc>().add(
                   AddReviewRequested(
                     storeId: widget.storeId,

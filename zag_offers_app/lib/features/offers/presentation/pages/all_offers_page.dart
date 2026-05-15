@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
@@ -129,7 +130,10 @@ class _AllOffersPageState extends State<AllOffersPage> {
                           Icons.tune_rounded,
                           color: Colors.white,
                         ),
-                        onPressed: _showFilterSheet,
+                        onPressed: () {
+                          HapticFeedback.lightImpact();
+                          _showFilterSheet();
+                        },
                       ),
                       if (_currentArea != 'الكل' ||
                           _minDiscount > 0 ||
@@ -171,6 +175,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                               padding: const EdgeInsets.only(right: 16),
                               child: GestureDetector(
                                 onTap: () {
+                                  HapticFeedback.lightImpact();
                                   setState(() => _selectedCategory = categoryBackendName);
                                 },
                                 child: Column(

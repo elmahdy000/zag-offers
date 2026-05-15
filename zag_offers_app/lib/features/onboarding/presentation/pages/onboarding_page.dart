@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
@@ -142,7 +143,10 @@ class _OnboardingPageState extends State<OnboardingPage> {
                       const Spacer(),
                       // Next / Start button
                       GestureDetector(
-                        onTap: _nextPage,
+                        onTap: () {
+                          HapticFeedback.mediumImpact();
+                          _nextPage();
+                        },
                         child: AnimatedContainer(
                           duration: const Duration(milliseconds: 300),
                           padding: EdgeInsets.symmetric(

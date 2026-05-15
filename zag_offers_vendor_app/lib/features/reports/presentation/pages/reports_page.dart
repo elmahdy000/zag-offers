@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
@@ -25,7 +26,10 @@ class ReportsPage extends StatelessWidget {
         actions: [
           IconButton(
             icon: const Icon(Icons.refresh_rounded, color: AppColors.primary),
-            onPressed: () => context.read<DashboardBloc>().add(GetDashboardStatsRequested()),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+            },
           ),
         ],
       ),
@@ -358,29 +362,39 @@ class SimpleChartPainter extends CustomPainter {
   @override
   void paint(Canvas canvas, Size size) {
     final paint = Paint()
-      ..color = color.withValues(alpha: 0.12)
+      ..shader = LinearGradient(
+        begin: Alignment.topCenter,
+        end: Alignment.bottomCenter,
+        colors: [color.withOpacity(0.3), color.withOpacity(0.01)],
+      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
 
     final linePaint = Paint()
       ..color = color
-      ..strokeWidth = 3
+      ..strokeWidth = 3.5
       ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round;
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round;
 
     final path = Path();
     final points = [
-      Offset(0, size.height * 0.78),
-      Offset(size.width * 0.2, size.height * 0.6),
-      Offset(size.width * 0.4, size.height * 0.7),
-      Offset(size.width * 0.6, size.height * 0.45),
+      Offset(0, size.height * 0.85),
+      Offset(size.width * 0.15, size.height * 0.7),
+      Offset(size.width * 0.35, size.height * 0.78),
+      Offset(size.width * 0.55, size.height * 0.45),
       Offset(size.width * 0.8, size.height * 0.52),
-      Offset(size.width, size.height * 0.28),
+      Offset(size.width, size.height * 0.25),
     ];
 
     path.moveTo(points[0].dx, points[0].dy);
-    for (var i = 1; i < points.length; i++) {
-      path.lineTo(points[i].dx, points[i].dy);
+    
+    // Using quadratic curves for smooth "Stock Chart" look
+    for (var i = 0; i < points.length - 1; i++) {
+      final xCenter = (points[i].dx + points[i + 1].dx) / 2;
+      final yCenter = (points[i].dy + points[i + 1].dy) / 2;
+      path.quadraticBezierTo(points[i].dx, points[i].dy, xCenter, yCenter);
     }
+    path.lineTo(points.last.dx, points.last.dy);
 
     canvas.drawPath(path, linePaint);
 
@@ -389,6 +403,13 @@ class SimpleChartPainter extends CustomPainter {
       ..lineTo(0, size.height)
       ..close();
     canvas.drawPath(fillPath, paint);
+    
+    // Draw data points
+    final pointPaint = Paint()..color = color..style = PaintingStyle.fill;
+    for (var point in points) {
+      canvas.drawCircle(point, 4, pointPaint);
+      canvas.drawCircle(point, 6, Paint()..color = Colors.white.withOpacity(0.5)..style = PaintingStyle.stroke..strokeWidth = 1);
+    }
   }
 
   @override

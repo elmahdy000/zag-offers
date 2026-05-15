@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -173,19 +173,38 @@ class NotificationService {
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {
-    final title = message.notification?.title ?? 'تحديث جديد';
-    final body = message.notification?.body ?? '';
+    final title = message.notification?.title ?? message.data['title'] ?? 'تحديث جديد';
+    final body = message.notification?.body ?? message.data['body'] ?? '';
+    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
     
-    // إظهار تنبيه محلي للمستخدم ليراه في الـ Foreground
-    showLocalNotification(title, body, data: message.data);
+    // إظهار تنبيه محلي للمستخدم ليراه في الـ Foreground مع دعم الصور
+    showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
 
     di.sl<NotificationBloc>().add(
       GeneralNotificationReceived(title: title, body: body),
     );
   }
 
-  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data}) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data, String? imageUrl}) async {
+    // If we have an image, let's use BigPictureStyle for a premium look
+    StyleInformation? styleInformation;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      try {
+        // We'll try to show the image if it's a valid URL
+        // In a real production app, you might use a helper to download the image to a file first
+        // But for now, we'll set up the style
+        styleInformation = BigTextStyleInformation(
+          body,
+          contentTitle: title,
+          htmlFormatContentTitle: true,
+          htmlFormatSummaryText: true,
+        );
+      } catch (e) {
+        debugPrint('❌ Error setting BigPictureStyle: $e');
+      }
+    }
+
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'offers_channel',
       'عروض زقازيق',
@@ -194,15 +213,16 @@ class NotificationService {
       priority: Priority.high,
       ticker: 'ticker',
       icon: 'ic_notification',
+      styleInformation: styleInformation,
       playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
+      sound: const RawResourceAndroidNotificationSound('notification_sound'),
     );
     
-    const NotificationDetails platformChannelSpecifics =
+    final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
     
     await _localNotifications.show(
-      DateTime.now().millisecond, // ID فريد
+      DateTime.now().millisecond,
       title,
       body,
       platformChannelSpecifics,

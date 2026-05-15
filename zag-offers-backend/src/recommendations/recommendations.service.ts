@@ -56,8 +56,8 @@ export class RecommendationsService {
       },
       include: {
         store: {
-          include: { category: true }
-        }
+          include: { category: true },
+        },
       },
       take: 50,
       orderBy: { createdAt: 'desc' },
@@ -71,15 +71,18 @@ export class RecommendationsService {
 
       if (categoryWeights[catId]) score += categoryWeights[catId] * 2.5;
       if (area && areaWeights[area]) score += areaWeights[area] * 1.5;
-      
-      const hoursSinceCreated = (Date.now() - new Date(offer.createdAt).getTime()) / 3600000;
+
+      const hoursSinceCreated =
+        (Date.now() - new Date(offer.createdAt).getTime()) / 3600000;
       if (hoursSinceCreated < 24) score += 2;
 
       return { ...offer, _score: score };
     });
 
     scoredOffers.sort((a, b) => b._score - a._score);
-    const result = scoredOffers.slice(0, 10).map(({ _score, ...offer }) => offer);
+    const result = scoredOffers
+      .slice(0, 10)
+      .map(({ _score, ...offer }) => offer);
 
     // 6. حفظ في الكاش لمدة 5 دقائق
     try {
@@ -101,20 +104,20 @@ export class RecommendationsService {
       by: ['offerId'],
       where: {
         offerId: { not: null },
-        createdAt: { gte: lastWeek }
+        createdAt: { gte: lastWeek },
       },
       _count: {
-        offerId: true
+        offerId: true,
       },
       orderBy: {
         _count: {
-          offerId: 'desc'
-        }
+          offerId: 'desc',
+        },
       },
-      take: 20
+      take: 20,
     });
 
-    const offerIds = topEvents.map(e => e.offerId as string);
+    const offerIds = topEvents.map((e) => e.offerId as string);
 
     if (offerIds.length === 0) {
       return this.getLatestFallback();
@@ -124,14 +127,14 @@ export class RecommendationsService {
       where: {
         id: { in: offerIds },
         status: OfferStatus.ACTIVE,
-        store: { status: StoreStatus.APPROVED }
+        store: { status: StoreStatus.APPROVED },
       },
       include: {
         store: {
-          include: { category: true }
-        }
+          include: { category: true },
+        },
       },
-      take: 10
+      take: 10,
     });
 
     // لو الفلترة رجعت أقل من 3 عروض، نستخدم الـ fallback لضمان مظهر الصفحة
@@ -144,14 +147,17 @@ export class RecommendationsService {
 
   private async getLatestFallback() {
     return this.prisma.offer.findMany({
-      where: { status: OfferStatus.ACTIVE, store: { status: StoreStatus.APPROVED } },
+      where: {
+        status: OfferStatus.ACTIVE,
+        store: { status: StoreStatus.APPROVED },
+      },
       include: {
         store: {
-          include: { category: true }
-        }
+          include: { category: true },
+        },
       },
       orderBy: { createdAt: 'desc' },
-      take: 10
+      take: 10,
     });
   }
 }

@@ -1,4 +1,4 @@
-import '../../../../core/utils/image_url_helper.dart';
+import 'package:zag_offers_app/core/utils/image_url_helper.dart';
 import '../../domain/entities/offer_entity.dart';
 import 'store_model.dart';
 

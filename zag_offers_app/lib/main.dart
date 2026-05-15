@@ -5,6 +5,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:firebase_core/firebase_core.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:intl/date_symbol_data_local.dart';
 import 'package:zag_offers_app/core/theme/app_theme.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/animated_splash_page.dart';
 import 'package:zag_offers_app/core/services/notification_service.dart';
@@ -38,7 +39,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final body = message.notification?.body ?? message.data['body'] ?? '';
   
   if (title.isNotEmpty || body.isNotEmpty) {
-    await NotificationService.showLocalNotification(title, body, data: message.data);
+    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    await NotificationService.showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
     
     // حفظ الإشعار في الـ Background لضمان ظهوره في السجل
     try {
@@ -79,6 +81,7 @@ void main() async {
   ]);
   
   await di.init();
+  await initializeDateFormatting('ar', null);
 
   // تهيئة Firebase
   try {

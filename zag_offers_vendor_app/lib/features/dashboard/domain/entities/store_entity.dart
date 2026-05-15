@@ -5,29 +5,28 @@ class StoreEntity extends Equatable {
   final String name;
   final String? logo;
   final String? coverImage;
-  final String? category;
-  final String area;
-  final double rating;
-  final double? latitude;
-  final double? longitude;
-  final List<String>? images;
-
-  final String? phone;
+  final String address;
+  final String? area;
+  final String phone;
   final String? whatsapp;
+  final String categoryId;
+  final String? categoryName;
+  final List<String> images;
+  final String status;
 
   const StoreEntity({
     required this.id,
     required this.name,
     this.logo,
     this.coverImage,
-    this.category,
-    required this.area,
-    this.rating = 0.0,
-    this.latitude,
-    this.longitude,
-    this.images,
-    this.phone,
+    required this.address,
+    this.area,
+    required this.phone,
     this.whatsapp,
+    required this.categoryId,
+    this.categoryName,
+    this.images = const [],
+    this.status = 'PENDING',
   });
 
   @override
@@ -36,14 +35,13 @@ class StoreEntity extends Equatable {
         name,
         logo,
         coverImage,
-        category,
+        address,
         area,
-        rating,
-        latitude,
-        longitude,
-        images,
         phone,
         whatsapp,
+        categoryId,
+        categoryName,
+        images,
+        status,
       ];
 }
-

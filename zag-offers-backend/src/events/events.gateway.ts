@@ -214,7 +214,9 @@ export class EventsGateway
       (client as any).user = decoded;
       this.registerConnectedClient(client, decoded);
       void client.join(decoded.sub);
-      this.logger.log(`Client ${client.id} joined personal room: ${decoded.sub}`);
+      this.logger.log(
+        `Client ${client.id} joined personal room: ${decoded.sub}`,
+      );
 
       if (decoded.role === 'ADMIN') {
         void client.join('admin_room');
@@ -338,7 +340,7 @@ export class EventsGateway
       ...data,
       timestamp: new Date().toISOString(),
     });
-    
+
     // Send FCM push to all admins
     void this.notificationsService.sendToTopic(
       'all_admins',
@@ -349,7 +351,7 @@ export class EventsGateway
         ...(data.payload ? { payload: JSON.stringify(data.payload) } : {}),
       },
     );
-    
+
     this.logger.log(`Admin notified: ${data.type} - ${data.title}`);
   }
 
@@ -361,12 +363,12 @@ export class EventsGateway
       ...data,
       timestamp: new Date().toISOString(),
     });
-    
+
     // Get merchant's FCM token and send push
     // For simplicity, we can also use a personal topic if implemented,
     // but the backend already has sendToUserId.
     // However, merchantId here is likely the user.id.
-    
+
     void this.notificationsService.sendToUserId(merchantId, {
       title: data.title,
       body: data.body,

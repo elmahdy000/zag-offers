@@ -29,6 +29,7 @@ import 'features/offers/domain/usecases/get_featured_stores.dart';
 import 'features/offers/domain/usecases/get_offers_by_store.dart';
 import 'features/offers/domain/usecases/search_offers_usecase.dart';
 import 'features/offers/domain/usecases/get_recommended_offers_usecase.dart';
+import 'features/offers/domain/usecases/get_categories_usecase.dart';
 
 // Coupons
 import 'features/coupons/data/datasources/coupons_remote_data_source.dart';
@@ -97,6 +98,7 @@ Future<void> init() async {
         getOffersByStoreUseCase: sl(),
         searchOffersUseCase: sl(),
         getRecommendedOffersUseCase: sl(),
+        getCategoriesUseCase: sl(),
       ));
   sl.registerLazySingleton(() => GetAllOffersUseCase(sl()));
   sl.registerLazySingleton(() => GetTrendingOffersUseCase(sl()));
@@ -104,6 +106,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GetOffersByStoreUseCase(sl()));
   sl.registerLazySingleton(() => SearchOffersUseCase(sl()));
   sl.registerLazySingleton(() => GetRecommendedOffersUseCase(sl()));
+  sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
   sl.registerLazySingleton<OffersRepository>(() => OffersRepositoryImpl(remoteDataSource: sl()));
   sl.registerLazySingleton<OffersRemoteDataSource>(() => OffersRemoteDataSourceImpl(apiClient: sl()));
 

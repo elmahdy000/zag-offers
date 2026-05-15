@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/constants/app_constants.dart';
@@ -81,10 +82,13 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       ),
       floatingActionButton: FloatingActionButton(
         heroTag: 'offers_fab',
-        onPressed: () => Navigator.push(
-          context,
-          MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
-        ),
+        onPressed: () {
+          HapticFeedback.mediumImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
+          );
+        },
         backgroundColor: AppColors.primary,
         elevation: 4,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
@@ -157,10 +161,13 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
     final firstImage = hasImage ? _resolveImageUrl(offer.images.first) : null;
 
     return InkWell(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(builder: (_) => OfferDetailsPage(offer: offer)),
-      ),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (_) => OfferDetailsPage(offer: offer)),
+        );
+      },
       borderRadius: BorderRadius.circular(16),
       child: Container(
         margin: const EdgeInsets.only(bottom: 16),
@@ -439,14 +446,14 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Icon(
-              _searchQuery.isNotEmpty ? Icons.search_off_rounded : Icons.local_offer_rounded,
+            const Icon(
+              Icons.local_offer_rounded,
               size: 48,
               color: AppColors.border,
             ),
             const SizedBox(height: 20),
             Text(
-              _searchQuery.isNotEmpty ? 'لم نعثر على نتائج' : 'لا توجد عروض',
+              'لا توجد عروض',
               style: GoogleFonts.cairo(
                 fontWeight: FontWeight.w900,
                 fontSize: 16,

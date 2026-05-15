@@ -404,7 +404,7 @@ class _OffersPageState extends State<OffersPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<OffersBloc>().add(const UpdateOfferStatusEvent(id: offer.id, status: 'ACTIVE'));
+                          context.read<OffersBloc>().add(UpdateOfferStatusEvent(id: offer.id, status: 'ACTIVE'));
                           Navigator.pop(context);
                         },
                         style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),

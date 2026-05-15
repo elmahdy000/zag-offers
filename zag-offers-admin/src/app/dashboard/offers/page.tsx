@@ -211,16 +211,29 @@ export default function OffersManagementPage() {
         </button>
       </div>
 
-      {/* Filters (Search removed for premium look) */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <select
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm lg:col-span-1"
-        >
-          <option value="">كل الحالات</option>
-          {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-        </select>
+      {/* Filters & Search */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full lg:max-w-md group">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+          <input
+            type="text"
+            placeholder="بحث في العروض، المتاجر، أو الخصومات..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 w-full pr-12 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-sm"
+          />
+        </div>
+        
+        <div className="flex gap-4 w-full lg:w-auto">
+          <select
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="h-12 flex-1 lg:w-48 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:border-indigo-600 shadow-sm cursor-pointer"
+          >
+            <option value="">كل الحالات</option>
+            {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+          </select>
+        </div>
       </div>
 
       {/* Content */}

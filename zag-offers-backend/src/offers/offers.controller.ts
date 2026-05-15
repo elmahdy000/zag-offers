@@ -108,6 +108,13 @@ export class OffersController {
     });
   }
 
+  @Get('categories')
+  @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'List all categories' })
+  getCategories() {
+    return this.offersService.getCategories();
+  }
+
   @Get('my')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT)

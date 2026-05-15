@@ -1,17 +1,26 @@
 import 'package:flutter/material.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_image_widget.dart';
+import '../../../../core/utils/category_utils.dart';
+import '../../domain/entities/category_entity.dart';
 import '../constants/offer_categories.dart';
 import '../pages/all_offers_page.dart';
 import '../pages/categories_page.dart';
 
 class CategoriesSection extends StatelessWidget {
-  const CategoriesSection({super.key});
+  final List<CategoryEntity> categories;
+
+  const CategoriesSection({
+    super.key,
+    this.categories = const [],
+  });
 
   @override
   Widget build(BuildContext context) {
-    final previewCategories = browseCategories.take(6).toList();
+    // If no categories from backend, fallback to hardcoded ones for UI continuity
+    final bool hasDynamicData = categories.isNotEmpty;
+    final displayCount = hasDynamicData ? categories.length : browseCategories.length;
+    final int limit = displayCount > 8 ? 8 : displayCount;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -51,9 +60,29 @@ class CategoriesSection extends StatelessWidget {
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            itemCount: previewCategories.length,
+            itemCount: limit,
             itemBuilder: (context, index) {
-              final category = previewCategories[index];
+              String name;
+              String? image;
+              Color color;
+              IconData icon;
+              String filterName;
+
+              if (hasDynamicData) {
+                final cat = categories[index];
+                name = CategoryUtils.getDisplayName(cat.name);
+                image = cat.image;
+                color = CategoryUtils.getColor(cat.name);
+                icon = CategoryUtils.getIcon(cat.name);
+                filterName = cat.name;
+              } else {
+                final cat = browseCategories[index];
+                name = cat.name;
+                image = cat.imagePath; // Using local asset path as URL for NetworkImageWidget fallback
+                color = cat.color;
+                icon = cat.icon;
+                filterName = cat.backendName ?? cat.name;
+              }
 
               return Padding(
                 padding: const EdgeInsets.only(right: 16),
@@ -63,7 +92,7 @@ class CategoriesSection extends StatelessWidget {
                       context,
                       MaterialPageRoute(
                         builder: (context) => AllOffersPage(
-                          initialCategory: category.backendName ?? category.name,
+                          initialCategory: filterName,
                         ),
                       ),
                     );
@@ -78,15 +107,15 @@ class CategoriesSection extends StatelessWidget {
                           shape: BoxShape.circle,
                           gradient: LinearGradient(
                             colors: [
-                              category.color,
-                              category.color.withValues(alpha: 0.3),
+                              color,
+                              color.withValues(alpha: 0.3),
                             ],
                             begin: Alignment.topLeft,
                             end: Alignment.bottomRight,
                           ),
                           boxShadow: [
                             BoxShadow(
-                              color: category.color.withValues(alpha: 0.2),
+                              color: color.withValues(alpha: 0.2),
                               blurRadius: 12,
                               offset: const Offset(0, 4),
                             ),
@@ -100,16 +129,21 @@ class CategoriesSection extends StatelessWidget {
                           padding: const EdgeInsets.all(2),
                           child: ClipRRect(
                             borderRadius: BorderRadius.circular(40),
-                            child: category.imagePath != null
-                                ? NetworkImageWidget(
-                                    imageUrl: category.imagePath!,
-                                    fit: BoxFit.cover,
-                                  )
+                            child: image != null
+                                ? (image.startsWith('http') || image.startsWith('/')
+                                    ? NetworkImageWidget(
+                                        imageUrl: image,
+                                        fit: BoxFit.cover,
+                                      )
+                                    : Image.asset(
+                                        image,
+                                        fit: BoxFit.cover,
+                                      ))
                                 : Container(
-                                    color: category.color.withValues(alpha: 0.1),
+                                    color: color.withValues(alpha: 0.1),
                                     child: Icon(
-                                      category.icon,
-                                      color: category.color,
+                                      icon,
+                                      color: color,
                                       size: 30,
                                     ),
                                   ),
@@ -118,7 +152,7 @@ class CategoriesSection extends StatelessWidget {
                       ),
                       const SizedBox(height: 10),
                       Text(
-                        category.name,
+                        name,
                         textAlign: TextAlign.center,
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,

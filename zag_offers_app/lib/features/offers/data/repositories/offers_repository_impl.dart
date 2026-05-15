@@ -6,6 +6,7 @@ import '../../../../core/error/failures.dart';
 import '../../../../core/network/dio_error_mapper.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../domain/entities/store_entity.dart';
+import '../../domain/entities/category_entity.dart';
 import '../../domain/repositories/offers_repository.dart';
 import '../datasources/offers_remote_data_source.dart';
 
@@ -98,6 +99,20 @@ class OffersRepositoryImpl implements OffersRepository {
   ) async {
     try {
       final result = await remoteDataSource.getOffersByStore(storeId);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Server error'));
+    } on DioException catch (e) {
+      return Left(ServerFailure(mapDioErrorToMessage(e)));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
+
+  @override
+  Future<Either<Failure, List<CategoryEntity>>> getCategories() async {
+    try {
+      final result = await remoteDataSource.getCategories();
       return Right(result);
     } on ServerException catch (e) {
       return Left(ServerFailure(e.message ?? 'Server error'));

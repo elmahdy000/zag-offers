@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -163,7 +164,10 @@ class _LoginPageState extends State<LoginPage> {
                         return ElevatedButton(
                           onPressed: state is AuthLoading
                               ? null
-                              : () => _submit(context),
+                              : () {
+                                  HapticFeedback.mediumImpact();
+                                  _submit(context);
+                                },
                           child: state is AuthLoading
                               ? const SizedBox(
                                   width: 22,
@@ -181,6 +185,7 @@ class _LoginPageState extends State<LoginPage> {
                     Center(
                       child: TextButton(
                         onPressed: () {
+                          HapticFeedback.lightImpact();
                           Navigator.push(
                             context,
                             MaterialPageRoute(

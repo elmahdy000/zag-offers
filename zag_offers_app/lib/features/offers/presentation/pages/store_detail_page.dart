@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/widgets/network_image_widget.dart';
@@ -52,6 +53,39 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     }
   }
 
+  void _showFullScreenGallery(BuildContext context, int initialIndex) {
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => Scaffold(
+          backgroundColor: Colors.black,
+          appBar: AppBar(
+            backgroundColor: Colors.transparent,
+            elevation: 0,
+            leading: IconButton(
+              icon: const Icon(Icons.close, color: Colors.white),
+              onPressed: () => Navigator.pop(context),
+            ),
+          ),
+          body: PageView.builder(
+            itemCount: widget.store.images!.length,
+            controller: PageController(initialPage: initialIndex),
+            itemBuilder: (context, index) {
+              return Center(
+                child: InteractiveViewer(
+                  child: NetworkImageWidget(
+                    imageUrl: widget.store.images![index],
+                    fit: BoxFit.contain,
+                  ),
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return MultiBlocProvider(
@@ -73,12 +107,56 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                     _buildStoreHeader(context),
                     const SizedBox(height: 24),
                     _buildContactButtons(context),
+                    if (widget.store.images != null && widget.store.images!.isNotEmpty) ...[
+                      const SizedBox(height: 32),
+                      Text(
+                        'معرض الصور',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.bold,
+                            ),
+                      ),
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        height: 120,
+                        child: ListView.builder(
+                          scrollDirection: Axis.horizontal,
+                          itemCount: widget.store.images!.length,
+                          itemBuilder: (context, index) {
+                            return GestureDetector(
+                              onTap: () {
+                                HapticFeedback.lightImpact();
+                                _showFullScreenGallery(context, index);
+                              },
+                              child: Container(
+                                width: 160,
+                                margin: const EdgeInsets.only(left: 12),
+                                decoration: BoxDecoration(
+                                  borderRadius: BorderRadius.circular(16),
+                                  boxShadow: [
+                                    BoxShadow(
+                                      color: Colors.black.withValues(alpha: 0.1),
+                                      blurRadius: 8,
+                                      offset: const Offset(0, 2),
+                                    ),
+                                  ],
+                                ),
+                                clipBehavior: Clip.antiAlias,
+                                child: NetworkImageWidget(
+                                  imageUrl: widget.store.images![index],
+                                  fit: BoxFit.cover,
+                                ),
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+                    ],
                     const SizedBox(height: 40),
                     Text(
                       'العروض المتاحة',
                       style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
+                            fontWeight: FontWeight.bold,
+                          ),
                     ),
                     const SizedBox(height: 16),
                   ],
@@ -108,7 +186,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
 
   Widget _buildSliverAppBar(BuildContext context) {
     return SliverAppBar(
-      expandedHeight: 220,
+      expandedHeight: 280,
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.primary,
@@ -116,19 +194,55 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
         background: Stack(
           fit: StackFit.expand,
           children: [
-            Container(color: AppColors.primary),
-            Center(
+            if (widget.store.coverImage != null)
+              NetworkImageWidget(
+                imageUrl: widget.store.coverImage!,
+                fit: BoxFit.cover,
+              )
+            else
+              Container(
+                decoration: const BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: [AppColors.primary, Color(0xFFFF9800)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+              ),
+            const DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    Colors.black26,
+                    Colors.transparent,
+                    Colors.black54,
+                  ],
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: 20,
+              left: 24,
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
                   color: Theme.of(context).scaffoldBackgroundColor,
                   shape: BoxShape.circle,
+                  boxShadow: [
+                    BoxShadow(
+                      color: Colors.black.withValues(alpha: 0.2),
+                      blurRadius: 12,
+                      offset: const Offset(0, 4),
+                    ),
+                  ],
                 ),
                 child: NetworkImageWidget(
                   imageUrl: widget.store.logo,
-                  width: 120,
-                  height: 120,
-                  borderRadius: BorderRadius.circular(60),
+                  width: 90,
+                  height: 90,
+                  borderRadius: BorderRadius.circular(45),
                 ),
               ),
             ),
@@ -197,7 +311,10 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
               icon: Icons.call_rounded,
               label: 'اتصال',
               color: Colors.blue,
-              onTap: () => _launchUrl(context, 'tel:${widget.store.phone}'),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _launchUrl(context, 'tel:${widget.store.phone}');
+              },
             ),
           ),
         if (widget.store.phone != null && widget.store.whatsapp != null)
@@ -209,10 +326,13 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
               icon: Icons.chat_bubble_rounded,
               label: 'واتساب',
               color: Colors.green,
-              onTap: () => _launchUrl(
-                context,
-                'https://wa.me/${widget.store.whatsapp}',
-              ),
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _launchUrl(
+                  context,
+                  'https://wa.me/${widget.store.whatsapp}',
+                );
+              },
             ),
           ),
       ],
@@ -310,12 +430,15 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           ),
         ),
         trailing: const Icon(Icons.arrow_forward_ios_rounded, size: 14),
-        onTap: () => Navigator.push(
-          context,
-          MaterialPageRoute(
-            builder: (context) => OfferDetailPage(offer: offer),
-          ),
-        ),
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => OfferDetailPage(offer: offer),
+            ),
+          );
+        },
       ),
     );
   }

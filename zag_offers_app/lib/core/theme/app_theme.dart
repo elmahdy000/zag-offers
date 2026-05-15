@@ -19,28 +19,28 @@ class AppTheme {
     return base.copyWith(
       primaryColor: AppColors.primary,
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-        displayMedium: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-        displaySmall: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-        headlineLarge: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        headlineMedium: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        headlineSmall: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        titleLarge: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        titleMedium: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        titleSmall: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        bodyLarge: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.textPrimary, height: 1.5),
-        bodyMedium: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textSecondary, height: 1.5),
-        bodySmall: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textSecondary, height: 1.4),
-        labelLarge: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        labelMedium: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-        labelSmall: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        displayLarge: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+        displayMedium: GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+        displaySmall: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
+        headlineLarge: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        headlineMedium: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        headlineSmall: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
+        titleLarge: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        titleMedium: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        titleSmall: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        bodyLarge: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.textPrimary, height: 1.5),
+        bodyMedium: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textSecondary, height: 1.5),
+        bodySmall: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textSecondary, height: 1.4),
+        labelLarge: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
+        labelMedium: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        labelSmall: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.textPrimary),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.cairo(
           color: AppColors.textPrimary,
           fontWeight: FontWeight.w800,
           fontSize: 18,
@@ -49,7 +49,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: Colors.white,
-        hintStyle: GoogleFonts.poppins(color: AppColors.textSecondary),
+        hintStyle: GoogleFonts.cairo(color: AppColors.textSecondary),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -83,7 +83,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.cairo(
             fontWeight: FontWeight.w700,
             fontSize: 16,
           ),
@@ -114,28 +114,28 @@ class AppTheme {
     return base.copyWith(
       primaryColor: AppColors.primary,
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.poppins(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textDark),
-        displayMedium: GoogleFonts.poppins(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textDark),
-        displaySmall: GoogleFonts.poppins(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textDark),
-        headlineLarge: GoogleFonts.poppins(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textDark),
-        headlineMedium: GoogleFonts.poppins(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textDark),
-        headlineSmall: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
-        titleLarge: GoogleFonts.poppins(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        titleMedium: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        titleSmall: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        bodyLarge: GoogleFonts.poppins(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.textDark, height: 1.5),
-        bodyMedium: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textDarkDim, height: 1.5),
-        bodySmall: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textDarkDim, height: 1.4),
-        labelLarge: GoogleFonts.poppins(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        labelMedium: GoogleFonts.poppins(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDarkDim),
-        labelSmall: GoogleFonts.poppins(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDarkDim),
+        displayLarge: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textDark),
+        displayMedium: GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textDark),
+        displaySmall: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textDark),
+        headlineLarge: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textDark),
+        headlineMedium: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textDark),
+        headlineSmall: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
+        titleLarge: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        titleMedium: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        titleSmall: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        bodyLarge: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.textDark, height: 1.5),
+        bodyMedium: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textDarkDim, height: 1.5),
+        bodySmall: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textDarkDim, height: 1.4),
+        labelLarge: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark),
+        labelMedium: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDarkDim),
+        labelSmall: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDarkDim),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkBackground,
         elevation: 0,
         centerTitle: true,
         iconTheme: const IconThemeData(color: AppColors.textDark),
-        titleTextStyle: GoogleFonts.poppins(
+        titleTextStyle: GoogleFonts.cairo(
           color: AppColors.textDark,
           fontWeight: FontWeight.w800,
           fontSize: 18,
@@ -144,7 +144,7 @@ class AppTheme {
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
         fillColor: AppColors.darkSurface,
-        hintStyle: GoogleFonts.poppins(color: AppColors.textDarkDim),
+        hintStyle: GoogleFonts.cairo(color: AppColors.textDarkDim),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
           vertical: 16,
@@ -178,7 +178,7 @@ class AppTheme {
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
           ),
-          textStyle: GoogleFonts.poppins(
+          textStyle: GoogleFonts.cairo(
             fontWeight: FontWeight.w700,
             fontSize: 16,
           ),
@@ -197,7 +197,7 @@ class AppTheme {
         backgroundColor: AppColors.darkSurface,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
         side: const BorderSide(color: AppColors.borderDark),
-        labelStyle: GoogleFonts.poppins(color: AppColors.textDark),
+        labelStyle: GoogleFonts.cairo(color: AppColors.textDark),
       ),
       bottomNavigationBarTheme: BottomNavigationBarThemeData(
         backgroundColor: AppColors.darkSurface,

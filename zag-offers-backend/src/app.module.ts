@@ -38,18 +38,22 @@ import { redisStore } from 'cache-manager-redis-yet';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => {
         // إذا كان هناك رابط Redis في الـ ENV سنستخدمه، وإلا سنستخدم المحلى
-        const redisUrl = configService.get('REDIS_URL') || 'redis://localhost:6379';
-        
+        const redisUrl =
+          configService.get('REDIS_URL') || 'redis://localhost:6379';
+
         try {
           const store = await redisStore({
             url: redisUrl,
             ttl: 60000, // دقيقة واحدة افتراضياً
           });
-          
+
           console.log('Redis Cache Store initialized successfully!');
           return { store };
         } catch (e) {
-          console.error('Failed to initialize Redis Cache Store, falling back to memory:', e);
+          console.error(
+            'Failed to initialize Redis Cache Store, falling back to memory:',
+            e,
+          );
           return {
             ttl: 60000,
             max: 100,

@@ -197,7 +197,7 @@ export class NotificationsService implements OnModuleInit {
       let roleTopic = 'all_customers';
       if (user?.role === 'MERCHANT') roleTopic = 'all_merchants';
       else if (user?.role === 'ADMIN') roleTopic = 'all_admins';
-      
+
       await admin.messaging().subscribeToTopic([token], roleTopic);
 
       if (user?.area) {
@@ -224,7 +224,7 @@ export class NotificationsService implements OnModuleInit {
         let roleTopic = 'all_customers';
         if (user.role === 'MERCHANT') roleTopic = 'all_merchants';
         else if (user.role === 'ADMIN') roleTopic = 'all_admins';
-        
+
         await admin
           .messaging()
           .unsubscribeFromTopic([user.fcmToken], roleTopic);
@@ -277,8 +277,11 @@ export class NotificationsService implements OnModuleInit {
           notification: {
             sound: 'default',
             channelId:
-              topic === 'all_merchants' ? 'merchants_channel' : 
-              topic === 'all_admins' ? 'admin_channel' : 'offers_channel',
+              topic === 'all_merchants'
+                ? 'merchants_channel'
+                : topic === 'all_admins'
+                  ? 'admin_channel'
+                  : 'offers_channel',
             imageUrl: sanitizedImageUrl,
           },
         },
@@ -290,7 +293,9 @@ export class NotificationsService implements OnModuleInit {
       await admin.messaging().send(message);
       this.logger.log(`FCM topic broadcast to ${topic} sent successfully`);
     } catch (error) {
-      this.logger.error(`sendToTopic failed for ${topic}: ${(error as Error).message}`);
+      this.logger.error(
+        `sendToTopic failed for ${topic}: ${(error as Error).message}`,
+      );
     }
   }
 
@@ -320,10 +325,10 @@ export class NotificationsService implements OnModuleInit {
 
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
-      
+
       // Send to all role topics
       const topics = ['all_customers', 'all_merchants', 'all_admins'];
-      
+
       for (const topic of topics) {
         const message: admin.messaging.Message = {
           notification: {
@@ -342,7 +347,10 @@ export class NotificationsService implements OnModuleInit {
             priority: 'high',
             notification: {
               sound: 'default',
-              channelId: topic === 'all_merchants' ? 'merchants_channel' : 'offers_channel',
+              channelId:
+                topic === 'all_merchants'
+                  ? 'merchants_channel'
+                  : 'offers_channel',
               imageUrl: sanitizedImageUrl,
             },
           },

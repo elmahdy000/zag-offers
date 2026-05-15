@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -90,6 +90,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
   }
 
   Future<void> _copyCode(BuildContext context, String code) async {
+    HapticFeedback.mediumImpact();
     await Clipboard.setData(ClipboardData(text: code));
     if (!context.mounted) return;
     SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
@@ -381,11 +382,14 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           Padding(
                             padding: const EdgeInsets.all(16),
                             child: ElevatedButton(
-                              onPressed: () => _showQRDialog(
-                                context,
-                                coupon.code,
-                                coupon.offer.store.name,
-                              ),
+                              onPressed: () {
+                                HapticFeedback.lightImpact();
+                                _showQRDialog(
+                                  context,
+                                  coupon.code,
+                                  coupon.offer.store.name,
+                                );
+                              },
                               style: ElevatedButton.styleFrom(
                                 backgroundColor:
                                     AppColors.primary.withValues(alpha: 0.1),

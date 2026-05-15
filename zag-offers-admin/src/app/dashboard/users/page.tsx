@@ -227,17 +227,28 @@ export default function UsersPage() {
         </button>
       </div>
 
-      {/* Filters Area (Search removed for premium look) */}
-      <div className="flex items-center justify-end">
-        <div className="flex items-center gap-3 bg-white p-1.5 rounded-2xl border border-slate-200 shadow-sm">
-          <div className="flex items-center gap-2 px-3 py-1.5 bg-slate-50 rounded-xl text-slate-400">
+      {/* Filters & Search */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full lg:max-w-md group">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={18} />
+          <input
+            type="text"
+            placeholder="بحث عن مستخدم بالاسم، الهاتف، أو الإيميل..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 w-full pr-12 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all shadow-sm"
+          />
+        </div>
+
+        <div className="flex items-center gap-3 bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-full lg:w-auto">
+          <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg text-slate-400 shrink-0">
              <Filter size={14} />
-             <span className="text-[10px] font-black uppercase tracking-widest">تصفية حسب:</span>
+             <span className="text-[10px] font-black uppercase tracking-widest">تصفية:</span>
           </div>
           <select 
             value={roleFilter}
             onChange={(e) => { setRoleFilter(e.target.value); setPage(1); }}
-            className="h-[40px] px-4 bg-transparent text-sm font-bold text-slate-700 focus:outline-none cursor-pointer"
+            className="h-10 flex-1 lg:w-40 px-2 bg-transparent text-sm font-bold text-slate-700 focus:outline-none cursor-pointer"
           >
             <option value="">كل الصلاحيات</option>
             <option value="CUSTOMER">العملاء</option>

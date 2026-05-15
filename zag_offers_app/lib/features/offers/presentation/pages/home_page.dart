@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
@@ -27,10 +28,26 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> {
+class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
+  late AnimationController _pulseController;
   String _currentArea = 'الكل';
   double _minDiscount = 0;
   String _sortBy = 'newest';
+
+  @override
+  void initState() {
+    super.initState();
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 2),
+    )..repeat(reverse: true);
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
 
   void _showFilterSheet(BuildContext context, OffersLoaded state) async {
     final availableAreas = OfferFilterUtils.extractAreas([
@@ -77,16 +94,6 @@ class _HomePageState extends State<HomePage> {
           }
 
           if (state is OffersLoaded) {
-            final hasAnyContent = state.trendingOffers.isNotEmpty ||
-                state.featuredStores.isNotEmpty ||
-                (state.recommendedOffers?.isNotEmpty ?? false);
-
-            if (!hasAnyContent) {
-              return _HomeEmptyState(
-                onRetry: () => context.read<OffersBloc>().add(FetchHomeData()),
-              );
-            }
-
             return RefreshIndicator(
               onRefresh: () async {
                 context.read<OffersBloc>().add(FetchHomeData());
@@ -112,7 +119,7 @@ class _HomePageState extends State<HomePage> {
                           // _buildSearchBar(context, state), // Removed search bar
                           const AdsSlider(),
                           const SizedBox(height: 20),
-                          const CategoriesSection(),
+                          CategoriesSection(categories: state.categories),
                           const SizedBox(height: 24),
                           _buildOffersSection(
                             context,
@@ -203,94 +210,27 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       actions: [
-        BlocBuilder<NotificationBloc, NotificationState>(
-          builder: (context, state) {
-            bool hasUnread = false;
-            if (state is NotificationFeedState) {
-              hasUnread = state.items.any((n) => !n.isRead);
-            }
-
-            return IconButton(
-              icon: Stack(
-                children: [
-                  const Icon(IconlyLight.notification),
-                  if (hasUnread)
-                    Positioned(
-                      right: 0,
-                      top: 0,
-                      child: Container(
-                        padding: const EdgeInsets.all(1),
-                        decoration: BoxDecoration(
-                          color: AppColors.error,
-                          borderRadius: BorderRadius.circular(6),
-                        ),
-                        constraints: const BoxConstraints(
-                          minWidth: 10,
-                          minHeight: 10,
-                        ),
-                      ),
-                    ),
-                ],
-              ),
-              onPressed: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => const NotificationsPage(),
-                ),
-              ).then((_) {
-                // Refresh unread status when coming back
-                if (!context.mounted) return;
-                context.read<NotificationBloc>().add(LoadNotifications(fromServer: true));
-              }),
-            );
+        IconButton(
+          icon: const Icon(IconlyLight.notification),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
           },
         ),
         IconButton(
-          icon: Icon(
-            IconlyLight.show,
-            color: canOpenMap
-                ? Theme.of(context).iconTheme.color
-                : Theme.of(context).disabledColor.withValues(alpha: 0.5),
-          ),
-          onPressed: canOpenMap
-              ? () => Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => MapPage(stores: state.featuredStores),
-                    ),
-                  )
-              : () {
-                    final message = AppConstants.mapsEnabled
-                        ? 'لا توجد متاجر بمواقع متاحة على الخريطة الآن'
-                        : 'الخريطة غير مفعلة حاليًا لأن مفتاح Google Maps غير مضبوط';
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(content: Text(message)),
-                    );
-                  },
+          icon: const Icon(IconlyLight.show),
+          onPressed: () {
+            HapticFeedback.lightImpact();
+            if (canOpenMap) {
+               Navigator.push(context, MaterialPageRoute(builder: (context) => MapPage(stores: state.featuredStores)));
+            }
+          },
         ),
         IconButton(
-          icon: Stack(
-            children: [
-              const Icon(Icons.tune_rounded),
-              if (_currentArea != 'الكل' || _minDiscount > 0 || _sortBy != 'newest')
-                Positioned(
-                  right: 0,
-                  top: 0,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
+          icon: const Icon(Icons.tune_rounded),
           onPressed: () {
-            if (state is OffersLoaded) {
-              _showFilterSheet(context, state);
-            }
+            HapticFeedback.lightImpact();
+            if (state is OffersLoaded) _showFilterSheet(context, state);
           },
         ),
         const SizedBox(width: 8),
@@ -341,34 +281,46 @@ class _HomePageState extends State<HomePage> {
     final offersCount = state.trendingOffers.length;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-        decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.05),
-          borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            Container(
-              width: 6,
-              height: 6,
-              decoration: const BoxDecoration(
-                color: Colors.green,
-                shape: BoxShape.circle,
-              ),
+      child: AnimatedBuilder(
+        animation: _pulseController,
+        builder: (context, child) {
+          return Container(
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+            decoration: BoxDecoration(
+              color: Colors.green.withOpacity(0.05 + (_pulseController.value * 0.05)),
+              borderRadius: BorderRadius.circular(30),
+              border: Border.all(color: Colors.green.withOpacity(0.1 + (_pulseController.value * 0.1))),
             ),
-            const SizedBox(width: 8),
-            Text(
-              'مباشر: $offersCount عرض متاح الآن',
-              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 8,
+                  height: 8,
+                  decoration: BoxDecoration(
                     color: Colors.green,
-                    fontWeight: FontWeight.bold,
+                    shape: BoxShape.circle,
+                    boxShadow: [
+                      BoxShadow(
+                        color: Colors.green.withOpacity(0.4 * _pulseController.value),
+                        blurRadius: 8 * _pulseController.value,
+                        spreadRadius: 2 * _pulseController.value,
+                      ),
+                    ],
                   ),
+                ),
+                const SizedBox(width: 10),
+                Text(
+                  'مباشر: $offersCount عرض متاح الآن',
+                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                        color: Colors.green,
+                        fontWeight: FontWeight.bold,
+                      ),
+                ),
+              ],
             ),
-          ],
-        ),
+          );
+        },
       ),
     );
   }

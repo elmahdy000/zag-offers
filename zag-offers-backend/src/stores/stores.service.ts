@@ -307,7 +307,8 @@ export class StoresService {
       where: { ownerId: merchantId },
       include: { category: true, owner: { select: { email: true } } },
     });
-    if (stores.length === 0) throw new NotFoundException('لا يوجد محل مرتبط بهذا التاجر');
+    if (stores.length === 0)
+      throw new NotFoundException('لا يوجد محل مرتبط بهذا التاجر');
     return stores[0];
   }
 

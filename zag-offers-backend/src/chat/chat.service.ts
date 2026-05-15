@@ -19,15 +19,15 @@ export class ChatService {
 
   async getConversations(userId: string, role: string) {
     const where =
-      role === 'ADMIN'
-        ? { adminId: userId }
-        : { participantId: userId };
+      role === 'ADMIN' ? { adminId: userId } : { participantId: userId };
 
     return this.conversation.findMany({
       where,
       include: {
         admin: { select: { id: true, name: true, avatar: true } },
-        participant: { select: { id: true, name: true, avatar: true, role: true } },
+        participant: {
+          select: { id: true, name: true, avatar: true, role: true },
+        },
         messages: {
           orderBy: { createdAt: 'desc' },
           take: 1,
@@ -68,11 +68,12 @@ export class ChatService {
     });
 
     // Notify the other participant via EventsGateway
-    const otherId = conv.adminId === senderId ? conv.participantId : conv.adminId;
+    const otherId =
+      conv.adminId === senderId ? conv.participantId : conv.adminId;
 
     // 1. Send the actual message to the recipient (Serialized to JSON for safety)
     const serializedMsg = JSON.parse(JSON.stringify(msg));
-    
+
     this.eventsGateway.notifyUser(otherId, 'new_message', {
       ...serializedMsg,
       conversationId,
@@ -82,13 +83,17 @@ export class ChatService {
     this.eventsGateway.notifyUser(otherId, 'conversation_update', {
       conversationId,
       lastMessage: serializedMsg,
-      updatedAt: new Date().toISOString()
+      updatedAt: new Date().toISOString(),
     });
 
     return msg;
   }
 
-  async startConversation(adminId: string, participantId: string, type: string) {
+  async startConversation(
+    adminId: string,
+    participantId: string,
+    type: string,
+  ) {
     let conv = await this.conversation.findFirst({
       where: { adminId, participantId, type },
     });
@@ -107,7 +112,9 @@ export class ChatService {
       where: { participantId, type },
       include: {
         admin: { select: { id: true, name: true, avatar: true } },
-        participant: { select: { id: true, name: true, avatar: true, role: true } },
+        participant: {
+          select: { id: true, name: true, avatar: true, role: true },
+        },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });
@@ -131,7 +138,9 @@ export class ChatService {
       },
       include: {
         admin: { select: { id: true, name: true, avatar: true } },
-        participant: { select: { id: true, name: true, avatar: true, role: true } },
+        participant: {
+          select: { id: true, name: true, avatar: true, role: true },
+        },
         messages: { orderBy: { createdAt: 'desc' }, take: 1 },
       },
     });

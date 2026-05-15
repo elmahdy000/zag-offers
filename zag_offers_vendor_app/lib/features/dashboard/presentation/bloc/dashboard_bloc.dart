@@ -41,6 +41,8 @@ class DashboardError extends DashboardState {
   List<Object?> get props => [message];
 }
 
+class DashboardNoStore extends DashboardState {}
+
 // --- BLoC ---
 class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
   final GetDashboardStatsUseCase getDashboardStatsUseCase;
@@ -58,7 +60,11 @@ class DashboardBloc extends Bloc<DashboardEvent, DashboardState> {
       final stats = await getDashboardStatsUseCase(NoParams());
       emit(DashboardLoaded(stats, storeId: stats.storeId));
     } on DioException catch (e) {
-      emit(DashboardError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تحميل الإحصائيات')));
+      if (e.response?.statusCode == 404) {
+        emit(DashboardNoStore());
+      } else {
+        emit(DashboardError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تحميل الإحصائيات')));
+      }
     } catch (e) {
       emit(DashboardError(e.toString().replaceAll('Exception: ', '')));
     }

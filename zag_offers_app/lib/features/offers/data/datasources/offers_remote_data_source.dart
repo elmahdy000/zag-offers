@@ -2,6 +2,7 @@ import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/offer_model.dart';
 import '../models/store_model.dart';
+import '../models/category_model.dart';
 
 abstract class OffersRemoteDataSource {
   Future<List<OfferModel>> getAllOffers({String? categoryId, String? area, int page = 1});
@@ -11,6 +12,7 @@ abstract class OffersRemoteDataSource {
   Future<List<StoreModel>> getFeaturedStores();
   Future<List<OfferModel>> getOffersByStore(String storeId);
   Future<OfferModel> getOfferById(String id);
+  Future<List<CategoryModel>> getCategories();
 }
 
 class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
@@ -101,6 +103,16 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
     try {
       final response = await apiClient.dio.get('/offers/$id');
       return OfferModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw Exception(e.message);
+    }
+  }
+
+  @override
+  Future<List<CategoryModel>> getCategories() async {
+    try {
+      final response = await apiClient.dio.get('/offers/categories');
+      return _parseList(response.data, CategoryModel.fromJson);
     } on DioException catch (e) {
       throw Exception(e.message);
     }

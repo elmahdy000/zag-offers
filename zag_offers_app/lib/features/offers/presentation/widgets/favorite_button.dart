@@ -1,4 +1,5 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../../../../injection_container.dart' as di;
@@ -36,6 +37,7 @@ class FavoriteButton extends StatelessWidget {
             }
             
             if (!context.mounted) return;
+            HapticFeedback.mediumImpact();
             context.read<FavoritesBloc>().add(ToggleFavorite(offerId));
           },
           child: Container(

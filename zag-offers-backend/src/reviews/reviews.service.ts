@@ -76,27 +76,29 @@ export class ReviewsService {
   async findAllByOffer(offerId: string) {
     const reviews = await this.prisma.review.findMany({
       where: { offerId },
-      include: { 
-        customer: { select: { id: true, name: true, avatar: true } } 
+      include: {
+        customer: { select: { id: true, name: true, avatar: true } },
       },
       orderBy: { createdAt: 'desc' },
     });
 
     // Enriched with verification status
-    return Promise.all(reviews.map(async (review) => {
-      const coupon = await this.prisma.coupon.findFirst({
-        where: {
-          offerId: review.offerId as string,
-          customerId: review.customerId,
-          // If they generated a coupon, we consider them verified
-        }
-      });
+    return Promise.all(
+      reviews.map(async (review) => {
+        const coupon = await this.prisma.coupon.findFirst({
+          where: {
+            offerId: review.offerId as string,
+            customerId: review.customerId,
+            // If they generated a coupon, we consider them verified
+          },
+        });
 
-      return {
-        ...review,
-        isVerified: !!coupon
-      };
-    }));
+        return {
+          ...review,
+          isVerified: !!coupon,
+        };
+      }),
+    );
   }
 
   async remove(id: string, customerId: string) {

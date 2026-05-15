@@ -8,7 +8,10 @@ import {
 } from 'class-validator';
 
 export class LoginDto {
-  @ApiProperty({ description: 'رقم الموبايل أو البريد الإلكتروني', example: '01012345678' })
+  @ApiProperty({
+    description: 'رقم الموبايل أو البريد الإلكتروني',
+    example: '01012345678',
+  })
   @IsNotEmpty()
   @IsString()
   @MaxLength(255)

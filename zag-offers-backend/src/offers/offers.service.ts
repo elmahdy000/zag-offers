@@ -25,6 +25,12 @@ export class OffersService {
     });
   }
 
+  async getCategories() {
+    return this.prisma.category.findMany({
+      orderBy: { name: 'asc' },
+    });
+  }
+
   async create(
     data: Prisma.OfferCreateInput,
     merchantId: string,
@@ -118,7 +124,11 @@ export class OffersService {
 
     const now = new Date();
     // Start of today (00:00:00) to allow offers ending today to remain visible
-    const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+    const startOfToday = new Date(
+      now.getFullYear(),
+      now.getMonth(),
+      now.getDate(),
+    );
 
     const finalWhere: Prisma.OfferWhereInput = {
       ...safeWhere,
@@ -218,31 +228,37 @@ export class OffersService {
         status: OfferStatus.ACTIVE,
         store: { status: StoreStatus.APPROVED },
       },
-      include: { 
+      include: {
         store: {
           include: {
-            category: true
-          }
-        }
+            category: true,
+          },
+        },
       },
     });
 
     if (offer) {
       // 1. زيادة عداد المشاهدات في العرض (Asynchronous)
-      void this.prisma.offer.update({
-        where: { id: offer.id },
-        data: { views: { increment: 1 } }
-      }).catch(err => console.error('Failed to increment view counter:', err));
-      
+      void this.prisma.offer
+        .update({
+          where: { id: offer.id },
+          data: { views: { increment: 1 } },
+        })
+        .catch((err) =>
+          console.error('Failed to increment view counter:', err),
+        );
+
       // 2. تسجيل حدث التحليل (Analytics Event)
-      void this.prisma.analyticsEvent.create({
-        data: {
-          offerId: offer.id,
-          storeId: offer.storeId,
-          userId: userId || null,
-          eventType: 'OFFER_VIEW',
-        }
-      }).catch(err => console.error('Failed to log analytics event:', err));
+      void this.prisma.analyticsEvent
+        .create({
+          data: {
+            offerId: offer.id,
+            storeId: offer.storeId,
+            userId: userId || null,
+            eventType: 'OFFER_VIEW',
+          },
+        })
+        .catch((err) => console.error('Failed to log analytics event:', err));
     }
 
     return offer;
@@ -342,7 +358,7 @@ export class OffersService {
       // 2. الإشعارات تم نقلها لتعمل بشكل مجمع (Batching) في TasksService
       // لمنع إزعاج المستخدمين بكثرة الإشعارات
     } else if (status === OfferStatus.REJECTED) {
-      this.eventsGateway.notifyMerchant(offer.store.ownerId, {
+      void this.eventsGateway.notifyMerchant(offer.store.ownerId, {
         type: 'OFFER_REJECTED',
         title: 'تم رفض عرضك',
         body: 'عذراً، تم رفض عرضك. برجاء مراجعة الشروط والأحكام',

@@ -342,9 +342,7 @@ export class CouponsService {
     const isAdmin = requester?.role === 'ADMIN';
     const isStoreOwner = coupon.offer.store.ownerId === requesterId;
     if (!isAdmin && !isStoreOwner) {
-      throw new BadRequestException(
-        'عفواً، الكوبون ده مش خاص بمتجرك',
-      );
+      throw new BadRequestException('عفواً، الكوبون ده مش خاص بمتجرك');
     }
 
     return coupon;

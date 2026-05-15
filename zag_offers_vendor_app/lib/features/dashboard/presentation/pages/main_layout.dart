@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -119,6 +120,7 @@ class MainLayoutState extends State<MainLayout> {
         floatingActionButton: FloatingActionButton(
           heroTag: 'main_fab',
           onPressed: () {
+            HapticFeedback.mediumImpact();
             Navigator.push(
               context,
               MaterialPageRoute(builder: (context) => QRScannerPage(storeId: _storeId)),
@@ -174,7 +176,10 @@ class MainLayoutState extends State<MainLayout> {
   }) {
     final isSelected = _currentIndex == index;
     return InkWell(
-      onTap: () => setState(() => _currentIndex = index),
+      onTap: () {
+        HapticFeedback.lightImpact();
+        setState(() => _currentIndex = index);
+      },
       customBorder: const CircleBorder(),
       child: Column(
         mainAxisSize: MainAxisSize.min,

@@ -17,12 +17,14 @@ import {
   Clock,
   MoreVertical,
   Calendar,
-  MessageCircle
+  MessageCircle,
+  Image as ImageIcon,
+  Upload
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
-import { adminApi } from '@/lib/api';
+import { adminApi, resolveImageUrl } from '@/lib/api';
 import { ZAGAZIG_AREAS, DISPLAY_NAMES } from '@/lib/constants';
 
 // Components
@@ -92,14 +94,21 @@ function StoresContent() {
   const [editingStore, setEditingStore] = useState<StoreItem | null>(null);
   const [formData, setFormData] = useState({
     name: '',
-    category: '',
+    categoryId: '',
     area: '',
+    address: '',
     phone: '',
     whatsapp: '',
     email: '',
     ownerId: '',
+    logo: '',
+    coverImage: '',
+    images: [] as string[],
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
+  const [isUploadingLogo, setIsUploadingLogo] = useState(false);
+  const [isUploadingCover, setIsUploadingCover] = useState(false);
+  const [isUploadingGallery, setIsUploadingGallery] = useState(false);
   const searchParams = useSearchParams();
 
   useEffect(() => {
@@ -209,19 +218,82 @@ function StoresContent() {
       setEditingStore(store);
       setFormData({
         name: store.name,
-        category: typeof store.category === 'string' ? store.category : store.category.name,
+        categoryId: typeof store.category === 'string' ? store.category : store.category.id,
         area: store.area,
+        address: (store as any).address || '',
         phone: store.phone || '',
         whatsapp: store.whatsapp || '',
         email: store.email || '',
         ownerId: store.ownerId,
+        logo: store.logo || '',
+        coverImage: (store as any).coverImage || '',
+        images: (store as any).images || [],
       });
     } else {
       setEditingStore(null);
-      setFormData({ name: '', category: '', area: '', phone: '', whatsapp: '', email: '', ownerId: '' });
+      setFormData({ name: '', categoryId: '', area: '', address: '', phone: '', whatsapp: '', email: '', ownerId: '', logo: '', coverImage: '', images: [] });
     }
     setFormErrors({});
     setIsUpsertOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>, type: 'logo' | 'coverImage') => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    if (type === 'logo') setIsUploadingLogo(true);
+    else setIsUploadingCover(true);
+
+    try {
+      const formDataUpload = new FormData();
+      formDataUpload.append('file', file);
+
+      const response = await adminApi().post('/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
+
+      setFormData(prev => ({ ...prev, [type]: response.data.url }));
+      showToast('تم رفع الصورة بنجاح');
+    } catch (error) {
+      console.error('Upload error:', error);
+      showToast('فشل رفع الصورة، يرجى المحاولة مرة أخرى', 'error');
+    } finally {
+      if (type === 'logo') setIsUploadingLogo(false);
+      else setIsUploadingCover(false);
+    }
+  };
+
+  const handleGalleryUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = Array.from(e.target.files || []);
+    if (files.length === 0) return;
+
+    setIsUploadingGallery(true);
+    try {
+      const uploadPromises = files.map(async file => {
+        const formDataUpload = new FormData();
+        formDataUpload.append('file', file);
+        const response = await adminApi().post('/upload', formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
+        return response.data.url;
+      });
+
+      const newUrls = await Promise.all(uploadPromises);
+      setFormData(prev => ({ ...prev, images: [...prev.images, ...newUrls] }));
+      showToast(`تم رفع ${newUrls.length} صور بنجاح`);
+    } catch (error) {
+      console.error('Gallery upload error:', error);
+      showToast('فشل رفع بعض الصور', 'error');
+    } finally {
+      setIsUploadingGallery(false);
+    }
+  };
+
+  const removeGalleryImage = (index: number) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index)
+    }));
   };
 
   const validateForm = () => {
@@ -231,8 +303,8 @@ function StoresContent() {
       errors.name = 'اسم المتجر مطلوب';
     }
 
-    if (!formData.category.trim()) {
-      errors.category = 'الفئة مطلوبة';
+    if (!formData.categoryId.trim()) {
+      errors.categoryId = 'الفئة مطلوبة';
     }
 
     if (!formData.area.trim()) {
@@ -274,29 +346,42 @@ function StoresContent() {
         </button>
       </div>
 
-      {/* Filters Area */}
-      {/* Filters (Search removed for premium look) */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <select 
-          value={statusFilter}
-          onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer lg:col-span-1"
-        >
-          <option value="">كل الحالات</option>
-          <option value="PENDING">بانتظار الموافقة</option>
-          <option value="APPROVED">معتمد</option>
-          <option value="REJECTED">مرفوض</option>
-        </select>
-        <select 
-          value={categoryFilter}
-          onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
-          className="h-[48px] rounded-xl border border-slate-200 bg-white px-4 text-sm font-medium focus:outline-none shadow-sm cursor-pointer lg:col-span-1"
-        >
-          <option value="">كل الفئات</option>
-          {categories?.map((cat) => (
-            <option key={cat.id} value={cat.name}>{cat.name}</option>
-          ))}
-        </select>
+      {/* Filters & Search */}
+      <div className="flex flex-col lg:flex-row gap-4 items-center">
+        <div className="relative flex-1 w-full lg:max-w-md group">
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={18} />
+          <input
+            type="text"
+            placeholder="بحث عن متجر بالاسم أو المالك..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="h-12 w-full pr-12 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all shadow-sm"
+          />
+        </div>
+
+        <div className="flex gap-4 w-full lg:w-auto">
+          <select 
+            value={statusFilter}
+            onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
+            className="h-12 flex-1 lg:w-44 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:border-orange-600 shadow-sm cursor-pointer"
+          >
+            <option value="">كل الحالات</option>
+            <option value="PENDING">بانتظار الموافقة</option>
+            <option value="APPROVED">معتمد</option>
+            <option value="REJECTED">مرفوض</option>
+          </select>
+
+          <select 
+            value={categoryFilter}
+            onChange={(e) => { setCategoryFilter(e.target.value); setPage(1); }}
+            className="h-12 flex-1 lg:w-44 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:border-orange-600 shadow-sm cursor-pointer"
+          >
+            <option value="">كل الفئات</option>
+            {categories?.map((cat) => (
+              <option key={cat.id} value={cat.name}>{cat.name}</option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {isLoading ? (
@@ -565,7 +650,7 @@ function StoresContent() {
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
               exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-lg rounded-[2.5rem] bg-white p-10 shadow-2xl relative border border-slate-100"
+              className="w-full max-w-2xl rounded-[2.5rem] bg-white p-10 shadow-2xl relative border border-slate-100 overflow-y-auto max-h-[90vh]"
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
@@ -585,9 +670,114 @@ function StoresContent() {
               </div>
 
               <form 
-                onSubmit={(e) => { e.preventDefault(); if (validateForm()) upsertMutation.mutate(formData); }} 
+                onSubmit={(e) => { e.preventDefault(); if (Object.keys(validateForm()).length === 0) upsertMutation.mutate(formData); }} 
                 className="space-y-6"
               >
+                {/* Image Uploads */}
+                <div className="grid gap-6 sm:grid-cols-2 mb-8">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                      شعار المتجر (Logo)
+                    </label>
+                    <div 
+                      className="relative group h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-all overflow-hidden"
+                    >
+                      {isUploadingLogo ? (
+                        <Loader2 className="animate-spin text-orange-600" size={24} />
+                      ) : formData.logo ? (
+                        <>
+                          <img src={resolveImageUrl(formData.logo)} alt="Logo" className="absolute inset-0 w-full h-full object-contain p-2" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الشعار</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon size={24} className="text-slate-300 group-hover:text-orange-400" />
+                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-orange-600">رفع لوجو</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleImageUpload(e, 'logo')} 
+                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                        disabled={isUploadingLogo}
+                      />
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                      صورة الغلاف (Cover Image)
+                    </label>
+                    <div 
+                      className="relative group h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:border-blue-400 hover:bg-blue-50/30 transition-all overflow-hidden"
+                    >
+                      {isUploadingCover ? (
+                        <Loader2 className="animate-spin text-blue-600" size={24} />
+                      ) : formData.coverImage ? (
+                        <>
+                          <img src={resolveImageUrl(formData.coverImage)} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
+                          <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                            <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الغلاف</span>
+                          </div>
+                        </>
+                      ) : (
+                        <>
+                          <ImageIcon size={24} className="text-slate-300 group-hover:text-blue-400" />
+                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-600">رفع غلاف</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        accept="image/*" 
+                        onChange={(e) => handleImageUpload(e, 'coverImage')} 
+                        className="absolute inset-0 opacity-0 cursor-pointer" 
+                        disabled={isUploadingCover}
+                      />
+                    </div>
+                  </div>
+                </div>
+
+                {/* Gallery Upload */}
+                <div className="space-y-3">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    معرض صور المتجر (Gallery)
+                  </label>
+                  <div className="grid grid-cols-4 gap-3">
+                    {formData.images.map((url, index) => (
+                      <div key={index} className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group">
+                        <img src={resolveImageUrl(url)} className="w-full h-full object-cover" />
+                        <button 
+                          type="button"
+                          onClick={() => removeGalleryImage(index)}
+                          className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white flex items-center justify-center opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                        >
+                          <X size={14} />
+                        </button>
+                      </div>
+                    ))}
+                    <label className="relative aspect-square rounded-xl border-2 border-dashed border-slate-200 bg-slate-50 flex flex-col items-center justify-center cursor-pointer hover:border-orange-400 hover:bg-orange-50 transition-all">
+                      {isUploadingGallery ? (
+                        <Loader2 className="animate-spin text-orange-600" size={18} />
+                      ) : (
+                        <>
+                          <Plus size={20} className="text-slate-300" />
+                          <span className="text-[8px] font-bold text-slate-400 mt-1">إضافة</span>
+                        </>
+                      )}
+                      <input 
+                        type="file" 
+                        multiple 
+                        accept="image/*" 
+                        onChange={handleGalleryUpload} 
+                        className="hidden" 
+                        disabled={isUploadingGallery}
+                      />
+                    </label>
+                  </div>
+                </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
                     اسم المتجر
@@ -610,20 +800,20 @@ function StoresContent() {
                     </label>
                     <select 
                       required
-                      value={formData.category} 
-                      onChange={e => setFormData({...formData, category: e.target.value})} 
+                      value={formData.categoryId} 
+                      onChange={e => setFormData({...formData, categoryId: e.target.value})} 
                       className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${
-                        formErrors.category ? 'border-rose-500' : 'border-slate-100'
+                        formErrors.categoryId ? 'border-rose-500' : 'border-slate-100'
                       } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer`}
                     >
                       <option value="">اختر الفئة</option>
                         {categories?.filter(c => c.name !== 'سوبرماركت' && c.name !== 'خدمات محلية').map((cat) => (
-                          <option key={cat.id} value={typeof formData.category === 'string' ? cat.name : cat.id}>
+                          <option key={cat.id} value={cat.id}>
                             {DISPLAY_NAMES[cat.name] || cat.name}
                           </option>
                         ))}
                     </select>
-                    {formErrors.category && <p className="text-xs text-rose-600">{formErrors.category}</p>}
+                    {formErrors.categoryId && <p className="text-xs text-rose-600">{formErrors.categoryId}</p>}
                   </div>
                   <div className="space-y-2">
                     <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
@@ -644,6 +834,18 @@ function StoresContent() {
                     </select>
                     {formErrors.area && <p className="text-xs text-rose-600">{formErrors.area}</p>}
                   </div>
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    العنوان التفصيلي
+                  </label>
+                  <input 
+                    value={formData.address} 
+                    onChange={e => setFormData({...formData, address: e.target.value})} 
+                    placeholder="مثلاً: شارع القومية - بجوار بنك مصر"
+                    className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
+                  />
                 </div>
 
                 <div className="space-y-2">

@@ -8,6 +8,8 @@ import '../../domain/usecases/get_featured_stores.dart';
 import '../../domain/usecases/get_offers_by_store.dart';
 import '../../domain/usecases/search_offers_usecase.dart';
 import '../../domain/usecases/get_recommended_offers_usecase.dart';
+import '../../domain/usecases/get_categories_usecase.dart';
+import '../../domain/entities/category_entity.dart';
 import 'offers_event.dart';
 import 'offers_state.dart';
 
@@ -18,6 +20,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
   final GetOffersByStoreUseCase getOffersByStoreUseCase;
   final SearchOffersUseCase searchOffersUseCase;
   final GetRecommendedOffersUseCase getRecommendedOffersUseCase;
+  final GetCategoriesUseCase getCategoriesUseCase;
 
   OffersBloc({
     required this.getAllOffersUseCase,
@@ -26,6 +29,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     required this.getOffersByStoreUseCase,
     required this.searchOffersUseCase,
     required this.getRecommendedOffersUseCase,
+    required this.getCategoriesUseCase,
   }) : super(OffersInitial()) {
     on<FetchHomeData>(_onFetchHomeData);
     on<FetchAllOffers>(_onFetchAllOffers);
@@ -45,23 +49,24 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       getFeaturedStoresUseCase(),
       timeout: const Duration(seconds: 4),
     );
+    final categoriesFuture = _loadSection<CategoryEntity>(
+      getCategoriesUseCase(),
+      timeout: const Duration(seconds: 4),
+    );
 
     final results = await Future.wait([
       trendingFuture,
       storesFuture,
+      categoriesFuture,
     ]);
 
     final trending = results[0] as _SectionResult<OfferEntity>;
     final stores = results[1] as _SectionResult<StoreEntity>;
+    final categories = results[2] as _SectionResult<CategoryEntity>;
 
-    final hasAnyContent = trending.items.isNotEmpty ||
-        stores.items.isNotEmpty;
-
-    if (!hasAnyContent) {
-      final firstError = trending.errorMessage ??
-          stores.errorMessage ??
-          'تعذر تحميل البيانات حاليًا';
-      emit(OffersError(firstError));
+    // Only emit error if both failed or if there's a critical error
+    if (trending.errorMessage != null && stores.errorMessage != null) {
+      emit(OffersError(trending.errorMessage ?? 'تعذر تحميل البيانات حاليًا'));
       return;
     }
 
@@ -69,12 +74,16 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     if (stores.errorMessage != null) {
       noticeParts.add('المتاجر');
     }
+    if (categories.errorMessage != null) {
+      noticeParts.add('الأقسام');
+    }
 
     emit(
       OffersLoaded(
         allOffers: const [],
         trendingOffers: trending.items,
         featuredStores: stores.items,
+        categories: categories.items,
         recommendedOffers: const [],
         noticeMessage: noticeParts.isEmpty
             ? null
@@ -115,6 +124,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
           allOffers: offers,
           trendingOffers: currentState.trendingOffers,
           featuredStores: currentState.featuredStores,
+          categories: currentState.categories,
           recommendedOffers: currentState.recommendedOffers,
           searchResults: currentState.searchResults,
           noticeMessage: currentState.noticeMessage,
@@ -134,6 +144,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         allOffers: currentState.allOffers,
         trendingOffers: currentState.trendingOffers,
         featuredStores: currentState.featuredStores,
+        categories: currentState.categories,
         recommendedOffers: currentState.recommendedOffers,
         searchResults: results,
         noticeMessage: currentState.noticeMessage,
@@ -152,6 +163,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         allOffers: currentState.allOffers,
         trendingOffers: currentState.trendingOffers,
         featuredStores: currentState.featuredStores,
+        categories: currentState.categories,
         recommendedOffers: recommended,
         noticeMessage: currentState.noticeMessage,
       )),
@@ -171,6 +183,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
         allOffers: currentState.allOffers,
         trendingOffers: [newOffer, ...currentState.trendingOffers],
         featuredStores: currentState.featuredStores,
+        categories: currentState.categories,
         recommendedOffers: currentState.recommendedOffers,
         noticeMessage: currentState.noticeMessage,
       ));

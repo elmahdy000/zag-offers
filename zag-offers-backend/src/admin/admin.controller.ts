@@ -133,6 +133,7 @@ export class AdminController {
       whatsapp?: string;
       logo?: string;
       coverImage?: string;
+      images?: string[];
       categoryId?: string;
       status?: StoreStatus;
     },
@@ -318,22 +319,39 @@ export class AdminController {
 
   @Post('categories')
   @ApiOperation({ summary: 'Create category' })
-  @ApiBody({ schema: { properties: { name: { type: 'string' } } } })
+  @ApiBody({
+    schema: {
+      properties: {
+        name: { type: 'string' },
+        image: { type: 'string' },
+      },
+    },
+  })
   createCategory(
     @Body('name') name: string,
+    @Body('image') image: string,
     @Request() req: { user: { id: string } },
   ) {
-    return this.adminService.createCategory(name, req.user.id);
+    return this.adminService.createCategory(name, image, req.user.id);
   }
 
   @Patch('categories/:id')
-  @ApiOperation({ summary: 'Update category name' })
+  @ApiOperation({ summary: 'Update category name and image' })
+  @ApiBody({
+    schema: {
+      properties: {
+        name: { type: 'string' },
+        image: { type: 'string' },
+      },
+    },
+  })
   updateCategory(
     @Param('id') id: string,
     @Body('name') name: string,
+    @Body('image') image: string,
     @Request() req: { user: { id: string } },
   ) {
-    return this.adminService.updateCategory(id, name, req.user.id);
+    return this.adminService.updateCategory(id, name, image, req.user.id);
   }
 
   @Delete('categories/:id')

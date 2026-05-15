@@ -26,6 +26,7 @@ type StoreUpdatePayload = {
   whatsapp?: string;
   logo?: string;
   coverImage?: string;
+  images?: string[];
   categoryId?: string;
   status?: StoreStatus;
 };
@@ -40,6 +41,7 @@ type StoreCreatePayload = {
   whatsapp?: string;
   logo?: string;
   coverImage?: string;
+  images?: string[];
   status?: StoreStatus;
 };
 
@@ -197,12 +199,16 @@ export class AdminService {
         id: category.id,
         name: category.name,
         storeCount: category._count.stores,
+        count: category.stores.reduce(
+          (sum, store) => sum + store._count.offers,
+          0,
+        ),
         totalOffers: category.stores.reduce(
           (sum, store) => sum + store._count.offers,
           0,
         ),
       }))
-      .sort((a, b) => b.totalOffers - a.totalOffers);
+      .sort((a, b) => b.count - a.count);
   }
 
   async getTopStores(limit = 10) {
@@ -374,6 +380,7 @@ export class AdminService {
         ...(payload.coverImage !== undefined
           ? { coverImage: payload.coverImage }
           : {}),
+        ...(payload.images !== undefined ? { images: payload.images } : {}),
         ...(payload.categoryId !== undefined
           ? { categoryId: payload.categoryId }
           : {}),
@@ -663,7 +670,9 @@ export class AdminService {
         ...(payload.status !== undefined ? { status: payload.status } : {}),
         ...(payload.storeId !== undefined ? { storeId: payload.storeId } : {}),
         ...(payload.images !== undefined ? { images: payload.images } : {}),
-        ...(payload.originalPrice !== undefined ? { originalPrice: payload.originalPrice } : {}),
+        ...(payload.originalPrice !== undefined
+          ? { originalPrice: payload.originalPrice }
+          : {}),
         ...(startDate ? { startDate } : {}),
         ...(endDate ? { endDate } : {}),
       },
@@ -1029,7 +1038,7 @@ export class AdminService {
     });
   }
 
-  async createCategory(name: string, adminId?: string) {
+  async createCategory(name: string, image?: string, adminId?: string) {
     const normalizedName = name.trim();
     if (!normalizedName) {
       throw new BadRequestException('Category name is required');
@@ -1043,7 +1052,10 @@ export class AdminService {
     }
 
     const created = await this.prisma.category.create({
-      data: { name: normalizedName },
+      data: {
+        name: normalizedName,
+        image: image || null,
+      } as any,
     });
 
     if (adminId) {
@@ -1058,7 +1070,12 @@ export class AdminService {
     return created;
   }
 
-  async updateCategory(id: string, name: string, adminId?: string) {
+  async updateCategory(
+    id: string,
+    name: string,
+    image?: string,
+    adminId?: string,
+  ) {
     const normalizedName = name.trim();
     if (!normalizedName) {
       throw new BadRequestException('Category name is required');
@@ -1081,7 +1098,10 @@ export class AdminService {
 
     const updated = await this.prisma.category.update({
       where: { id },
-      data: { name: normalizedName },
+      data: {
+        name: normalizedName,
+        image: image !== undefined ? image : (category as any).image,
+      } as any,
       include: { _count: { select: { stores: true } } },
     });
 
@@ -1144,7 +1164,9 @@ export class AdminService {
         { code: { contains: search, mode: 'insensitive' } },
         { customer: { name: { contains: search, mode: 'insensitive' } } },
         { customer: { phone: { contains: search } } },
-        { offer: { store: { name: { contains: search, mode: 'insensitive' } } } },
+        {
+          offer: { store: { name: { contains: search, mode: 'insensitive' } } },
+        },
       ];
     }
 
@@ -1320,6 +1342,7 @@ export class AdminService {
         whatsapp: payload.whatsapp || '',
         logo: payload.logo || null,
         coverImage: payload.coverImage || null,
+        images: payload.images || [],
         status: payload.status || StoreStatus.APPROVED,
         category: { connect: { id: payload.categoryId } },
         owner: { connect: { id: payload.ownerId } },

@@ -77,4 +77,13 @@ export class CreateStoreDto {
   @IsNotEmpty()
   @IsString()
   categoryId: string;
+
+  @ApiProperty({
+    required: false,
+    description: 'معرض صور المحل',
+    example: ['https://image.com/1.jpg', 'https://image.com/2.jpg'],
+  })
+  @IsOptional()
+  @IsString({ each: true })
+  images?: string[];
 }

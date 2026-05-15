@@ -1,4 +1,5 @@
 import '../../domain/entities/offer_entity.dart';
+import '../constants/offer_categories.dart';
 
 class OfferFilterUtils {
   static const int minSearchLength = 3;
@@ -23,8 +24,12 @@ class OfferFilterUtils {
   }) {
     final filtered = offers.where((offer) {
       final normalizedArea = offer.store.area.trim();
-      final matchesCategory =
-          category == 'الكل' || offer.store.category?.trim() == category.trim();
+      final backendCategory = getBackendCategoryName(category);
+      
+      final matchesCategory = category == 'الكل' || 
+          offer.store.category?.trim() == category.trim() ||
+          offer.store.category?.trim() == backendCategory.trim();
+          
       final matchesArea = area == 'الكل' || normalizedArea == area.trim();
       final matchesDiscount = offer.discountPercentage >= minDiscount;
       return matchesCategory && matchesArea && matchesDiscount;

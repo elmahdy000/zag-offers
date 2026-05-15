@@ -1,3 +1,4 @@
+import 'package:zag_offers_app/core/utils/image_url_helper.dart';
 import '../../domain/entities/store_entity.dart';
 
 class StoreModel extends StoreEntity {
@@ -5,11 +6,13 @@ class StoreModel extends StoreEntity {
     required super.id,
     required super.name,
     super.logo,
+    super.coverImage,
     super.category,
     required super.area,
     super.rating,
     super.latitude,
     super.longitude,
+    super.images,
     super.phone,
     super.whatsapp,
   });
@@ -18,12 +21,16 @@ class StoreModel extends StoreEntity {
     return StoreModel(
       id: json['id']?.toString() ?? json['_id']?.toString() ?? '',
       name: json['name'] ?? '',
-      logo: json['logo'],
+      logo: ImageUrlHelper.resolveNullable(json['logo']),
+      coverImage: ImageUrlHelper.resolveNullable(json['coverImage']),
       category: _parseCategory(json['category']),
       area: json['area'] ?? '',
       rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
       latitude: (json['lat'] as num?)?.toDouble(),
       longitude: (json['lng'] as num?)?.toDouble(),
+      images: json['images'] != null
+          ? ImageUrlHelper.resolveList(List<String>.from(json['images']))
+          : null,
       phone: json['phone'],
       whatsapp: json['whatsapp'],
     );

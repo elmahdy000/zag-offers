@@ -37,6 +37,10 @@ import 'features/upload/domain/usecases/upload_usecase.dart';
 import 'features/notifications/domain/repositories/notifications_repository.dart';
 import 'features/notifications/data/repositories/notifications_repository_impl.dart';
 import 'features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'features/dashboard/data/datasources/store_setup_remote_data_source.dart';
+import 'features/dashboard/data/repositories/store_setup_repository_impl.dart';
+import 'features/dashboard/domain/repositories/store_setup_repository.dart';
+import 'features/dashboard/presentation/bloc/store_setup_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -72,6 +76,13 @@ Future<void> init() async {
   // Data sources
   sl.registerLazySingleton<DashboardRemoteDataSource>(
       () => DashboardRemoteDataSourceImpl(apiClient: sl()));
+
+  // --- Features - Store Setup ---
+  sl.registerFactory(() => StoreSetupBloc(repository: sl()));
+  sl.registerLazySingleton<StoreSetupRepository>(
+      () => StoreSetupRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<StoreSetupRemoteDataSource>(
+      () => StoreSetupRemoteDataSourceImpl(apiClient: sl()));
 
   // --- Features - QR Scanner ---
   // BLoC

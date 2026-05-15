@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
@@ -258,7 +259,10 @@ class _OfferDetailsPageState extends State<OfferDetailsPage> {
         itemBuilder: (context, index) {
           final isSelected = _selectedImageIndex == index;
           return GestureDetector(
-            onTap: () => setState(() => _selectedImageIndex = index),
+            onTap: () {
+              HapticFeedback.lightImpact();
+              setState(() => _selectedImageIndex = index);
+            },
             child: Container(
               width: 50,
               margin: const EdgeInsets.only(left: 10),
@@ -355,6 +359,7 @@ class _OfferDetailsPageState extends State<OfferDetailsPage> {
       ),
       child: ElevatedButton.icon(
         onPressed: () {
+          HapticFeedback.lightImpact();
           Navigator.push(context, MaterialPageRoute(builder: (_) => AddEditOfferPage(offer: widget.offer)));
         },
         icon: const Icon(Icons.edit_rounded, size: 16),

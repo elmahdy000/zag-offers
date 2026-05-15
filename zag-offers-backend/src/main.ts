@@ -31,7 +31,7 @@ function getAllowedOrigins(): string[] {
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.setGlobalPrefix('api');
-  
+
   // تفعيل Redis Adapter للشات
   const redisIoAdapter = new RedisIoAdapter(app);
   try {
