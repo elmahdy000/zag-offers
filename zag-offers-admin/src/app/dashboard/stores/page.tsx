@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, Suspense } from 'react';
 import {
   Loader2,
   Search,
@@ -77,7 +77,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
   );
 }
 
-export default function StoresPage() {
+function StoresContent() {
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
@@ -717,5 +717,18 @@ export default function StoresPage() {
       </AnimatePresence>
 
     </div>
+  );
+}
+
+export default function StoresPage() {
+  return (
+    <Suspense fallback={
+      <div className="p-10 flex flex-col items-center justify-center min-h-[400px] text-slate-400">
+        <Loader2 size={40} className="animate-spin text-orange-600 mb-4" />
+        <p className="text-sm font-bold">جاري تحميل البيانات...</p>
+      </div>
+    }>
+      <StoresContent />
+    </Suspense>
   );
 }
