@@ -3,7 +3,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { OfferStatus, StoreStatus } from '@prisma/client';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
-import { Cache } from 'cache-manager';
+import type { Cache } from 'cache-manager';
 
 @Injectable()
 export class RecommendationsService {
