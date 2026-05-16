@@ -82,4 +82,10 @@ export class UpdateOfferDto {
   @IsNumber()
   @Min(0)
   originalPrice?: number;
+
+  @ApiPropertyOptional({ example: 80 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  newPrice?: number;
 }

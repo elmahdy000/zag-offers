@@ -248,7 +248,7 @@ class OfferCard extends StatelessWidget {
                     style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w900,
-                      fontSize: 13,
+                      fontSize: 16,
                       height: 1,
                       fontFamily: 'Tajawal',
                     ),
@@ -257,8 +257,8 @@ class OfferCard extends StatelessWidget {
                     Text(
                       'بدل ${offer.oldPrice!.toStringAsFixed(0)}',
                       style: TextStyle(
-                        fontSize: 9,
-                        color: isDark ? Colors.white24 : Colors.black26,
+                        fontSize: 11,
+                        color: isDark ? Colors.white38 : Colors.black45,
                         decoration: TextDecoration.lineThrough,
                         fontFamily: 'Tajawal',
                       ),

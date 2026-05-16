@@ -57,6 +57,7 @@ type OfferUpdatePayload = {
   storeId?: string;
   images?: string[];
   originalPrice?: number;
+  newPrice?: number;
 };
 
 type OfferCreatePayload = {
@@ -70,6 +71,7 @@ type OfferCreatePayload = {
   terms?: string;
   usageLimit?: number;
   originalPrice?: number;
+  newPrice?: number;
 };
 
 @Injectable()
@@ -692,7 +694,10 @@ export class AdminService {
         ...(payload.storeId !== undefined ? { storeId: payload.storeId } : {}),
         ...(payload.images !== undefined ? { images: payload.images } : {}),
         ...(payload.originalPrice !== undefined
-          ? { originalPrice: payload.originalPrice }
+          ? { originalPrice: payload.originalPrice ? +payload.originalPrice : null }
+          : {}),
+        ...(payload.newPrice !== undefined
+          ? { newPrice: payload.newPrice ? +payload.newPrice : null }
           : {}),
         ...(startDate ? { startDate } : {}),
         ...(endDate ? { endDate } : {}),
@@ -1410,6 +1415,7 @@ export class AdminService {
         images: payload.images || [],
         status: OfferStatus.ACTIVE, // Admin offers are approved by default
         originalPrice: payload.originalPrice ? +payload.originalPrice : null,
+        newPrice: payload.newPrice ? +payload.newPrice : null,
         store: { connect: { id: payload.storeId } },
       },
       include: { store: true },

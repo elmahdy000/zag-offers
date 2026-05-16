@@ -42,6 +42,8 @@ interface OfferRow {
   startDate?: string;
   endDate?: string;
   store: { id: string; name: string };
+  originalPrice?: number;
+  newPrice?: number;
   _count: { coupons: number };
 }
 
@@ -300,7 +302,18 @@ export default function OffersManagementPage() {
                   </div>
 
                   {isEditing ? (
-                    <form onSubmit={(e) => { e.preventDefault(); const fd = new FormData(e.currentTarget); updateOfferMutation.mutate({ id: offerDetails!.id, data: { ...Object.fromEntries(fd.entries()), images: tempImages } }); }} className="space-y-4">
+                    <form onSubmit={(e) => { 
+                      e.preventDefault(); 
+                      const fd = new FormData(e.currentTarget); 
+                      const formData = Object.fromEntries(fd.entries());
+                      const data = {
+                        ...formData,
+                        originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
+                        newPrice: formData.newPrice ? Number(formData.newPrice) : null,
+                        images: tempImages
+                      };
+                      updateOfferMutation.mutate({ id: offerDetails!.id, data }); 
+                    }} className="space-y-4">
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">العنوان</label>
@@ -309,6 +322,16 @@ export default function OffersManagementPage() {
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الخصم</label>
                           <input name="discount" defaultValue={offerDetails?.discount} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                        </div>
+                      </div>
+                      <div className="grid gap-4 sm:grid-cols-2">
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
+                          <input type="number" step="0.01" name="originalPrice" defaultValue={offerDetails?.originalPrice} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                        </div>
+                        <div className="space-y-2">
+                          <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
+                          <input type="number" step="0.01" name="newPrice" defaultValue={offerDetails?.newPrice} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -412,12 +435,15 @@ export default function OffersManagementPage() {
               <form onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
-                const data = Object.fromEntries(fd.entries());
-                createOfferMutation.mutate({
-                  ...data,
+                const formData = Object.fromEntries(fd.entries());
+                const data = {
+                  ...formData,
+                  originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
+                  newPrice: formData.newPrice ? Number(formData.newPrice) : null,
                   images: tempImages,
                   status: 'ACTIVE' // Admin-created offers are auto-active
-                });
+                };
+                createOfferMutation.mutate(data);
               }} className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
@@ -427,6 +453,14 @@ export default function OffersManagementPage() {
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">قيمة الخصم</label>
                     <input name="discount" placeholder="مثلاً: 50% أو خصم 100 ج" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
+                    <input type="number" step="0.01" name="originalPrice" placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
+                    <input type="number" step="0.01" name="newPrice" placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">اختر المتجر</label>

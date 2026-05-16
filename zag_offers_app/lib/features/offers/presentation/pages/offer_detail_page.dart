@@ -402,19 +402,20 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             children: [
               if (widget.offer.newPrice != null)
                 Text(
-                  '${widget.offer.newPrice} ج.م',
-                  style: textTheme.titleMedium?.copyWith(
+                  '${widget.offer.newPrice!.toStringAsFixed(0)} ج.م',
+                  style: textTheme.headlineSmall?.copyWith(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w800,
+                    fontWeight: FontWeight.w900,
                   ),
                 ),
               if (widget.offer.oldPrice != null) ...[
                 const SizedBox(width: 12),
                 Text(
-                  '${widget.offer.oldPrice} ج.م',
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                  '${widget.offer.oldPrice!.toStringAsFixed(0)} ج.م',
+                  style: textTheme.titleMedium?.copyWith(
+                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                     decoration: TextDecoration.lineThrough,
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
               ],
@@ -644,6 +645,32 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   ),
                 ],
               ),
+              if (widget.offer.newPrice != null) ...[
+                const SizedBox(height: 12),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      '${widget.offer.newPrice!.toStringAsFixed(0)} ج.م',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 18,
+                      ),
+                    ),
+                    if (widget.offer.oldPrice != null) ...[
+                      const SizedBox(width: 8),
+                      Text(
+                        '${widget.offer.oldPrice!.toStringAsFixed(0)} ج.م',
+                        style: theme.textTheme.bodySmall?.copyWith(
+                          decoration: TextDecoration.lineThrough,
+                          color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ],
               const SizedBox(height: 20),
               const Icon(
                 Icons.check_circle_rounded,

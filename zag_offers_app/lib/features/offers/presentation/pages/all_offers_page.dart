@@ -397,7 +397,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
           crossAxisCount: 2,
           mainAxisSpacing: 16,
           crossAxisSpacing: 16,
-          childAspectRatio: 0.76,
+          childAspectRatio: 0.71,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {

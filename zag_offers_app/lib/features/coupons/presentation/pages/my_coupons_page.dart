@@ -96,7 +96,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
   }
 
-  void _showQRDialog(BuildContext context, String code, String storeName) {
+  void _showQRDialog(BuildContext context, String code, String storeName, {double? oldPrice, double? newPrice}) {
     showDialog(
       context: context,
       builder: (dialogContext) => AlertDialog(
@@ -111,6 +111,31 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
               textAlign: TextAlign.center,
               style: Theme.of(context).textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
             ),
+            if (newPrice != null) ...[
+              const SizedBox(height: 8),
+              Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Text(
+                    '${newPrice.toStringAsFixed(0)} ج.م',
+                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                  if (oldPrice != null) ...[
+                    const SizedBox(width: 8),
+                    Text(
+                      '${oldPrice.toStringAsFixed(0)} ج.م',
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        decoration: TextDecoration.lineThrough,
+                        color: Theme.of(context).textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                      ),
+                    ),
+                  ],
+                ],
+              ),
+            ],
             const SizedBox(height: 24),
             Container(
               padding: const EdgeInsets.all(16),
@@ -358,7 +383,36 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                             coupon.offer.store.name,
                             style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
-                          subtitle: Text(coupon.offer.title, maxLines: 1),
+                          subtitle: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(coupon.offer.title, maxLines: 1),
+                              if (coupon.offer.newPrice != null)
+                                Row(
+                                  children: [
+                                    Text(
+                                      '${coupon.offer.newPrice!.toStringAsFixed(0)} ج.م',
+                                      style: TextStyle(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 12,
+                                      ),
+                                    ),
+                                    if (coupon.offer.oldPrice != null) ...[
+                                      const SizedBox(width: 6),
+                                      Text(
+                                        '${coupon.offer.oldPrice!.toStringAsFixed(0)}',
+                                        style: TextStyle(
+                                          decoration: TextDecoration.lineThrough,
+                                          color: Colors.grey,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
+                                  ],
+                                ),
+                            ],
+                          ),
                           trailing: Container(
                             padding: const EdgeInsets.symmetric(
                               horizontal: 10,
@@ -388,6 +442,8 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                   context,
                                   coupon.code,
                                   coupon.offer.store.name,
+                                  oldPrice: coupon.offer.oldPrice,
+                                  newPrice: coupon.offer.newPrice,
                                 );
                               },
                               style: ElevatedButton.styleFrom(
