@@ -373,7 +373,10 @@ function HomePageContent() {
             <div className="flex gap-6 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
               {recommended.map((offer) => (
                 <div key={offer.id} className="min-w-[280px] sm:min-w-[340px]">
-                  <OfferCard offer={offer} />
+                  <OfferCard 
+                    offer={offer} 
+                    priority={offer.id === recommended[0]?.id || offer.id === recommended[1]?.id} 
+                  />
                 </div>
               ))}
             </div>
@@ -465,7 +468,7 @@ function HomePageContent() {
                   exit={{ opacity: 0, scale: 0.9 }}
                   transition={{ duration: 0.3, delay: i < 12 ? i * 0.05 : 0 }}
                 >
-                  <OfferCard offer={offer} />
+                  <OfferCard offer={offer} priority={i < 2} />
                 </motion.div>
               ))}
             </AnimatePresence>

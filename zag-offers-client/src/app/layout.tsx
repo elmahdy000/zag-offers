@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from "next";
+import { Cairo } from "next/font/google";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
@@ -6,6 +7,13 @@ import BottomNav from "@/components/bottom-nav";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
 import { register } from "@/lib/register-sw";
 import OnlineStatusBanner from "@/components/online-status-banner";
+
+const cairo = Cairo({
+  subsets: ["latin", "arabic"],
+  weight: ["400", "500", "600", "700", "800", "900"],
+  variable: "--font-cairo",
+  display: "swap",
+});
 
 export const metadata: Metadata = {
   title: "Zag Offers | زقازيق أوفرز - أفضل عروض الزقازيق",
@@ -43,9 +51,11 @@ export default function RootLayout({
     register();
   }
   return (
-    <html lang="ar" dir="rtl">
+    <html lang="ar" dir="rtl" className={cairo.variable}>
       <head>
         <link rel="manifest" href="/manifest.json" />
+        <link rel="preconnect" href="https://api.zagoffers.online" />
+        <link rel="dns-prefetch" href="https://api.zagoffers.online" />
         <meta name="theme-color" content="#FF6B00" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />

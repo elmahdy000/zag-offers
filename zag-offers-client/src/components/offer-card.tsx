@@ -40,6 +40,7 @@ interface Offer {
 
 interface OfferCardProps {
   offer: Offer;
+  priority?: boolean;
 }
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
@@ -91,7 +92,7 @@ const CAT_GRADIENTS: Record<string, string> = {
   'default':       'from-[#1a1a2e] to-[#16213e]',
 };
 
-export function OfferCard({ offer }: OfferCardProps) {
+export function OfferCard({ offer, priority = false }: OfferCardProps) {
   const router = useRouter();
   const [isFav, setIsFav] = useState(false);
 
@@ -205,7 +206,7 @@ export function OfferCard({ offer }: OfferCardProps) {
             className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" 
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             quality={75}
-            priority={false}
+            priority={priority}
           />
         )}
 
