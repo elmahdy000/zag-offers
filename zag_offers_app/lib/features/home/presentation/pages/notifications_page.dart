@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -38,9 +38,9 @@ class NotificationsPage extends StatelessWidget {
           ),
           body: feedState.items.isNotEmpty
               ? ListView.separated(
-                  padding: const EdgeInsets.all(20),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   itemCount: feedState.items.length,
-                  separatorBuilder: (context, index) => const SizedBox(height: 16),
+                  separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = feedState.items[index];
                     return _NotificationCard(
@@ -49,60 +49,38 @@ class NotificationsPage extends StatelessWidget {
                         if (!item.isRead) {
                           context.read<NotificationBloc>().add(MarkAsRead(item.id));
                         }
-                        // إذا كان الإشعار يحتوي على بيانات، يمكننا محاولة التنقل
                         if (item.data != null) {
-                          NotificationService.checkPendingNotification(); // Clear any old pending
-                          NotificationService.handleNotificationTapFromData(item.data!); 
+                          NotificationService.checkPendingNotification();
+                          NotificationService.handleNotificationTapFromData(item.data!);
                         }
                       },
                     );
                   },
                 )
               : Center(
-                  child: Padding(
-                    padding: const EdgeInsets.all(24),
-                    child: Column(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Container(
-                          padding: const EdgeInsets.all(24),
-                          decoration: BoxDecoration(
-                            color: Theme.of(context).cardColor,
-                            shape: BoxShape.circle,
-                          ),
-                          child: Stack(
-                            alignment: Alignment.center,
-                            children: [
-                              Icon(
-                                Icons.notifications_none_rounded,
-                                size: 80,
-                                color: Theme.of(context).dividerColor.withValues(alpha: 0.2),
-                              ),
-                              const Icon(
-                                Icons.notifications_off_outlined,
-                                size: 40,
-                                color: AppColors.textSecondary,
-                              ),
-                            ],
-                          ),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Icon(
+                        Icons.notifications_none_outlined,
+                        size: 64,
+                        color: theme.dividerColor.withValues(alpha: 0.2),
+                      ),
+                      const SizedBox(height: 16),
+                      Text(
+                        'لا توجد إشعارات',
+                        style: theme.textTheme.titleMedium?.copyWith(
+                          color: AppColors.textSecondary,
+                          fontWeight: FontWeight.w600,
                         ),
-                        const SizedBox(height: 24),
-                        Text(
-                          'لا توجد إشعارات حاليًا',
-                          style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
-                              ),
-                        ),
-                        const SizedBox(height: 8),
-                        const Text(
-                          'عندما تصل تنبيهات جديدة أو رسائل مباشرة ستظهر هنا.',
-                          textAlign: TextAlign.center,
-                          style: TextStyle(color: AppColors.textSecondary),
-                        ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
+        );
+      },
+    );
+  }
         );
       },
     );
@@ -126,21 +104,14 @@ class _NotificationCard extends StatelessWidget {
     
     return Container(
       decoration: BoxDecoration(
-        color: item.isRead ? theme.cardColor.withValues(alpha: 0.6) : theme.cardColor,
-        borderRadius: BorderRadius.circular(24),
+        color: item.isRead ? Colors.transparent : theme.cardColor,
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: item.isRead 
-              ? theme.dividerColor.withValues(alpha: 0.08)
-              : AppColors.primary.withValues(alpha: 0.2),
-          width: 1.5,
+              ? theme.dividerColor.withValues(alpha: 0.05)
+              : AppColors.primary.withValues(alpha: 0.1),
+          width: 1,
         ),
-        boxShadow: item.isRead ? null : [
-          BoxShadow(
-            color: AppColors.primary.withValues(alpha: 0.08),
-            blurRadius: 15,
-            offset: const Offset(0, 8),
-          ),
-        ],
       ),
       clipBehavior: Clip.antiAlias,
       child: Material(
@@ -162,19 +133,13 @@ class _NotificationCard extends StatelessWidget {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           if (categoryInfo != null)
-                            Container(
-                              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                              decoration: BoxDecoration(
-                                color: categoryInfo.color.withValues(alpha: 0.1),
-                                borderRadius: BorderRadius.circular(10),
-                              ),
-                              child: Text(
-                                categoryInfo.label,
-                                style: TextStyle(
-                                  color: categoryInfo.color,
-                                  fontSize: 10,
-                                  fontWeight: FontWeight.bold,
-                                ),
+                            Text(
+                              categoryInfo.label,
+                              style: const TextStyle(
+                                color: AppColors.textSecondary,
+                                fontSize: 10,
+                                fontWeight: FontWeight.bold,
+                                letterSpacing: 0.5,
                               ),
                             ),
                           Text(
@@ -231,36 +196,18 @@ class _NotificationCard extends StatelessWidget {
   }
 
   Widget _buildLeading(BuildContext context, _CategoryInfo? info) {
-    return Stack(
-      children: [
-        Container(
-          width: 52,
-          height: 52,
-          decoration: BoxDecoration(
-            color: (info?.color ?? AppColors.primary).withValues(alpha: 0.1),
-            borderRadius: BorderRadius.circular(18),
-          ),
-          child: Icon(
-            info?.icon ?? (item.isRead ? Icons.notifications_none_rounded : Icons.notifications_active_rounded),
-            color: info?.color ?? (item.isRead ? AppColors.textSecondary : AppColors.primary),
-            size: 26,
-          ),
-        ),
-        if (!item.isRead)
-          Positioned(
-            right: 0,
-            top: 0,
-            child: Container(
-              width: 14,
-              height: 14,
-              decoration: BoxDecoration(
-                color: AppColors.primary,
-                shape: BoxShape.circle,
-                border: Border.all(color: Colors.white, width: 2.5),
-              ),
-            ),
-          ),
-      ],
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        color: (info?.color ?? AppColors.primary).withValues(alpha: 0.05),
+        borderRadius: BorderRadius.circular(14),
+      ),
+      child: Icon(
+        info?.icon ?? Icons.notifications_none_outlined,
+        color: info?.color ?? AppColors.textSecondary,
+        size: 22,
+      ),
     );
   }
 
@@ -280,7 +227,7 @@ class _NotificationCard extends StatelessWidget {
       return _CategoryInfo(
         label: area ?? 'عرض جديد',
         icon: Icons.local_offer_outlined,
-        color: Colors.orange,
+        color: AppColors.textSecondary,
       );
     }
     
@@ -288,7 +235,7 @@ class _NotificationCard extends StatelessWidget {
       return _CategoryInfo(
         label: 'كوبونات',
         icon: Icons.confirmation_number_outlined,
-        color: Colors.blue,
+        color: AppColors.textSecondary,
       );
     }
     
@@ -296,7 +243,7 @@ class _NotificationCard extends StatelessWidget {
       return _CategoryInfo(
         label: 'المتجر',
         icon: Icons.storefront_outlined,
-        color: Colors.green,
+        color: AppColors.textSecondary,
       );
     }
 

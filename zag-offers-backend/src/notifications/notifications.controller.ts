@@ -92,6 +92,27 @@ export class NotificationsController {
     return this.notificationsService.markAllNotificationsAsRead(req.user.id);
   }
 
+  @Delete('clear-all')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'حذف كافة إشعارات المستخدم نهائياً' })
+  async deleteAllNotifications(@Request() req: { user: { id: string } }) {
+    await this.notificationsService.deleteAllNotifications(req.user.id);
+    return { success: true, message: 'تم حذف جميع الإشعارات بنجاح' };
+  }
+
+  @Delete(':id')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'حذف إشعار محدد نهائياً' })
+  async deleteNotification(
+    @Request() req: { user: { id: string } },
+    @Param('id') id: string,
+  ) {
+    await this.notificationsService.deleteNotification(req.user.id, id);
+    return { success: true, message: 'تم حذف الإشعار' };
+  }
+
   @Post('test/me')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()

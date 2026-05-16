@@ -90,6 +90,18 @@ export class NotificationsService implements OnModuleInit {
     });
   }
 
+  async deleteNotification(userId: string, notificationId: string) {
+    return this.prisma.notification.deleteMany({
+      where: { id: notificationId, userId },
+    });
+  }
+
+  async deleteAllNotifications(userId: string) {
+    return this.prisma.notification.deleteMany({
+      where: { userId },
+    });
+  }
+
   private async saveNotification(
     userId: string,
     payload: NotificationPayload,

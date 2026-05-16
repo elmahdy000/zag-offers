@@ -122,7 +122,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     emit(NotificationFeedState(items: const []));
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove(_storageKey);
-    await repository.markAllAsRead();
+    await repository.clearAllNotifications();
   }
 
   Future<void> _onMarkAsRead(

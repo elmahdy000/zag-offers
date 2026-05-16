@@ -415,12 +415,12 @@ export class AdminService {
     this.eventsGateway.notifyMerchant(store.ownerId, {
       type: 'STORE_APPROVED',
       title: 'تم اعتماد المتجر',
-      body: `مبروك! تم اعتماد متجرك "${store.name}" بنجاح.`,
+      body: `تمت الموافقة على طلب انضمام متجرك "${store.name}".`,
       payload: { storeId: store.id, storeName: store.name },
     });
 
     void this.notificationsService.sendToUserId(store.ownerId, {
-      title: 'تم اعتماد متجرك بنجاح ✅',
+      title: 'تمت الموافقة على طلب المتجر',
       body: `تمت الموافقة على "${store.name}". يمكنك الآن البدء في إضافة عروضك.`,
       data: { storeId: store.id, type: 'STORE_APPROVED' },
     });
@@ -457,7 +457,7 @@ export class AdminService {
     });
 
     void this.notificationsService.sendToUserId(store.ownerId, {
-      title: 'تم رفض طلب المتجر ❌',
+      title: 'تم رفض طلب المتجر',
       body: reason || `تم رفض طلب "${store.name}". تواصل مع الدعم للمزيد.`,
       data: { storeId: store.id, type: 'STORE_REJECTED' },
     });
@@ -768,14 +768,14 @@ export class AdminService {
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
     void this.notificationsService.sendToAll(
-      `${offer.store.name} 🎁`,
+      `${offer.store.name}`,
       `عرض جديد متاح الآن: "${offer.title}"`,
       { offerId: offer.id, type: 'NEW_OFFER' },
       imageUrl,
     );
 
     void this.notificationsService.sendToUserId(offer.store.ownerId, {
-      title: 'تم اعتماد عرضك بنجاح ✅',
+      title: 'تم قبول العرض بنجاح',
       body: `عرضك "${offer.title}" متاح الآن لجميع العملاء.`,
       data: { offerId: offer.id, type: 'OFFER_APPROVED' },
       imageUrl,
@@ -1428,7 +1428,7 @@ export class AdminService {
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
     void this.notificationsService.sendToAll(
-      `${store.name} 🎁`,
+      `${store.name}`,
       `تمت إضافة عرض جديد: ${offer.title}`,
       { offerId: offer.id, type: 'NEW_OFFER' },
       imageUrl,

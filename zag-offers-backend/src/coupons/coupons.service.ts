@@ -111,15 +111,15 @@ export class CouponsService {
     // إشعار التاجر بحصول عميل على كوبون جديد
     this.eventsGateway.notifyMerchant(newCoupon.offer.store.ownerId, {
       type: 'COUPON_GENERATED',
-      title: 'كوبون جديد مستخرج!',
-      body: `عميل حصل على كوبون لعرض: ${newCoupon.offer.title}`,
+      title: 'كوبون جديد مستخرج',
+      body: `تم استخراج كوبون جديد لعرض: ${newCoupon.offer.title}`,
       payload: { code: newCoupon.code, offerTitle: newCoupon.offer.title },
     });
 
     // إرسال Push Notification حقيقية للتاجر
     void this.notificationsService.sendToUserId(newCoupon.offer.store.ownerId, {
-      title: '🎟️ كوبون جديد مستخرج!',
-      body: `عميل حصل على كوبون لعرض: ${newCoupon.offer.title}`,
+      title: 'كوبون جديد مستخرج',
+      body: `تم استخراج كوبون جديد لعرض: ${newCoupon.offer.title}`,
       data: { type: 'COUPON_GENERATED', code: newCoupon.code },
     });
 
@@ -239,8 +239,8 @@ export class CouponsService {
     // إرسال تنبيه لحظي للتاجر لتحديث الإحصائيات
     this.eventsGateway.notifyMerchant(merchantId, {
       type: 'COUPON_REDEEMED',
-      title: 'تم التفعيل!',
-      body: `تم تفعيل الكوبون ${coupon.code} بنجاح للعميل ${coupon.customer?.name || 'غير معروف'}`,
+      title: 'تفعيل الكوبون',
+      body: `تم تفعيل الكوبون ${coupon.code} للعميل ${coupon.customer?.name || 'غير معروف'}`,
       payload: {
         couponId: updatedCoupon.id,
         code: updatedCoupon.code,
@@ -253,7 +253,7 @@ export class CouponsService {
     if (user?.fcmToken) {
       void this.notificationsService.sendToUser(
         user.fcmToken,
-        'تم تفعيل الكوبون! ✅',
+        'تفعيل الكوبون',
         `تم تفعيل الكوبون ${updatedCoupon.code} للعميل ${coupon.customer?.name || 'غير معروف'}`,
         {
           couponId: updatedCoupon.id,
@@ -364,15 +364,15 @@ export class CouponsService {
     // إرسال تنبيه لحظي للتاجر لتنبيهه بوجود رسالة واتساب
     this.eventsGateway.notifyMerchant(coupon.offer.store.ownerId, {
       type: 'COUPON_SHARED',
-      title: 'محاولة تفعيل عبر واتساب 💬',
-      body: `العميل ${coupon.customer.name} شارك الكوبون ${coupon.code} معك.`,
+      title: 'تواصل عبر واتساب',
+      body: `العميل ${coupon.customer.name} يرغب في تفعيل الكوبون ${coupon.code}.`,
       payload: { code: coupon.code, customerName: coupon.customer.name },
     });
 
     // إرسال Push Notification للتاجر
     void this.notificationsService.sendToUserId(coupon.offer.store.ownerId, {
-      title: '💬 كوبون شاركه عميل!',
-      body: `العميل ${coupon.customer.name} أرسل لك كوبوناً عبر واتساب.`,
+      title: 'مشاركة الكوبون',
+      body: `العميل ${coupon.customer.name} تواصل معك بخصوص تفعيل الكوبون.`,
       data: { type: 'COUPON_SHARED', code: coupon.code },
     });
 

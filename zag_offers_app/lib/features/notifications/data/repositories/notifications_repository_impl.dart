@@ -68,4 +68,16 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> clearAllNotifications() async {
+    try {
+      await apiClient.dio.delete('/notifications/clear-all');
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'فشل حذف الإشعارات'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }
