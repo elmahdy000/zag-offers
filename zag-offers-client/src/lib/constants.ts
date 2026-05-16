@@ -2,22 +2,6 @@ export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.zag
 export const API_URL = `${BASE_URL}/api`;
 
 export const CAT_ASSETS: Record<string, string> = {
-  'الكل':          '/categories/all.png',
-  'مطاعم':         '/categories/food.png',
-  'دلع كرشك':      '/categories/food.png',
-  'كافيهات':       '/categories/cafe.png',
-  'روقان':         '/categories/cafe.png',
-  'ملابس':         '/categories/fashion.png',
-  'شياكة':         '/categories/fashion.png',
-  'جيم':           '/categories/gym.png',
-  'فورمة':          '/categories/gym.png',
-  'تجميل':         '/categories/beauty.png',
-  'دلع بنات':       '/categories/beauty.png',
-  'دورات':         '/categories/education.png',
-  'طور نفسك':      '/categories/education.png',
-  'خدمات سيارات': '/categories/car.png',
-  'دلع عربيتك':    '/categories/car.png',
-  'حلاقين':       '/categories/barber.png',
   'نعيماً':        '/categories/barber.png',
   'حلويات':       '/categories/sweets.png',
   'حلى بوقك':      '/categories/sweets.png',

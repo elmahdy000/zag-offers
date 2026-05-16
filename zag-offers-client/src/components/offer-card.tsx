@@ -195,7 +195,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className={`relative h-40 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+      <div className={`relative h-36 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
         
         {/* Background Image if exists */}
         {offerImage && (
@@ -203,7 +203,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
             src={offerImage} 
             alt={offer.title} 
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" 
+            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" 
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             quality={75}
             priority={priority}
@@ -211,12 +211,12 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         )}
 
         {/* Overlay gradient to ensure text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#252525]/80 via-transparent to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/5" />
 
         {/* Featured */}
         {offer.featured && (
-          <div className="absolute top-2 left-2 z-10 px-2 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
-                          text-[#1a1a1a] text-[9px] font-black rounded-lg shadow-lg">
+          <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
+                          text-[#1a1a1a] text-[8px] font-black rounded-md shadow-lg uppercase tracking-tighter">
             ⭐ مميز
           </div>
         )}
@@ -224,7 +224,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         {/* Discount */}
         <div className="absolute top-2 right-2 z-10 px-2 py-0.5
                         bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
-                        text-white text-[11px] font-black rounded-lg
+                        text-white text-[10px] font-black rounded-md
                         shadow-[0_4px_12px_rgba(255,107,0,0.4)]">
           {discountDisplay}
         </div>
@@ -232,28 +232,28 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         {/* Fav */}
         <button
           onClick={toggleFav}
-          className={`absolute bottom-2 left-2 z-10 p-1.5 rounded-lg backdrop-blur-sm border transition-all
+          className={`absolute bottom-2 left-2 z-10 p-1 rounded-md backdrop-blur-md border transition-all
             ${isFav
               ? 'bg-red-500/20 border-red-500/50 text-red-400'
               : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
         >
-          <RiHeartFill size={14} className={isFav ? 'text-red-500' : 'text-white/40'} />
+          <RiHeartFill size={12} className={isFav ? 'text-red-500' : 'text-white/40'} />
         </button>
 
         {/* Store Logo */}
-        <div className="absolute -bottom-4 right-3 z-20
-                        w-11 h-11 rounded-xl border-2 border-[#252525]
+        <div className="absolute -bottom-3 right-3 z-20
+                        w-10 h-10 rounded-xl border-2 border-[#252525]
                         bg-[#1E1E1E] overflow-hidden shadow-xl
                         flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
           {logoUrl
             ? <Image
                 src={logoUrl}
                 alt={offer.store?.name || 'Store Logo'}
-                width={44}
-                height={44}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
                 loading="lazy"
-                sizes="44px"
+                sizes="40px"
                 quality={80}
               />
             : <div className="text-white/20 scale-75">{catIcon}</div>
@@ -262,43 +262,43 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-3 pt-5 pb-3 gap-1">
+      <div className="flex flex-col flex-1 px-3 pt-4 pb-3 gap-1">
 
         {/* Category */}
         {catName && (
-          <span className="text-[10px] font-black text-[#FF6B00] uppercase tracking-wider flex items-center gap-1">
-            <span className="scale-75">{catIcon}</span> {catName}
+          <span className="text-[9px] font-black text-[#FF6B00] uppercase tracking-widest flex items-center gap-1">
+            <span className="scale-75 opacity-70">{catIcon}</span> {catName}
           </span>
         )}
 
         {/* Title */}
-        <h3 className="text-[13px] font-bold text-[#F0F0F0] leading-snug line-clamp-2
-                       group-hover:text-[#FF6B00] transition-colors min-h-[36px]">
+        <h3 className="text-[12px] font-bold text-[#F0F0F0] leading-snug line-clamp-2
+                       group-hover:text-[#FF6B00] transition-colors min-h-[34px]">
           {offer.title}
         </h3>
 
         {/* Store & Social Proof */}
         <div className="flex items-center justify-between">
-          <p className="text-[11px] text-[#9A9A9A] font-semibold flex items-center gap-1">
-            <span className="text-[9px]">🏪</span>
+          <p className="text-[10px] text-[#9A9A9A] font-bold flex items-center gap-1">
+            <span className="opacity-50 text-[9px]">🏪</span>
             {offer.store?.name}
           </p>
           {(offer._count?.coupons || 0) > 0 && (
-            <span className="text-[9px] font-black text-orange-400 bg-orange-500/10 px-1 py-0.5 rounded flex items-center gap-1">
+            <span className="text-[8px] font-black text-orange-400 bg-orange-500/5 px-1 py-0.5 rounded flex items-center gap-1">
               {offer._count?.coupons} طلب
             </span>
           )}
         </div>
 
         {/* Meta */}
-        <div className="mt-auto pt-2.5 border-t border-white/[0.05] flex items-center justify-between gap-1">
-          <div className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-lg border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
-            <RiMapPin2Line size={12} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-[10px] font-black text-[#9A9A9A] truncate max-w-[80px] group-hover:text-white transition-colors">
+        <div className="mt-auto pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1">
+          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.03] rounded-md border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
+            <RiMapPin2Line size={10} className="text-[#FF6B00] flex-shrink-0" />
+            <span className="text-[9px] font-black text-[#8A8A8A] truncate max-w-[70px] group-hover:text-white transition-colors">
               {offer.store?.area || 'الزقازيق'}
             </span>
           </div>
-          <span className={`text-[10px] font-black ${expiryColor}`}>{expiryText}</span>
+          <span className={`text-[9px] font-black ${expiryColor}`}>{expiryText}</span>
         </div>
 
         {/* CTA */}

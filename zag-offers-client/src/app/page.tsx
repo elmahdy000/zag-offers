@@ -80,10 +80,10 @@ function HomePageContent() {
     try {
       setLoading(true);
       const [oRes, cRes, sRes, rRes] = await Promise.all([
-        fetch(`${API_URL}/offers?limit=24`),
-        fetch(`${API_URL}/stores/categories`),
-        fetch(`${API_URL}/stores?limit=12`),
-        fetch(`${API_URL}/recommendations`)
+        fetch(`${API_URL}/offers?limit=24`, { cache: 'no-store' }),
+        fetch(`${API_URL}/stores/categories`, { cache: 'no-store' }),
+        fetch(`${API_URL}/stores?limit=12`, { cache: 'no-store' }),
+        fetch(`${API_URL}/recommendations`, { cache: 'no-store' })
       ]);
 
       const [oData, cData, sData, rData] = await Promise.all([
@@ -209,7 +209,7 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-4xl sm:text-6xl md:text-7xl font-black leading-tight tracking-tight"
+            className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight"
           >
             <span className="text-[#F0F0F0]">أفضل</span> <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات في</span> <span className="text-white">زاج</span>
@@ -219,7 +219,7 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-[#9A9A9A] text-sm sm:text-lg font-bold max-w-2xl mx-auto leading-relaxed"
+            className="text-[#9A9A9A] text-xs sm:text-base font-bold max-w-xl mx-auto leading-relaxed"
           >
             بوابتك لأفضل كوبونات الخصم والعروض المباشرة من أقوى محلات ومطاعم مدينتك.
           </motion.p>
@@ -242,7 +242,7 @@ function HomePageContent() {
               <input 
                 type="text" 
                 placeholder="ابحث عن عرض، محل، أو صنف..."
-                className="flex-1 bg-transparent py-4 text-sm sm:text-lg font-black text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
+                className="flex-1 bg-transparent py-3 text-sm sm:text-base font-black text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -307,7 +307,7 @@ function HomePageContent() {
                   >
                     <div className="absolute inset-0 bg-[#151515]">
                       <Image 
-                        src={CAT_ASSETS[c.name] || CAT_ASSETS.default} 
+                        src={c.icon ? resolveImageUrl(c.icon) : (CAT_ASSETS[c.name] || CAT_ASSETS.default)} 
                         alt={c.name} 
                         fill
                         className={`object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
@@ -394,22 +394,22 @@ function HomePageContent() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
             {stores.slice(0, 12).map(store => (
               <Link key={store.id} href={`/stores/${store.id}`} className="group">
-                <div className="bg-[#252525] border border-white/5 rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-2xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
+                <div className="bg-[#252525] border border-white/5 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center space-y-2 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
+                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
                     {store.logo ? (
                       <Image 
                         src={resolveImageUrl(store.logo)} 
                         alt={store.name} 
-                        width={64}
-                        height={64}
+                        width={56}
+                        height={56}
                         className="w-full h-full object-contain" 
                         quality={70}
                       />
                     ) : (
-                      <RiStore3Fill className="text-white/20" size={24} />
+                      <RiStore3Fill className="text-white/20" size={20} />
                     )}
                   </div>
-                  <span className="text-[10px] sm:text-xs font-black text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
+                  <span className="text-[9px] sm:text-[10px] font-black text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
                 </div>
               </Link>
             ))}
