@@ -127,7 +127,7 @@ class _OfferDetailsPageState extends State<OfferDetailsPage> {
                   child: Text(
                     widget.offer.title,
                     style: GoogleFonts.cairo(
-                      fontSize: 20,
+                      fontSize: 16,
                       fontWeight: FontWeight.w900,
                       color: AppColors.textPrimary,
                       height: 1.2,
@@ -210,7 +210,7 @@ class _OfferDetailsPageState extends State<OfferDetailsPage> {
         if (widget.offer.newPrice != null)
           Text(
             '${widget.offer.newPrice} ج.م',
-            style: GoogleFonts.cairo(fontSize: 22, color: AppColors.primary, fontWeight: FontWeight.w900),
+            style: GoogleFonts.cairo(fontSize: 18, color: AppColors.primary, fontWeight: FontWeight.w900),
           ),
         if (widget.offer.oldPrice != null)
           Text(
@@ -305,7 +305,7 @@ class _OfferDetailsPageState extends State<OfferDetailsPage> {
         children: [
           Icon(icon, color: color, size: 16),
           const SizedBox(height: 8),
-          Text(value, style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
+          Text(value, style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textPrimary)),
           Text(label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.bold)),
         ],
       ),

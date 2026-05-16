@@ -170,7 +170,7 @@ export default function OfferDetailPage() {
                            {offer.status === 'ACTIVE' ? 'نشط الآن' : offer.status === 'PENDING' ? 'قيد المراجعة' : 'منتهي / مرفوض'}
                         </div>
                      </div>
-                     <h2 className="text-2xl font-bold text-slate-900">{offer.title}</h2>
+                     <h2 className="text-xl font-bold text-slate-900">{offer.title}</h2>
                      <p className="text-sm font-medium text-slate-500 leading-relaxed">
                         {offer.description || 'لا يوجد وصف تفصيلي لهذا العرض حالياً.'}
                      </p>
@@ -322,7 +322,7 @@ function OfferStat({ label, value, icon: Icon, color, bg }: { label: string; val
             <Icon size={18} />
          </div>
          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">{label}</p>
-         <p className="text-xl font-bold text-slate-900">{value}</p>
+         <p className="text-lg font-bold text-slate-900">{value}</p>
       </div>
    );
 }
