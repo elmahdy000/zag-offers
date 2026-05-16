@@ -511,7 +511,28 @@ export class AdminService {
   async deleteStore(id: string) {
     const store = await this.prisma.store.findUnique({ where: { id } });
     if (!store) throw new NotFoundException('Store not found');
-    return this.prisma.store.delete({ where: { id } });
+
+    // Manually cascade delete all related records using a transaction
+    const offers = await this.prisma.offer.findMany({ where: { storeId: id }, select: { id: true } });
+    const offerIds = offers.map(o => o.id);
+
+    const results = await this.prisma.$transaction([
+      // Delete offer-related records
+      this.prisma.analyticsEvent.deleteMany({ where: { offerId: { in: offerIds } } }),
+      this.prisma.favorite.deleteMany({ where: { offerId: { in: offerIds } } }),
+      this.prisma.coupon.deleteMany({ where: { offerId: { in: offerIds } } }),
+      this.prisma.review.deleteMany({ where: { offerId: { in: offerIds } } }),
+      this.prisma.offer.deleteMany({ where: { storeId: id } }),
+      
+      // Delete store-related records
+      this.prisma.analyticsEvent.deleteMany({ where: { storeId: id } }),
+      this.prisma.review.deleteMany({ where: { storeId: id } }),
+      
+      // Delete the store itself
+      this.prisma.store.delete({ where: { id } }),
+    ]);
+
+    return results[7]; // Return the deleted store
   }
 
   async getAllOffers(query: {
@@ -805,7 +826,17 @@ export class AdminService {
   async deleteOffer(id: string, adminId?: string) {
     const offer = await this.prisma.offer.findUnique({ where: { id } });
     if (!offer) throw new NotFoundException('Offer not found');
-    const deleted = await this.prisma.offer.delete({ where: { id } });
+    
+    // Manually cascade delete all related records using a transaction
+    const results = await this.prisma.$transaction([
+      this.prisma.analyticsEvent.deleteMany({ where: { offerId: id } }),
+      this.prisma.favorite.deleteMany({ where: { offerId: id } }),
+      this.prisma.coupon.deleteMany({ where: { offerId: id } }),
+      this.prisma.review.deleteMany({ where: { offerId: id } }),
+      this.prisma.offer.delete({ where: { id } }),
+    ]);
+
+    const deleted = results[4];
 
     if (adminId) {
       await this.auditLogService.log({
