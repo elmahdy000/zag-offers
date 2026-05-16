@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_iconly/flutter_iconly.dart';
-
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
@@ -21,205 +19,269 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Material(
-      color: Colors.transparent,
-      child: InkWell(
-        onTap: onTap,
-        borderRadius: BorderRadius.circular(22),
-        child: Container(
-          width: isWide ? null : 280,
-          clipBehavior: Clip.hardEdge,
-          decoration: BoxDecoration(
-            color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(22),
-            border: Border.all(
-              color: Theme.of(context).dividerColor.withValues(alpha: 0.1),
-              width: 1,
-            ),
-            boxShadow: [
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.05),
-                blurRadius: 10,
-                offset: const Offset(0, 4),
-              ),
-            ],
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    return Container(
+      width: isWide ? null : 260,
+      margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
+      decoration: BoxDecoration(
+        color: Theme.of(context).cardColor,
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark ? AppColors.borderDark : Colors.black.withValues(alpha: 0.05),
+          width: 0.8,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
           ),
-          child: isWide
-              ? Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Expanded(
-                      child: _buildImageHeader(context),
-                    ),
-                    Flexible(
-                      flex: 0,
-                      child: _buildDetailsSection(context),
-                    ),
-                  ],
-                )
-              : Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    _buildImageHeader(context),
-                    _buildDetailsSection(context),
-                  ],
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(18),
+        child: Material(
+          color: Colors.transparent,
+          child: InkWell(
+            onTap: onTap,
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                // 1. TOP: Image Section (Fixed Aspect Ratio)
+                _buildImageSection(context),
+                
+                // 2. MIDDLE: Info Section
+                Expanded(
+                  child: _buildInfoSection(context),
                 ),
+                
+                // 3. SEPARATOR: Coupon Cut-out Line
+                _buildCouponSeparator(context),
+                
+                // 4. BOTTOM: Price & Action Section
+                _buildActionSection(context),
+              ],
+            ),
+          ),
         ),
       ),
     );
   }
 
-  Widget _buildImageHeader(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
-    
-    final imageWidget = isWide
-        ? SizedBox.expand(
-            child: NetworkImageWidget(
-              imageUrl: offer.image,
-              fit: BoxFit.cover,
-            ),
-          )
-        : AspectRatio(
-            aspectRatio: 1.1,
-            child: NetworkImageWidget(
-              imageUrl: offer.image,
-              fit: BoxFit.cover,
-            ),
-          );
-    
-    return Stack(
-      children: [
-        imageWidget,
-        Positioned(
-          top: 10,
-          right: 10,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Text(
-              offer.discount.isNotEmpty
-                  ? offer.discount
-                  : '${offer.discountPercentage.toInt()}%',
-              style: textTheme.labelMedium?.copyWith(
-                color: Colors.white,
-                fontWeight: FontWeight.w900,
-              ),
-            ),
+  Widget _buildImageSection(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1.8, // More compact header
+      child: Stack(
+        fit: StackFit.expand,
+        children: [
+          NetworkImageWidget(
+            imageUrl: offer.image,
+            fit: BoxFit.cover,
           ),
-        ),
-        Positioned(
-          top: 10,
-          left: 10,
-          child: FavoriteButton(offerId: offer.id, size: 18),
-        ),
-        Positioned(
-          bottom: 10,
-          right: 10,
-          child: Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-            decoration: BoxDecoration(
-              color: Theme.of(context).colorScheme.surface.withValues(alpha: 0.9),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                if ((offer.images?.length ?? 0) > 1) ...[
-                  const Icon(Icons.collections_rounded, size: 12, color: AppColors.primary),
-                  const SizedBox(width: 4),
-                  Text(
-                    '${offer.images!.length}',
-                    style: textTheme.labelSmall?.copyWith(fontWeight: FontWeight.w700, color: AppColors.primary),
-                  ),
-                  const SizedBox(width: 6),
-                  Container(width: 1, height: 10, color: Theme.of(context).dividerColor),
-                  const SizedBox(width: 6),
-                ],
-                Text(
-                  offer.store.category ?? 'عرض خاص',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                    color: AppColors.textSecondary,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ),
+          // Badges Overlay
+          Positioned(
+            top: 8,
+            right: 8,
+            child: _buildDiscountBadge(),
           ),
-        ),
-      ],
+          Positioned(
+            top: 8,
+            left: 8,
+            child: FavoriteButton(offerId: offer.id, size: 16),
+          ),
+        ],
+      ),
     );
   }
 
-  Widget _buildDetailsSection(BuildContext context) {
-    final textTheme = Theme.of(context).textTheme;
+  Widget _buildDiscountBadge() {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 3),
+      decoration: BoxDecoration(
+        color: AppColors.primary,
+        borderRadius: BorderRadius.circular(6),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.1),
+            blurRadius: 4,
+          ),
+        ],
+      ),
+      child: Text(
+        offer.discount.isNotEmpty ? offer.discount : 'عرض',
+        style: const TextStyle(
+          color: Colors.white,
+          fontWeight: FontWeight.w900,
+          fontSize: 10.5,
+          fontFamily: 'Tajawal',
+        ),
+      ),
+    );
+  }
+
+  Widget _buildInfoSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
     return Padding(
-      padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+      padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
         children: [
           Text(
+            offer.store.name,
+            style: TextStyle(
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+              color: AppColors.primary,
+              fontFamily: 'Tajawal',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
+          ),
+          const SizedBox(height: 2),
+          Text(
             offer.title,
-            style: textTheme.titleSmall?.copyWith(
-              fontWeight: FontWeight.w900,
+            style: TextStyle(
+              fontSize: 12,
+              fontWeight: FontWeight.w800,
               height: 1.2,
-              fontSize: 15,
-              letterSpacing: -0.2,
+              color: isDark ? Colors.white : AppColors.textPrimary,
+              fontFamily: 'Tajawal',
             ),
             maxLines: 2,
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Row(
-            children: [
-              Icon(
-                CategoryUtils.getIcon(offer.store.category ?? ''),
-                size: 13,
-                color: AppColors.primary,
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Text(
-                  offer.store.name,
-                  style: textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.textSecondary,
-                    fontSize: 12,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-            ],
+          Text(
+            '${offer.store.area ?? ""} • ${offer.store.category ?? ""}',
+            style: TextStyle(
+              fontSize: 9,
+              fontWeight: FontWeight.w500,
+              color: isDark ? Colors.white38 : AppColors.textSecondary,
+              fontFamily: 'Tajawal',
+            ),
+            maxLines: 1,
+            overflow: TextOverflow.ellipsis,
           ),
-          const SizedBox(height: 8),
-          if (offer.newPrice != null)
-            Row(
-              children: [
-                Text(
-                  '${offer.newPrice!.toStringAsFixed(0)} ج.م',
-                  style: textTheme.titleLarge?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 18,
-                  ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCouponSeparator(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final cutoutColor = isDark ? AppColors.darkBackground : const Color(0xFFF8F9FA);
+
+    return SizedBox(
+      height: 16,
+      child: Stack(
+        alignment: Alignment.center,
+        children: [
+          // Dashed Line
+          Row(
+            children: List.generate(
+              20,
+              (index) => Expanded(
+                child: Container(
+                  height: 1,
+                  margin: const EdgeInsets.symmetric(horizontal: 2),
+                  color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
                 ),
-                const SizedBox(width: 8),
-                if (offer.oldPrice != null)
+              ),
+            ),
+          ),
+          // Left Cutout
+          Positioned(
+            left: -8,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: cutoutColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : Colors.black.withValues(alpha: 0.05),
+                  width: 0.8,
+                ),
+              ),
+            ),
+          ),
+          // Right Cutout
+          Positioned(
+            right: -8,
+            child: Container(
+              width: 16,
+              height: 16,
+              decoration: BoxDecoration(
+                color: cutoutColor,
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: isDark ? AppColors.borderDark : Colors.black.withValues(alpha: 0.05),
+                  width: 0.8,
+                ),
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildActionSection(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final hasPrice = offer.newPrice != null;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+        children: [
+          if (hasPrice)
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
                   Text(
-                    '${offer.oldPrice!.toStringAsFixed(0)} ج.م',
-                    style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary.withValues(alpha: 0.6),
-                      decoration: TextDecoration.lineThrough,
-                      fontSize: 11,
+                    '${offer.newPrice!.toStringAsFixed(0)} ج.م',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 13,
+                      height: 1,
+                      fontFamily: 'Tajawal',
                     ),
                   ),
-              ],
+                  if (offer.oldPrice != null)
+                    Text(
+                      'بدل ${offer.oldPrice!.toStringAsFixed(0)}',
+                      style: TextStyle(
+                        fontSize: 9,
+                        color: isDark ? Colors.white24 : Colors.black26,
+                        decoration: TextDecoration.lineThrough,
+                        fontFamily: 'Tajawal',
+                      ),
+                    ),
+                ],
+              ),
             ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(6),
+            ),
+            child: const Text(
+              'استخدم',
+              style: TextStyle(
+                color: AppColors.primary,
+                fontWeight: FontWeight.w800,
+                fontSize: 9.5,
+                fontFamily: 'Tajawal',
+              ),
+            ),
+          ),
         ],
       ),
     );

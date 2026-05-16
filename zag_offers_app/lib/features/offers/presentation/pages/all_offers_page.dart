@@ -181,8 +181,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                 child: Column(
                                   children: [
                                     Container(
-                                      width: 54,
-                                      height: 54,
+                                      width: 60,
+                                      height: 60,
                                       padding: const EdgeInsets.all(2),
                                       decoration: BoxDecoration(
                                         shape: BoxShape.circle,
@@ -212,8 +212,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                       categoryItem.name,
                                       style: theme.textTheme.labelSmall?.copyWith(
                                             color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                                            fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
-                                            fontSize: 11,
+                                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                            fontSize: 12,
                                           ),
                                     ),
                                   ],
@@ -390,9 +390,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
       sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 16,
-          crossAxisSpacing: 16,
-          childAspectRatio: 0.62,
+          mainAxisSpacing: 10,
+          crossAxisSpacing: 10,
+          childAspectRatio: 0.72,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {

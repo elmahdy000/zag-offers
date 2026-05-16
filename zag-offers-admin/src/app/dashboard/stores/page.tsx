@@ -159,6 +159,17 @@ function StoresContent() {
     refetchOnWindowFocus: false,
   });
 
+  const { data: merchants, isLoading: isLoadingMerchants } = useQuery({
+    queryKey: ['admin-merchants'],
+    queryFn: async () => {
+      // نطلب كل المستخدمين ليتمكن الأدمن من اختيار أي حساب
+      const response = await adminApi().get('/admin/users', { params: { limit: 200 } });
+      return response.data.items as { id: string; name: string; phone: string, role: string }[];
+    },
+    staleTime: 300000,
+    refetchOnWindowFocus: false,
+  });
+
   const { data: storeDetails, isLoading: detailsLoading } = useQuery({
     queryKey: ['admin-store-details', selectedStoreId],
     queryFn: async () => {
@@ -670,7 +681,7 @@ function StoresContent() {
               </div>
 
               <form 
-                onSubmit={(e) => { e.preventDefault(); if (Object.keys(validateForm()).length === 0) upsertMutation.mutate(formData); }} 
+                onSubmit={(e) => { e.preventDefault(); if (validateForm()) upsertMutation.mutate(formData); }} 
                 className="space-y-6"
               >
                 {/* Image Uploads */}
@@ -850,16 +861,25 @@ function StoresContent() {
 
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
-                    معرف المالك (User ID)
+                    مالك المتجر (التاجر)
                   </label>
-                  <input 
+                  <select 
                     required
                     value={formData.ownerId} 
                     onChange={e => setFormData({...formData, ownerId: e.target.value})} 
                     className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${
                       formErrors.ownerId ? 'border-rose-500' : 'border-slate-100'
-                    } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} 
-                  />
+                    } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer`}
+                  >
+                    <option value="">
+                      {isLoadingMerchants ? 'جاري تحميل التجار...' : 'اختر التاجر'}
+                    </option>
+                    {merchants?.map((merchant) => (
+                      <option key={merchant.id} value={merchant.id}>
+                        {merchant.name} - {merchant.phone} ({merchant.role === 'ADMIN' ? 'مدير' : merchant.role === 'MERCHANT' ? 'تاجر' : 'عميل'})
+                      </option>
+                    ))}
+                  </select>
                   {formErrors.ownerId && <p className="text-xs text-rose-600">{formErrors.ownerId}</p>}
                 </div>
 

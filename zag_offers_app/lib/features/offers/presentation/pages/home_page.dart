@@ -249,8 +249,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               Flexible(
                 child: Text(
                   'عروض النهاردة في الزقازيق',
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
-                        fontWeight: FontWeight.w800,
+                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        fontWeight: FontWeight.w900,
+                        letterSpacing: -0.5,
                       ),
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
@@ -376,8 +377,10 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
           child: Text(
             title,
-            style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-              fontWeight: FontWeight.w800,
+            style: Theme.of(context).textTheme.titleLarge?.copyWith(
+              fontWeight: FontWeight.w900,
+              fontSize: 22,
+              letterSpacing: -0.5,
             ),
           ),
         ),
@@ -412,7 +415,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           ),
         ),
         SizedBox(
-          height: 280,
+          height: 245,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -422,7 +425,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               return Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: SizedBox(
-                  width: 175,
+                  width: 165,
                   child: OfferCard(
                     offer: offer,
                     isWide: true,

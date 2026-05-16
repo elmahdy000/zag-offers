@@ -98,7 +98,14 @@ class CategoriesPage extends StatelessWidget {
                           if (isDynamic) {
                             final cat = items[index];
                             name = CategoryUtils.getDisplayName(cat.name);
-                            image = cat.image;
+                            
+                            // Fallback to local asset if backend image is null
+                            final localCat = browseCategories.firstWhere(
+                              (c) => c.backendName == cat.name || c.name == cat.name,
+                              orElse: () => browseCategories[0],
+                            );
+                            
+                            image = cat.image ?? localCat.imagePath;
                             color = CategoryUtils.getColor(cat.name);
                             icon = CategoryUtils.getIcon(cat.name);
                             description = null;

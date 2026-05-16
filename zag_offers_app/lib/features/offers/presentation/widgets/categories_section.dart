@@ -71,7 +71,14 @@ class CategoriesSection extends StatelessWidget {
               if (hasDynamicData) {
                 final cat = categories[index];
                 name = CategoryUtils.getDisplayName(cat.name);
-                image = cat.image;
+                
+                // Fallback to local asset if backend image is null
+                final localCat = browseCategories.firstWhere(
+                  (c) => c.backendName == cat.name || c.name == cat.name,
+                  orElse: () => browseCategories[0],
+                );
+                
+                image = cat.image ?? localCat.imagePath;
                 color = CategoryUtils.getColor(cat.name);
                 icon = CategoryUtils.getIcon(cat.name);
                 filterName = cat.name;
@@ -100,8 +107,8 @@ class CategoriesSection extends StatelessWidget {
                   child: Column(
                     children: [
                       Container(
-                        width: 76,
-                        height: 76,
+                        width: 82,
+                        height: 82,
                         padding: const EdgeInsets.all(3),
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -157,9 +164,12 @@ class CategoriesSection extends StatelessWidget {
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
                         style: Theme.of(context).textTheme.labelMedium?.copyWith(
-                              fontWeight: FontWeight.w900,
+                              fontWeight: FontWeight.w700,
                               fontSize: 12,
-                              color: Colors.white,
+                              letterSpacing: -0.2,
+                              color: Theme.of(context).brightness == Brightness.dark 
+                                  ? Colors.white 
+                                  : AppColors.textPrimary.withValues(alpha: 0.9),
                             ),
                       ),
                     ],
