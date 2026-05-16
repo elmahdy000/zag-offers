@@ -37,7 +37,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<List<OfferModel>> getAllOffers({String? categoryId, String? area, int page = 1}) async {
     try {
       final response = await apiClient.dio.get('/offers', queryParameters: {
-        if (categoryId != null) 'categoryId': categoryId,
+        if (categoryId != null) 'categoryName': categoryId, // categoryId variable here holds the name string
         if (area != null) 'area': area,
         'page': page,
         'limit': 20,

@@ -96,40 +96,38 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     FetchAllOffers event,
     Emitter<OffersState> emit,
   ) async {
-    if (state is! OffersLoaded) {
-      emit(OffersLoading());
-      final allOffersResult = await getAllOffersUseCase();
-      allOffersResult.fold(
-        (failure) => emit(OffersError(failure.message)),
-        (offers) => emit(
-          OffersLoaded(
+    final currentState = state is OffersLoaded ? state as OffersLoaded : null;
+    
+    emit(OffersLoading());
+    
+    final result = await getAllOffersUseCase(
+      categoryId: event.categoryId,
+      area: event.area,
+      page: event.page,
+    );
+    
+    result.fold(
+      (failure) => emit(OffersError(failure.message)),
+      (offers) {
+        if (currentState != null) {
+          emit(OffersLoaded(
+            allOffers: offers,
+            trendingOffers: currentState.trendingOffers,
+            featuredStores: currentState.featuredStores,
+            categories: currentState.categories,
+            recommendedOffers: currentState.recommendedOffers,
+            searchResults: currentState.searchResults,
+            noticeMessage: currentState.noticeMessage,
+          ));
+        } else {
+          emit(OffersLoaded(
             allOffers: offers,
             trendingOffers: offers,
             featuredStores: const [],
             recommendedOffers: const [],
-          ),
-        ),
-      );
-      return;
-    }
-
-    final currentState = state as OffersLoaded;
-    if (currentState.allOffers.isNotEmpty) return;
-
-    final result = await getAllOffersUseCase();
-    result.fold(
-      (failure) => emit(OffersError(failure.message)),
-      (offers) => emit(
-        OffersLoaded(
-          allOffers: offers,
-          trendingOffers: currentState.trendingOffers,
-          featuredStores: currentState.featuredStores,
-          categories: currentState.categories,
-          recommendedOffers: currentState.recommendedOffers,
-          searchResults: currentState.searchResults,
-          noticeMessage: currentState.noticeMessage,
-        ),
-      ),
+          ));
+        }
+      },
     );
   }
 

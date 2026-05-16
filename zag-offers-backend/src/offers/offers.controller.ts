@@ -83,6 +83,7 @@ export class OffersController {
   @ApiOperation({ summary: 'List all active offers' })
   findAll(
     @Query('categoryId') categoryId?: string,
+    @Query('categoryName') categoryName?: string,
     @Query('area') area?: string,
     @Query('featured') featured?: boolean,
     @Query('page') page: number = 1,
@@ -90,14 +91,17 @@ export class OffersController {
     @Query('includeMeta') includeMeta?: string,
   ) {
     const skip = (page - 1) * limit;
+    
+    // Build store query
+    const storeQuery: any = { status: 'APPROVED' };
+    if (categoryId) storeQuery.categoryId = categoryId;
+    if (categoryName) storeQuery.category = { name: categoryName };
+    if (area) storeQuery.area = area;
+
     return this.offersService.findAll({
       where: {
         status: OfferStatus.ACTIVE,
-        store: {
-          status: 'APPROVED',
-          categoryId: categoryId,
-          area: area,
-        },
+        store: storeQuery,
       },
       skip: +skip,
       take: +limit,

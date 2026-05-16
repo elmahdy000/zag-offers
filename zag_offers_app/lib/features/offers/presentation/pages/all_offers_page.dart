@@ -36,7 +36,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
     _selectedCategory = widget.initialCategory ?? 'الكل';
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
-      context.read<OffersBloc>().add(FetchAllOffers());
+      context.read<OffersBloc>().add(FetchAllOffers(
+        categoryId: _selectedCategory == 'الكل' ? null : getBackendCategoryName(_selectedCategory),
+      ));
     });
   }
 
@@ -177,6 +179,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   setState(() => _selectedCategory = categoryBackendName);
+                                  context.read<OffersBloc>().add(FetchAllOffers(
+                                    categoryId: categoryBackendName == 'الكل' ? null : categoryBackendName,
+                                  ));
                                 },
                                 child: Column(
                                   children: [

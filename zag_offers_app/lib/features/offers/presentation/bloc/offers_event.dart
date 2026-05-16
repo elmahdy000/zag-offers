@@ -6,7 +6,16 @@ abstract class OffersEvent extends Equatable {
 }
 
 class FetchHomeData extends OffersEvent {}
-class FetchAllOffers extends OffersEvent {}
+class FetchAllOffers extends OffersEvent {
+  final String? categoryId;
+  final String? area;
+  final int page;
+  
+  FetchAllOffers({this.categoryId, this.area, this.page = 1});
+
+  @override
+  List<Object?> get props => [categoryId, area, page];
+}
 class FetchStoreOffers extends OffersEvent {
   final String storeId;
   FetchStoreOffers(this.storeId);
