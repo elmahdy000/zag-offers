@@ -18,12 +18,30 @@ export class NotificationsService implements OnModuleInit {
 
   private sanitizeImageUrl(imageUrl?: string): string | undefined {
     if (!imageUrl) return undefined;
+    
+    // If it's already an absolute URL, just validate and return it
+    if (imageUrl.startsWith('http://') || imageUrl.startsWith('https://')) {
+      try {
+        const url = new URL(imageUrl);
+        url.pathname = url.pathname.replace(/\/\/+/g, '/');
+        return url.toString();
+      } catch {
+        return undefined; // Invalid absolute URL
+      }
+    }
+
+    // If it's a relative path, try to prepend the base URL
+    const baseUrl = process.env.API_URL || 'https://zagoffers.online';
     try {
-      const url = new URL(imageUrl);
-      url.pathname = url.pathname.replace(/\/\/+/g, '/');
-      return url.toString();
+      const fullUrl = new URL(imageUrl, baseUrl);
+      // Ensure we have /uploads/ if it's just a filename
+      if (!imageUrl.startsWith('/') && !imageUrl.startsWith('uploads/')) {
+        fullUrl.pathname = `/uploads/${imageUrl}`;
+      }
+      fullUrl.pathname = fullUrl.pathname.replace(/\/\/+/g, '/');
+      return fullUrl.toString();
     } catch {
-      return imageUrl;
+      return undefined;
     }
   }
 
@@ -294,12 +312,14 @@ export class NotificationsService implements OnModuleInit {
                 : topic === 'all_admins'
                   ? 'admin_channel'
                   : 'offers_channel',
-            imageUrl: sanitizedImageUrl,
+            ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
           },
         },
         apns: {
           payload: { aps: { 'mutable-content': 1 } },
-          fcmOptions: { imageUrl: sanitizedImageUrl },
+          ...(sanitizedImageUrl
+            ? { fcmOptions: { imageUrl: sanitizedImageUrl } }
+            : {}),
         },
       };
       await admin.messaging().send(message);
@@ -363,14 +383,16 @@ export class NotificationsService implements OnModuleInit {
                 topic === 'all_merchants'
                   ? 'merchants_channel'
                   : 'offers_channel',
-              imageUrl: sanitizedImageUrl,
+              ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
             },
           },
           apns: {
             payload: {
               aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
             },
-            fcmOptions: { imageUrl: sanitizedImageUrl },
+            ...(sanitizedImageUrl
+              ? { fcmOptions: { imageUrl: sanitizedImageUrl } }
+              : {}),
           },
         };
         await admin.messaging().send(message);
@@ -430,12 +452,14 @@ export class NotificationsService implements OnModuleInit {
           notification: {
             sound: 'default',
             channelId: 'offers_channel',
-            imageUrl: sanitizedImageUrl,
+            ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
           },
         },
         apns: {
           payload: { aps: { 'mutable-content': 1 } },
-          fcmOptions: { imageUrl: sanitizedImageUrl },
+          ...(sanitizedImageUrl
+            ? { fcmOptions: { imageUrl: sanitizedImageUrl } }
+            : {}),
         },
       };
       this.logger.debug(
@@ -481,7 +505,11 @@ export class NotificationsService implements OnModuleInit {
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
       const message: admin.messaging.Message = {
-        notification: { title, body, imageUrl: sanitizedImageUrl },
+        notification: { 
+          title, 
+          body, 
+          ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}) 
+        },
         token: fcmToken,
         data: {
           ...(data || {}),
@@ -494,14 +522,16 @@ export class NotificationsService implements OnModuleInit {
           notification: {
             sound: 'default',
             channelId: 'offers_channel',
-            imageUrl: sanitizedImageUrl,
+            ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
           },
         },
         apns: {
           payload: {
             aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
           },
-          fcmOptions: { imageUrl: sanitizedImageUrl },
+          ...(sanitizedImageUrl
+            ? { fcmOptions: { imageUrl: sanitizedImageUrl } }
+            : {}),
         },
       };
       await admin.messaging().send(message);
@@ -565,14 +595,16 @@ export class NotificationsService implements OnModuleInit {
           notification: {
             sound: 'default',
             channelId: 'offers_channel',
-            imageUrl: sanitizedImageUrl,
+            ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
           },
         },
         apns: {
           payload: {
             aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
           },
-          fcmOptions: { imageUrl: sanitizedImageUrl },
+          ...(sanitizedImageUrl
+            ? { fcmOptions: { imageUrl: sanitizedImageUrl } }
+            : {}),
         },
       };
       await admin.messaging().send(message);
@@ -645,14 +677,16 @@ export class NotificationsService implements OnModuleInit {
             notification: {
               sound: 'default',
               channelId: 'offers_channel',
-              imageUrl: sanitizedImageUrl,
+              ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
             },
           },
           apns: {
             payload: {
               aps: { sound: 'default', badge: 1, 'mutable-content': 1 },
             },
-            fcmOptions: { imageUrl: sanitizedImageUrl },
+            ...(sanitizedImageUrl
+              ? { fcmOptions: { imageUrl: sanitizedImageUrl } }
+              : {}),
           },
         };
         await admin.messaging().send(message);
