@@ -116,8 +116,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   centerTitle: false,
                   title: Text(
                     'استكشف العروض',
-                    style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
+                    style: theme.textTheme.titleLarge?.copyWith(
+                          fontWeight: FontWeight.bold,
                           color: Colors.white,
                         ),
                   ),
@@ -212,7 +212,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                       categoryItem.name,
                                       style: theme.textTheme.labelSmall?.copyWith(
                                             color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                                            fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
                                             fontSize: 12,
                                           ),
                                     ),
@@ -353,8 +353,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 Text(
                   'لا توجد عروض',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                    fontWeight: FontWeight.w900,
+                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                    fontWeight: FontWeight.bold,
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -390,9 +390,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
       sliver: SliverGrid(
         gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
           crossAxisCount: 2,
-          mainAxisSpacing: 10,
-          crossAxisSpacing: 10,
-          childAspectRatio: 0.72,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: 0.76,
         ),
         delegate: SliverChildBuilderDelegate(
           (context, index) {

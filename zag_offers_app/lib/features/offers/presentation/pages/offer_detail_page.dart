@@ -363,9 +363,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
           child: Text(
             'خصم ${widget.offer.discountPercentage.toInt()}%',
-            style: textTheme.labelLarge?.copyWith(
+            style: textTheme.labelMedium?.copyWith(
               color: Colors.white,
-              fontWeight: FontWeight.w900,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ),
@@ -391,9 +391,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       children: [
         Text(
           widget.offer.title,
-          style: textTheme.headlineLarge?.copyWith(
-            fontWeight: FontWeight.w900,
-            height: 1.3,
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.bold,
+            height: 1.4,
           ),
         ),
         if (widget.offer.oldPrice != null || widget.offer.newPrice != null) ...[
@@ -403,9 +403,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               if (widget.offer.newPrice != null)
                 Text(
                   '${widget.offer.newPrice} ج.م',
-                  style: textTheme.headlineSmall?.copyWith(
+                  style: textTheme.titleMedium?.copyWith(
                     color: AppColors.primary,
-                    fontWeight: FontWeight.w900,
+                    fontWeight: FontWeight.w800,
                   ),
                 ),
               if (widget.offer.oldPrice != null) ...[
@@ -491,7 +491,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       children: [
         Text(
           'عن هذا العرض',
-          style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
         Text(
@@ -587,10 +587,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                   canGenerate
                                       ? 'احصل على العرض الآن'
                                       : 'متاح للعملاء فقط',
-                                  style: textTheme.titleLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                    color: Colors.white,
-                                  ),
+                                    style: textTheme.titleMedium?.copyWith(
+                                      fontWeight: FontWeight.bold,
+                                      color: Colors.white,
+                                    ),
                                 ),
                               ],
                             ),
@@ -777,7 +777,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           children: [
             Text(
               'آراء العملاء',
-              style: textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.w900),
+              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: _showAddReviewBottomSheet,
