@@ -1,7 +1,11 @@
 'use client';
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Ticket, Clock, CheckCircle2, ShoppingBag, ArrowRight, X, QrCode } from 'lucide-react';
+import { 
+  RiTicket2Fill, RiTimeLine, RiCheckboxCircleFill, 
+  RiShoppingBag3Fill, RiArrowRightLine, RiCloseLine, 
+  RiQrCodeLine, RiWhatsappFill, RiShareLine 
+} from 'react-icons/ri';
 import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
@@ -81,7 +85,7 @@ export default function MyCouponsPage() {
           <p className="text-white/40 text-sm font-bold">هنا تجد جميع الكوبونات التي حصلت عليها</p>
         </div>
         <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#FF6B00] border border-white/10">
-          <Ticket size={24} />
+          <RiTicket2Fill size={24} />
         </div>
       </div>
 
@@ -91,7 +95,7 @@ export default function MyCouponsPage() {
         </div>
       ) : isLoggedIn === false ? (
         <div className="text-center py-20 glass rounded-[32px]">
-          <Ticket className="mx-auto text-white/10 mb-4" size={64} />
+          <RiTicket2Fill className="mx-auto text-white/10 mb-4" size={64} />
           <h3 className="text-xl font-black mb-2">يرجى تسجيل الدخول</h3>
           <p className="text-white/40 text-sm font-bold mb-8">سجّل دخولك لترى كوبوناتك وخصوماتك</p>
           <Link href="/login" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
@@ -100,7 +104,7 @@ export default function MyCouponsPage() {
         </div>
       ) : coupons.length === 0 ? (
         <div className="text-center py-20 glass rounded-[32px]">
-          <ShoppingBag className="mx-auto text-white/10 mb-4" size={64} />
+          <RiShoppingBag3Fill className="mx-auto text-white/10 mb-4" size={64} />
           <h3 className="text-xl font-black mb-2">لا توجد كوبونات بعد</h3>
           <p className="text-white/40 text-sm font-bold mb-8">ابدأ بتصفح العروض واحصل على خصوماتك الأولى</p>
           <Link href="/" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
@@ -139,17 +143,17 @@ export default function MyCouponsPage() {
                   
                   <div className="flex flex-col items-end gap-2">
                     <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
-                      <Ticket size={14} className="text-[#FF6B00]" />
+                      <RiTicket2Fill size={14} className="text-[#FF6B00]" />
                       <span className="text-sm font-black tracking-widest">{coupon.code}</span>
                     </div>
                     <div className="flex items-center gap-2">
                       {coupon.isRedeemed ? (
                         <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-2 py-1 rounded-md flex items-center gap-1">
-                          <CheckCircle2 size={10} /> تم الاستخدام
+                          <RiCheckboxCircleFill size={10} /> تم الاستخدام
                         </span>
                       ) : (
                         <span className="text-[10px] font-black text-blue-400 bg-blue-400/10 px-2 py-1 rounded-md flex items-center gap-1">
-                          <Clock size={10} /> صالح للاستخدام (اضغط للمسح)
+                          <RiTimeLine size={10} /> صالح للاستخدام (اضغط للمسح)
                         </span>
                       )}
                     </div>
@@ -165,7 +169,7 @@ export default function MyCouponsPage() {
                   window.location.href = `/offers/${coupon.offer?.id}`;
                 }}
               >
-                <ArrowRight size={18} />
+                <RiArrowRightLine size={18} />
               </div>
             </motion.div>
           ))}
@@ -196,12 +200,12 @@ export default function MyCouponsPage() {
                 onClick={() => setSelectedCoupon(null)}
                 className="absolute top-6 right-6 w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors border border-white/5"
               >
-                <X size={20} />
+                <RiCloseLine size={20} />
               </button>
 
               <div className="mt-4 mb-8">
                 <div className="w-20 h-20 bg-[#FF6B00]/10 rounded-[28px] flex items-center justify-center text-[#FF6B00] mx-auto mb-5 shadow-2xl shadow-orange-900/20">
-                  <QrCode size={40} />
+                  <RiQrCodeLine size={40} />
                 </div>
                 <h3 className="text-2xl font-black text-white">كود التفعيل</h3>
                 <p className="text-white/40 text-sm font-bold mt-1 uppercase tracking-wider">Show to merchant to redeem</p>
@@ -259,7 +263,7 @@ export default function MyCouponsPage() {
                     }}
                     className="flex items-center justify-center gap-2 py-4 bg-black text-white font-black rounded-2xl hover:scale-[1.02] transition-all shadow-lg shadow-black/10"
                   >
-                    <ArrowRight size={18} className="-rotate-45" />
+                    <RiShareLine size={18} />
                     مشاركة
                   </button>
                 </div>

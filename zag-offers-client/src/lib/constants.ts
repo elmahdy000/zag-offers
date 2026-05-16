@@ -1,5 +1,5 @@
-export const API_URL = 'https://api.zagoffers.online/api';
-export const BASE_URL = 'https://api.zagoffers.online';
+export const BASE_URL = process.env.NEXT_PUBLIC_API_BASE_URL || 'https://api.zagoffers.online';
+export const API_URL = `${BASE_URL}/api`;
 
 export const CAT_ASSETS: Record<string, string> = {
   'الكل':          '/categories/all.png',

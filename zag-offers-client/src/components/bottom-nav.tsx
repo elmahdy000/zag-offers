@@ -1,14 +1,19 @@
 'use client';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { Home, LayoutGrid, Ticket, User } from 'lucide-react';
+import { 
+  RiHome5Line, RiHome5Fill, 
+  RiFunctionLine, RiFunctionFill, 
+  RiCoupon2Line, RiCoupon2Fill, 
+  RiUser3Line, RiUser3Fill 
+} from 'react-icons/ri';
 import { motion } from 'framer-motion';
 
 const navItems = [
-  { icon: Home, label: 'الرئيسية', path: '/' },
-  { icon: LayoutGrid, label: 'الأقسام', path: '/categories' },
-  { icon: Ticket, label: 'كوبوناتي', path: '/coupons' },
-  { icon: User, label: 'حسابي', path: '/profile' },
+  { icon: RiHome5Line, activeIcon: RiHome5Fill, label: 'الرئيسية', path: '/' },
+  { icon: RiFunctionLine, activeIcon: RiFunctionFill, label: 'الأقسام', path: '/categories' },
+  { icon: RiCoupon2Line, activeIcon: RiCoupon2Fill, label: 'كوبوناتي', path: '/coupons' },
+  { icon: RiUser3Line, activeIcon: RiUser3Fill, label: 'حسابي', path: '/profile' },
 ];
 
 export default function BottomNav() {
@@ -37,7 +42,7 @@ export default function BottomNav() {
               )}
 
               <div className={`relative z-10 transition-all duration-300 ${isActive ? 'text-[#FF6B00] -translate-y-1' : 'text-[#9A9A9A]'}`}>
-                <item.icon size={20} strokeWidth={isActive ? 2.5 : 2} />
+                {isActive ? <item.activeIcon size={24} /> : <item.icon size={24} />}
               </div>
               
               {isActive && (

@@ -2,7 +2,15 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { MapPin, Heart, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench } from 'lucide-react';
+import { 
+  RiMapPin2Line, RiHeartFill, RiHeartLine, 
+  RiRestaurant2Fill, RiCupFill, RiShirtFill, 
+  RiHeartPulseFill, RiMagicFill, RiHospitalFill, 
+  RiShoppingCartFill, RiBookOpenFill, RiCarWashingFill, 
+  RiHammerFill, RiSparklingFill, RiScissors2Fill,
+  RiCake3Fill, RiGiftFill, RiGamepadFill, RiBearSmileFill,
+  RiHomeHeartFill
+} from 'react-icons/ri';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -35,17 +43,23 @@ interface OfferCardProps {
 }
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
-  'مطاعم':         <Utensils size={14} />,
-  'كافيهات':       <Coffee size={14} />,
-  'ملابس':         <Shirt size={14} />,
-  'جيم':           <Dumbbell size={14} />,
-  'تجميل':         <Sparkles size={14} />,
-  'عيادات':        <Hospital size={14} />,
-  'سوبرماركت':    <ShoppingCart size={14} />,
-  'دورات':         <BookOpen size={14} />,
-  'خدمات سيارات': <Car size={14} />,
-  'خدمات محلية':  <Wrench size={14} />,
-  'default':       <Sparkles size={14} />,
+  'مطاعم':         <RiRestaurant2Fill size={14} />,
+  'كافيهات':       <RiCupFill size={14} />,
+  'ملابس':         <RiShirtFill size={14} />,
+  'جيم':           <RiHeartPulseFill size={14} />,
+  'تجميل':         <RiMagicFill size={14} />,
+  'عيادات':        <RiHospitalFill size={14} />,
+  'سوبرماركت':    <RiShoppingCartFill size={14} />,
+  'دورات':         <RiBookOpenFill size={14} />,
+  'خدمات سيارات': <RiCarWashingFill size={14} />,
+  'خدمات محلية':  <RiHammerFill size={14} />,
+  'حلاقين':       <RiScissors2Fill size={14} />,
+  'حلويات':       <RiCake3Fill size={14} />,
+  'مناسبات':       <RiGiftFill size={14} />,
+  'ألعاب':         <RiGamepadFill size={14} />,
+  'أطفال':         <RiBearSmileFill size={14} />,
+  'أدوات منزلية':  <RiHomeHeartFill size={14} />,
+  'default':       <RiSparklingFill size={14} />,
 };
 
 const CAT_GRADIENTS: Record<string, string> = {
@@ -203,7 +217,7 @@ export function OfferCard({ offer }: OfferCardProps) {
               ? 'bg-red-500/20 border-red-500/50 text-red-400'
               : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
         >
-          <Heart size={12} fill={isFav ? 'currentColor' : 'none'} />
+          <RiHeartFill size={14} className={isFav ? 'text-red-500' : 'text-white/40'} />
         </button>
 
         {/* Store Logo */}
@@ -259,7 +273,7 @@ export function OfferCard({ offer }: OfferCardProps) {
         {/* Meta */}
         <div className="mt-auto pt-2.5 border-t border-white/[0.05] flex items-center justify-between gap-1">
           <div className="flex items-center gap-1 px-2 py-0.5 bg-white/5 rounded-lg border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
-            <MapPin size={10} className="text-[#FF6B00] flex-shrink-0" />
+            <RiMapPin2Line size={12} className="text-[#FF6B00] flex-shrink-0" />
             <span className="text-[10px] font-black text-[#9A9A9A] truncate max-w-[80px] group-hover:text-white transition-colors">
               {offer.store?.area || 'الزقازيق'}
             </span>

@@ -2,7 +2,10 @@
 
 import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Search, Flame, Sparkles, Store as StoreIcon, ArrowUpDown, MapPin } from 'lucide-react';
+import { 
+  RiSearch2Line, RiFireFill, RiSparkling2Fill, 
+  RiStore3Fill, RiArrowUpDownLine, RiMapPin2Fill 
+} from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
 import { useSearchParams } from 'next/navigation';
@@ -234,7 +237,7 @@ function HomePageContent() {
             
             <div className="relative flex items-center bg-[#1E1E1E]/90 backdrop-blur-3xl border border-white/5 p-2 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
               <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 mx-2">
-                <Search className="text-[#FF6B00]" size={20} />
+                <RiSearch2Line className="text-[#FF6B00]" size={20} />
               </div>
               <input 
                 type="text" 
@@ -268,7 +271,7 @@ function HomePageContent() {
               </div>
               <div className="flex items-center gap-4">
                 <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs font-black text-[#9A9A9A] hover:text-white transition-all">
-                  <ArrowUpDown size={14} className="text-[#FF6B00]" />
+                  <RiArrowUpDownLine size={14} className="text-[#FF6B00]" />
                   <span>ترتيب حسب: الأحدث</span>
                 </button>
               </div>
@@ -329,7 +332,7 @@ function HomePageContent() {
           {/* Areas Row */}
           <div className="space-y-4">
             <div className="flex items-center gap-2 text-[#9A9A9A] mb-2 mr-1">
-              <MapPin size={16} className="text-[#FF6B00]" />
+              <RiMapPin2Fill size={16} className="text-[#FF6B00]" />
               <span className="text-sm font-black">اختر منطقتك بالزقازيق:</span>
             </div>
             <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
@@ -362,7 +365,7 @@ function HomePageContent() {
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-                  <Sparkles size={20} />
+                  <RiSparkling2Fill size={20} />
                 </div>
                 <h2 className="text-xl sm:text-2xl font-black text-white">عروض مختارة لك</h2>
               </div>
@@ -400,7 +403,7 @@ function HomePageContent() {
                         quality={70}
                       />
                     ) : (
-                      <StoreIcon className="text-white/20" size={24} />
+                      <RiStore3Fill className="text-white/20" size={24} />
                     )}
                   </div>
                   <span className="text-[10px] sm:text-xs font-black text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
@@ -416,7 +419,7 @@ function HomePageContent() {
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-              <Flame size={20} />
+              <RiFireFill size={20} />
             </div>
             <h2 className="text-xl sm:text-2xl font-black text-white">
               {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
@@ -476,7 +479,7 @@ function HomePageContent() {
               className="inline-flex items-center gap-3 px-12 py-5 bg-[#FF6B00] rounded-2xl font-black text-white hover:bg-[#D95A00] transition-all shadow-[0_10px_30px_rgba(255,107,0,0.3)] hover:scale-105 active:scale-95"
             >
               استكشف كل العروض الحصرية
-              <ArrowUpDown size={20} className="rotate-90" />
+              <RiArrowUpDownLine size={20} className="rotate-90" />
             </Link>
           </div>
         )}

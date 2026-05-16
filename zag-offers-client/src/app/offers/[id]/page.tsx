@@ -3,7 +3,13 @@
 import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Clock, MapPin, Share2, Heart, ArrowRight, ShieldCheck, Ticket, Store, ChevronRight, Copy, CheckCircle2, XCircle, AlertCircle, MessageCircle, Star, Building2 } from 'lucide-react';
+import { 
+  RiTimeLine, RiMapPin2Fill, RiShareLine, RiHeartFill, RiHeartLine, 
+  RiArrowRightLine, RiShieldCheckFill, RiTicket2Fill, RiStore3Fill, 
+  RiArrowLeftSLine, RiFileCopyLine, RiCheckboxCircleFill, RiCloseCircleFill, 
+  RiErrorWarningFill, RiWhatsappFill, RiStarFill, RiBuilding2Fill,
+  RiArrowRightSLine
+} from 'react-icons/ri';
 import { ReviewSection } from '@/components/ReviewSection';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -43,7 +49,7 @@ type ToastType = 'success' | 'error' | 'info';
 interface Toast { id: number; msg: string; type: ToastType; }
 
 function ToastContainer({ toasts }: { toasts: Toast[] }) {
-  const icons = { success: <CheckCircle2 size={18} />, error: <XCircle size={18} />, info: <AlertCircle size={18} /> };
+  const icons = { success: <RiCheckboxCircleFill size={18} />, error: <RiCloseCircleFill size={18} />, info: <RiErrorWarningFill size={18} /> };
   const colors = {
     success: 'bg-emerald-500/20 border-emerald-500/40 text-emerald-300',
     error:   'bg-red-500/20 border-red-500/40 text-red-300',
@@ -296,9 +302,9 @@ export default function OfferDetailsPage() {
       {/* Breadcrumbs */}
       <div className="flex items-center gap-2 text-xs font-bold text-white/30 mb-8 overflow-hidden whitespace-nowrap">
         <Link href="/" className="hover:text-white transition-colors">الرئيسية</Link>
-        <ChevronRight size={14} />
+        <RiArrowLeftSLine size={14} />
         <Link href="/offers" className="hover:text-white transition-colors">العروض</Link>
-        <ChevronRight size={14} />
+        <RiArrowLeftSLine size={14} />
         <span className="text-white/60 truncate">{offer.title}</span>
       </div>
 
@@ -328,13 +334,13 @@ export default function OfferDetailsPage() {
                      onClick={() => setActiveImg(prev => (prev + 1) % offer.images.length)}
                      className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
                    >
-                     <ChevronRight size={20} />
+                     <RiArrowLeftSLine size={20} />
                    </button>
                    <button 
                      onClick={() => setActiveImg(prev => (prev - 1 + offer.images.length) % offer.images.length)}
                      className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
                    >
-                     <ArrowRight size={20} />
+                     <RiArrowRightSLine size={20} />
                    </button>
                    
                  </>
@@ -378,33 +384,33 @@ export default function OfferDetailsPage() {
             <div className="p-8">
                <div className="flex flex-wrap gap-4 mb-8">
                   <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
-                    <Clock size={16} className="text-[#FF6B00]" />
+                    <RiTimeLine size={16} className="text-[#FF6B00]" />
                     <span className="text-xs font-bold">{daysLeft <= 0 ? 'منتهي' : `باقي ${daysLeft} يوم`}</span>
                   </div>
                   <button 
                     onClick={() => setShowLocations(true)}
                     className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5 hover:border-[#FF6B00]/40 hover:bg-[#FF6B00]/5 transition-all"
                   >
-                    <MapPin size={16} className="text-[#FF6B00]" />
+                    <RiMapPin2Fill size={16} className="text-[#FF6B00]" />
                     <span className="text-xs font-bold">{offer.store?.area}</span>
                   </button>
                   <button
                     onClick={() => { navigator.share?.({ title: offer.title, url: window.location.href }); }}
                     className="mr-auto p-2 text-white/40 hover:text-white transition-colors"
                   >
-                    <Share2 size={20} />
+                    <RiShareLine size={20} />
                   </button>
                   <button 
                     onClick={toggleFav}
                     className={`p-2 transition-all ${isFav ? 'text-red-500' : 'text-white/40 hover:text-red-500'}`}
                   >
-                    <Heart size={20} fill={isFav ? "currentColor" : "none"} />
+                    <RiHeartFill size={20} className={isFav ? 'text-red-500' : ''} />
                   </button>
                </div>
 
                <div className="space-y-4">
                   <h3 className="text-lg font-black flex items-center gap-2">
-                    <ShieldCheck className="text-[#FF6B00]" size={22} />
+                    <RiShieldCheckFill className="text-[#FF6B00]" size={22} />
                     وصف العرض والشروط
                   </h3>
                   <p className="text-white/50 font-bold leading-relaxed whitespace-pre-wrap">
@@ -434,7 +440,7 @@ export default function OfferDetailsPage() {
                       placeholder="blur"
                       blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iNTYiIGhlaWdodD0iNTYiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjU2IiBoZWlnaHQ9IjU2IiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
                     /> : 
-                    <Store className="text-white/20" />
+                    <RiStore3Fill className="text-white/20" />
                   }
                </div>
                <div>
@@ -443,7 +449,7 @@ export default function OfferDetailsPage() {
                </div>
             </div>
             <Link href={`/stores/${offer.store?.id}`} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all">
-              عرض المتجر <ArrowRight size={14} />
+              عرض المتجر <RiArrowLeftSLine size={14} />
             </Link>
           </div>
 
@@ -461,7 +467,7 @@ export default function OfferDetailsPage() {
                   {isCouponLoading ? (
                     <span className="animate-spin text-xl">⏳</span>
                   ) : (
-                    <><Ticket size={20} /> عرض الكوبون</>
+                    <><RiTicket2Fill size={20} /> عرض الكوبون</>
                   )}
                 </motion.button>
               ) : (
@@ -471,7 +477,7 @@ export default function OfferDetailsPage() {
                   className="space-y-4"
                 >
                   <div className="bg-white/10 rounded-2xl p-4 text-center border border-white/10 animate-in fade-in zoom-in duration-300">
-                    <CheckCircle2 className="text-white mx-auto mb-2" size={24} />
+                    <RiCheckboxCircleFill className="text-white mx-auto mb-2" size={24} />
                     <p className="text-white font-black text-sm">مبروك! تم حفظ الكوبون في حسابك</p>
                   </div>
 
@@ -483,7 +489,7 @@ export default function OfferDetailsPage() {
                       <span className="text-[10px] font-black text-white/40 mb-3 block tracking-widest uppercase">كود الخصم — اضغط للنسخ</span>
                       <span className="text-3xl font-black text-white tracking-[4px]">{couponCode}</span>
                       <div className="flex items-center justify-center gap-2 mt-4 text-white/40 text-xs font-bold">
-                        {copied ? <><CheckCircle2 size={14} className="text-emerald-400" /> تم النسخ!</> : <><Copy size={14} /> نسخ الكود</>}
+                        {copied ? <><RiCheckboxCircleFill size={14} className="text-emerald-400" /> تم النسخ!</> : <><RiFileCopyLine size={14} /> نسخ الكود</>}
                       </div>
                     </button>
 
@@ -506,7 +512,7 @@ export default function OfferDetailsPage() {
                       href="/coupons" 
                       className="inline-flex items-center gap-2 text-xs font-black text-white bg-black/20 px-4 py-2 rounded-xl hover:bg-black/40 transition-all"
                     >
-                      <Ticket size={14} /> الذهاب إلى كوبوناتي
+                      <RiTicket2Fill size={14} /> الذهاب إلى كوبوناتي
                     </Link>
                   </div>
 
@@ -516,7 +522,7 @@ export default function OfferDetailsPage() {
                     rel="noopener noreferrer"
                     className="w-full py-4 bg-emerald-500 text-white font-black rounded-2xl shadow-xl hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"
                   >
-                    <MessageCircle size={20} /> إرسال الكود للمحل (واتساب)
+                    <RiWhatsappFill size={20} /> إرسال الكود للمحل (واتساب)
                   </a>
                 </motion.div>
               )}
@@ -561,7 +567,7 @@ export default function OfferDetailsPage() {
 
               <div className="flex flex-col items-center text-center">
                 <div className="w-16 h-16 bg-[#FF6B00]/10 rounded-2xl flex items-center justify-center text-[#FF6B00] mb-6">
-                  <MapPin size={32} />
+                  <RiMapPin2Fill size={32} />
                 </div>
                 
                 <h3 className="text-2xl font-black text-white mb-2">موقع المحل</h3>
@@ -570,7 +576,7 @@ export default function OfferDetailsPage() {
                 <div className="w-full bg-white/5 p-6 rounded-2xl border border-white/5 mb-8 text-right">
                   <div className="flex items-center gap-3 mb-3">
                     <div className="w-8 h-8 bg-[#FF6B00]/20 rounded-lg flex items-center justify-center text-[#FF6B00]">
-                      <Building2 size={16} />
+                      <RiBuilding2Fill size={16} />
                     </div>
                     <span className="text-white font-black text-sm">{offer.store?.area}</span>
                   </div>
@@ -587,7 +593,7 @@ export default function OfferDetailsPage() {
                       rel="noopener noreferrer"
                       className="w-full py-4 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black rounded-xl shadow-lg shadow-[#FF6B00]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
                     >
-                      <MapPin size={18} />
+                      <RiMapPin2Fill size={18} />
                       فتح في خرائط جوجل
                     </a>
                   )}

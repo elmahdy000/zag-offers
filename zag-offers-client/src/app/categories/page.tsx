@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
-import { ArrowLeft } from 'lucide-react';
+import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
 import { Category } from '@/lib/types';
@@ -97,7 +97,7 @@ export default function CategoriesPage() {
                     {getCatName(cat.name)}
                   </h3>
                   <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-white/60 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full group-hover:bg-[#FF6B00] group-hover:text-white transition-all duration-300">
-                    تصفح العروض <ArrowLeft size={12} className="group-hover:-translate-x-1 transition-transform" />
+                    تصفح العروض <RiArrowRightLine size={12} className="group-hover:-translate-x-1 transition-transform rotate-180" />
                   </div>
                 </div>
               </motion.div>

@@ -4,11 +4,13 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { 
-  ShoppingBag, User, Heart, Menu, X, Bell, CheckCheck, 
-  Ticket, Phone, Shield, FileText, Tag, Building2, 
-  LayoutDashboard, FileCheck, Headphones, Store, Mail,
-  Link as LinkIcon, ChevronLeft
-} from 'lucide-react';
+  RiShoppingBag3Fill, RiUser3Fill, RiHeart3Fill, RiMenu3Line, RiCloseLine, 
+  RiNotification3Fill, RiCheckDoubleLine, RiTicket2Fill, RiPhoneFill, 
+  RiShieldCheckFill, RiFileTextFill, RiPriceTag3Fill, RiBuilding2Fill, 
+  RiDashboardFill, RiCheckboxCircleFill, RiHeadsetFill, RiStore3Fill, 
+  RiMailFill, RiLink, RiArrowLeftSLine, RiMapPin2Fill, RiSparkling2Fill,
+  RiSearch2Line, RiFireFill
+} from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
@@ -90,7 +92,7 @@ function NotificationPortal({
         {/* Header */}
         <div className="flex items-center justify-between px-5 py-4 border-b border-white/[0.05] bg-white/[0.02]">
           <div className="flex items-center gap-2.5">
-            <Bell size={16} className="text-[#FF6B00]" />
+            <RiNotification3Fill size={16} className="text-[#FF6B00]" />
             <span className="text-sm font-black text-[#F0F0F0]">الإشعارات</span>
             {unread > 0 && (
               <span className="bg-[#FF6B00] text-white text-[10px] font-black px-2 py-0.5 rounded-full">
@@ -104,7 +106,7 @@ function NotificationPortal({
                 onClick={onMarkAllRead}
                 className="flex items-center gap-1 text-[11px] text-[#FF6B00] font-black hover:underline"
               >
-                <CheckCheck size={12} />
+                <RiCheckDoubleLine size={12} />
                 قراءة الكل
               </button>
             )}
@@ -112,7 +114,7 @@ function NotificationPortal({
               onClick={onClose}
               className="p-1.5 rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all"
             >
-              <X size={16} />
+              <RiCloseLine size={16} />
             </button>
           </div>
         </div>
@@ -121,7 +123,7 @@ function NotificationPortal({
         <div className="overflow-y-auto flex-1 overscroll-contain">
           {notifications.length === 0 ? (
             <div className="py-16 text-center">
-              <Bell size={40} className="text-white/[0.05] mx-auto mb-4" />
+              <RiNotification3Fill size={40} className="text-white/[0.05] mx-auto mb-4" />
               <p className="text-white/30 text-sm font-bold">لا توجد إشعارات جديدة</p>
             </div>
           ) : (
@@ -302,7 +304,7 @@ export function Navbar() {
             <div className="w-9 h-9 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-xl
                             flex items-center justify-center shadow-[0_4px_12px_rgba(255,107,0,0.35)]
                             group-hover:scale-105 transition-transform">
-              <ShoppingBag className="text-white" size={18} />
+              <RiShoppingBag3Fill className="text-white" size={18} />
             </div>
             <span className="text-lg font-black tracking-tight">
               Zag<span className="text-[#FF6B00]">Offers</span>
@@ -330,7 +332,7 @@ export function Navbar() {
               href="/favorites"
               className="p-2 text-[#9A9A9A] hover:text-[#F0F0F0] transition-colors rounded-lg hover:bg-white/5"
             >
-              <Heart size={19} />
+              <RiHeart3Fill size={19} />
             </Link>
 
             {isLoggedIn && (
@@ -340,7 +342,7 @@ export function Navbar() {
                            ${showBell ? 'text-[#FF6B00]' : 'text-[#9A9A9A] hover:text-[#F0F0F0]'}`}
                 aria-label="الإشعارات"
               >
-                <Bell size={19} />
+                <RiNotification3Fill size={19} />
                 {unreadCount > 0 && (
                   <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#FF6B00] text-white text-[10px] font-black rounded-full flex items-center justify-center px-0.5">
                     {unreadCount > 9 ? '9+' : unreadCount}
@@ -359,7 +361,7 @@ export function Navbar() {
               >
                 <span className="text-xs font-bold hidden sm:block text-[#9A9A9A]">حسابي</span>
                 <div className="w-7 h-7 bg-[#FF6B00] rounded-full flex items-center justify-center">
-                  <User size={14} className="text-white" />
+                  <RiUser3Fill size={14} className="text-white" />
                 </div>
               </Link>
             ) : (
@@ -378,7 +380,7 @@ export function Navbar() {
               className="md:hidden p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5"
               onClick={() => setIsMobileMenuOpen(v => !v)}
             >
-              {isMobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+              {isMobileMenuOpen ? <RiCloseLine size={22} /> : <RiMenu3Line size={22} />}
             </button>
           </div>
         </div>
@@ -451,7 +453,7 @@ export function Footer() {
             <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8 text-right sm:text-right">
               <div className="flex flex-col sm:flex-row items-center gap-6 text-right">
                 <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 group-hover:rotate-12 transition-all duration-500 shadow-2xl">
-                  <Ticket className="text-white" size={32} />
+                  <RiTicket2Fill className="text-white" size={32} />
                 </div>
                 <div className="text-center sm:text-right">
                   <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
@@ -472,7 +474,7 @@ export function Footer() {
           <div className="space-y-8 flex flex-col items-start text-right">
             <Link href="/" className="flex items-center gap-3">
               <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-2xl flex items-center justify-center shadow-xl shadow-orange-950/20">
-                <ShoppingBag className="text-white" size={24} />
+                <RiShoppingBag3Fill className="text-white" size={24} />
               </div>
               <span className="text-3xl font-black text-white tracking-tighter">Zag<span className="text-[#FF6B00]">Offers</span></span>
             </Link>
@@ -508,7 +510,7 @@ export function Footer() {
                 ].map((l, i) => (
                   <li key={i}>
                     <Link href={l.href} className="text-[#9A9A9A] hover:text-[#FF6B00] font-bold text-sm transition-colors flex items-center justify-center sm:justify-start gap-2 group">
-                      <ChevronLeft size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
+                      <RiArrowLeftSLine size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
                       {l.label}
                     </Link>
                   </li>
@@ -529,7 +531,7 @@ export function Footer() {
                 ].map((l, i) => (
                   <li key={i}>
                     <Link href={l.href} className="text-[#9A9A9A] hover:text-blue-500 font-bold text-sm transition-colors flex items-center justify-center sm:justify-start gap-2 group">
-                      <ChevronLeft size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
+                      <RiArrowLeftSLine size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
                       {l.label}
                     </Link>
                   </li>
@@ -549,7 +551,7 @@ export function Footer() {
             </p>
             <div className="space-y-3 w-full max-w-xs">
               <div className="relative">
-                <Mail className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
+                <RiMailFill className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
                 <input 
                   type="email" 
                   placeholder="بريدك الإلكتروني"
