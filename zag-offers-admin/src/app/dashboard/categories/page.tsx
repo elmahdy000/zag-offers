@@ -128,7 +128,7 @@ export default function CategoriesPage() {
       >
         <button 
           onClick={() => openUpsert()}
-          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-black text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700 hover:scale-[1.02] active:scale-[0.98]"
+          className="flex items-center gap-2 rounded-2xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700 hover:scale-[1.02] active:scale-[0.98]"
         >
           <Plus size={20} />
           <span>إضافة فئة جديدة</span>
@@ -158,9 +158,9 @@ export default function CategoriesPage() {
                 )}
               </div>
               <div className="flex-1 min-w-0">
-                <h3 className="text-lg font-bold text-slate-900 truncate">{category.name}</h3>
+                <h3 className="text-base font-bold text-slate-900 truncate">{category.name}</h3>
                 <div className="flex items-center gap-2 mt-1">
-                  <div className="flex items-center gap-1 text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                  <div className="flex items-center gap-1 text-xs font-medium text-slate-500">
                     <Store size={12} />
                     <span>{category._count?.stores || 0} متجر</span>
                   </div>
@@ -171,7 +171,7 @@ export default function CategoriesPage() {
             <div className="mt-6 flex gap-2">
               <button 
                 onClick={() => openUpsert(category)}
-                className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-slate-50 text-xs font-bold text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100"
+                className="flex-1 flex items-center justify-center gap-2 h-10 rounded-xl bg-slate-50 text-sm font-medium text-slate-600 hover:bg-orange-50 hover:text-orange-600 transition-all border border-slate-100"
               >
                 <Edit size={14} />
                 <span>تعديل</span>
@@ -203,11 +203,11 @@ export default function CategoriesPage() {
             >
               <div className="flex items-center justify-between mb-8">
                 <div>
-                  <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
+                  <h3 className="text-xl font-bold text-slate-900 tracking-tight">
                     {editingCategory ? 'تعديل الفئة' : 'إضافة فئة جديدة'}
                   </h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
-                    Category Management System
+                  <p className="text-xs font-medium text-slate-500 mt-1">
+                    إدارة فئات النظام
                   </p>
                 </div>
                 <button 
