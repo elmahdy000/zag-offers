@@ -1,8 +1,11 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import {
   CouponStatus,
   OfferStatus,
@@ -105,7 +108,17 @@ export class AdminService {
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
     private auditLogService: AuditLogService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  private async clearCache() {
+    try {
+      await this.cacheManager.clear();
+      console.log('[AdminService] Global cache cleared successfully');
+    } catch (err) {
+      console.error('[AdminService] Failed to clear cache:', err);
+    }
+  }
 
   async getGlobalStats() {
     const [
@@ -233,7 +246,6 @@ export class AdminService {
       orderBy: { reviews: { _count: 'desc' } },
     });
 
-    // Calculate total redemptions (USED coupons) for each store
     const storeStats = await Promise.all(
       stores.map(async (store) => {
         const redeemedCount = await this.prisma.coupon.count({
@@ -244,7 +256,7 @@ export class AdminService {
         });
         return {
           ...store,
-          totalCoupons: redeemedCount, // This matches the field expected by the Admin Dashboard
+          totalCoupons: redeemedCount,
         };
       }),
     );
@@ -368,7 +380,7 @@ export class AdminService {
       }
     }
 
-    return this.prisma.store.update({
+    const updated = await this.prisma.store.update({
       where: { id },
       data: {
         ...(payload.name !== undefined ? { name: payload.name } : {}),
@@ -388,12 +400,10 @@ export class AdminService {
           : {}),
         ...(payload.status !== undefined ? { status: payload.status } : {}),
       },
-      include: {
-        category: true,
-        owner: { select: { id: true, name: true, phone: true, email: true } },
-        _count: { select: { offers: true, reviews: true } },
-      },
     });
+
+    await this.clearCache();
+    return updated;
   }
 
   async approveStore(id: string, adminId: string) {
@@ -425,7 +435,6 @@ export class AdminService {
       data: { storeId: store.id, type: 'STORE_APPROVED' },
     });
 
-    // Log the action
     await this.auditLogService.log({
       action: 'APPROVE_STORE',
       adminId,
@@ -433,6 +442,7 @@ export class AdminService {
       targetName: store.name,
     });
 
+    await this.clearCache();
     return updated;
   }
 
@@ -507,6 +517,7 @@ export class AdminService {
       );
     }
 
+    await this.clearCache();
     return updated;
   }
 
@@ -514,27 +525,22 @@ export class AdminService {
     const store = await this.prisma.store.findUnique({ where: { id } });
     if (!store) throw new NotFoundException('Store not found');
 
-    // Manually cascade delete all related records using a transaction
     const offers = await this.prisma.offer.findMany({ where: { storeId: id }, select: { id: true } });
     const offerIds = offers.map(o => o.id);
 
     const results = await this.prisma.$transaction([
-      // Delete offer-related records
       this.prisma.analyticsEvent.deleteMany({ where: { offerId: { in: offerIds } } }),
       this.prisma.favorite.deleteMany({ where: { offerId: { in: offerIds } } }),
       this.prisma.coupon.deleteMany({ where: { offerId: { in: offerIds } } }),
       this.prisma.review.deleteMany({ where: { offerId: { in: offerIds } } }),
       this.prisma.offer.deleteMany({ where: { storeId: id } }),
-      
-      // Delete store-related records
       this.prisma.analyticsEvent.deleteMany({ where: { storeId: id } }),
       this.prisma.review.deleteMany({ where: { storeId: id } }),
-      
-      // Delete the store itself
       this.prisma.store.delete({ where: { id } }),
     ]);
 
-    return results[7]; // Return the deleted store
+    await this.clearCache();
+    return results[7];
   }
 
   async getAllOffers(query: {
@@ -724,7 +730,6 @@ export class AdminService {
       });
     }
 
-    // Notify merchant about the update
     if (updated.store?.ownerId) {
       this.eventsGateway.notifyMerchant(updated.store.ownerId, {
         type: 'OFFER_UPDATED',
@@ -732,17 +737,9 @@ export class AdminService {
         body: `تم إجراء تحديث على عرضك "${updated.title}".`,
         payload: { offerId: updated.id, offerTitle: updated.title },
       });
-
-      if (updated.store.owner.fcmToken) {
-        void this.notificationsService.sendToUser(
-          updated.store.owner.fcmToken,
-          'تحديث في بيانات العرض',
-          `تم إجراء تحديث على عرضك "${updated.title}".`,
-          { offerId: updated.id, type: 'OFFER_UPDATED' },
-        );
-      }
     }
 
+    await this.clearCache();
     return updated;
   }
 
@@ -788,6 +785,7 @@ export class AdminService {
       targetName: offer.title,
     });
 
+    await this.clearCache();
     return updated;
   }
 
@@ -821,10 +819,10 @@ export class AdminService {
       action: 'REJECT_OFFER',
       adminId,
       targetId: id,
-      targetName: offer.title,
       details: reason,
     });
 
+    await this.clearCache();
     return updated;
   }
 
@@ -832,7 +830,6 @@ export class AdminService {
     const offer = await this.prisma.offer.findUnique({ where: { id } });
     if (!offer) throw new NotFoundException('Offer not found');
     
-    // Manually cascade delete all related records using a transaction
     const results = await this.prisma.$transaction([
       this.prisma.analyticsEvent.deleteMany({ where: { offerId: id } }),
       this.prisma.favorite.deleteMany({ where: { offerId: id } }),
@@ -852,6 +849,7 @@ export class AdminService {
       });
     }
 
+    await this.clearCache();
     return deleted;
   }
 
@@ -918,7 +916,7 @@ export class AdminService {
 
       const hashedPassword = data.password
         ? await bcrypt.hash(data.password, 10)
-        : await bcrypt.hash('123456', 10); // Default password
+        : await bcrypt.hash('123456', 10);
 
       return await this.prisma.user.create({
         data: {
@@ -1032,13 +1030,9 @@ export class AdminService {
       throw new BadRequestException('Cannot delete an admin account');
     }
 
-    // Manual cascade deletion to avoid foreign key constraints
-    return this.prisma.$transaction(async (tx) => {
-      // 1. If merchant, handle stores and their nested offers/coupons
+    const result = await this.prisma.$transaction(async (tx) => {
       if (user.stores.length > 0) {
         const storeIds = user.stores.map((s) => s.id);
-
-        // Delete all offers images/coupons/favorites associated with this merchant's stores
         const merchantOffers = await tx.offer.findMany({
           where: { storeId: { in: storeIds } },
         });
@@ -1057,14 +1051,16 @@ export class AdminService {
         await tx.store.deleteMany({ where: { ownerId: id } });
       }
 
-      // 2. Cleanup customer specific data
       await tx.favorite.deleteMany({ where: { userId: id } });
       await tx.review.deleteMany({ where: { customerId: id } });
       await tx.coupon.deleteMany({ where: { customerId: id } });
 
-      // 3. Finally delete the user
-      return tx.user.delete({ where: { id } });
+      const deleted = await tx.user.delete({ where: { id } });
+      return deleted;
     });
+
+    await this.clearCache();
+    return result;
   }
 
   async getAllCategories() {
@@ -1091,7 +1087,7 @@ export class AdminService {
       data: {
         name: normalizedName,
         image: image || null,
-      } as any,
+      },
     });
 
     if (adminId) {
@@ -1103,6 +1099,7 @@ export class AdminService {
       });
     }
 
+    await this.clearCache();
     return created;
   }
 
@@ -1137,7 +1134,7 @@ export class AdminService {
       data: {
         name: normalizedName,
         image: image !== undefined ? image : (category as any).image,
-      } as any,
+      },
       include: { _count: { select: { stores: true } } },
     });
 
@@ -1150,6 +1147,7 @@ export class AdminService {
       });
     }
 
+    await this.clearCache();
     return updated;
   }
 
@@ -1179,6 +1177,7 @@ export class AdminService {
       });
     }
 
+    await this.clearCache();
     return deleted;
   }
 
@@ -1369,7 +1368,7 @@ export class AdminService {
       throw new BadRequestException('Owner not found');
     }
 
-    return this.prisma.store.create({
+    const createdStore = await this.prisma.store.create({
       data: {
         name: payload.name,
         address: payload.address || '',
@@ -1384,6 +1383,9 @@ export class AdminService {
         owner: { connect: { id: payload.ownerId } },
       },
     });
+
+    await this.clearCache();
+    return createdStore;
   }
 
   async createOffer(payload: OfferCreatePayload, adminId: string) {
@@ -1413,7 +1415,7 @@ export class AdminService {
         startDate,
         endDate,
         images: payload.images || [],
-        status: OfferStatus.ACTIVE, // Admin offers are approved by default
+        status: OfferStatus.ACTIVE,
         originalPrice: payload.originalPrice ? +payload.originalPrice : null,
         newPrice: payload.newPrice ? +payload.newPrice : null,
         store: { connect: { id: payload.storeId } },
@@ -1421,7 +1423,6 @@ export class AdminService {
       include: { store: true },
     });
 
-    // Notify users about new offer
     this.eventsGateway.broadcastNewOffer(offer);
 
     const imageUrl =
@@ -1442,6 +1443,7 @@ export class AdminService {
       details: `Created for store: ${store.name}`,
     });
 
+    await this.clearCache();
     return offer;
   }
 }

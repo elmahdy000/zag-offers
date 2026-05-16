@@ -1,9 +1,12 @@
 import {
-  Injectable,
-  UnauthorizedException,
-  NotFoundException,
   BadRequestException,
+  Inject,
+  Injectable,
+  NotFoundException,
+  UnauthorizedException,
 } from '@nestjs/common';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 import { PrismaService } from '../prisma/prisma.service';
 import { Prisma, Offer, OfferStatus, StoreStatus } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
@@ -17,7 +20,17 @@ export class OffersService {
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
     private uploadService: UploadService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
+
+  private async clearCache() {
+    try {
+      await this.cacheManager.clear();
+      console.log('[OffersService] Global cache cleared successfully');
+    } catch (err) {
+      console.error('[OffersService] Failed to clear cache:', err);
+    }
+  }
 
   async getStoreByOwnerId(ownerId: string) {
     return this.prisma.store.findFirst({
@@ -54,7 +67,6 @@ export class OffersService {
       }
     }
 
-    // التحقق من تاريخ انتهاء العرض (نسمح باليوم الحالي)
     const now = new Date();
     now.setHours(0, 0, 0, 0);
 
@@ -98,6 +110,7 @@ export class OffersService {
       })
       .catch(() => undefined);
 
+    await this.clearCache();
     return offer;
   }
 
@@ -112,10 +125,7 @@ export class OffersService {
   }): Promise<unknown[] | { items: unknown[]; meta: any }> {
     const { skip, take, where, orderBy, includeMeta, page, limit } = params;
 
-    // الفلاتر الأمنية ثابتة دايمًا — لا يمكن تجاوزها عبر where الخارجي
-    // نستخرج فقط الفلاتر المسموح بيها (categoryId, area, search) ونمنع تعديل status أو store.status
     const whereObj = where || {};
-    // eslint-disable-next-line @typescript-eslint/no-unused-vars
     const { status, store, ...safeWhere } = whereObj as {
       status?: unknown;
       store?: unknown;
@@ -123,7 +133,6 @@ export class OffersService {
     };
 
     const now = new Date();
-    // Start of today (00:00:00) to allow offers ending today to remain visible
     const startOfToday = new Date(
       now.getFullYear(),
       now.getMonth(),
@@ -133,11 +142,10 @@ export class OffersService {
     const finalWhere: Prisma.OfferWhereInput = {
       ...safeWhere,
       status: OfferStatus.ACTIVE,
-      endDate: { gte: startOfToday }, // Hide if expired before today
+      endDate: { gte: startOfToday },
       store: { status: StoreStatus.APPROVED },
     };
 
-    // Optimized query with better select and indexing
     const items = await this.prisma.offer.findMany({
       skip,
       take,
@@ -181,7 +189,6 @@ export class OffersService {
       return items;
     }
 
-    // Use count with optimized query
     const total = await this.prisma.offer.count({ where: finalWhere });
     const currentLimit = limit ?? take ?? 10;
     const currentPage = page ?? 1;
@@ -221,7 +228,6 @@ export class OffersService {
   }
 
   async findOne(id: string, userId?: string): Promise<Offer | null> {
-    // نعرض العرض بس لو ACTIVE من محل APPROVED
     const offer = await this.prisma.offer.findFirst({
       where: {
         id,
@@ -238,7 +244,6 @@ export class OffersService {
     });
 
     if (offer) {
-      // 1. زيادة عداد المشاهدات في العرض (Asynchronous)
       void this.prisma.offer
         .update({
           where: { id: offer.id },
@@ -248,7 +253,6 @@ export class OffersService {
           console.error('Failed to increment view counter:', err),
         );
 
-      // 2. تسجيل حدث التحليل (Analytics Event)
       void this.prisma.analyticsEvent
         .create({
           data: {
@@ -290,10 +294,9 @@ export class OffersService {
       updateData.status = OfferStatus.PENDING;
     }
 
-    // تنظيف الصور القديمة لو تم استبدالها
     if (data.images && Array.isArray(data.images)) {
       const oldImages = offer.images;
-      const newImages = data.images;
+      const newImages = data.images as string[];
 
       const imagesToDelete = oldImages.filter(
         (img) => !newImages.includes(img),
@@ -303,10 +306,13 @@ export class OffersService {
       }
     }
 
-    return this.prisma.offer.update({
+    const updatedOffer = await this.prisma.offer.update({
       where: { id },
       data: updateData,
     });
+
+    await this.clearCache();
+    return updatedOffer;
   }
 
   async remove(id: string, merchantId: string): Promise<Offer> {
@@ -326,22 +332,23 @@ export class OffersService {
       }
     }
 
-    // Delete related records that might block deletion (Foreign Key constraints)
     await this.prisma.analyticsEvent.deleteMany({ where: { offerId: id } });
     await this.prisma.favorite.deleteMany({ where: { offerId: id } });
     await this.prisma.review.deleteMany({ where: { offerId: id } });
     await this.prisma.coupon.deleteMany({ where: { offerId: id } });
 
-    // Delete images from storage
     if (offer.images && Array.isArray(offer.images)) {
       for (const img of offer.images) {
         await this.uploadService.deleteImage(img);
       }
     }
 
-    return this.prisma.offer.delete({
+    const deletedOffer = await this.prisma.offer.delete({
       where: { id },
     });
+
+    await this.clearCache();
+    return deletedOffer;
   }
 
   async updateStatus(id: string, status: OfferStatus): Promise<Offer> {
@@ -352,11 +359,7 @@ export class OffersService {
     });
 
     if (status === OfferStatus.ACTIVE) {
-      // 1. التحديث اللحظي للمتصلين حالياً
       this.eventsGateway.broadcastNewOffer(offer);
-
-      // 2. الإشعارات تم نقلها لتعمل بشكل مجمع (Batching) في TasksService
-      // لمنع إزعاج المستخدمين بكثرة الإشعارات
     } else if (status === OfferStatus.REJECTED) {
       void this.eventsGateway.notifyMerchant(offer.store.ownerId, {
         type: 'OFFER_REJECTED',
@@ -366,6 +369,7 @@ export class OffersService {
       });
     }
 
+    await this.clearCache();
     return offer;
   }
 }
