@@ -40,16 +40,34 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
     try {
       final response = await apiClient.dio.get('/coupons/my');
       final raw = response.data;
+      print('=== COUPONS RAW ===');
+      print(raw);
+      print('===================');
       if (raw is List) {
-        return raw.whereType<Map<String, dynamic>>()
-            .map((json) => CouponModel.fromJson(json))
-            .toList();
+        final results = <CouponModel>[];
+        for (final item in raw) {
+          try {
+            if (item is Map) {
+              results.add(CouponModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          } catch (e, st) {
+            print('Coupon parsing error: $e\n$st');
+          }
+        }
+        return results;
       }
       if (raw is Map && raw['items'] is List) {
-        return (raw['items'] as List)
-            .whereType<Map<String, dynamic>>()
-            .map((json) => CouponModel.fromJson(json))
-            .toList();
+        final results = <CouponModel>[];
+        for (final item in (raw['items'] as List)) {
+          try {
+            if (item is Map) {
+              results.add(CouponModel.fromJson(Map<String, dynamic>.from(item)));
+            }
+          } catch (e, st) {
+            print('Coupon parsing error: $e\n$st');
+          }
+        }
+        return results;
       }
       return [];
     } on DioException catch (e) {
