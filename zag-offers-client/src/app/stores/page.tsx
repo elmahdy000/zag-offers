@@ -26,7 +26,7 @@ export default function StoresListPage() {
       }
 
       try {
-        const res = await fetch(`${API_URL}/stores?limit=100`);
+        const res = await fetch(`${API_URL}/stores?limit=100`, { cache: 'no-store' });
         if (res.ok) {
           const data = await res.json();
           const storesData = Array.isArray(data) ? data : (data.items || []);

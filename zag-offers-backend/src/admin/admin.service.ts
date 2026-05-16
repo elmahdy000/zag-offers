@@ -480,6 +480,7 @@ export class AdminService {
       details: reason,
     });
 
+    await this.clearCache();
     return updated;
   }
 
