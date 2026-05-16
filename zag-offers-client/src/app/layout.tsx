@@ -57,9 +57,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://api.zagoffers.online" />
         <link rel="dns-prefetch" href="https://api.zagoffers.online" />
         <meta name="theme-color" content="#FF6B00" />
+        <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icon-192.png" />
+        <link rel="apple-touch-icon" href="/icon-192.svg" />
       </head>
       <body className="antialiased">
         <ReactQueryProvider>
