@@ -7,7 +7,7 @@ import {
   RiShoppingBag3Fill, RiUser3Fill, RiHeart3Fill, RiMenu3Line, RiCloseLine, 
   RiNotification3Fill, RiCheckDoubleLine, RiTicket2Fill, RiPhoneFill, 
   RiShieldCheckFill, RiFileTextFill, RiPriceTag3Fill, RiBuilding2Fill, 
-  RiDashboardFill, RiCheckboxCircleFill, RiHeadsetFill, RiStore3Fill, 
+  RiDashboardFill, RiCheckboxCircleFill, RiCustomerService2Fill, RiStore3Fill, 
   RiMailFill, RiLink, RiArrowLeftSLine, RiMapPin2Fill, RiSparkling2Fill,
   RiSearch2Line, RiFireFill
 } from 'react-icons/ri';
