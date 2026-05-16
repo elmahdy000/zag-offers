@@ -40,7 +40,16 @@ async function main() {
 
   const myStoreId = myStore?.id;
 
-  // 2. حذف الكوبونات والعروض للمتاجر الأخرى
+  // 2. تنظيف الجداول العامة والاعتمادات (AuditLog, Messages, Conversations, etc.)
+  // يجب حذف هذه الجداول أولاً لأنها مرتبطة بالمستخدمين (Foreign Keys)
+  await prisma.notification.deleteMany({});
+  await prisma.analyticsEvent.deleteMany({});
+  await prisma.auditLog.deleteMany({});
+  await prisma.message.deleteMany({});
+  await prisma.conversation.deleteMany({});
+  console.log('Cleared general logs, notifications, and messages.');
+
+  // 3. حذف الكوبونات والعروض للمتاجر الأخرى
   if (myStoreId) {
     console.log(`Keeping store: ${myStore.name} (${myStoreId})`);
     await prisma.coupon.deleteMany({ where: { offer: { storeId: { not: myStoreId } } } });
@@ -52,7 +61,7 @@ async function main() {
     await prisma.store.deleteMany({});
   }
   
-  // 3. حذف المستخدمين الآخرين (باستثناء حسابك)
+  // 4. حذف المستخدمين الآخرين (باستثناء حسابك وأي Admin آخر)
   const deletedUsers = await prisma.user.deleteMany({ 
     where: { 
       id: { not: admin.id },
@@ -60,13 +69,6 @@ async function main() {
     } 
   });
   console.log(`Deleted ${deletedUsers.count} test users.`);
-
-  // 4. تنظيف الجداول العامة
-  await prisma.notification.deleteMany({});
-  await prisma.analyticsEvent.deleteMany({});
-  await prisma.auditLog.deleteMany({});
-  await prisma.message.deleteMany({});
-  await prisma.conversation.deleteMany({});
 
   console.log('\n--- Cleanup Completed! Only your Admin account and Edu-Verse store remain. ---');
 }
