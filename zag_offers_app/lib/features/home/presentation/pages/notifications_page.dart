@@ -16,6 +16,8 @@ class NotificationsPage extends StatelessWidget {
             ? state
             : NotificationFeedState(items: const []);
 
+        final theme = Theme.of(context);
+
         return Scaffold(
           appBar: AppBar(
             title: const Text(
@@ -81,11 +83,6 @@ class NotificationsPage extends StatelessWidget {
       },
     );
   }
-        );
-      },
-    );
-  }
-
 }
 
 class _NotificationCard extends StatelessWidget {
