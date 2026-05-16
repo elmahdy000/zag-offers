@@ -180,7 +180,7 @@ export default function MerchantsPage() {
               <Store size={20} />
            </div>
            <div>
-              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">إجمالي المتاجر</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">إجمالي المتاجر</p>
               <p className="text-xl font-bold text-slate-900 leading-none">{data?.meta.total ?? 0}</p>
            </div>
         </div>
@@ -326,17 +326,17 @@ export default function MerchantsPage() {
                       <div className="grid grid-cols-3 gap-4">
                          <div className="p-4 rounded-2xl bg-orange-50 border border-orange-100 text-center">
                             <Tag size={18} className="mx-auto mb-2 text-orange-600" />
-                            <p className="text-[10px] font-bold text-orange-400 uppercase">العروض</p>
+                            <p className="text-xs font-bold text-orange-400 uppercase">العروض</p>
                             <p className="text-xl font-bold text-orange-600">{merchantDetails?._count.offers || 0}</p>
                          </div>
                          <div className="p-4 rounded-2xl bg-blue-50 border border-blue-100 text-center">
                             <Star size={18} className="mx-auto mb-2 text-blue-600" />
-                            <p className="text-[10px] font-bold text-blue-400 uppercase">المراجعات</p>
+                            <p className="text-xs font-bold text-blue-400 uppercase">المراجعات</p>
                             <p className="text-xl font-bold text-blue-600">{merchantDetails?._count.reviews || 0}</p>
                          </div>
                          <div className="p-4 rounded-2xl bg-emerald-50 border border-emerald-100 text-center">
                             <TrendingUp size={18} className="mx-auto mb-2 text-emerald-600" />
-                            <p className="text-[10px] font-bold text-emerald-400 uppercase">النشاط</p>
+                            <p className="text-xs font-bold text-emerald-400 uppercase">النشاط</p>
                             <p className="text-xl font-bold text-emerald-600">نشط</p>
                          </div>
                       </div>
@@ -347,21 +347,21 @@ export default function MerchantsPage() {
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100"><Phone size={14} /></div>
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400">رقم الهاتف</p>
+                                 <p className="text-xs font-bold text-slate-400">رقم الهاتف</p>
                                  <p className="text-xs font-bold text-slate-900">{merchantDetails?.phone || 'غير متوفر'}</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100"><Mail size={14} /></div>
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400">البريد الإلكتروني</p>
+                                 <p className="text-xs font-bold text-slate-400">البريد الإلكتروني</p>
                                  <p className="text-xs font-bold text-slate-900 truncate max-w-[150px]">{merchantDetails?.owner.email || 'غير متوفر'}</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100"><MapPin size={14} /></div>
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400">المنطقة</p>
+                                 <p className="text-xs font-bold text-slate-400">المنطقة</p>
                                  <p className="text-xs font-bold text-slate-900">{merchantDetails?.area || 'غير محدد'}</p>
                               </div>
                            </div>
@@ -371,21 +371,21 @@ export default function MerchantsPage() {
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100"><UserIcon size={14} /></div>
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400">المالك</p>
+                                 <p className="text-xs font-bold text-slate-400">المالك</p>
                                  <p className="text-xs font-bold text-slate-900">{merchantDetails?.owner.name || 'غير متوفر'}</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100"><Calendar size={14} /></div>
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400">تاريخ الانضمام</p>
+                                 <p className="text-xs font-bold text-slate-400">تاريخ الانضمام</p>
                                  <p className="text-xs font-bold text-slate-900">{formatDate(merchantDetails?.createdAt || '')}</p>
                               </div>
                            </div>
                            <div className="flex items-center gap-3">
                               <div className="h-8 w-8 rounded-lg bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100"><Info size={14} /></div>
                               <div>
-                                 <p className="text-[10px] font-bold text-slate-400">العنوان</p>
+                                 <p className="text-xs font-bold text-slate-400">العنوان</p>
                                  <p className="text-xs font-bold text-slate-900 truncate max-w-[150px]">{merchantDetails?.address || 'غير متوفر'}</p>
                               </div>
                            </div>
@@ -426,7 +426,7 @@ export default function MerchantsPage() {
                       <div className="text-center">
                          <Link 
                            href={`/dashboard/merchants/${merchantDetails?.id}`}
-                           className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2"
+                           className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2"
                          >
                             عرض الصفحة الكاملة للمتجر <ExternalLink size={14} />
                          </Link>

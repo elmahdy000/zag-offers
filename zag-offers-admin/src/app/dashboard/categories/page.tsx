@@ -227,7 +227,7 @@ export default function CategoriesPage() {
               >
                 {/* Image Upload */}
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     أيقونة / صورة الفئة
                   </label>
                   <div 
@@ -239,13 +239,13 @@ export default function CategoriesPage() {
                       <>
                         <img src={resolveImageUrl(formData.image)} alt="Preview" className="absolute inset-0 w-full h-full object-contain p-4" />
                         <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                          <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الصورة</span>
+                          <span className="text-white text-xs font-bold uppercase tracking-widest">تغيير الصورة</span>
                         </div>
                       </>
                     ) : (
                       <>
                         <ImageIcon size={32} className="text-slate-300 group-hover:text-orange-400" />
-                        <span className="text-[10px] font-bold text-slate-400 group-hover:text-orange-600 mt-2">رفع صورة الفئة</span>
+                        <span className="text-xs font-bold text-slate-400 group-hover:text-orange-600 mt-2">رفع صورة الفئة</span>
                       </>
                     )}
                     <input 
@@ -259,7 +259,7 @@ export default function CategoriesPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     اسم الفئة
                   </label>
                   <input 
@@ -274,7 +274,7 @@ export default function CategoriesPage() {
                 <button 
                   type="submit" 
                   disabled={upsertMutation.isPending || isUploading}
-                  className="w-full h-14 rounded-2xl bg-slate-900 text-sm font-black text-white shadow-xl shadow-slate-200 transition-all hover:bg-orange-600 hover:shadow-orange-200 active:scale-[0.98] disabled:opacity-50 mt-4"
+                  className="w-full h-14 rounded-2xl bg-slate-900 text-sm font-bold text-white shadow-xl shadow-slate-200 transition-all hover:bg-orange-600 hover:shadow-orange-200 active:scale-[0.98] disabled:opacity-50 mt-4"
                 >
                   {upsertMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : (editingCategory ? 'تحديث الفئة' : 'إضافة الفئة')}
                 </button>

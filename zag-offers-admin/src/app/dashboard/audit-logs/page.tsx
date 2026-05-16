@@ -86,8 +86,8 @@ function LogDetailsModal({ log, onClose }: { log: AuditLog; onClose: () => void 
               <config.icon size={24} />
             </div>
             <div>
-              <h3 className="text-lg font-black text-slate-900">{config.label}</h3>
-              <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest mt-1">تفاصيل العملية الإدارية</p>
+              <h3 className="text-lg font-bold text-slate-900">{config.label}</h3>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">تفاصيل العملية الإدارية</p>
             </div>
           </div>
           <button onClick={onClose} className="p-2 rounded-xl hover:bg-slate-200/50 text-slate-400 transition-all">
@@ -98,26 +98,26 @@ function LogDetailsModal({ log, onClose }: { log: AuditLog; onClose: () => void 
         <div className="p-8 space-y-6">
           <div className="grid grid-cols-2 gap-4">
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-2">المدير المسئول</p>
-              <p className="text-sm font-black text-slate-800">{log.admin.name}</p>
+              <p className="text-xs font-bold text-slate-400 uppercase mb-2">المدير المسئول</p>
+              <p className="text-sm font-bold text-slate-800">{log.admin.name}</p>
               <p className="text-[11px] font-bold text-slate-500 mt-1">{log.admin.phone}</p>
             </div>
             <div className="p-4 rounded-2xl bg-slate-50 border border-slate-100">
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-2">التوقيت</p>
-              <p className="text-sm font-black text-slate-800">{formatDate(log.createdAt)}</p>
+              <p className="text-xs font-bold text-slate-400 uppercase mb-2">التوقيت</p>
+              <p className="text-sm font-bold text-slate-800">{formatDate(log.createdAt)}</p>
             </div>
           </div>
 
           <div>
-            <p className="text-[10px] font-black text-slate-400 uppercase mb-3 px-1">الجهة المتأثرة (Target)</p>
+            <p className="text-xs font-bold text-slate-400 uppercase mb-3 px-1">الجهة المتأثرة (Target)</p>
             <div className="p-4 rounded-2xl border border-slate-100 flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-black">
+                <div className="w-10 h-10 rounded-xl bg-slate-100 flex items-center justify-center text-slate-400 font-bold">
                   {log.targetName?.charAt(0) || '?'}
                 </div>
                 <div>
-                  <p className="text-sm font-black text-slate-800">{log.targetName || '---'}</p>
-                  <p className="text-[10px] font-bold text-slate-400">ID: {log.targetId || 'N/A'}</p>
+                  <p className="text-sm font-bold text-slate-800">{log.targetName || '---'}</p>
+                  <p className="text-xs font-bold text-slate-400">ID: {log.targetId || 'N/A'}</p>
                 </div>
               </div>
               <ArrowRight size={16} className="text-slate-300" />
@@ -126,7 +126,7 @@ function LogDetailsModal({ log, onClose }: { log: AuditLog; onClose: () => void 
 
           {log.details && (
             <div>
-              <p className="text-[10px] font-black text-slate-400 uppercase mb-3 px-1">تفاصيل إضافية</p>
+              <p className="text-xs font-bold text-slate-400 uppercase mb-3 px-1">تفاصيل إضافية</p>
               <div className="p-5 rounded-2xl bg-orange-50/50 border border-orange-100 text-slate-700 text-sm leading-relaxed font-bold">
                 {log.details}
               </div>
@@ -136,7 +136,7 @@ function LogDetailsModal({ log, onClose }: { log: AuditLog; onClose: () => void 
           <div className="pt-2">
             <button 
               onClick={onClose}
-              className="w-full py-4 rounded-2xl bg-slate-900 text-white font-black text-sm shadow-xl shadow-slate-200 hover:scale-[1.02] active:scale-95 transition-all"
+              className="w-full py-4 rounded-2xl bg-slate-900 text-white font-bold text-sm shadow-xl shadow-slate-200 hover:scale-[1.02] active:scale-95 transition-all"
             >
               إغلاق النافذة
             </button>
@@ -184,7 +184,7 @@ export default function AuditLogsPage() {
       <div className="flex flex-wrap items-center gap-4 bg-white p-4 rounded-2xl border border-slate-100 shadow-sm">
         <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-xl text-slate-500">
            <Filter size={16} />
-           <span className="text-xs font-black uppercase tracking-widest">تصفية حسب نوع العملية</span>
+           <span className="text-xs font-bold uppercase tracking-widest">تصفية حسب نوع العملية</span>
         </div>
         <select
           value={actionFilter}
@@ -203,11 +203,11 @@ export default function AuditLogsPage() {
           <table className="w-full text-right border-collapse">
             <thead>
               <tr className="bg-slate-50/50 border-b border-slate-100">
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">العملية</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">المدير المسئول</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">الهدف</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">التوقيت</th>
-                <th className="px-6 py-5 text-[10px] font-black text-slate-400 uppercase tracking-[0.2em]">الإجراء</th>
+                <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">العملية</th>
+                <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">المدير المسئول</th>
+                <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">الهدف</th>
+                <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">التوقيت</th>
+                <th className="px-6 py-5 text-xs font-bold text-slate-400 uppercase tracking-[0.2em]">الإجراء</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
@@ -222,7 +222,7 @@ export default function AuditLogsPage() {
                   <td colSpan={5} className="px-6 py-20 text-center">
                     <div className="flex flex-col items-center text-slate-300">
                        <Activity size={48} className="mb-4 opacity-20" />
-                       <p className="text-lg font-black tracking-tight text-slate-400">لا توجد سجلات حالياً</p>
+                       <p className="text-lg font-bold tracking-tight text-slate-400">لا توجد سجلات حالياً</p>
                     </div>
                   </td>
                 </tr>
@@ -239,19 +239,19 @@ export default function AuditLogsPage() {
                       onClick={() => setSelectedLog(log)}
                     >
                       <td className="px-6 py-5">
-                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${config.color} text-[11px] font-black whitespace-nowrap`}>
+                        <div className={`inline-flex items-center gap-2 px-3 py-1.5 rounded-xl border ${config.color} text-[11px] font-bold whitespace-nowrap`}>
                            <config.icon size={14} />
                            {config.label}
                         </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                           <div className="h-9 w-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-black text-xs border border-orange-100">
+                           <div className="h-9 w-9 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center font-bold text-xs border border-orange-100">
                               {log.admin.name.charAt(0)}
                            </div>
                            <div>
-                              <p className="text-sm font-black text-slate-900 leading-none mb-1">{log.admin.name}</p>
-                              <p className="text-[10px] font-bold text-slate-400">{log.admin.phone}</p>
+                              <p className="text-sm font-bold text-slate-900 leading-none mb-1">{log.admin.name}</p>
+                              <p className="text-xs font-bold text-slate-400">{log.admin.phone}</p>
                            </div>
                         </div>
                       </td>
@@ -259,7 +259,7 @@ export default function AuditLogsPage() {
                         {log.targetName ? (
                           <div className="flex items-center gap-2 text-slate-600">
                              <span className="text-sm font-bold truncate max-w-[150px]">{log.targetName}</span>
-                             <span className="text-[9px] font-black bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 text-slate-400">#{log.targetId?.slice(0, 5)}</span>
+                             <span className="text-[9px] font-bold bg-slate-100 px-2 py-0.5 rounded-lg border border-slate-200 text-slate-400">#{log.targetId?.slice(0, 5)}</span>
                           </div>
                         ) : (
                           <span className="text-slate-300 text-xs font-bold">---</span>
@@ -289,13 +289,13 @@ export default function AuditLogsPage() {
         {/* Pagination */}
         {(data?.meta?.lastPage ?? 0) > 1 && (
           <div className="flex items-center justify-between px-8 py-6 bg-slate-50/50 border-t border-slate-100">
-             <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">عرض سجلات العمليات</p>
+             <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">عرض سجلات العمليات</p>
              <div className="flex gap-2">
                 {Array.from({ length: data?.meta?.lastPage ?? 0 }).map((_, i) => (
                   <button 
                     key={i} 
                     onClick={() => setPage(i + 1)} 
-                    className={`h-9 w-9 rounded-xl text-xs font-black transition-all ${page === i + 1 ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'}`}
+                    className={`h-9 w-9 rounded-xl text-xs font-bold transition-all ${page === i + 1 ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-500 border border-slate-200 hover:border-slate-400'}`}
                   >
                     {i + 1}
                   </button>

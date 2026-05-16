@@ -20,8 +20,8 @@ export function EngagementMetric({ favorites, reviews, couponsGenerated }: Engag
             <Zap size={16} className="fill-orange-500" />
           </div>
           <div>
-            <h2 className="text-lg font-black text-slate-900">نبض المنصة</h2>
-            <p className="text-[9px] font-black uppercase text-slate-400">Interaction</p>
+            <h2 className="text-lg font-bold text-slate-900">نبض المنصة</h2>
+            <p className="text-[9px] font-bold uppercase text-slate-400">Interaction</p>
           </div>
         </div>
 
@@ -29,17 +29,17 @@ export function EngagementMetric({ favorites, reviews, couponsGenerated }: Engag
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-slate-400">
               <div className="h-1.5 w-1.5 rounded-full bg-rose-500" />
-              <span className="text-[9px] font-black uppercase tracking-widest">المفضلة</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest">المفضلة</span>
             </div>
-            <p className="text-2xl font-black text-slate-900">{format(favorites)}</p>
+            <p className="text-2xl font-bold text-slate-900">{format(favorites)}</p>
           </div>
 
           <div className="space-y-1">
             <div className="flex items-center gap-1.5 text-slate-400">
               <div className="h-1.5 w-1.5 rounded-full bg-blue-500" />
-              <span className="text-[9px] font-black uppercase tracking-widest">المراجعات</span>
+              <span className="text-[9px] font-bold uppercase tracking-widest">المراجعات</span>
             </div>
-            <p className="text-2xl font-black text-slate-900">{format(reviews)}</p>
+            <p className="text-2xl font-bold text-slate-900">{format(reviews)}</p>
           </div>
         </div>
 
@@ -50,12 +50,12 @@ export function EngagementMetric({ favorites, reviews, couponsGenerated }: Engag
                 <Ticket size={18} className="text-orange-600" />
               </div>
               <div>
-                <p className="text-[9px] font-black text-slate-400 mb-0.5">إجمالي الكوبونات</p>
-                <p className="text-lg font-black text-slate-900 leading-none">{format(couponsGenerated)}</p>
+                <p className="text-[9px] font-bold text-slate-400 mb-0.5">إجمالي الكوبونات</p>
+                <p className="text-lg font-bold text-slate-900 leading-none">{format(couponsGenerated)}</p>
               </div>
             </div>
             <div className="text-left">
-              <p className="text-[9px] font-black text-emerald-600">نشاط مرتفع</p>
+              <p className="text-[9px] font-bold text-emerald-600">نشاط مرتفع</p>
             </div>
           </div>
         </div>

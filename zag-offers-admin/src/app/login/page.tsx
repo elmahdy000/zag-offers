@@ -86,7 +86,7 @@ export default function AdminLoginPage() {
           <div className="w-12 h-12 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20 mx-auto mb-5">
             <ShieldCheck className="text-white" size={24} />
           </div>
-          <h1 className="text-xl font-black text-white mb-2">لوحة الإدارة المركزية</h1>
+          <h1 className="text-xl font-bold text-white mb-2">لوحة الإدارة المركزية</h1>
           <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Zag Offers Admin</p>
         </div>
 
@@ -98,7 +98,7 @@ export default function AdminLoginPage() {
           )}
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-white/50 mr-2 uppercase tracking-widest">رقم الموبايل</label>
+            <label className="text-xs font-bold text-white/50 mr-2 uppercase tracking-widest">رقم الموبايل</label>
             <div className="relative group">
               <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={16} />
               <input
@@ -113,7 +113,7 @@ export default function AdminLoginPage() {
           </div>
 
           <div className="space-y-2">
-            <label className="text-[10px] font-black text-white/50 mr-2 uppercase tracking-widest">كلمة المرور</label>
+            <label className="text-xs font-bold text-white/50 mr-2 uppercase tracking-widest">كلمة المرور</label>
             <div className="relative group">
               <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={16} />
               <input
@@ -137,7 +137,7 @@ export default function AdminLoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full py-3.5 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm mt-2"
+            className="w-full py-3.5 bg-[#FF6B00] text-white font-bold rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm mt-2"
           >
             {loading ? <Loader2 className="animate-spin" size={20} /> : (
               <>

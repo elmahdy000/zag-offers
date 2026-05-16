@@ -97,7 +97,7 @@ export default function DashboardHeader() {
         >
           <Bell size={20} />
           {pendingCount > 0 && (
-            <span className="absolute -top-1.5 -left-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-600 px-1 text-[10px] font-black text-white ring-2 ring-white shadow-lg animate-bounce">
+            <span className="absolute -top-1.5 -left-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-600 px-1 text-xs font-bold text-white ring-2 ring-white shadow-lg animate-bounce">
               {pendingCount}
             </span>
           )}
@@ -113,8 +113,8 @@ export default function DashboardHeader() {
             <User size={18} />
           </div>
           <div className="flex flex-col items-start hidden sm:flex">
-             <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest leading-none mb-1">Administrator</span>
-             <span className="text-xs font-black text-slate-900">المدير العام</span>
+             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Administrator</span>
+             <span className="text-xs font-bold text-slate-900">المدير العام</span>
           </div>
         </button>
       </div>

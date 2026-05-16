@@ -37,13 +37,13 @@ export function CouponCard({ coupon, onView, index }: CouponCardProps) {
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600 shadow-sm border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all">
           <Ticket size={20} />
         </div>
-        <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${status.classes}`}>
+        <span className={`rounded-lg border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${status.classes}`}>
           {status.label}
         </span>
       </div>
 
       <div className="flex-1">
-        <h3 className="text-2xl font-black text-slate-900 group-hover:text-orange-600 transition-colors uppercase tracking-[0.1em] leading-none font-mono">
+        <h3 className="text-2xl font-bold text-slate-900 group-hover:text-orange-600 transition-colors uppercase tracking-[0.1em] leading-none font-mono">
           {coupon.code}
         </h3>
         <p className="mt-2.5 text-[11px] font-bold text-slate-500 truncate leading-relaxed">

@@ -20,7 +20,7 @@ export function ActiveCategories({ categories }: ActiveCategoriesProps) {
         <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-orange-50 text-orange-600">
           <Star size={16} fill="currentColor" />
         </div>
-        <h2 className="text-lg font-black text-slate-900">الأكثر نشاطاً</h2>
+        <h2 className="text-lg font-bold text-slate-900">الأكثر نشاطاً</h2>
       </div>
 
       <div className="space-y-2">
@@ -30,13 +30,13 @@ export function ActiveCategories({ categories }: ActiveCategoriesProps) {
             className="group flex items-center justify-between rounded-xl bg-slate-50 p-3.5 transition-all hover:bg-white hover:shadow-sm"
           >
             <div className="flex items-center gap-3">
-              <span className="text-[10px] font-black text-slate-300">0{i + 1}</span>
-              <span className="text-sm font-black text-slate-700">{category.name}</span>
+              <span className="text-xs font-bold text-slate-300">0{i + 1}</span>
+              <span className="text-sm font-bold text-slate-700">{category.name}</span>
             </div>
 
             <div className="flex items-center gap-2">
               <div className="text-left">
-                <p className="text-sm font-black text-orange-600">
+                <p className="text-sm font-bold text-orange-600">
                   {new Intl.NumberFormat('ar-EG').format(category.totalOffers)}
                 </p>
               </div>

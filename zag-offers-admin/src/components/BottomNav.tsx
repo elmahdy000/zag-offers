@@ -41,7 +41,7 @@ export default function BottomNav() {
                 <motion.span 
                   initial={{ opacity: 0, y: 4 }}
                   animate={{ opacity: 1, y: 0 }}
-                  className="text-[9px] font-black mt-1 text-primary"
+                  className="text-[9px] font-bold mt-1 text-primary"
                 >
                   {item.label}
                 </motion.span>

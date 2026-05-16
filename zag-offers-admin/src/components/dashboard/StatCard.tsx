@@ -30,15 +30,15 @@ export function StatCard({ title, value, helper, icon: Icon, trend, index }: Sta
           </div>
           
           <div>
-            <p className="text-[10px] font-black uppercase tracking-widest text-slate-400">{title}</p>
-            <h3 className="mt-0.5 text-2xl font-black text-slate-900">
+            <p className="text-xs font-bold uppercase tracking-widest text-slate-400">{title}</p>
+            <h3 className="mt-0.5 text-2xl font-bold text-slate-900">
               {value}
             </h3>
           </div>
         </div>
 
         {trend && (
-          <div className={`flex items-center gap-0.5 rounded-lg px-2 py-0.5 text-[10px] font-black ${trend.isUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+          <div className={`flex items-center gap-0.5 rounded-lg px-2 py-0.5 text-xs font-bold ${trend.isUp ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
             {trend.isUp ? <TrendingUp size={10} /> : <TrendingDown size={10} />}
             <span>{trend.value}%</span>
           </div>
@@ -46,7 +46,7 @@ export function StatCard({ title, value, helper, icon: Icon, trend, index }: Sta
       </div>
 
       {helper && (
-        <div className="mt-4 border-t border-slate-50 pt-3 text-[10px] font-bold text-slate-400">
+        <div className="mt-4 border-t border-slate-50 pt-3 text-xs font-bold text-slate-400">
           {helper}
         </div>
       )}

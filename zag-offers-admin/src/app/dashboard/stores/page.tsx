@@ -72,7 +72,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
     <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md">
       <div className="flex items-center gap-2 mb-1.5">
         {Icon && <Icon size={14} className="text-slate-300" />}
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
       </div>
       <p className={`text-sm font-bold ${colorClass} truncate`}>{value}</p>
     </div>
@@ -415,10 +415,10 @@ function StoresContent() {
               onClick={() => setSelectedStoreId(store.id)}
             >
               <div className="flex items-start justify-between mb-4">
-                <div className="h-14 w-14 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-black text-xl border border-orange-100">
+                <div className="h-14 w-14 rounded-xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-xl border border-orange-100">
                   {store.name?.[0] || 'S'}
                 </div>
-                <span className={`text-[10px] font-black px-2 py-1 rounded uppercase tracking-wider ${
+                <span className={`text-xs font-bold px-2 py-1 rounded uppercase tracking-wider ${
                   store.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-600' :
                   store.status === 'PENDING' ? 'bg-amber-100 text-amber-600' :
                   'bg-rose-100 text-rose-600'
@@ -502,13 +502,13 @@ function StoresContent() {
             >
               <div className="flex items-center justify-between mb-8">
                 <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 font-black text-xl border border-orange-100">
+                  <div className="h-16 w-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-xl border border-orange-100">
                     {storeDetails.name?.[0] || 'S'}
                   </div>
                   <div>
                     <h3 className="text-xl font-bold text-slate-900">{storeDetails.name}</h3>
                     <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-[10px] font-black px-2 py-0.5 rounded uppercase tracking-wider ${
+                      <span className={`text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
                         storeDetails.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-600' :
                         storeDetails.status === 'PENDING' ? 'bg-amber-100 text-amber-600' :
                         'bg-rose-100 text-rose-600'
@@ -546,16 +546,16 @@ function StoresContent() {
               {/* Stats */}
               <div className="grid grid-cols-3 gap-4 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
                 <div className="text-center">
-                  <div className="text-2xl font-black text-orange-600">{storeDetails._count?.offers || 0}</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">عروض</div>
+                  <div className="text-2xl font-bold text-orange-600">{storeDetails._count?.offers || 0}</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">عروض</div>
                 </div>
                 <div className="text-center border-x border-slate-200">
-                  <div className="text-2xl font-black text-emerald-600">{storeDetails._count?.coupons || 0}</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">كوبونات</div>
+                  <div className="text-2xl font-bold text-emerald-600">{storeDetails._count?.coupons || 0}</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">كوبونات</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-black text-blue-600">-</div>
-                  <div className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">تقييم</div>
+                  <div className="text-2xl font-bold text-blue-600">-</div>
+                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">تقييم</div>
                 </div>
               </div>
 
@@ -568,7 +568,7 @@ function StoresContent() {
                       <div key={offer.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
                         <span className="text-sm font-bold text-slate-700">{offer.title}</span>
                         <div className="flex items-center gap-2">
-                          <span className={`text-[10px] font-black px-2 py-0.5 rounded ${
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${
                             offer.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-600' : 'bg-yellow-100 text-yellow-600'
                           }`}>
                             {offer.status === 'ACTIVE' ? 'نشط' : 'منتهي'}
@@ -668,7 +668,7 @@ function StoresContent() {
                   <h3 className="text-2xl font-bold text-slate-900 tracking-tight">
                     {editingStore ? 'تعديل بيانات المتجر' : 'إضافة متجر جديد'}
                   </h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">
                     Zag Offers Administration
                   </p>
                 </div>
@@ -687,7 +687,7 @@ function StoresContent() {
                 {/* Image Uploads */}
                 <div className="grid gap-6 sm:grid-cols-2 mb-8">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                       شعار المتجر (Logo)
                     </label>
                     <div 
@@ -699,13 +699,13 @@ function StoresContent() {
                         <>
                           <img src={resolveImageUrl(formData.logo)} alt="Logo" className="absolute inset-0 w-full h-full object-contain p-2" />
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الشعار</span>
+                            <span className="text-white text-xs font-bold uppercase tracking-widest">تغيير الشعار</span>
                           </div>
                         </>
                       ) : (
                         <>
                           <ImageIcon size={24} className="text-slate-300 group-hover:text-orange-400" />
-                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-orange-600">رفع لوجو</span>
+                          <span className="text-xs font-bold text-slate-400 group-hover:text-orange-600">رفع لوجو</span>
                         </>
                       )}
                       <input 
@@ -719,7 +719,7 @@ function StoresContent() {
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                       صورة الغلاف (Cover Image)
                     </label>
                     <div 
@@ -731,13 +731,13 @@ function StoresContent() {
                         <>
                           <img src={resolveImageUrl(formData.coverImage)} alt="Cover" className="absolute inset-0 w-full h-full object-cover" />
                           <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                            <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الغلاف</span>
+                            <span className="text-white text-xs font-bold uppercase tracking-widest">تغيير الغلاف</span>
                           </div>
                         </>
                       ) : (
                         <>
                           <ImageIcon size={24} className="text-slate-300 group-hover:text-blue-400" />
-                          <span className="text-[10px] font-bold text-slate-400 group-hover:text-blue-600">رفع غلاف</span>
+                          <span className="text-xs font-bold text-slate-400 group-hover:text-blue-600">رفع غلاف</span>
                         </>
                       )}
                       <input 
@@ -753,7 +753,7 @@ function StoresContent() {
 
                 {/* Gallery Upload */}
                 <div className="space-y-3">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     معرض صور المتجر (Gallery)
                   </label>
                   <div className="grid grid-cols-4 gap-3">
@@ -790,7 +790,7 @@ function StoresContent() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     اسم المتجر
                   </label>
                   <input 
@@ -806,7 +806,7 @@ function StoresContent() {
 
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                       الفئة
                     </label>
                     <select 
@@ -827,7 +827,7 @@ function StoresContent() {
                     {formErrors.categoryId && <p className="text-xs text-rose-600">{formErrors.categoryId}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                       المنطقة
                     </label>
                     <select 
@@ -848,7 +848,7 @@ function StoresContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     العنوان التفصيلي
                   </label>
                   <input 
@@ -860,7 +860,7 @@ function StoresContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     مالك المتجر (التاجر)
                   </label>
                   <select 
@@ -885,7 +885,7 @@ function StoresContent() {
 
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                       رقم الهاتف (اختياري)
                     </label>
                     <input 
@@ -898,7 +898,7 @@ function StoresContent() {
                     {formErrors.phone && <p className="text-xs text-rose-600">{formErrors.phone}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                       رقم الواتساب
                     </label>
                     <input 
@@ -911,7 +911,7 @@ function StoresContent() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     البريد الإلكتروني (اختياري)
                   </label>
                   <input 

@@ -21,12 +21,12 @@ export function PendingActions({ items, onAction }: PendingActionsProps) {
     <div className="rounded-2xl border border-slate-100 bg-white p-6 shadow-sm">
       <div className="mb-6 flex items-center justify-between">
         <div>
-          <h2 className="text-xl font-black text-slate-900">مركز الموافقات</h2>
+          <h2 className="text-xl font-bold text-slate-900">مركز الموافقات</h2>
           <p className="text-xs font-bold text-slate-400">لديك {items.length} طلبات جديدة</p>
         </div>
         <Link 
           href="/dashboard/approvals" 
-          className="group flex items-center gap-1.5 rounded-xl bg-slate-50 px-4 py-2 text-[10px] font-black text-slate-500 hover:bg-slate-900 hover:text-white transition-all"
+          className="group flex items-center gap-1.5 rounded-xl bg-slate-50 px-4 py-2 text-xs font-bold text-slate-500 hover:bg-slate-900 hover:text-white transition-all"
         >
           عرض الكل
           <ArrowRight size={12} />
@@ -36,7 +36,7 @@ export function PendingActions({ items, onAction }: PendingActionsProps) {
       {items.length === 0 ? (
         <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-slate-100 bg-slate-50/30 py-10 text-center">
           <Check className="text-emerald-500 mb-2" size={24} />
-          <p className="text-sm font-black text-slate-900">لا توجد طلبات معلقة</p>
+          <p className="text-sm font-bold text-slate-900">لا توجد طلبات معلقة</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -52,8 +52,8 @@ export function PendingActions({ items, onAction }: PendingActionsProps) {
                   {item.type === 'store' ? <Store size={18} /> : <Tag size={18} />}
                 </div>
                 <div className="min-w-0">
-                  <p className="text-[9px] font-black uppercase text-slate-400">{item.type === 'store' ? 'متجر' : 'عرض'}</p>
-                  <h4 className="text-sm font-black text-slate-900 truncate">{item.name}</h4>
+                  <p className="text-[9px] font-bold uppercase text-slate-400">{item.type === 'store' ? 'متجر' : 'عرض'}</p>
+                  <h4 className="text-sm font-bold text-slate-900 truncate">{item.name}</h4>
                 </div>
               </div>
 
@@ -66,7 +66,7 @@ export function PendingActions({ items, onAction }: PendingActionsProps) {
                 </button>
                 <button
                   onClick={() => onAction(item.id, item.type, 'approve')}
-                  className="h-8 rounded-lg bg-orange-600 px-4 text-[10px] font-black text-white hover:bg-orange-700"
+                  className="h-8 rounded-lg bg-orange-600 px-4 text-xs font-bold text-white hover:bg-orange-700"
                 >
                   اعتماد
                 </button>

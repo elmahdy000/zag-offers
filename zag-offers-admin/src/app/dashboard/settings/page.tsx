@@ -146,11 +146,11 @@ export default function SettingsPage() {
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                          <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">رقم الموبايل</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">رقم الموبايل</p>
                             <p className="text-sm font-bold text-slate-900">{me?.phone}</p>
                          </div>
                          <div className="p-4 rounded-xl border border-slate-100 bg-slate-50/50">
-                            <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1">البريد الإلكتروني</p>
+                            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1">البريد الإلكتروني</p>
                             <p className="text-sm font-bold text-slate-900 truncate">{me?.email || 'غير متوفر'}</p>
                          </div>
                       </div>
@@ -220,7 +220,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-4">
                            <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Server size={20} /></div>
                            <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">حالة السيرفر</p>
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">حالة السيرفر</p>
                               <p className="text-lg font-bold text-slate-900">مستقر وفعال</p>
                            </div>
                         </div>
@@ -231,7 +231,7 @@ export default function SettingsPage() {
                         <div className="flex items-center gap-4">
                            <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><Database size={20} /></div>
                            <div>
-                              <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">قاعدة البيانات</p>
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">قاعدة البيانات</p>
                               <p className="text-lg font-bold text-slate-900">متصلة (PostgreSQL)</p>
                            </div>
                         </div>
@@ -241,11 +241,11 @@ export default function SettingsPage() {
 
                     <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-8">
                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">إصدار التحكم</p>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">إصدار التحكم</p>
                           <p className="text-xl font-bold text-slate-900">v2.4.0</p>
                        </div>
                        <div>
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mb-1.5">آخر تحديث أمني</p>
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">آخر تحديث أمني</p>
                           <p className="text-xl font-bold text-slate-900">منذ 12 ساعة</p>
                        </div>
                     </div>

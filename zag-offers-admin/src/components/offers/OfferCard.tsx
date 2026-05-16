@@ -44,7 +44,7 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
     >
       {/* Status Badge - Floating */}
       <div className="absolute top-3 left-3 z-10">
-         <span className={`inline-flex items-center px-2 py-0.5 rounded-lg border text-[9px] font-black uppercase tracking-wider ${status.classes}`}>
+         <span className={`inline-flex items-center px-2 py-0.5 rounded-lg border text-[9px] font-bold uppercase tracking-wider ${status.classes}`}>
            {status.label}
          </span>
       </div>
@@ -56,12 +56,12 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-[13px] font-black text-slate-900 group-hover:text-indigo-600 transition-colors truncate leading-tight mb-1">
+          <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate leading-tight mb-1">
             {offer.title}
           </h3>
           <div className="flex items-center gap-2">
-            <span className="text-[14px] font-black text-orange-600">{offer.discount}</span>
-            <span className="text-[10px] font-bold text-slate-400 truncate flex items-center gap-1">
+            <span className="text-[14px] font-bold text-orange-600">{offer.discount}</span>
+            <span className="text-xs font-bold text-slate-400 truncate flex items-center gap-1">
               <Store size={10} className="opacity-50" />
               {offer.store?.name || 'متجر غير معروف'}
             </span>
@@ -73,7 +73,7 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
         <div className="flex items-center gap-3">
           <div className="flex items-center gap-1.5">
              <Zap size={12} className="text-amber-500" />
-             <span className="text-[11px] font-black text-slate-900">{offer._count?.coupons ?? 0}</span>
+             <span className="text-[11px] font-bold text-slate-900">{offer._count?.coupons ?? 0}</span>
              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">كوبون</span>
           </div>
           <div className="w-px h-3 bg-slate-100" />

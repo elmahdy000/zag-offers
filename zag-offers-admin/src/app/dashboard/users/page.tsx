@@ -63,7 +63,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
     <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md">
       <div className="flex items-center gap-2 mb-1.5">
         {Icon && <Icon size={14} className="text-slate-300" />}
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
       </div>
       <p className={`text-sm font-bold ${colorClass} truncate`}>{value}</p>
     </div>
@@ -243,7 +243,7 @@ export default function UsersPage() {
         <div className="flex items-center gap-3 bg-white p-1 rounded-xl border border-slate-200 shadow-sm w-full lg:w-auto">
           <div className="flex items-center gap-2 px-3 py-2 bg-slate-50 rounded-lg text-slate-400 shrink-0">
              <Filter size={14} />
-             <span className="text-[10px] font-black uppercase tracking-widest">تصفية:</span>
+             <span className="text-xs font-bold uppercase tracking-widest">تصفية:</span>
           </div>
           <select 
             value={roleFilter}
@@ -355,7 +355,7 @@ export default function UsersPage() {
               <div className="flex items-center justify-between mb-8">
                 <div>
                   <h3 className="text-2xl font-bold text-slate-900 tracking-tight">{editingUser ? 'تعديل بيانات المستخدم' : 'إضافة مستخدم جديد'}</h3>
-                  <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">Zag Offers Administration</p>
+                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mt-1">Zag Offers Administration</p>
                 </div>
                 <button onClick={() => setIsUpsertOpen(false)} className="rounded-xl bg-slate-50 p-3 text-slate-400 hover:bg-rose-50 hover:text-rose-600 transition-all border border-slate-100"><X size={20} /></button>
               </div>
@@ -371,30 +371,30 @@ export default function UsersPage() {
               }} className="space-y-6">
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">الاسم الكامل</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">الاسم الكامل</label>
                     <input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.name ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all`} />
                     {formErrors.name && <p className="text-xs text-rose-600">{formErrors.name}</p>}
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">رقم الهاتف</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">رقم الهاتف</label>
                     <input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.phone ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-outfit`} />
                     {formErrors.phone && <p className="text-xs text-rose-600">{formErrors.phone}</p>}
                   </div>
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">البريد الإلكتروني (اختياري)</label>
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">البريد الإلكتروني (اختياري)</label>
                   <input type="email" value={formData.email} onChange={e => setFormData({...formData, email: e.target.value})} className={`h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border ${formErrors.email ? 'border-rose-500' : 'border-slate-100'} focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all font-outfit`} />
                   {formErrors.email && <p className="text-xs text-rose-600">{formErrors.email}</p>}
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2">
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">المنطقة</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">المنطقة</label>
                     <input value={formData.area} onChange={e => setFormData({...formData, area: e.target.value})} className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all" />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">الصلاحية</label>
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">الصلاحية</label>
                     <select value={formData.role} onChange={e => setFormData({...formData, role: e.target.value as any})} className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer">
                       <option value="CUSTOMER">عميل</option>
                       <option value="MERCHANT">تاجر</option>
@@ -404,7 +404,7 @@ export default function UsersPage() {
                 </div>
 
                 <div className="space-y-2">
-                  <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                     {editingUser ? 'كلمة المرور الجديدة (اختياري)' : 'كلمة المرور'}
                   </label>
                   <input 

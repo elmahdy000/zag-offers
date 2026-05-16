@@ -205,7 +205,7 @@ export default function OffersManagementPage() {
         />
         <button 
           onClick={() => { setIsCreating(true); setTempImages([]); }}
-          className="h-12 px-6 rounded-xl bg-indigo-600 text-white font-black text-xs flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 shrink-0"
+          className="h-12 px-6 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 shrink-0"
         >
           <Plus size={20} /> إضافة عرض جديد
         </button>
@@ -244,10 +244,10 @@ export default function OffersManagementPage() {
       ) : offers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
           <Tag size={48} className="mb-4 opacity-10" />
-          <p className="text-sm font-black">لا توجد عروض حالياً</p>
+          <p className="text-sm font-bold">لا توجد عروض حالياً</p>
           <button
             onClick={() => setIsCreating(true)}
-            className="mt-6 px-8 py-3 rounded-xl bg-indigo-600 text-white font-black text-xs hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/10"
+            className="mt-6 px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/10"
           >
             <Plus size={16} /> إضافة أول عرض
           </button>
@@ -346,7 +346,7 @@ export default function OffersManagementPage() {
                               {uploading ? <Loader2 className="animate-spin" size={24} /> : (
                                 <>
                                   <Upload size={24} />
-                                  <span className="text-[10px] font-bold">رفع صورة</span>
+                                  <span className="text-xs font-bold">رفع صورة</span>
                                   <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => e.target.files && uploadImages(e.target.files)} />
                                 </>
                               )}
@@ -384,7 +384,7 @@ export default function OffersManagementPage() {
                         <button onClick={() => setDeleteModal({ id: offerDetails!.id, title: offerDetails!.title })} className="h-12 w-12 flex items-center justify-center rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10"><Trash2 size={20} /></button>
                       </div>
                       <div className="text-center">
-                         <Link href={`/dashboard/offers/${offerDetails?.id}`} onClick={() => setSelectedOfferId(null)} className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">عرض الصفحة الكاملة للعرض <ExternalLink size={14} /></Link>
+                         <Link href={`/dashboard/offers/${offerDetails?.id}`} onClick={() => setSelectedOfferId(null)} className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">عرض الصفحة الكاملة للعرض <ExternalLink size={14} /></Link>
                       </div>
                     </div>
                   )}
@@ -469,7 +469,7 @@ export default function OffersManagementPage() {
                         {uploading ? <Loader2 className="animate-spin" size={24} /> : (
                           <>
                             <Upload size={24} />
-                            <span className="text-[10px] font-bold">رفع صورة</span>
+                            <span className="text-xs font-bold">رفع صورة</span>
                             <input type="file" multiple className="hidden" accept="image/*" onChange={(e) => e.target.files && uploadImages(e.target.files)} />
                           </>
                         )}

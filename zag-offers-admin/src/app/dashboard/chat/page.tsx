@@ -70,7 +70,7 @@ const MessageItem = memo(({ msg, isAdmin }: { msg: ConversationMessage, isAdmin:
         {msg.text}
       </div>
       <div className={`flex items-center gap-1.5 px-1 ${isAdmin ? 'flex-row' : 'flex-row-reverse'}`}>
-        <span className="text-[9px] text-slate-400 font-black">
+        <span className="text-[9px] text-slate-400 font-bold">
           {new Date(msg.createdAt).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
         </span>
         {isAdmin && <CheckCheck size={11} className={msg.isRead ? 'text-orange-500' : 'text-slate-300'} />}
@@ -256,7 +256,7 @@ export default function AdminChatPage() {
              </div>
              <div className="flex gap-1 p-1 bg-slate-100/50 rounded-xl">
                 {(['all', 'CUSTOMER', 'MERCHANT'] as const).map(f => (
-                  <button key={f} onClick={() => setFilter(f)} className={`flex-1 py-1.5 rounded-lg text-[10px] font-black transition-all ${filter === f ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400'}`}>
+                  <button key={f} onClick={() => setFilter(f)} className={`flex-1 py-1.5 rounded-lg text-xs font-bold transition-all ${filter === f ? 'bg-white text-orange-600 shadow-sm' : 'text-slate-400'}`}>
                     {f === 'all' ? 'الكل' : f === 'CUSTOMER' ? 'عملاء' : 'تجار'}
                   </button>
                 ))}
@@ -270,7 +270,7 @@ export default function AdminChatPage() {
                     {conv.participant.avatar ? <img src={resolveImageUrl(conv.participant.avatar)} className="h-full w-full object-cover rounded-2xl" /> : conv.participant.name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
-                    <div className="flex justify-between items-center"><h4 className="text-sm font-black text-slate-800 truncate">{conv.participant.name}</h4><span className="text-[9px] text-slate-400 font-bold">{timeAgo(conv.lastMessageAt)}</span></div>
+                    <div className="flex justify-between items-center"><h4 className="text-sm font-bold text-slate-800 truncate">{conv.participant.name}</h4><span className="text-[9px] text-slate-400 font-bold">{timeAgo(conv.lastMessageAt)}</span></div>
                     <p className="text-[11px] text-slate-400 truncate mt-0.5 font-bold">{conv.messages?.[0]?.text || 'بدء المحادثة...'}</p>
                   </div>
                </button>
@@ -286,7 +286,7 @@ export default function AdminChatPage() {
               <div className="bg-white px-6 py-4 border-b border-slate-100 flex items-center justify-between shadow-sm z-10">
                 <div className="flex items-center gap-3">
                   <div className={`h-10 w-10 rounded-xl flex items-center justify-center font-bold text-white ${selectedConv.participant.role === 'MERCHANT' ? 'bg-orange-500' : 'bg-indigo-500'}`}>{selectedConv.participant.name[0]}</div>
-                  <div><h3 className="text-sm font-black text-slate-900">{selectedConv.participant.name}</h3><span className="text-[9px] font-black text-emerald-500">نشط الآن</span></div>
+                  <div><h3 className="text-sm font-bold text-slate-900">{selectedConv.participant.name}</h3><span className="text-[9px] font-bold text-emerald-500">نشط الآن</span></div>
                 </div>
               </div>
               <div ref={scrollRef} className="flex-1 overflow-y-auto p-6 scrollbar-none">
@@ -299,7 +299,7 @@ export default function AdminChatPage() {
           ) : (
             <div className="flex-1 flex flex-col items-center justify-center text-slate-300">
               <MessageSquare size={64} strokeWidth={1} className="opacity-20 mb-4" />
-              <p className="text-sm font-black">اختر محادثة للبدء في الرد الفوري</p>
+              <p className="text-sm font-bold">اختر محادثة للبدء في الرد الفوري</p>
             </div>
           )}
         </div>

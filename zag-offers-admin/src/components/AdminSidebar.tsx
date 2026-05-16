@@ -78,7 +78,7 @@ function SidebarContent({
           <span className="text-xl font-bold text-slate-900 tracking-tight leading-none">
             ZAG <span className="text-orange-600">OFFERS</span>
           </span>
-          <span className="text-[10px] font-bold text-slate-400 mt-1.5 uppercase tracking-[0.2em]">
+          <span className="text-xs font-bold text-slate-400 mt-1.5 uppercase tracking-[0.2em]">
             إدارة المنصة المركزية
           </span>
         </div>
@@ -114,7 +114,7 @@ function SidebarContent({
               <span className="flex-1">{item.name}</span>
               {item.href === '/dashboard/approvals' && pendingCount > 0 && (
                 <span
-                  className={`flex h-5 min-w-[20px] items-center justify-center rounded-lg px-1.5 text-[10px] font-bold shadow-sm ${
+                  className={`flex h-5 min-w-[20px] items-center justify-center rounded-lg px-1.5 text-xs font-bold shadow-sm ${
                     active
                       ? 'bg-white/20 text-white'
                       : 'bg-orange-100 text-orange-600'

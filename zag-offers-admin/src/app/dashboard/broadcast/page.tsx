@@ -116,12 +116,12 @@ export default function BroadcastPage() {
             <div className="h-10 w-10 rounded-xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100">
                <Send size={20} />
             </div>
-            <h2 className="text-xl font-black text-slate-900 tracking-tight">تفاصيل الإشعار</h2>
+            <h2 className="text-xl font-bold text-slate-900 tracking-tight">تفاصيل الإشعار</h2>
           </div>
 
           <form onSubmit={handleSubmit} className="space-y-6">
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                 <Type size={12} className="text-orange-500" /> عنوان الإشعار
               </label>
               <input
@@ -134,7 +134,7 @@ export default function BroadcastPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                 <AlignLeft size={12} className="text-orange-500" /> محتوى الرسالة
               </label>
               <textarea
@@ -148,7 +148,7 @@ export default function BroadcastPage() {
             </div>
 
             <div className="space-y-2">
-              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                 <MapPin size={12} className="text-orange-500" /> المنطقة (اختياري)
               </label>
               <input
@@ -160,7 +160,7 @@ export default function BroadcastPage() {
             </div>
 
             <div className="space-y-4">
-              <label className="flex items-center gap-2 text-[10px] font-black text-slate-400 uppercase tracking-widest mr-1">
+              <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
                 <ImageIcon size={12} className="text-orange-500" /> صورة الإشعار
               </label>
               
@@ -172,13 +172,13 @@ export default function BroadcastPage() {
                     <>
                       <img src={resolveImageUrl(imageUrl)} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
-                        <span className="text-white text-[10px] font-black uppercase tracking-widest">تغيير الصورة</span>
+                        <span className="text-white text-xs font-bold uppercase tracking-widest">تغيير الصورة</span>
                       </div>
                     </>
                   ) : (
                     <>
                       <ImageIcon size={24} className="text-slate-300 group-hover:text-orange-400" />
-                      <span className="text-[10px] font-bold text-slate-400 group-hover:text-orange-600">رفع صورة من الجهاز</span>
+                      <span className="text-xs font-bold text-slate-400 group-hover:text-orange-600">رفع صورة من الجهاز</span>
                     </>
                   )}
                   <input
@@ -198,7 +198,7 @@ export default function BroadcastPage() {
                       placeholder="أو ضع رابط صورة هنا..."
                       className="h-32 w-full rounded-2xl border border-slate-200 bg-slate-50/50 p-4 text-[11px] font-bold focus:border-orange-500 focus:bg-white focus:outline-none transition-all shadow-sm resize-none"
                     />
-                    <div className="absolute top-2 right-2 px-2 py-1 bg-white/80 backdrop-blur-sm border border-slate-100 rounded-lg text-[8px] font-black text-slate-400 uppercase tracking-tighter">URL</div>
+                    <div className="absolute top-2 right-2 px-2 py-1 bg-white/80 backdrop-blur-sm border border-slate-100 rounded-lg text-[8px] font-bold text-slate-400 uppercase tracking-tighter">URL</div>
                   </div>
                 </div>
               </div>
@@ -208,7 +208,7 @@ export default function BroadcastPage() {
               <button
                 type="submit"
                 disabled={broadcastMutation.isPending}
-                className="w-full h-14 rounded-2xl bg-slate-900 text-white font-black text-lg hover:bg-orange-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-xl shadow-slate-200 group"
+                className="w-full h-14 rounded-2xl bg-slate-900 text-white font-bold text-lg hover:bg-orange-600 transition-all flex items-center justify-center gap-3 disabled:opacity-50 shadow-xl shadow-slate-200 group"
               >
                 {broadcastMutation.isPending ? (
                   <Loader2 className="animate-spin" size={24} />
@@ -219,7 +219,7 @@ export default function BroadcastPage() {
                   </>
                 )}
               </button>
-              <p className="text-[10px] text-center text-slate-400 mt-4 font-bold uppercase tracking-widest">
+              <p className="text-xs text-center text-slate-400 mt-4 font-bold uppercase tracking-widest">
                 تحذير: سيتم إرسال هذا الإشعار فوراً لجميع المستخدمين المسجلين
               </p>
             </div>
@@ -232,7 +232,7 @@ export default function BroadcastPage() {
               <div className="h-10 w-10 rounded-xl bg-slate-900 text-white flex items-center justify-center shadow-lg">
                 <Eye size={20} />
               </div>
-              <h2 className="text-xl font-black text-slate-900 tracking-tight">معاينة مباشرة</h2>
+              <h2 className="text-xl font-bold text-slate-900 tracking-tight">معاينة مباشرة</h2>
            </div>
 
            {/* Mobile Phone Mockup */}
@@ -247,7 +247,7 @@ export default function BroadcastPage() {
               <div className="absolute inset-0 bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 opacity-90" />
 
               {/* Status Bar */}
-              <div className="relative z-10 flex justify-between px-6 pt-4 text-white/90 font-bold text-[10px]">
+              <div className="relative z-10 flex justify-between px-6 pt-4 text-white/90 font-bold text-xs">
                  <span>9:41</span>
                  <div className="flex gap-1.5 items-center">
                     <Smartphone size={10} />
@@ -270,10 +270,10 @@ export default function BroadcastPage() {
                            </div>
                            <div className="flex-1 min-w-0">
                               <div className="flex items-center justify-between mb-0.5">
-                                 <span className="text-[10px] font-black text-orange-600 uppercase tracking-tight">Zag Offers</span>
+                                 <span className="text-xs font-bold text-orange-600 uppercase tracking-tight">Zag Offers</span>
                                  <span className="text-[9px] text-slate-400 font-bold">الآن</span>
                               </div>
-                              <h4 className="text-xs font-black text-slate-900 truncate leading-tight">{title || 'عنوان الإشعار يظهر هنا'}</h4>
+                              <h4 className="text-xs font-bold text-slate-900 truncate leading-tight">{title || 'عنوان الإشعار يظهر هنا'}</h4>
                               <p className="mt-1 text-[11px] text-slate-600 font-bold line-clamp-2 leading-snug">{body || 'محتوى الرسالة الذي سيصل للمستخدمين سيظهر هنا بالكامل...'}</p>
                            </div>
                         </div>
@@ -301,15 +301,15 @@ export default function BroadcastPage() {
            <div className="flex items-center justify-center gap-4 text-slate-400">
               <div className="flex items-center gap-1.5">
                  <CheckCircle2 size={14} className="text-emerald-500" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest">تنسيق ذكي</span>
+                 <span className="text-xs font-bold uppercase tracking-widest">تنسيق ذكي</span>
               </div>
               <div className="flex items-center gap-1.5">
                  <CheckCircle2 size={14} className="text-emerald-500" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest">دعم الصور</span>
+                 <span className="text-xs font-bold uppercase tracking-widest">دعم الصور</span>
               </div>
               <div className="flex items-center gap-1.5">
                  <CheckCircle2 size={14} className="text-emerald-500" />
-                 <span className="text-[10px] font-bold uppercase tracking-widest">اختياري</span>
+                 <span className="text-xs font-bold uppercase tracking-widest">اختياري</span>
               </div>
            </div>
         </div>

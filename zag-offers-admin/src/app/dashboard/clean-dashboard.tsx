@@ -597,7 +597,7 @@ export default function AdminDashboard() {
       {/* HEADER - Page title and controls */}
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div>
-          <h1 className="text-3xl font-bold text-slate-900 leading-tight">لوحة التحكم الرئيسية</h1>
+          <h1 className="text-2xl font-bold text-slate-900 leading-tight">لوحة التحكم الرئيسية</h1>
           <p className="text-sm font-medium text-slate-500 mt-1">أهلاً بك مجدداً، إليك ملخص لأداء المنصة اليوم</p>
         </div>
         
@@ -613,7 +613,7 @@ export default function AdminDashboard() {
               className="w-48 lg:w-56 pl-10 pr-4 py-2.5 bg-white border border-slate-200 rounded-xl text-sm font-medium focus:outline-none focus:border-orange-500 transition-all"
             />
             <span className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-xs">Q</span>
-            <span className="absolute left-10 top-1/2 -translate-y-1/2 text-[10px] text-slate-300 font-bold">Ctrl+K</span>
+            <span className="absolute left-10 top-1/2 -translate-y-1/2 text-xs text-slate-300 font-bold">Ctrl+K</span>
           </div>
 
           {/* Date Range Filter */}
@@ -674,7 +674,7 @@ export default function AdminDashboard() {
           >
             <span>A</span>
             {logs.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
                 {logs.length > 9 ? '9+' : logs.length}
               </span>
             )}
@@ -687,7 +687,7 @@ export default function AdminDashboard() {
           >
             <span>N</span>
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -706,19 +706,19 @@ export default function AdminDashboard() {
 
       {/* QUICK ACTIONS BAR */}
       <div className="bg-slate-50/50 p-2 rounded-[2rem] border border-slate-100 flex flex-wrap items-center gap-2">
-        <Link href="/dashboard/broadcast" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:text-orange-600 transition-all text-xs font-black">
+        <Link href="/dashboard/broadcast" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:text-orange-600 transition-all text-xs font-bold">
           إرسال تنبيه عاجل
         </Link>
-        <Link href="/dashboard/audit-logs" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:text-blue-600 transition-all text-xs font-black">
+        <Link href="/dashboard/audit-logs" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:text-blue-600 transition-all text-xs font-bold">
           مراجعة سجلات الأمان
         </Link>
-        <Link href="/dashboard/users" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition-all text-xs font-black">
+        <Link href="/dashboard/users" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition-all text-xs font-bold">
           إدارة الطاقم
         </Link>
-        <button onClick={handleExportStats} className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-violet-500 hover:text-violet-600 transition-all text-xs font-black">
+        <button onClick={handleExportStats} className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-violet-500 hover:text-violet-600 transition-all text-xs font-bold">
           تصدير الإحصائيات
         </button>
-        <button onClick={handleExportPending} className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-pink-500 hover:text-pink-600 transition-all text-xs font-black">
+        <button onClick={handleExportPending} className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-pink-500 hover:text-pink-600 transition-all text-xs font-bold">
           تصدير الطلبات
         </button>
       </div>
@@ -764,7 +764,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h2 className="text-lg font-bold text-slate-900">طلبات المراجعة المعلقة</h2>
-                  <span className="rounded-lg bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-600 border border-orange-100 uppercase tracking-widest">
+                  <span className="rounded-lg bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-600 border border-orange-100 uppercase tracking-widest">
                     {filteredPendingItems.length} طلب
                   </span>
                 </div>
@@ -888,7 +888,7 @@ export default function AdminDashboard() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-slate-900 leading-tight">{item.name}</p>
-                            <span className="text-[10px] font-bold text-slate-400 border border-slate-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">
+                            <span className="text-xs font-bold text-slate-400 border border-slate-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">
                               {item.type === 'store' ? 'متجر' : 'عرض'}
                             </span>
                           </div>
@@ -916,7 +916,7 @@ export default function AdminDashboard() {
                           </Link>
                         </div>
                       ) : (
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${
+                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
                           selectedItems.has(item.id) ? 'bg-orange-100 text-orange-600' : 'bg-slate-100 text-slate-400'
                         }`}>
                           {selectedItems.has(item.id) ? 'محدد' : 'غير محدد'}
@@ -983,7 +983,7 @@ export default function AdminDashboard() {
                           <p className="text-[11px] font-bold text-slate-400">{store._count?.offers || 0} عرض | {totalClaims} كوبون</p>
                         </div>
                       </div>
-                      <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-[10px] font-black">
+                      <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs font-bold">
                         #{i + 1}
                       </div>
                     </div>
@@ -1046,7 +1046,7 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <p className="text-sm font-bold text-slate-900">{n.title}</p>
                             <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                            <p className="text-[10px] text-slate-400 mt-1.5">
+                            <p className="text-xs text-slate-400 mt-1.5">
                               {new Date(n.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
@@ -1099,10 +1099,10 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-bold text-slate-900">{log.action}</p>
-                              <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{log.targetType}</span>
+                              <span className="text-xs font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">{log.targetType}</span>
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">{log.details || log.target}</p>
-                            <p className="text-[10px] text-slate-400 mt-1">{new Date(log.timestamp).toLocaleString('ar-EG')}</p>
+                            <p className="text-xs text-slate-400 mt-1">{new Date(log.timestamp).toLocaleString('ar-EG')}</p>
                           </div>
                         </div>
                       </div>
@@ -1143,7 +1143,7 @@ export default function AdminDashboard() {
                       <p className="text-sm font-bold text-slate-900">{shortcut.action}</p>
                       <p className="text-xs text-slate-400">{shortcut.desc}</p>
                     </div>
-                    <kbd className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-600 shadow-sm">
+                    <kbd className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 shadow-sm">
                       {shortcut.key}
                     </kbd>
                   </div>
@@ -1180,11 +1180,11 @@ function StatCard({ label, value, trend, subValue }: {
         <div className="h-12 w-12 bg-slate-100 rounded-2xl flex items-center justify-center text-slate-600 font-bold text-lg">
           {label[0]}
         </div>
-        {trend && <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{trend}</span>}
+        {trend && <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg">{trend}</span>}
       </div>
       <div>
         <p className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-        <p className="mt-1.5 text-3xl font-black text-slate-900 leading-none tabular-nums">{value}</p>
+        <p className="mt-1.5 text-2xl font-bold text-slate-900 leading-none tabular-nums">{value}</p>
         {subValue && <p className="mt-2 text-[11px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md w-fit">{subValue}</p>}
       </div>
     </div>
@@ -1200,7 +1200,7 @@ function ScaleCard({ label, value }: { label: string; value: string }) {
         </div>
         <div>
           <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-          <p className="text-2xl font-black text-slate-900 leading-none mt-1">{value}</p>
+          <p className="text-2xl font-bold text-slate-900 leading-none mt-1">{value}</p>
         </div>
       </div>
     </div>

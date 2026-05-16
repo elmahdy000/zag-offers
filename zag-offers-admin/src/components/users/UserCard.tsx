@@ -53,7 +53,7 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) =>
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-orange-50 text-orange-600 border border-orange-100 group-hover:bg-orange-600 group-hover:text-white transition-all shadow-inner">
           <User size={20} />
         </div>
-        <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${role.bg} ${role.color} ${role.border}`}>
+        <span className={`rounded-lg border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${role.bg} ${role.color} ${role.border}`}>
           {role.label}
         </span>
       </div>

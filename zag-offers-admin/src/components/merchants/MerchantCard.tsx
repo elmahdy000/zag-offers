@@ -43,7 +43,7 @@ export function MerchantCard({ merchant, onView, onEdit, index }: MerchantCardPr
         <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-slate-50 text-slate-400 group-hover:bg-indigo-50 group-hover:text-indigo-600 transition-colors shadow-inner">
           <Store size={20} />
         </div>
-        <span className={`rounded-lg border px-2.5 py-1 text-[10px] font-bold uppercase tracking-wider ${status.classes}`}>
+        <span className={`rounded-lg border px-2.5 py-1 text-xs font-bold uppercase tracking-wider ${status.classes}`}>
           {status.label}
         </span>
       </div>

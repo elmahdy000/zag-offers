@@ -61,7 +61,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
     <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md">
       <div className="flex items-center gap-2 mb-1.5">
         {Icon && <Icon size={14} className="text-slate-300" />}
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
       </div>
       <p className={`text-sm font-bold ${colorClass} truncate`}>{value}</p>
     </div>
@@ -232,21 +232,21 @@ export default function CouponsManagementPage() {
                     <div className="absolute -right-8 -top-8 h-32 w-32 rounded-full bg-orange-500/10 blur-2xl group-hover:bg-orange-500/20 transition-all" />
                     <div className="relative z-10">
                       <div className="flex items-center justify-between mb-4">
-                         <div className="px-3 py-1 rounded-lg bg-white/10 border border-white/10 text-[10px] font-bold uppercase tracking-widest text-orange-400">كود الكوبون</div>
-                         <div className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase tracking-wider ${statusLabels[couponDetails?.status || ''].color}`}>
+                         <div className="px-3 py-1 rounded-lg bg-white/10 border border-white/10 text-xs font-bold uppercase tracking-widest text-orange-400">كود الكوبون</div>
+                         <div className={`px-2 py-0.5 rounded-md text-xs font-bold uppercase tracking-wider ${statusLabels[couponDetails?.status || ''].color}`}>
                             {statusLabels[couponDetails?.status || ''].label}
                          </div>
                       </div>
-                      <p className="text-4xl font-black tracking-widest text-white font-mono">{couponDetails?.code}</p>
+                      <p className="text-4xl font-bold tracking-widest text-white font-mono">{couponDetails?.code}</p>
                       <div className="flex items-center gap-4 mt-6 pt-6 border-t border-white/5">
                         <div className="flex items-center gap-2">
                            <Calendar size={14} className="text-white/30" />
-                           <span className="text-[10px] font-medium opacity-60">أصدر في {formatDate(couponDetails?.createdAt)}</span>
+                           <span className="text-xs font-medium opacity-60">أصدر في {formatDate(couponDetails?.createdAt)}</span>
                         </div>
                         {couponDetails?.usedAt && (
                           <div className="flex items-center gap-2">
                             <CheckCircle2 size={14} className="text-emerald-400" />
-                            <span className="text-[10px] font-medium text-emerald-400">استخدم في {formatDate(couponDetails.usedAt)}</span>
+                            <span className="text-xs font-medium text-emerald-400">استخدم في {formatDate(couponDetails.usedAt)}</span>
                           </div>
                         )}
                       </div>

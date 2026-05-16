@@ -85,7 +85,7 @@ function DetailCard({ label, value, icon: Icon }: { label: string; value: string
     <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 shadow-sm transition-all hover:bg-white hover:shadow-md">
       <div className="flex items-center gap-2 mb-1.5">
         {Icon && <Icon size={14} className="text-slate-300" />}
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
       </div>
       <p className="text-sm font-bold text-slate-900 truncate">{value}</p>
     </div>
@@ -263,7 +263,7 @@ export default function ApprovalsPage() {
       <div className="overflow-hidden border border-slate-200 bg-white shadow-sm rounded-2xl transition-all hover:shadow-md">
         <div className="overflow-x-auto">
           <table className="w-full text-right">
-            <thead className="bg-slate-50 text-[10px] font-bold uppercase text-slate-400 tracking-[0.2em] border-b border-slate-100">
+            <thead className="bg-slate-50 text-xs font-bold uppercase text-slate-400 tracking-[0.2em] border-b border-slate-100">
               <tr>
                 <th className="px-6 py-6">{activeTab === 'offers' ? 'عنوان العرض' : 'اسم المتجر'}</th>
                 <th className="px-6 py-6">{activeTab === 'offers' ? 'المتجر' : 'صاحب المتجر'}</th>
@@ -289,10 +289,10 @@ export default function ApprovalsPage() {
                     </td>
                     <td className="px-6 py-5">
                       <p className="text-xs font-bold text-slate-700">{item.owner.name}</p>
-                      <p className="text-[10px] font-medium text-slate-400 mt-0.5">{item.owner.phone}</p>
+                      <p className="text-xs font-medium text-slate-400 mt-0.5">{item.owner.phone}</p>
                     </td>
                     <td className="px-6 py-5">
-                      <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-tight">{item.category.name}</span>
+                      <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500 uppercase tracking-tight">{item.category.name}</span>
                     </td>
                     <td className="px-6 py-5 text-[11px] font-bold text-slate-400">{formatDate(item.createdAt)}</td>
                     <td className="px-6 py-5">
@@ -328,7 +328,7 @@ export default function ApprovalsPage() {
                     </td>
                     <td className="px-6 py-5 text-xs font-bold text-slate-700">{item.store.name}</td>
                     <td className="px-6 py-5">
-                      <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-tight">{item.store.category?.name || 'عام'}</span>
+                      <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500 uppercase tracking-tight">{item.store.category?.name || 'عام'}</span>
                     </td>
                     <td className="px-6 py-5 text-[11px] font-bold text-slate-400">{formatDate(item.createdAt)}</td>
                     <td className="px-6 py-5">
@@ -364,7 +364,7 @@ export default function ApprovalsPage() {
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 leading-tight">{item.name}</p>
-                          <p className="text-[10px] font-bold text-slate-400 mt-1 uppercase tracking-wider">{item.type === 'store' ? 'متجر' : 'عرض ترويجي'}</p>
+                          <p className="text-xs font-bold text-slate-400 mt-1 uppercase tracking-wider">{item.type === 'store' ? 'متجر' : 'عرض ترويجي'}</p>
                         </div>
                       </div>
                     </td>
@@ -372,14 +372,14 @@ export default function ApprovalsPage() {
                       {item.type === 'store' ? (item as any).owner?.name : (item as any).store?.name}
                     </td>
                     <td className="px-6 py-5">
-                      <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-[10px] font-bold text-slate-500 uppercase tracking-tight">
+                      <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500 uppercase tracking-tight">
                         {item.type === 'store' ? (item as any).category?.name : ((item as any).store?.category?.name || 'عام')}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-[11px] font-bold text-emerald-600">{formatDate(item.updatedAt)}</td>
                     <td className="px-6 py-5">
                       <div className="flex items-center justify-center">
-                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 text-[10px] font-black uppercase tracking-widest border border-emerald-100">
+                        <span className="flex items-center gap-1.5 px-3 py-1.5 rounded-xl bg-emerald-50 text-emerald-600 text-xs font-bold uppercase tracking-widest border border-emerald-100">
                           <CheckCircle2 size={12} /> معتمد
                         </span>
                       </div>
@@ -441,7 +441,7 @@ export default function ApprovalsPage() {
                   )}
 
                   <div className="text-center pt-4">
-                    <Link href={`/dashboard/merchants/${storeDetails?.id}`} onClick={() => setSelectedStoreId(null)} className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">
+                    <Link href={`/dashboard/merchants/${storeDetails?.id}`} onClick={() => setSelectedStoreId(null)} className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">
                       عرض الصفحة الكاملة للمتجر <ExternalLink size={14} />
                     </Link>
                   </div>
@@ -476,7 +476,7 @@ export default function ApprovalsPage() {
                     </div>
 
                     <div className="space-y-4">
-                      <p className="text-xs font-black text-slate-400 uppercase tracking-widest px-1">صور العرض ({offerDetails?.images?.length || 0})</p>
+                      <p className="text-xs font-bold text-slate-400 uppercase tracking-widest px-1">صور العرض ({offerDetails?.images?.length || 0})</p>
                       <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
                         {offerDetails?.images?.map((img, idx) => (
                           <motion.div 
@@ -489,13 +489,13 @@ export default function ApprovalsPage() {
                             <div className="absolute inset-0 bg-slate-900/0 group-hover:bg-slate-900/10 transition-colors flex items-center justify-center">
                               <Eye className="text-white opacity-0 group-hover:opacity-100 transition-opacity" size={24} />
                             </div>
-                            {idx === 0 && <span className="absolute top-2 right-2 bg-orange-600 text-white text-[8px] font-black px-2 py-0.5 rounded-lg shadow-lg">الرئيسية</span>}
+                            {idx === 0 && <span className="absolute top-2 right-2 bg-orange-600 text-white text-[8px] font-bold px-2 py-0.5 rounded-lg shadow-lg">الرئيسية</span>}
                           </motion.div>
                         ))}
                         {(!offerDetails?.images || offerDetails.images.length === 0) && (
                           <div className="col-span-full h-32 rounded-2xl border-2 border-dashed border-slate-100 flex flex-col items-center justify-center text-slate-300">
                             <Tag size={32} strokeWidth={1} />
-                            <p className="text-[10px] font-bold mt-2">لا توجد صور متوفرة</p>
+                            <p className="text-xs font-bold mt-2">لا توجد صور متوفرة</p>
                           </div>
                         )}
                       </div>
@@ -522,7 +522,7 @@ export default function ApprovalsPage() {
                   )}
 
                   <div className="text-center pt-4">
-                    <Link href={`/dashboard/offers/${offerDetails?.id}`} onClick={() => setSelectedOfferId(null)} className="text-[10px] font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">
+                    <Link href={`/dashboard/offers/${offerDetails?.id}`} onClick={() => setSelectedOfferId(null)} className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">
                       عرض الصفحة الكاملة للعرض <ExternalLink size={14} />
                     </Link>
                   </div>

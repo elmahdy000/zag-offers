@@ -15,15 +15,15 @@ export function DashboardHeader({ pendingCount }: DashboardHeaderProps) {
       <div className="relative z-10 flex flex-col gap-8 lg:flex-row lg:items-center lg:justify-between">
         <div className="space-y-4">
           <div className="flex items-center gap-3">
-            <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-600 px-3 py-1 text-[9px] font-black text-white">
+            <div className="inline-flex items-center gap-1.5 rounded-full bg-orange-600 px-3 py-1 text-[9px] font-bold text-white">
               <Zap size={10} fill="white" />
               <span>ZAG OFFERS Admin</span>
             </div>
-            <span className="text-[9px] font-black uppercase tracking-widest text-slate-400">مركز التحكم</span>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-400">مركز التحكم</span>
           </div>
           
           <div className="space-y-1">
-            <h1 className="text-3xl font-black tracking-tight text-slate-900 lg:text-4xl">
+            <h1 className="text-2xl font-bold tracking-tight text-slate-900 lg:text-4xl">
               لوحة <span className="text-orange-500">العمليات</span>
             </h1>
             <p className="max-w-lg text-sm font-bold leading-relaxed text-slate-500">
@@ -35,12 +35,12 @@ export function DashboardHeader({ pendingCount }: DashboardHeaderProps) {
         <div className="flex flex-wrap gap-3">
           <Link
             href="/dashboard/approvals"
-            className="group relative flex items-center justify-center gap-3 rounded-2xl bg-orange-600 px-6 py-4 text-sm font-black text-white transition-all hover:bg-orange-700 shadow-lg shadow-orange-100"
+            className="group relative flex items-center justify-center gap-3 rounded-2xl bg-orange-600 px-6 py-4 text-sm font-bold text-white transition-all hover:bg-orange-700 shadow-lg shadow-orange-100"
           >
             <ClipboardCheck size={18} />
             <span>طلبات الاعتماد</span>
             {pendingCount > 0 && (
-              <span className="flex h-6 min-w-[24px] items-center justify-center rounded-lg bg-slate-950 text-[10px] text-white">
+              <span className="flex h-6 min-w-[24px] items-center justify-center rounded-lg bg-slate-950 text-xs text-white">
                 {pendingCount}
               </span>
             )}
@@ -48,7 +48,7 @@ export function DashboardHeader({ pendingCount }: DashboardHeaderProps) {
 
           <Link
             href="/dashboard/merchants"
-            className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-black text-slate-900 transition-all hover:bg-slate-50"
+            className="flex items-center justify-center gap-3 rounded-2xl border border-slate-200 bg-white px-6 py-4 text-sm font-bold text-slate-900 transition-all hover:bg-slate-50"
           >
             <Store size={18} className="text-slate-400" />
             <span>المتاجر</span>

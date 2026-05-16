@@ -738,7 +738,7 @@ export default function AdminDashboard() {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
         <div className="flex items-center gap-4">
           <div>
-            <h1 className="text-3xl font-bold text-slate-900 leading-tight">لوحة التحكم الرئيسية</h1>
+            <h1 className="text-2xl font-bold text-slate-900 leading-tight">لوحة التحكم الرئيسية</h1>
             <p className="text-sm font-medium text-slate-500 mt-1">أهلاً بك مجدداً، إليك ملخص لأداء المنصة اليوم</p>
           </div>
           {/* Demo Mode Badge */}
@@ -820,7 +820,7 @@ export default function AdminDashboard() {
           >
             <Activity size={18} />
             {logs.length > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-purple-600 text-white text-[10px] font-bold rounded-full flex items-center justify-center">
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-purple-600 text-white text-xs font-bold rounded-full flex items-center justify-center">
                 {logs.length > 9 ? '9+' : logs.length}
               </span>
             )}
@@ -834,7 +834,7 @@ export default function AdminDashboard() {
           >
             <Bell size={18} />
             {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-[10px] font-bold rounded-full flex items-center justify-center animate-pulse">
+              <span className="absolute -top-1 -right-1 h-4 w-4 bg-red-500 text-white text-xs font-bold rounded-full flex items-center justify-center animate-pulse">
                 {unreadCount > 9 ? '9+' : unreadCount}
               </span>
             )}
@@ -878,25 +878,25 @@ export default function AdminDashboard() {
 
       {/* Quick Actions Bar */}
       <div className="bg-slate-50/50 p-2 rounded-[2rem] border border-slate-100 flex flex-wrap items-center gap-2">
-         <Link href="/dashboard/broadcast" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:text-orange-600 transition-all text-xs font-black">
+         <Link href="/dashboard/broadcast" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-orange-500 hover:text-orange-600 transition-all text-xs font-bold">
             <Bell size={14} /> إرسال تنبيه عاجل
          </Link>
-         <Link href="/dashboard/audit-logs" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:text-blue-600 transition-all text-xs font-black">
+         <Link href="/dashboard/audit-logs" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-blue-500 hover:text-blue-600 transition-all text-xs font-bold">
             <ClipboardCheck size={14} /> مراجعة سجلات الأمان
          </Link>
-         <Link href="/dashboard/users" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition-all text-xs font-black">
+         <Link href="/dashboard/users" className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-emerald-500 hover:text-emerald-600 transition-all text-xs font-bold">
             <Users size={14} /> إدارة الطاقم
          </Link>
          {/* Export Buttons */}
          <button
             onClick={handleExportStats}
-            className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-violet-500 hover:text-violet-600 transition-all text-xs font-black"
+            className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-violet-500 hover:text-violet-600 transition-all text-xs font-bold"
          >
             <Download size={14} /> تصدير الإحصائيات
          </button>
          <button
             onClick={handleExportPending}
-            className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-pink-500 hover:text-pink-600 transition-all text-xs font-black"
+            className="flex items-center gap-2 bg-white px-4 py-2.5 rounded-2xl border border-slate-200 hover:border-pink-500 hover:text-pink-600 transition-all text-xs font-bold"
          >
             <Download size={14} /> تصدير الطلبات
          </button>
@@ -1079,7 +1079,7 @@ export default function AdminDashboard() {
               <div className="flex items-center justify-between">
                 <div className="flex items-center gap-3">
                   <h2 className="text-lg font-bold text-slate-900">طلبات المراجعة المعلقة</h2>
-                  <span className="rounded-lg bg-orange-50 px-2 py-0.5 text-[10px] font-bold text-orange-600 border border-orange-100 uppercase tracking-widest">
+                  <span className="rounded-lg bg-orange-50 px-2 py-0.5 text-xs font-bold text-orange-600 border border-orange-100 uppercase tracking-widest">
                     {filteredPendingItems.length} طلب
                   </span>
                 </div>
@@ -1207,7 +1207,7 @@ export default function AdminDashboard() {
                         <div>
                           <div className="flex items-center gap-2">
                             <p className="text-sm font-bold text-slate-900 leading-tight">{item.name}</p>
-                            <span className="text-[10px] font-bold text-slate-400 border border-slate-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">{item.type === 'store' ? 'متجر' : 'عرض'}</span>
+                            <span className="text-xs font-bold text-slate-400 border border-slate-100 px-1.5 py-0.5 rounded uppercase tracking-tighter">{item.type === 'store' ? 'متجر' : 'عرض'}</span>
                           </div>
                           <p className="text-[11px] font-medium text-slate-400 mt-1.5 flex items-center gap-2">
                             <span>{item.category}</span>
@@ -1232,7 +1232,7 @@ export default function AdminDashboard() {
                           </Link>
                         </div>
                       ) : (
-                        <span className={`text-[10px] font-bold px-2 py-1 rounded-lg ${
+                        <span className={`text-xs font-bold px-2 py-1 rounded-lg ${
                           selectedItems.has(item.id)
                             ? 'bg-orange-100 text-orange-600'
                             : 'bg-slate-100 text-slate-400'
@@ -1293,16 +1293,16 @@ export default function AdminDashboard() {
                       <div className="flex-1 min-w-0">
                         <p className="text-sm font-bold text-slate-900 truncate">{store.name}</p>
                         <div className="flex items-center gap-2 mt-1">
-                          <p className="text-[10px] font-bold text-slate-400 uppercase tracking-tighter">
+                          <p className="text-xs font-bold text-slate-400 uppercase tracking-tighter">
                             {totalClaims} طلب كوبون
                           </p>
                           <span className="h-1 w-1 rounded-full bg-slate-200" />
-                          <p className="text-[10px] font-bold text-emerald-600 uppercase tracking-tighter">
+                          <p className="text-xs font-bold text-emerald-600 uppercase tracking-tighter">
                             {store._count?.reviews || 0} تقييم
                           </p>
                         </div>
                       </div>
-                      <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-[10px] font-black">
+                      <div className="h-8 w-8 rounded-lg bg-orange-50 text-orange-600 flex items-center justify-center text-xs font-bold">
                         #{i + 1}
                       </div>
                     </div>
@@ -1383,7 +1383,7 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <p className="text-sm font-bold text-slate-900">{n.title}</p>
                             <p className="text-xs text-slate-500 mt-0.5">{n.message}</p>
-                            <p className="text-[10px] text-slate-400 mt-1.5">
+                            <p className="text-xs text-slate-400 mt-1.5">
                               {new Date(n.timestamp).toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' })}
                             </p>
                           </div>
@@ -1467,12 +1467,12 @@ export default function AdminDashboard() {
                           <div className="flex-1">
                             <div className="flex items-center gap-2">
                               <p className="text-sm font-bold text-slate-900">{log.action}</p>
-                              <span className="text-[10px] font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                              <span className="text-xs font-bold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
                                 {log.targetType}
                               </span>
                             </div>
                             <p className="text-xs text-slate-500 mt-0.5">{log.details || log.target}</p>
-                            <p className="text-[10px] text-slate-400 mt-1">
+                            <p className="text-xs text-slate-400 mt-1">
                               {new Date(log.timestamp).toLocaleString('ar-EG')}
                             </p>
                           </div>
@@ -1601,7 +1601,7 @@ export default function AdminDashboard() {
                       <p className="text-sm font-bold text-slate-900">{shortcut.action}</p>
                       <p className="text-xs text-slate-400">{shortcut.desc}</p>
                     </div>
-                    <kbd className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-black text-slate-600 shadow-sm">
+                    <kbd className="px-3 py-1.5 bg-white border border-slate-200 rounded-lg text-xs font-bold text-slate-600 shadow-sm">
                       {shortcut.key}
                     </kbd>
                   </div>
@@ -1629,14 +1629,14 @@ function StatCard({ label, value, icon: Icon, color, bg, trend, subValue }: { la
           <Icon size={22} />
         </div>
         {trend && (
-          <span className="text-[10px] font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1">
+          <span className="text-xs font-bold text-emerald-600 bg-emerald-50 px-2 py-1 rounded-lg flex items-center gap-1">
             <TrendingUp size={10} /> {trend}
           </span>
         )}
       </div>
       <div>
         <p className="text-[13px] font-bold text-slate-400 uppercase tracking-widest">{label}</p>
-        <p className="mt-1.5 text-3xl font-black text-slate-900 leading-none tabular-nums">{value}</p>
+        <p className="mt-1.5 text-2xl font-bold text-slate-900 leading-none tabular-nums">{value}</p>
         {subValue && (
           <p className="mt-2 text-[11px] font-bold text-slate-500 bg-slate-50 px-2 py-1 rounded-md w-fit">
             {subValue}
@@ -1654,7 +1654,7 @@ function ScaleCard({ label, value, icon: Icon, color }: { label: string; value: 
         <Icon size={20} />
       </div>
       <div>
-        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">{label}</p>
+        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">{label}</p>
         <p className="text-xl font-bold text-slate-900 leading-none">{value}</p>
       </div>
     </div>
