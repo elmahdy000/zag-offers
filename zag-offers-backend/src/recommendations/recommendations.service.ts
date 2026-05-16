@@ -1,13 +1,16 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Inject } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { OfferStatus, StoreStatus } from '@prisma/client';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
+import { Cache } from 'cache-manager';
 
 @Injectable()
 export class RecommendationsService {
   constructor(
     private prisma: PrismaService,
     private analyticsService: AnalyticsService,
+    @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
   async getRecommendedOffers(userId?: string) {
@@ -19,8 +22,7 @@ export class RecommendationsService {
     // 2. محاولة جلب الترشيحات من الكاش أولاً (Redis) لتوفير الأداء
     const cacheKey = `user_rec_${userId}`;
     try {
-      // @ts-ignore
-      const cached = await this.prisma.cache.get(cacheKey);
+      const cached = await this.cacheManager.get<string>(cacheKey);
       if (cached) return JSON.parse(cached);
     } catch (e) {
       // نتابع لو الكاش فشل
@@ -86,8 +88,7 @@ export class RecommendationsService {
 
     // 6. حفظ في الكاش لمدة 5 دقائق
     try {
-      // @ts-ignore
-      await this.prisma.cache.set(cacheKey, JSON.stringify(result), 300);
+      await this.cacheManager.set(cacheKey, JSON.stringify(result), 300000); // 300 seconds in ms
     } catch (e) {
       // نتابع لو الكاش فشل
     }

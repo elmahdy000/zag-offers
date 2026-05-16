@@ -44,31 +44,50 @@ interface OfferCardProps {
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
   'مطاعم':         <RiRestaurant2Fill size={14} />,
+  'دلع كرشك':      <RiRestaurant2Fill size={14} />,
   'كافيهات':       <RiCupFill size={14} />,
+  'روقان':         <RiCupFill size={14} />,
   'ملابس':         <RiShirtFill size={14} />,
+  'شياكة':         <RiShirtFill size={14} />,
   'جيم':           <RiHeartPulseFill size={14} />,
+  'فورمة':          <RiHeartPulseFill size={14} />,
   'تجميل':         <RiMagicFill size={14} />,
+  'دلع بنات':       <RiMagicFill size={14} />,
   'عيادات':        <RiHospitalFill size={14} />,
   'سوبرماركت':    <RiShoppingCartFill size={14} />,
   'دورات':         <RiBookOpenFill size={14} />,
+  'طور نفسك':      <RiBookOpenFill size={14} />,
   'خدمات سيارات': <RiCarWashingFill size={14} />,
+  'دلع عربيتك':    <RiCarWashingFill size={14} />,
   'خدمات محلية':  <RiHammerFill size={14} />,
   'حلاقين':       <RiScissors2Fill size={14} />,
+  'نعيماً':        <RiScissors2Fill size={14} />,
   'حلويات':       <RiCake3Fill size={14} />,
+  'حلى بوقك':      <RiCake3Fill size={14} />,
   'مناسبات':       <RiGiftFill size={14} />,
+  'عروستي':       <RiGiftFill size={14} />,
   'ألعاب':         <RiGamepadFill size={14} />,
+  'اون فاير':      <RiGamepadFill size={14} />,
   'أطفال':         <RiBearSmileFill size={14} />,
+  'عيالنا':        <RiBearSmileFill size={14} />,
   'أدوات منزلية':  <RiHomeHeartFill size={14} />,
+  'ست البيت':      <RiHomeHeartFill size={14} />,
   'default':       <RiSparklingFill size={14} />,
 };
 
 const CAT_GRADIENTS: Record<string, string> = {
   'مطاعم':         'from-[#2a1000] to-[#1a0800]',
+  'دلع كرشك':      'from-[#2a1000] to-[#1a0800]',
   'كافيهات':       'from-[#1a0d00] to-[#0d0600]',
+  'روقان':         'from-[#1a0d00] to-[#0d0600]',
   'جيم':           'from-[#001a0a] to-[#000d05]',
+  'فورمة':          'from-[#001a0a] to-[#000d05]',
   'ملابس':         'from-[#1a001a] to-[#0d000d]',
+  'شياكة':         'from-[#1a001a] to-[#0d000d]',
   'تجميل':         'from-[#180018] to-[#0e000e]',
+  'دلع بنات':       'from-[#180018] to-[#0e000e]',
   'دورات':         'from-[#001a1a] to-[#000d0d]',
+  'طور نفسك':      'from-[#001a1a] to-[#000d0d]',
   'default':       'from-[#1a1a2e] to-[#16213e]',
 };
 
@@ -175,7 +194,7 @@ export function OfferCard({ offer }: OfferCardProps) {
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className={`relative h-32 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+      <div className={`relative h-40 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
         
         {/* Background Image if exists */}
         {offerImage && (
@@ -183,7 +202,7 @@ export function OfferCard({ offer }: OfferCardProps) {
             src={offerImage} 
             alt={offer.title} 
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-60" 
+            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-70" 
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             quality={75}
             priority={false}
@@ -191,7 +210,7 @@ export function OfferCard({ offer }: OfferCardProps) {
         )}
 
         {/* Overlay gradient to ensure text readability */}
-        <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/10" />
+        <div className="absolute inset-0 bg-gradient-to-t from-[#252525]/80 via-transparent to-black/10" />
 
         {/* Featured */}
         {offer.featured && (
@@ -202,9 +221,9 @@ export function OfferCard({ offer }: OfferCardProps) {
         )}
 
         {/* Discount */}
-        <div className="absolute top-2 right-2 z-10 px-2.5 py-1
+        <div className="absolute top-2 right-2 z-10 px-2 py-0.5
                         bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
-                        text-white text-[13px] font-black rounded-lg
+                        text-white text-[11px] font-black rounded-lg
                         shadow-[0_4px_12px_rgba(255,107,0,0.4)]">
           {discountDisplay}
         </div>
@@ -222,18 +241,18 @@ export function OfferCard({ offer }: OfferCardProps) {
 
         {/* Store Logo */}
         <div className="absolute -bottom-4 right-3 z-20
-                        w-10 h-10 rounded-lg border-2 border-[#252525]
+                        w-11 h-11 rounded-xl border-2 border-[#252525]
                         bg-[#1E1E1E] overflow-hidden shadow-xl
-                        flex items-center justify-center flex-shrink-0">
+                        flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
           {logoUrl
             ? <Image
                 src={logoUrl}
                 alt={offer.store?.name || 'Store Logo'}
-                width={40}
-                height={40}
+                width={44}
+                height={44}
                 className="w-full h-full object-cover"
                 loading="lazy"
-                sizes="40px"
+                sizes="44px"
                 quality={80}
               />
             : <div className="text-white/20 scale-75">{catIcon}</div>
@@ -242,7 +261,7 @@ export function OfferCard({ offer }: OfferCardProps) {
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-3 pt-6 pb-3 gap-1.5">
+      <div className="flex flex-col flex-1 px-3 pt-5 pb-3 gap-1">
 
         {/* Category */}
         {catName && (

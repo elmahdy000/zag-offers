@@ -388,7 +388,7 @@ function HomePageContent() {
             <h2 className="text-xl sm:text-2xl font-black text-white">براندات بنحبها</h2>
             <Link href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
             {stores.slice(0, 12).map(store => (
               <Link key={store.id} href={`/stores/${store.id}`} className="group">
                 <div className="bg-[#252525] border border-white/5 rounded-3xl p-4 sm:p-6 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
