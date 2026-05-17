@@ -6,6 +6,7 @@ import 'package:zag_offers_admin_app/features/categories/presentation/bloc/categ
 import 'package:zag_offers_admin_app/core/widgets/custom_dialogs.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 
@@ -54,21 +55,13 @@ class _CategoriesPageState extends State<CategoriesPage> {
             state is CategoriesError,
         listener: (context, state) {
           if (state is CategoryCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم إنشاء القسم بنجاح'), backgroundColor: AppColors.success),
-            );
+            SnackBarUtils.showSuccess(context, 'تم إنشاء القسم بنجاح');
           } else if (state is CategoryUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم تعديل القسم بنجاح'), backgroundColor: AppColors.success),
-            );
+            SnackBarUtils.showSuccess(context, 'تم تعديل القسم بنجاح');
           } else if (state is CategoryDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم حذف القسم بنجاح'), backgroundColor: AppColors.success),
-            );
+            SnackBarUtils.showSuccess(context, 'تم حذف القسم بنجاح');
           } else if (state is CategoriesError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         buildWhen: (_, state) =>

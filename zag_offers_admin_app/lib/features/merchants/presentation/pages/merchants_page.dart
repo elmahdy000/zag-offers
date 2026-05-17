@@ -11,6 +11,7 @@ import 'package:zag_offers_admin_app/core/widgets/custom_dialogs.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/pages/add_merchant_page.dart';
 
 class MerchantsPage extends StatefulWidget {
@@ -56,11 +57,11 @@ class _MerchantsPageState extends State<MerchantsPage> {
         listenWhen: (_, state) => state is MerchantStatusUpdated || state is MerchantDeleted || state is MerchantsError,
         listener: (context, state) {
           if (state is MerchantStatusUpdated) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث حالة التاجر بنجاح'), backgroundColor: AppColors.success));
+            SnackBarUtils.showSuccess(context, 'تم تحديث حالة التاجر بنجاح');
           } else if (state is MerchantDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف التاجر بنجاح'), backgroundColor: AppColors.success));
+            SnackBarUtils.showSuccess(context, 'تم حذف التاجر بنجاح');
           } else if (state is MerchantsError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: AppColors.error));
+            SnackBarUtils.showError(context, state.message);
           }
         },
         builder: (context, state) {

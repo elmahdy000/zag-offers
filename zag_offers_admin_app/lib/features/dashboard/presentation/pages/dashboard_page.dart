@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
@@ -27,6 +27,7 @@ import 'package:zag_offers_admin_app/core/services/realtime_service.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 typedef OnTabSelected = void Function(int index);
 
@@ -80,15 +81,11 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
       context.read<MerchantsBloc>().add(const LoadMerchantsEvent());
     }
 
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text(notification.body.isEmpty
-            ? notification.title
-            : '${notification.title}\n${notification.body}'),
-        backgroundColor: AppColors.textPrimary,
-        behavior: SnackBarBehavior.floating,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      ),
+    SnackBarUtils.showInfo(
+      context,
+      notification.body.isEmpty
+          ? notification.title
+          : '${notification.title}\n${notification.body}',
     );
   }
 

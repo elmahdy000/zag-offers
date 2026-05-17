@@ -29,11 +29,20 @@ abstract class StoreSetupState extends Equatable {
 
 class StoreSetupInitial extends StoreSetupState {}
 
+/// Loading state while fetching categories (first load)
 class StoreSetupLoading extends StoreSetupState {}
 
 class CategoriesLoaded extends StoreSetupState {
   final List<CategoryModel> categories;
   CategoriesLoaded(this.categories);
+  @override
+  List<Object?> get props => [categories];
+}
+
+/// Submission in progress — categories remain accessible so dropdown doesn't crash
+class StoreSubmitting extends StoreSetupState {
+  final List<CategoryModel> categories;
+  StoreSubmitting(this.categories);
   @override
   List<Object?> get props => [categories];
 }
@@ -47,14 +56,18 @@ class StoreCreatedSuccess extends StoreSetupState {
 
 class StoreSetupError extends StoreSetupState {
   final String message;
-  StoreSetupError(this.message);
+  final List<CategoryModel> categories;
+  StoreSetupError(this.message, {this.categories = const []});
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, categories];
 }
 
 // --- BLoC ---
 class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
   final StoreSetupRepository repository;
+
+  /// Cached categories so they survive state transitions during submission
+  List<CategoryModel> _categories = [];
 
   StoreSetupBloc({required this.repository}) : super(StoreSetupInitial()) {
     on<GetCategoriesRequested>(_onGetCategoriesRequested);
@@ -67,12 +80,15 @@ class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
   ) async {
     emit(StoreSetupLoading());
     try {
-      final categories = await repository.getCategories();
-      emit(CategoriesLoaded(categories));
+      _categories = await repository.getCategories();
+      emit(CategoriesLoaded(_categories));
     } on DioException catch (e) {
-      emit(StoreSetupError(mapDioErrorToMessage(e)));
+      emit(StoreSetupError(mapDioErrorToMessage(e), categories: _categories));
     } catch (e) {
-      emit(StoreSetupError(e.toString()));
+      emit(StoreSetupError(
+        e.toString().replaceAll('Exception: ', ''),
+        categories: _categories,
+      ));
     }
   }
 
@@ -80,14 +96,18 @@ class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
     CreateStoreRequested event,
     Emitter<StoreSetupState> emit,
   ) async {
-    emit(StoreSetupLoading());
+    // Use StoreSubmitting (not StoreSetupLoading) so the UI retains categories
+    emit(StoreSubmitting(_categories));
     try {
       final store = await repository.createStore(event.data);
       emit(StoreCreatedSuccess(store));
     } on DioException catch (e) {
-      emit(StoreSetupError(mapDioErrorToMessage(e)));
+      emit(StoreSetupError(mapDioErrorToMessage(e), categories: _categories));
     } catch (e) {
-      emit(StoreSetupError(e.toString()));
+      emit(StoreSetupError(
+        e.toString().replaceAll('Exception: ', ''),
+        categories: _categories,
+      ));
     }
   }
 }

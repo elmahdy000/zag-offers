@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/network_image.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../bloc/offers_bloc.dart';
@@ -31,23 +32,11 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
       body: BlocListener<OffersBloc, OffersState>(
         listener: (context, state) {
           if (state is OfferActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message, style: GoogleFonts.cairo(fontSize: 13)),
-                backgroundColor: AppColors.success,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            SnackBarUtils.showSuccess(context, state.message);
             Navigator.of(context).pop();
             Navigator.of(context).pop();
           } else if (state is OffersError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message, style: GoogleFonts.cairo(fontSize: 13)),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         child: Stack(

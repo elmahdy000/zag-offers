@@ -17,6 +17,7 @@ import 'package:zag_offers_app/features/offers/presentation/pages/search_page.da
 import 'package:zag_offers_app/features/offers/presentation/widgets/ads_slider.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/categories_section.dart';
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
+import 'package:zag_offers_app/features/offers/presentation/constants/offer_categories.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offers_skeleton.dart';
@@ -174,7 +175,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
 
   Widget _buildSliverAppBar(BuildContext context, OffersLoaded state) {
     final hasMapData = state.featuredStores.isNotEmpty;
-    final canOpenMap = AppConstants.mapsEnabled && hasMapData;
+    final canOpenMap = AppConstants.mapsEnabled;
     final theme = Theme.of(context);
 
     return SliverAppBar(
@@ -218,7 +219,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           },
         ),
         IconButton(
-          icon: const Icon(IconlyLight.show),
+          icon: const Icon(Icons.explore_rounded, color: AppColors.primary, size: 26),
+          tooltip: 'استكشف العروض على الرادار',
           onPressed: () {
             HapticFeedback.lightImpact();
             if (canOpenMap) {
@@ -453,8 +455,12 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required String title,
     required String subtitle,
   }) {
+    final backendCategory = getBackendCategoryName(category);
     final filtered = OfferFilterUtils.apply(
-      offers: state.trendingOffers.where((offer) => offer.store.category == category).toList(),
+      offers: state.trendingOffers.where((offer) {
+        final cat = offer.store.category?.trim();
+        return cat == category.trim() || cat == backendCategory.trim();
+      }).toList(),
       area: _currentArea,
       minDiscount: _minDiscount,
       sortBy: _sortBy,

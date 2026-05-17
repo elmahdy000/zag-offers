@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
-import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
@@ -9,6 +8,7 @@ import 'package:share_plus/share_plus.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../injection_container.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../../../coupons/presentation/bloc/coupons_bloc.dart';
@@ -87,15 +87,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     String code,
   ) async {
     HapticFeedback.mediumImpact();
-    final messenger = ScaffoldMessenger.of(context);
     await Clipboard.setData(ClipboardData(text: code));
     if (!mounted) return;
-    messenger.showSnackBar(
-      const SnackBar(
-        content: Text('تم نسخ الكود'),
-        backgroundColor: Colors.green,
-      ),
-    );
+    SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
   }
 
   @override
@@ -114,32 +108,17 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             listener: (context, state) {
               if (state is ReviewActionSuccess) {
                 _reviewsBloc.add(FetchStoreReviews(widget.offer.store.id));
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(
-                    content: Text('تمت إضافة تقييمك بنجاح'),
-                    backgroundColor: Colors.green,
-                  ),
-                );
+                SnackBarUtils.showSuccess(context, 'تمت إضافة تقييمك بنجاح');
               }
               if (state is ReviewsError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
+                SnackBarUtils.showError(context, state.message);
               }
             },
           ),
           BlocListener<FavoritesBloc, FavoritesState>(
             listener: (context, state) {
               if (state is FavoritesError) {
-                ScaffoldMessenger.of(context).showSnackBar(
-                  SnackBar(
-                    content: Text(state.message),
-                    backgroundColor: AppColors.error,
-                  ),
-                );
+                SnackBarUtils.showError(context, state.message);
               }
             },
           ),
@@ -164,12 +143,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   void _onCouponStateChange(BuildContext context, CouponsState state) {
     if (state is CouponsError) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text(state.message),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SnackBarUtils.showError(context, state.message);
     }
     if (state is CouponGeneratedSuccess) {
       final usageCount = (widget.offer.id.hashCode % 150) + 40;

@@ -37,6 +37,8 @@ interface UpdateStoreData {
   logo?: string;
   coverImage?: string;
   images?: string[];
+  lat?: number | null;
+  lng?: number | null;
 }
 
 // ── Vendor Offers Hook ──

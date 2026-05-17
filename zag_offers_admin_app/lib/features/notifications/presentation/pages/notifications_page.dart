@@ -4,6 +4,7 @@ import 'package:zag_offers_admin_app/core/network/api_client.dart';
 import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:intl/intl.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -41,9 +42,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
     } catch (e) {
       setState(() => _isLoading = false);
       if (mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('خطأ في جلب الإشعارات: $e'), backgroundColor: AppColors.error),
-        );
+        SnackBarUtils.showError(context, 'خطأ في جلب الإشعارات: $e');
       }
     }
   }

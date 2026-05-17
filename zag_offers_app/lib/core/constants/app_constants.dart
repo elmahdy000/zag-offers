@@ -31,7 +31,7 @@ class AppConstants {
     defaultValue: '',
   );
 
-  static const bool mapsEnabled = mapsApiKey != '';
+  static const bool mapsEnabled = true;
 
   static const Duration couponExpiry = Duration(hours: 2);
   static const int defaultPageSize = 10;

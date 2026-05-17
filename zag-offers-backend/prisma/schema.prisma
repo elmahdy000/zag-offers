@@ -51,6 +51,9 @@ model User {
   fcmToken   String?
   resetOtp       String?
   resetOtpExpiry DateTime?
+  birthDate  DateTime?
+  gender     String?
+  lastLoginAt DateTime?
 
   stores    Store[]
   coupons   Coupon[]
@@ -73,10 +76,11 @@ model User {
 }
 
 model Category {
-  id     String  @id @default(uuid())
-  name   String  @unique
-  image  String?
-  stores Store[]
+  id       String  @id @default(uuid())
+  name     String  @unique
+  image    String?
+  priority Int     @default(0)
+  stores   Store[]
 }
 
 model Store {
@@ -91,6 +95,12 @@ model Store {
   phone      String
   whatsapp   String?
   locationUrl String?
+  facebook   String?
+  instagram  String?
+  tiktok     String?
+  workingHours String?
+  ratingAvg  Float @default(0)
+  ratingCount Int @default(0)
   status     StoreStatus @default(PENDING)
 
   categoryId String
@@ -126,6 +136,9 @@ model Offer {
   startDate   DateTime
   endDate     DateTime
   usageLimit  Int?
+  minSpend    Float?
+  discountType String @default("PERCENTAGE")
+  isFeatured  Boolean @default(false)
   status      OfferStatus @default(PENDING)
   isNotified  Boolean     @default(false)
   views       Int         @default(0)
@@ -188,6 +201,8 @@ model Review {
   rating  Int
   comment String?
   images  String[] // لدعم صور التقييم للمصداقية
+  merchantReply String?
+  replyCreatedAt DateTime?
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])

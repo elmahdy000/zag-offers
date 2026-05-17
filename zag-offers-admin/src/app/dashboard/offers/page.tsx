@@ -75,6 +75,43 @@ export default function OffersManagementPage() {
   const [uploading, setUploading] = useState(false);
   const [tempImages, setTempImages] = useState<string[]>([]);
 
+  const handlePriceCalc = (formType: 'create' | 'edit', field: 'original' | 'new' | 'discount', value: string) => {
+    const form = document.querySelector(formType === 'create' ? '#create-offer-form' : '#edit-offer-form') as HTMLFormElement;
+    if (!form) return;
+
+    const originalInput = form.elements.namedItem('originalPrice') as HTMLInputElement;
+    const newInput = form.elements.namedItem('newPrice') as HTMLInputElement;
+    const discountInput = form.elements.namedItem('discount') as HTMLInputElement;
+
+    if (!originalInput || !newInput || !discountInput) return;
+
+    const origVal = parseFloat(originalInput.value);
+    const newVal = parseFloat(newInput.value);
+    const discValStr = discountInput.value.trim();
+
+    if (field === 'original' || field === 'new') {
+      if (origVal && newVal && origVal > 0) {
+        if (newVal < origVal) {
+          const pct = Math.round(((origVal - newVal) / origVal) * 100);
+          if (pct >= 0 && pct <= 100) {
+            discountInput.value = `${pct}%`;
+          }
+        }
+      }
+    } else if (field === 'discount') {
+      if (origVal && origVal > 0) {
+        const pctMatch = discValStr.match(/^(\d+)(%?)$/);
+        if (pctMatch) {
+          const pct = parseFloat(pctMatch[1]);
+          if (pct >= 0 && pct <= 100) {
+            const calculatedNew = Math.round(origVal * (1 - pct / 100) * 100) / 100;
+            newInput.value = calculatedNew.toString();
+          }
+        }
+      }
+    }
+  };
+
   const formatDate = (dateString: string) => {
     if (!dateString) return '---';
     return new Date(dateString).toLocaleDateString('ar-EG', {
@@ -141,7 +178,7 @@ export default function OffersManagementPage() {
       queryClient.invalidateQueries({ queryKey: ['all-offers'] });
       setIsCreating(false);
       setTempImages([]);
-      showToast('تم إنشاء العرض بنجاح بنجاح');
+      showToast('تم إنشاء العرض بنجاح');
     },
     onError: (err: any) => {
       showToast(err.response?.data?.message || 'فشل إنشاء العرض', 'error');
@@ -302,7 +339,7 @@ export default function OffersManagementPage() {
                   </div>
 
                   {isEditing ? (
-                    <form onSubmit={(e) => { 
+                    <form id="edit-offer-form" onSubmit={(e) => { 
                       e.preventDefault(); 
                       const fd = new FormData(e.currentTarget); 
                       const formData = Object.fromEntries(fd.entries());
@@ -321,17 +358,17 @@ export default function OffersManagementPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الخصم</label>
-                          <input name="discount" defaultValue={offerDetails?.discount} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                          <input name="discount" defaultValue={offerDetails?.discount} onChange={(e) => handlePriceCalc('edit', 'discount', e.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
                         </div>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
-                          <input type="number" step="0.01" name="originalPrice" defaultValue={offerDetails?.originalPrice} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                          <input type="number" step="0.01" name="originalPrice" defaultValue={offerDetails?.originalPrice} onChange={(e) => handlePriceCalc('edit', 'original', e.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
-                          <input type="number" step="0.01" name="newPrice" defaultValue={offerDetails?.newPrice} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                          <input type="number" step="0.01" name="newPrice" defaultValue={offerDetails?.newPrice} onChange={(e) => handlePriceCalc('edit', 'new', e.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -432,7 +469,7 @@ export default function OffersManagementPage() {
                 </button>
               </div>
 
-              <form onSubmit={(e) => {
+              <form id="create-offer-form" onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
                 const formData = Object.fromEntries(fd.entries());
@@ -452,15 +489,15 @@ export default function OffersManagementPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">قيمة الخصم</label>
-                    <input name="discount" placeholder="مثلاً: 50% أو خصم 100 ج" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                    <input name="discount" onChange={(e) => handlePriceCalc('create', 'discount', e.target.value)} placeholder="مثلاً: 50% أو خصم 100 ج" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
-                    <input type="number" step="0.01" name="originalPrice" placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                    <input type="number" step="0.01" name="originalPrice" onChange={(e) => handlePriceCalc('create', 'original', e.target.value)} placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
-                    <input type="number" step="0.01" name="newPrice" placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                    <input type="number" step="0.01" name="newPrice" onChange={(e) => handlePriceCalc('create', 'new', e.target.value)} placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">اختر المتجر</label>

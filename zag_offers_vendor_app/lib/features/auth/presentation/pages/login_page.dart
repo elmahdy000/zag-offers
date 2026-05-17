@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../bloc/auth_bloc.dart';
 
 class LoginPage extends StatefulWidget {
@@ -27,10 +28,9 @@ class _LoginPageState extends State<LoginPage> {
     final identifier = _identifierController.text.trim();
     final password = _passwordController.text;
     if (identifier.isEmpty || password.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('الرجاء إدخال رقم الهاتف أو البريد الإلكتروني وكلمة المرور'),
-        ),
+      SnackBarUtils.showError(
+        context,
+        'الرجاء إدخال رقم الهاتف أو البريد الإلكتروني وكلمة المرور',
       );
       return;
     }
@@ -46,20 +46,9 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocConsumer<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message),
-                backgroundColor: AppColors.error,
-                behavior: SnackBarBehavior.floating,
-              ),
-            );
+            SnackBarUtils.showError(context, state.message);
           } else if (state is AuthAuthenticated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(
-                content: Text('تم تسجيل الدخول بنجاح!'),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            SnackBarUtils.showSuccess(context, 'تم تسجيل الدخول بنجاح!');
           }
         },
         builder: (context, state) {

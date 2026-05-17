@@ -1,12 +1,13 @@
 import 'package:flutter/material.dart';
-import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 
 class SnackBarUtils {
   static void showSuccess(BuildContext context, String message) {
     _show(
       context,
       message,
-      accentColor: AppColors.primary, // Brand Orange instead of Green!
+      accentColor: AppColors.primary, // Gorgeous Brand Orange instead of Green!
       icon: Icons.check_circle_rounded,
     );
   }
@@ -24,7 +25,7 @@ class SnackBarUtils {
     _show(
       context,
       message,
-      accentColor: const Color(0xFF0284C7), // Sleek Cyan-Blue
+      accentColor: const Color(0xFF0284C7), // Sleek Info Blue
       icon: Icons.info_rounded,
     );
   }
@@ -50,7 +51,7 @@ class SnackBarUtils {
         dismissDirection: DismissDirection.horizontal,
         content: Container(
           decoration: BoxDecoration(
-            color: const Color(0xFF0D1422), // Premium Dark Navy/Obsidian
+            color: const Color(0xFF1E1E1E), // Premium Dark Slate obsidian card
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
               color: accentColor.withOpacity(0.3),
@@ -101,11 +102,10 @@ class SnackBarUtils {
                     padding: const EdgeInsets.symmetric(vertical: 14),
                     child: Text(
                       message,
-                      style: const TextStyle(
+                      style: GoogleFonts.cairo(
                         color: Colors.white,
-                        fontWeight: FontWeight.w600,
+                        fontWeight: FontWeight.bold,
                         fontSize: 14,
-                        fontFamily: 'Cairo', // Custom theme font
                         height: 1.35,
                       ),
                     ),

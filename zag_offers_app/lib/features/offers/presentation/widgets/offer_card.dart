@@ -1,6 +1,5 @@
 import 'package:flutter/material.dart';
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/category_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../domain/entities/offer_entity.dart';
 import 'favorite_button.dart';

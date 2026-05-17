@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class LoginPage extends StatefulWidget {
   const LoginPage({super.key});
@@ -29,12 +30,7 @@ class _LoginPageState extends State<LoginPage> {
       body: BlocListener<AuthBloc, AuthState>(
         listener: (context, state) {
           if (state is AuthError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message, style: GoogleFonts.cairo()),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         child: Center(
@@ -139,9 +135,7 @@ class _LoginPageState extends State<LoginPage> {
                                 final identifier = _identifierController.text.trim();
                                 final password = _passwordController.text;
                                 if (identifier.isEmpty || password.isEmpty) {
-                                  ScaffoldMessenger.of(context).showSnackBar(
-                                    const SnackBar(content: Text('الرجاء إدخال البيانات')),
-                                  );
+                                  SnackBarUtils.showError(context, 'الرجاء إدخال البيانات');
                                   return;
                                 }
                                 context.read<AuthBloc>().add(

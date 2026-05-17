@@ -54,6 +54,10 @@
 	<string>نحتاج للوصول إلى مكتبة الصور لاختيار صور لعروضك وتحديث ملفك الشخصي.</string>
 	<key>NSMicrophoneUsageDescription</key>
 	<string>نحتاج للوصول إلى الميكروفون عند التقاط فيديوهات للعروض.</string>
+	<key>NSLocationWhenInUseUsageDescription</key>
+	<string>نحتاج للوصول إلى موقعك لتحديد إحداثيات محلك تلقائياً عند إنشائه وعرضه لعملائك.</string>
+	<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
+	<string>نحتاج للوصول إلى موقعك لتحديد إحداثيات محلك تلقائياً عند إنشائه وعرضه لعملائك.</string>
 	<key>FirebaseAppDelegateProxyEnabled</key>
 	<false/>
 	<key>UIBackgroundModes</key>

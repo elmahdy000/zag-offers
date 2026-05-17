@@ -5,6 +5,7 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/broadcast/presentation/bloc/broadcast_bloc.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class BroadcastPage extends StatefulWidget {
   const BroadcastPage({super.key});
@@ -38,9 +39,7 @@ class _BroadcastPageState extends State<BroadcastPage> {
       body: BlocListener<BroadcastBloc, BroadcastState>(
         listener: (context, state) {
           if (state is BroadcastSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('🚀 تم إرسال التنبيه الجماعي بنجاح!'), backgroundColor: AppColors.success),
-            );
+            SnackBarUtils.showSuccess(context, '🚀 تم إرسال التنبيه الجماعي بنجاح!');
             _titleController.clear();
             _bodyController.clear();
             _imageUrlController.clear();
@@ -49,9 +48,7 @@ class _BroadcastPageState extends State<BroadcastPage> {
               _target = 'ALL';
             });
           } else if (state is BroadcastError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         child: SingleChildScrollView(
@@ -150,7 +147,7 @@ class _BroadcastPageState extends State<BroadcastPage> {
                           ? null
                           : () {
                               if (_titleController.text.isEmpty || _bodyController.text.isEmpty) {
-                                ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('العنوان والنص مطلوبان')));
+                                SnackBarUtils.showError(context, 'العنوان والنص مطلوبان');
                                 return;
                               }
                               context.read<BroadcastBloc>().add(

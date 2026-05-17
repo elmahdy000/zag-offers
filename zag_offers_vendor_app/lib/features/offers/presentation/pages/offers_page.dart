@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/constants/app_constants.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
+import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
 import 'package:zag_offers_vendor_app/core/utils/image_url_helper.dart';
 import 'package:zag_offers_vendor_app/core/widgets/network_image.dart';
@@ -97,19 +98,9 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       body: BlocConsumer<OffersBloc, OffersState>(
         listener: (context, state) {
           if (state is OfferActionSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message, style: GoogleFonts.cairo(fontSize: 13)),
-                backgroundColor: AppColors.success,
-              ),
-            );
+            SnackBarUtils.showSuccess(context, state.message);
           } else if (state is OffersError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: Text(state.message, style: GoogleFonts.cairo(fontSize: 13)),
-                backgroundColor: AppColors.error,
-              ),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         buildWhen: (previous, current) => 

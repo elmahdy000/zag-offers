@@ -9,6 +9,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:zag_offers_app/core/theme/app_theme.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/animated_splash_page.dart';
 import 'package:zag_offers_app/core/services/notification_service.dart';
+import 'package:zag_offers_app/core/services/location_service.dart';
 import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/injection_container.dart' as di;
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -21,7 +22,6 @@ import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/features/coupons/presentation/pages/my_coupons_page.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
-import 'package:zag_offers_app/features/offers/presentation/pages/home_page.dart';
 import 'package:zag_offers_app/features/onboarding/presentation/pages/onboarding_page.dart';
 
 // دالة لمعالجة الرسائل في الخلفية (Background Handler)
@@ -97,6 +97,9 @@ void main() async {
   } catch (e) {
     debugPrint('Firebase initialization failed: $e');
   }
+
+  // تهيئة خدمات الموقع الجغرافي عند بداية تشغيل التطبيق
+  await LocationService.initialize();
 
   runApp(const ZagOffersApp());
 }

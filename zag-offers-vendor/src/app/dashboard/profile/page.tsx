@@ -25,6 +25,8 @@ export default function StoreProfilePage() {
     address: '',
     locationUrl: '',
     email: '',
+    lat: null as number | null,
+    lng: null as number | null,
   });
 
   const { data: store, isLoading, isError, error, refetch } = useVendorStore();
@@ -39,6 +41,8 @@ export default function StoreProfilePage() {
         address: store.address || '',
         locationUrl: store.locationUrl || '',
         email: store.owner?.email || '',
+        lat: store.lat || null,
+        lng: store.lng || null,
       });
     }
   }, [store]);
@@ -82,6 +86,8 @@ export default function StoreProfilePage() {
         whatsapp: formData.whatsapp.trim(),
         address: formData.address.trim(),
         locationUrl: formData.locationUrl.trim(),
+        lat: formData.lat,
+        lng: formData.lng,
       },
       {
         onSuccess: () => {
@@ -90,6 +96,31 @@ export default function StoreProfilePage() {
         },
         onSettled: () => setSaving(false),
       }
+    );
+  };
+
+  const [detecting, setDetecting] = useState(false);
+
+  const detectLocation = () => {
+    if (!navigator.geolocation) {
+      return alert('متصفحك لا يدعم تحديد الموقع الجغرافي.');
+    }
+    setDetecting(true);
+    navigator.geolocation.getCurrentPosition(
+      (position) => {
+        setFormData(prev => ({
+          ...prev,
+          lat: position.coords.latitude,
+          lng: position.coords.longitude,
+        }));
+        setDetecting(false);
+      },
+      (error) => {
+        setDetecting(false);
+        console.error(error);
+        alert('فشل تحديد الموقع تلقائياً. يرجى تفعيل الـ GPS والسماح بالإذن.');
+      },
+      { enableHighAccuracy: true, timeout: 10000 }
     );
   };
 
@@ -260,6 +291,77 @@ export default function StoreProfilePage() {
                   value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}
                   className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all min-h-[100px] resize-none shadow-inner"
                 />
+              </div>
+
+              <div className="md:col-span-2 pt-6 border-t border-white/5 space-y-4">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-primary/5 p-6 rounded-3xl border border-primary/10">
+                  <div className="space-y-1">
+                    <h4 className="text-sm font-black text-primary flex items-center gap-2">
+                      <MapPin size={16} className="animate-pulse text-primary" />
+                      تحديد الموقع الجغرافي الدقيق للمحل
+                    </h4>
+                    <p className="text-[10px] font-bold text-text-dim max-w-md leading-relaxed">
+                      هذا الخيار يحدد موقع محلك الفعلي بدقة متناهية على الخريطة ليظهر للعملاء في ميزة رادار العروض القريبة بضغطة زر واحدة.
+                    </p>
+                  </div>
+                  
+                  <button 
+                    type="button"
+                    onClick={detectLocation}
+                    disabled={detecting}
+                    className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white font-white font-black text-xs py-3.5 px-6 rounded-2xl shadow-lg shadow-primary/20 hover:scale-[1.03] transition-all flex items-center justify-center gap-2 shrink-0 disabled:opacity-50"
+                  >
+                    {detecting ? (
+                      <>
+                        <Loader2 className="animate-spin" size={16} />
+                        جاري تحديد الموقع...
+                      </>
+                    ) : (
+                      <>
+                        <RefreshCw size={16} className="animate-spin-slow" />
+                        تحديد موقعي الحالي تلقائياً
+                      </>
+                    )}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-text-dim mr-1 flex items-center gap-2">
+                      خط العرض (Latitude)
+                    </label>
+                    <input 
+                      type="number" 
+                      step="any"
+                      placeholder="سيتم تحديده تلقائياً"
+                      value={formData.lat || ''} 
+                      onChange={e => setFormData({ ...formData, lat: e.target.value ? parseFloat(e.target.value) : null })}
+                      className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-text-dim mr-1 flex items-center gap-2">
+                      خط الطول (Longitude)
+                    </label>
+                    <input 
+                      type="number" 
+                      step="any"
+                      placeholder="سيتم تحديده تلقائياً"
+                      value={formData.lng || ''} 
+                      onChange={e => setFormData({ ...formData, lng: e.target.value ? parseFloat(e.target.value) : null })}
+                      className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                    />
+                  </div>
+                </div>
+
+                {formData.lat && formData.lng && (
+                  <div className="bg-emerald-500/5 p-4 rounded-2xl border border-emerald-500/10 flex items-center gap-2 text-emerald-500">
+                    <CheckCircle2 size={16} />
+                    <span className="text-[10px] font-black">
+                      تم تعيين موقع المحل الجغرافي بنجاح ({formData.lat.toFixed(6)}, {formData.lng.toFixed(6)})
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           </motion.div>

@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { PrismaService } from '../prisma/prisma.service';
@@ -111,5 +111,36 @@ export class ReviewsService {
     }
 
     return this.prisma.review.delete({ where: { id } });
+  }
+
+  async addMerchantReply(reviewId: string, merchantId: string, reply: string) {
+    const review = await this.prisma.review.findUnique({
+      where: { id: reviewId },
+      include: { store: true },
+    });
+
+    if (!review) {
+      throw new NotFoundException('التقييم غير موجود');
+    }
+
+    const user = await this.prisma.user.findUnique({
+      where: { id: merchantId },
+      select: { role: true },
+    });
+
+    const isStoreOwner = review.store?.ownerId === merchantId;
+    const isAdmin = user?.role === 'ADMIN';
+
+    if (!isStoreOwner && !isAdmin) {
+      throw new ForbiddenException('غير مصرح لك بالرد على تقييمات هذا المتجر');
+    }
+
+    return this.prisma.review.update({
+      where: { id: reviewId },
+      data: {
+        merchantReply: reply,
+        replyCreatedAt: new Date(),
+      },
+    });
   }
 }

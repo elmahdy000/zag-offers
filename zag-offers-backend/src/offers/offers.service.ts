@@ -160,6 +160,9 @@ export class OffersService {
         images: true,
         originalPrice: true,
         newPrice: true,
+        isFeatured: true,
+        minSpend: true,
+        discountType: true,
         createdAt: true,
         store: {
           select: {

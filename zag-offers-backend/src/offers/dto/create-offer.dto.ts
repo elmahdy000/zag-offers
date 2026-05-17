@@ -97,4 +97,30 @@ export class CreateOfferDto {
   @IsOptional()
   @IsNumber()
   newPrice?: number;
+
+  @ApiProperty({
+    description: 'الحد الأدنى للشراء للاستفادة من العرض',
+    example: 200,
+    required: false,
+  })
+  @IsOptional()
+  @IsNumber()
+  minSpend?: number;
+
+  @ApiProperty({
+    description: 'نوع الخصم (PERCENTAGE | FIXED | BOGO)',
+    example: 'PERCENTAGE',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  discountType?: string;
+
+  @ApiProperty({
+    description: 'عرض مميز في الصفحة الرئيسية',
+    example: false,
+    required: false,
+  })
+  @IsOptional()
+  isFeatured?: boolean;
 }

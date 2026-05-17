@@ -4,6 +4,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { StoreStatus, OfferStatus } from '@prisma/client';
 
 describe('AdminService', () => {
@@ -29,6 +30,7 @@ describe('AdminService', () => {
     sendToAll: jest.fn(),
     notifyOfferApproved: jest.fn(),
     notifyStoreApproved: jest.fn(),
+    sendToUserId: jest.fn(),
   };
 
   const mockAuditLog = {
@@ -43,6 +45,15 @@ describe('AdminService', () => {
         { provide: EventsGateway, useValue: mockEvents },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: AuditLogService, useValue: mockAuditLog },
+        {
+          provide: CACHE_MANAGER,
+          useValue: {
+            get: jest.fn(),
+            set: jest.fn(),
+            del: jest.fn(),
+            clear: jest.fn(),
+          },
+        },
       ],
     }).compile();
 

@@ -6,6 +6,7 @@ import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/bloc/merchants_bloc.dart';
 import 'package:zag_offers_admin_app/features/categories/presentation/bloc/categories_bloc.dart';
 import 'package:zag_offers_admin_app/features/categories/domain/entities/category.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class AddMerchantPage extends StatefulWidget {
   const AddMerchantPage({super.key});
@@ -55,14 +56,10 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
       body: BlocListener<MerchantsBloc, MerchantsState>(
         listener: (context, state) {
           if (state is MerchantCreated) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم إنشاء التاجر والمتجر بنجاح'), backgroundColor: AppColors.success),
-            );
+            SnackBarUtils.showSuccess(context, 'تم إنشاء التاجر والمتجر بنجاح');
             Navigator.pop(context);
           } else if (state is MerchantsError) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         child: SingleChildScrollView(
@@ -210,8 +207,10 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
           categories = state.categories;
         }
         
+        final hasValidSelection = categories.any((c) => c.id == _selectedCategoryId);
+        
         return DropdownButtonFormField<String>(
-          value: _selectedCategoryId,
+          value: hasValidSelection ? _selectedCategoryId : null,
           items: categories.map((c) => DropdownMenuItem(
             value: c.id,
             child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),

@@ -45,7 +45,7 @@ class OfferModel extends OfferEntity {
       terms: json['terms']?.toString(),
       oldPrice: (json['oldPrice'] ?? json['originalPrice']) != null ? double.tryParse((json['oldPrice'] ?? json['originalPrice']).toString()) : null,
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
-      viewCount: json['viewCount'] ?? 0,
+      viewCount: json['views'] ?? json['viewCount'] ?? 0,
       isFeatured: json['isFeatured'] ?? false,
       status: json['status'] ?? 'ACTIVE',
     );

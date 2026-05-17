@@ -6,10 +6,11 @@ import 'package:image_picker/image_picker.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../upload/domain/usecases/upload_usecase.dart';
-import '../../data/models/store_model.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/store_setup_bloc.dart';
 import '../../../offers/data/models/category_model.dart';
+import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/services/location_service.dart';
 
 class StoreSetupPage extends StatefulWidget {
   const StoreSetupPage({super.key});
@@ -25,12 +26,12 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
   final _areaController = TextEditingController();
   final _phoneController = TextEditingController();
   final _whatsappController = TextEditingController();
-  
+
   String? _selectedCategoryId;
   File? _logoFile;
   File? _coverFile;
   final List<File> _galleryFiles = [];
-  
+
   bool _isUploading = false;
   String _uploadStatus = '';
 
@@ -40,9 +41,20 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     context.read<StoreSetupBloc>().add(GetCategoriesRequested());
   }
 
+  @override
+  void dispose() {
+    _nameController.dispose();
+    _addressController.dispose();
+    _areaController.dispose();
+    _phoneController.dispose();
+    _whatsappController.dispose();
+    super.dispose();
+  }
+
   Future<void> _pickImage(bool isLogo) async {
     final picker = ImagePicker();
-    final pickedFile = await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final pickedFile =
+        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
     if (pickedFile != null) {
       setState(() {
         if (isLogo) {
@@ -67,20 +79,23 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
     if (_selectedCategoryId == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('يرجى اختيار القسم')),
-      );
+      SnackBarUtils.showError(context, 'يرجى اختيار القسم');
       return;
     }
 
     setState(() {
       _isUploading = true;
-      _uploadStatus = 'جاري رفع الصور...';
+      _uploadStatus = 'جاري تحديد إحداثيات موقع المحل تلقائياً...';
     });
 
     try {
+      // Get GPS location (falls back to default silently)
+      await LocationService.initialize();
+
+      setState(() => _uploadStatus = 'جاري رفع الصور...');
+
       final uploadUseCase = sl<UploadUseCase>();
-      
+
       String? logoUrl;
       if (_logoFile != null) {
         logoUrl = await uploadUseCase(_logoFile!);
@@ -91,32 +106,41 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         coverUrl = await uploadUseCase(_coverFile!);
       }
 
-      List<String> galleryUrls = [];
+      final List<String> galleryUrls = [];
       for (var i = 0; i < _galleryFiles.length; i++) {
-        setState(() => _uploadStatus = 'جاري رفع صورة المعرض (${i + 1}/${_galleryFiles.length})...');
+        setState(() =>
+            _uploadStatus = 'جاري رفع صورة المعرض (${i + 1}/${_galleryFiles.length})...');
         final url = await uploadUseCase(_galleryFiles[i]);
         galleryUrls.add(url);
       }
 
-      final storeData = {
+      // Build clean payload — remove null/empty values
+      final storeData = <String, dynamic>{
         'name': _nameController.text.trim(),
         'address': _addressController.text.trim(),
-        'area': _areaController.text.trim(),
-        'phone': _phoneController.text.trim(),
-        'whatsapp': _whatsappController.text.trim(),
         'categoryId': _selectedCategoryId,
-        'logo': logoUrl,
-        'coverImage': coverUrl,
-        'images': galleryUrls,
+        'phone': _phoneController.text.trim(),
+        'lat': LocationService.currentLatitude,
+        'lng': LocationService.currentLongitude,
       };
 
+      final area = _areaController.text.trim();
+      if (area.isNotEmpty) storeData['area'] = area;
+
+      final whatsapp = _whatsappController.text.trim();
+      if (whatsapp.isNotEmpty) storeData['whatsapp'] = whatsapp;
+
+      if (logoUrl != null) storeData['logo'] = logoUrl;
+      if (coverUrl != null) storeData['coverImage'] = coverUrl;
+      if (galleryUrls.isNotEmpty) storeData['images'] = galleryUrls;
+
       if (!mounted) return;
+      setState(() => _uploadStatus = 'جاري حفظ بيانات المتجر...');
       context.read<StoreSetupBloc>().add(CreateStoreRequested(storeData));
     } catch (e) {
+      if (!mounted) return;
       setState(() => _isUploading = false);
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('خطأ في الرفع: $e')),
-      );
+      SnackBarUtils.showError(context, 'خطأ في رفع الصور: ${e.toString().replaceAll('Exception: ', '')}');
     }
   }
 
@@ -133,21 +157,31 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
       body: BlocConsumer<StoreSetupBloc, StoreSetupState>(
         listener: (context, state) {
           if (state is StoreCreatedSuccess) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              const SnackBar(content: Text('تم إنشاء المتجر بنجاح! بانتظار موافقة الإدارة')),
-            );
+            setState(() => _isUploading = false);
+            SnackBarUtils.showSuccess(context, 'تم إنشاء المتجر بنجاح! بانتظار موافقة الإدارة');
+            // Refresh dashboard then pop
             context.read<DashboardBloc>().add(GetDashboardStatsRequested());
             Navigator.pop(context);
           } else if (state is StoreSetupError) {
             setState(() => _isUploading = false);
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(content: Text(state.message)),
-            );
+            SnackBarUtils.showError(context, state.message);
           }
         },
         builder: (context, state) {
-          final categories = state is CategoriesLoaded ? state.categories : <CategoryModel>[];
-          final isLoading = state is StoreSetupLoading || _isUploading;
+          // Resolve categories from ANY state that carries them
+          final List<CategoryModel> categories;
+          if (state is CategoriesLoaded) {
+            categories = state.categories;
+          } else if (state is StoreSubmitting) {
+            categories = state.categories;
+          } else if (state is StoreSetupError) {
+            categories = state.categories;
+          } else {
+            categories = const [];
+          }
+
+          final bool isBlocLoading = state is StoreSetupLoading || state is StoreSubmitting;
+          final bool isLoading = isBlocLoading || _isUploading;
 
           return Stack(
             children: [
@@ -165,10 +199,11 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                         label: 'اسم المتجر',
                         hint: 'مثال: مطعم البرنس',
                         icon: Icons.storefront_rounded,
-                        validator: (v) => (v == null || v.isEmpty) ? 'مطلوب' : null,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
                       ),
                       const SizedBox(height: 16),
-                      _buildCategoryDropdown(categories),
+                      _buildCategoryDropdown(categories, state is StoreSetupLoading),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _areaController,
@@ -183,6 +218,8 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                         hint: 'شارع... بجوار...',
                         icon: Icons.location_on_rounded,
                         maxLines: 2,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
                       ),
                       const SizedBox(height: 32),
                       _buildSectionTitle('معلومات التواصل'),
@@ -193,7 +230,8 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                         hint: '010XXXXXXXX',
                         icon: Icons.phone_rounded,
                         keyboardType: TextInputType.phone,
-                        validator: (v) => (v == null || v.isEmpty) ? 'مطلوب' : null,
+                        validator: (v) =>
+                            (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
                       ),
                       const SizedBox(height: 16),
                       _buildTextField(
@@ -216,13 +254,16 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                   ),
                 ),
               ),
+
+              // Full-screen loading overlay
               if (isLoading)
                 Container(
                   color: Colors.black45,
                   child: Center(
                     child: Card(
                       margin: const EdgeInsets.symmetric(horizontal: 40),
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+                      shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(20)),
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Column(
@@ -231,8 +272,11 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                             const CircularProgressIndicator(),
                             const SizedBox(height: 20),
                             Text(
-                              _uploadStatus.isNotEmpty ? _uploadStatus : 'جاري الحفظ...',
-                              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                              _uploadStatus.isNotEmpty
+                                  ? _uploadStatus
+                                  : 'جاري الحفظ...',
+                              style: GoogleFonts.cairo(
+                                  fontWeight: FontWeight.bold),
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -280,14 +324,23 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         prefixIcon: Icon(icon, size: 20, color: AppColors.textTertiary),
         filled: true,
         fillColor: AppColors.card,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
-        enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.border)),
-        focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide(color: AppColors.primary)),
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.primary)),
       ),
     );
   }
 
-  Widget _buildCategoryDropdown(List<CategoryModel> categories) {
+  Widget _buildCategoryDropdown(List<CategoryModel> categories, bool isLoadingCategories) {
+    final hasValidSelection =
+        categories.any((c) => c.id == _selectedCategoryId);
+
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12),
       decoration: BoxDecoration(
@@ -295,23 +348,41 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         borderRadius: BorderRadius.circular(16),
         border: Border.all(color: AppColors.border),
       ),
-      child: DropdownButtonHideUnderline(
-        child: DropdownButtonFormField<String>(
-          value: _selectedCategoryId,
-          hint: Text('اختر القسم', style: GoogleFonts.cairo(fontSize: 14)),
-          items: categories.map((c) {
-            return DropdownMenuItem(
-              value: c.id,
-              child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
-            );
-          }).toList(),
-          onChanged: (v) => setState(() => _selectedCategoryId = v),
-          decoration: const InputDecoration(
-            border: InputBorder.none,
-            prefixIcon: Icon(Icons.category_rounded, size: 20, color: AppColors.textTertiary),
-          ),
-        ),
-      ),
+      child: isLoadingCategories
+          ? const Padding(
+              padding: EdgeInsets.symmetric(vertical: 18),
+              child: Row(
+                children: [
+                  SizedBox(width: 8),
+                  SizedBox(
+                    width: 18,
+                    height: 18,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
+                  SizedBox(width: 12),
+                  Text('جاري تحميل الأقسام...'),
+                ],
+              ),
+            )
+          : DropdownButtonHideUnderline(
+              child: DropdownButtonFormField<String>(
+                value: hasValidSelection ? _selectedCategoryId : null,
+                hint: Text('اختر القسم', style: GoogleFonts.cairo(fontSize: 14)),
+                items: categories.map((c) {
+                  return DropdownMenuItem(
+                    value: c.id,
+                    child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
+                  );
+                }).toList(),
+                onChanged: (v) => setState(() => _selectedCategoryId = v),
+                validator: (v) => v == null ? 'يرجى اختيار القسم' : null,
+                decoration: const InputDecoration(
+                  border: InputBorder.none,
+                  prefixIcon: Icon(Icons.category_rounded,
+                      size: 20, color: AppColors.textTertiary),
+                ),
+              ),
+            ),
     );
   }
 
@@ -337,7 +408,8 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     );
   }
 
-  Widget _buildImageSelector({required String label, File? file, required VoidCallback onTap}) {
+  Widget _buildImageSelector(
+      {required String label, File? file, required VoidCallback onTap}) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -346,7 +418,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         decoration: BoxDecoration(
           color: AppColors.card,
           borderRadius: BorderRadius.circular(16),
-          border: Border.all(color: AppColors.border, style: BorderStyle.solid),
+          border: Border.all(color: AppColors.border),
         ),
         child: file != null
             ? ClipRRect(
@@ -358,7 +430,9 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                 children: [
                   Icon(Icons.add_a_photo_rounded, color: AppColors.textTertiary),
                   const SizedBox(height: 8),
-                  Text(label, style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textTertiary)),
+                  Text(label,
+                      style: GoogleFonts.cairo(
+                          fontSize: 12, color: AppColors.textTertiary)),
                 ],
               ),
       ),
@@ -369,7 +443,9 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('معرض الصور (اختياري)', style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold)),
+        Text('معرض الصور (اختياري)',
+            style: GoogleFonts.cairo(
+                fontSize: 14, fontWeight: FontWeight.bold)),
         const SizedBox(height: 12),
         SizedBox(
           height: 80,
@@ -396,17 +472,21 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(_galleryFiles[index], width: 80, height: 80, fit: BoxFit.cover),
+                    child: Image.file(_galleryFiles[index],
+                        width: 80, height: 80, fit: BoxFit.cover),
                   ),
                   Positioned(
                     top: 2,
                     right: 2,
                     child: GestureDetector(
-                      onTap: () => setState(() => _galleryFiles.removeAt(index)),
+                      onTap: () =>
+                          setState(() => _galleryFiles.removeAt(index)),
                       child: Container(
                         padding: const EdgeInsets.all(2),
-                        decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle),
-                        child: const Icon(Icons.close, size: 12, color: Colors.white),
+                        decoration: const BoxDecoration(
+                            color: Colors.red, shape: BoxShape.circle),
+                        child: const Icon(Icons.close,
+                            size: 12, color: Colors.white),
                       ),
                     ),
                   ),
@@ -428,7 +508,8 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
           elevation: 0,
         ),
         child: Text(

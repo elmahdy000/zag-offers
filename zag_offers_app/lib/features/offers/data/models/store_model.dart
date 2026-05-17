@@ -25,7 +25,7 @@ class StoreModel extends StoreEntity {
       coverImage: ImageUrlHelper.resolveNullable(json['coverImage']),
       category: _parseCategory(json['category']),
       area: json['area'] ?? '',
-      rating: (json['rating'] as num?)?.toDouble() ?? 0.0,
+      rating: (json['ratingAvg'] as num? ?? json['rating'] as num?)?.toDouble() ?? 0.0,
       latitude: (json['lat'] as num?)?.toDouble(),
       longitude: (json['lng'] as num?)?.toDouble(),
       images: json['images'] != null

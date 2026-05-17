@@ -24,6 +24,8 @@ interface Offer {
   endDate: string;
   images: string[];
   featured?: boolean;
+  originalPrice?: number;
+  newPrice?: number;
   store: {
     id: string;
     name: string;
@@ -276,6 +278,20 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
                        group-hover:text-[#FF6B00] transition-colors min-h-[34px]">
           {offer.title}
         </h3>
+
+        {/* Prices */}
+        {offer.newPrice ? (
+          <div className="flex items-baseline gap-2 mt-1">
+            <span className="text-[15px] font-black text-[#FF6B00]">
+              {offer.newPrice} ج.م
+            </span>
+            {offer.originalPrice && (
+              <span className="text-[10px] text-[#9A9A9A] line-through font-bold">
+                بدل {offer.originalPrice} ج.م
+              </span>
+            )}
+          </div>
+        ) : null}
 
         {/* Store & Social Proof */}
         <div className="flex items-center justify-between">

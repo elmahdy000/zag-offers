@@ -13,6 +13,7 @@ import 'package:zag_offers_vendor_app/injection_container.dart' as di;
 import 'package:zag_offers_vendor_app/core/network/notification_service.dart';
 import 'package:zag_offers_vendor_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:zag_offers_vendor_app/features/reports/presentation/pages/reports_page.dart';
+import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
 import 'dashboard_page.dart';
 
 class MainLayout extends StatefulWidget {
@@ -59,27 +60,9 @@ class MainLayoutState extends State<MainLayout> {
     _socketService.on('merchant_notification', (data) {
       if (!mounted) return;
       
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Column(
-            mainAxisSize: MainAxisSize.min,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(data['title'], style: const TextStyle(fontWeight: FontWeight.bold)),
-              Text(data['body']),
-            ],
-          ),
-          backgroundColor: AppColors.secondary,
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(seconds: 5),
-          action: SnackBarAction(
-            label: 'تحديث',
-            textColor: Colors.white,
-            onPressed: () {
-              context.read<DashboardBloc>().add(GetDashboardStatsRequested());
-            },
-          ),
-        ),
+      SnackBarUtils.showInfo(
+        context,
+        '${data['title'] ?? 'تنبيه'}: ${data['body'] ?? ''}',
       );
 
       context.read<DashboardBloc>().add(GetDashboardStatsRequested());

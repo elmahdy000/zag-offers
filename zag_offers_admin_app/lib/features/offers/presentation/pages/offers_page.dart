@@ -11,6 +11,7 @@ import 'package:zag_offers_admin_app/core/widgets/custom_dialogs.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 import 'add_offer_page.dart';
 
 class OffersPage extends StatefulWidget {
@@ -24,7 +25,6 @@ class _OffersPageState extends State<OffersPage> {
   String? _selectedStatus;
   String? _selectedMerchantId;
   String? _selectedMerchantName;
-  String _searchQuery = '';
 
   @override
   void initState() {
@@ -128,17 +128,11 @@ class _OffersPageState extends State<OffersPage> {
               listenWhen: (_, state) => state is OfferStatusUpdated || state is OfferDeleted || state is OffersError,
               listener: (context, state) {
                 if (state is OfferStatusUpdated) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم تحديث حالة العرض بنجاح'), backgroundColor: AppColors.success),
-                  );
+                  SnackBarUtils.showSuccess(context, 'تم تحديث حالة العرض بنجاح');
                 } else if (state is OfferDeleted) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    const SnackBar(content: Text('تم حذف العرض بنجاح'), backgroundColor: AppColors.success),
-                  );
+                  SnackBarUtils.showSuccess(context, 'تم حذف العرض بنجاح');
                 } else if (state is OffersError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-                  );
+                  SnackBarUtils.showError(context, state.message);
                 }
               },
               buildWhen: (_, state) => state is OffersInitial || state is OffersLoading || state is OffersLoaded || state is OffersError,

@@ -7,6 +7,7 @@ import 'package:zag_offers_admin_app/features/users/domain/entities/app_user_det
 import 'package:zag_offers_admin_app/features/users/domain/repositories/user_repository.dart';
 import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class UserDetailsPage extends StatefulWidget {
   final AppUser user;
@@ -303,9 +304,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     setState(() => _isSubmitting = false);
 
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message), backgroundColor: AppColors.error)),
+      (failure) => SnackBarUtils.showError(context, failure.message),
       (_) async {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث النقاط بنجاح'), backgroundColor: AppColors.success));
+        SnackBarUtils.showSuccess(context, 'تم تحديث النقاط بنجاح');
         final future = _loadDetails();
         setState(() => _detailsFuture = future);
         await future;
@@ -372,9 +373,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     setState(() => _isSubmitting = false);
 
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message), backgroundColor: AppColors.error)),
+      (failure) => SnackBarUtils.showError(context, failure.message),
       (_) async {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم تحديث الدور بنجاح'), backgroundColor: AppColors.success));
+        SnackBarUtils.showSuccess(context, 'تم تحديث الدور بنجاح');
         final future = _loadDetails();
         setState(() => _detailsFuture = future);
         await future;
@@ -389,9 +390,9 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
     setState(() => _isSubmitting = false);
 
     result.fold(
-      (failure) => ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(failure.message), backgroundColor: AppColors.error)),
+      (failure) => SnackBarUtils.showError(context, failure.message),
       (_) {
-        ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف المستخدم بنجاح'), backgroundColor: AppColors.success));
+        SnackBarUtils.showSuccess(context, 'تم حذف المستخدم بنجاح');
         Navigator.pop(context, true);
       },
     );

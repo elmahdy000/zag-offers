@@ -73,6 +73,7 @@ export class RecommendationsService {
 
       if (categoryWeights[catId]) score += categoryWeights[catId] * 2.5;
       if (area && areaWeights[area]) score += areaWeights[area] * 1.5;
+      if (offer.isFeatured) score += 5; // تمييز العروض المميزة بـ 5 نقاط إضافية
 
       const hoursSinceCreated =
         (Date.now() - new Date(offer.createdAt).getTime()) / 3600000;

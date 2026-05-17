@@ -5,6 +5,7 @@ import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:zag_offers_vendor_app/features/profile/presentation/bloc/profile_bloc.dart';
+import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 
 class ProfilePage extends StatefulWidget {
@@ -42,21 +43,9 @@ class _ProfilePageState extends State<ProfilePage> {
           listener: (listenerCtx, state) {
             if (state is PasswordChanged) {
               Navigator.of(dialogCtx).pop();
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text('تم تغيير كلمة المرور بنجاح', style: GoogleFonts.cairo()),
-                  backgroundColor: AppColors.success,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              SnackBarUtils.showSuccess(context, 'تم تغيير كلمة المرور بنجاح');
             } else if (state is PasswordChangeError) {
-              ScaffoldMessenger.of(context).showSnackBar(
-                SnackBar(
-                  content: Text(state.message, style: GoogleFonts.cairo()),
-                  backgroundColor: AppColors.error,
-                  behavior: SnackBarBehavior.floating,
-                ),
-              );
+              SnackBarUtils.showError(context, state.message);
             }
           },
           builder: (builderCtx, state) {

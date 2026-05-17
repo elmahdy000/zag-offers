@@ -324,15 +324,17 @@ export class AdminController {
       properties: {
         name: { type: 'string' },
         image: { type: 'string' },
+        priority: { type: 'number' },
       },
     },
   })
   createCategory(
     @Body('name') name: string,
     @Body('image') image: string,
+    @Body('priority') priority: number,
     @Request() req: { user: { id: string } },
   ) {
-    return this.adminService.createCategory(name, image, req.user.id);
+    return this.adminService.createCategory(name, image, priority, req.user.id);
   }
 
   @Patch('categories/:id')
@@ -342,6 +344,7 @@ export class AdminController {
       properties: {
         name: { type: 'string' },
         image: { type: 'string' },
+        priority: { type: 'number' },
       },
     },
   })
@@ -349,9 +352,10 @@ export class AdminController {
     @Param('id') id: string,
     @Body('name') name: string,
     @Body('image') image: string,
+    @Body('priority') priority: number,
     @Request() req: { user: { id: string } },
   ) {
-    return this.adminService.updateCategory(id, name, image, req.user.id);
+    return this.adminService.updateCategory(id, name, image, priority, req.user.id);
   }
 
   @Delete('categories/:id')

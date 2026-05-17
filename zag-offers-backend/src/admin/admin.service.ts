@@ -1067,11 +1067,14 @@ export class AdminService {
   async getAllCategories() {
     return this.prisma.category.findMany({
       include: { _count: { select: { stores: true } } },
-      orderBy: { name: 'asc' },
+      orderBy: [
+        { priority: 'desc' },
+        { name: 'asc' },
+      ],
     });
   }
 
-  async createCategory(name: string, image?: string, adminId?: string) {
+  async createCategory(name: string, image?: string, priority?: number, adminId?: string) {
     const normalizedName = name.trim();
     if (!normalizedName) {
       throw new BadRequestException('Category name is required');
@@ -1088,6 +1091,7 @@ export class AdminService {
       data: {
         name: normalizedName,
         image: image || null,
+        priority: priority !== undefined ? Number(priority) : 0,
       },
     });
 
@@ -1108,6 +1112,7 @@ export class AdminService {
     id: string,
     name: string,
     image?: string,
+    priority?: number,
     adminId?: string,
   ) {
     const normalizedName = name.trim();
@@ -1135,6 +1140,7 @@ export class AdminService {
       data: {
         name: normalizedName,
         image: image !== undefined ? image : (category as any).image,
+        priority: priority !== undefined ? Number(priority) : undefined,
       },
       include: { _count: { select: { stores: true } } },
     });

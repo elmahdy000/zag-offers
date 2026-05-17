@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -8,6 +8,8 @@ import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class UsersPage extends StatefulWidget {
   const UsersPage({super.key});
@@ -51,9 +53,9 @@ class _UsersPageState extends State<UsersPage> {
         listenWhen: (_, state) => state is UserDeleted || state is UsersError,
         listener: (context, state) {
           if (state is UserDeleted) {
-            ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('تم حذف المستخدم بنجاح'), backgroundColor: AppColors.success));
+            SnackBarUtils.showSuccess(context, 'تم حذف المستخدم بنجاح');
           } else if (state is UsersError) {
-            ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(state.message), backgroundColor: AppColors.error));
+            SnackBarUtils.showError(context, state.message);
           }
         },
         builder: (context, state) {

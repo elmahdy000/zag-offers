@@ -70,4 +70,17 @@ export class ReviewsController {
   remove(@Param('id') id: string, @Request() req: { user: { id: string } }) {
     return this.reviewsService.remove(id, req.user.id);
   }
+
+  @Post(':id/reply')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT, Role.ADMIN)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'الرد على تقييم (للتاجر أو الأدمن)' })
+  addReply(
+    @Param('id') id: string,
+    @Body('reply') reply: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.reviewsService.addMerchantReply(id, req.user.id, reply);
+  }
 }

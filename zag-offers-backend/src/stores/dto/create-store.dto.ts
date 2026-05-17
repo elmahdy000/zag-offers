@@ -86,4 +86,24 @@ export class CreateStoreDto {
   @IsOptional()
   @IsString({ each: true })
   images?: string[];
+
+  @ApiProperty({ required: false, description: 'رابط فيسبوك' })
+  @IsOptional()
+  @IsString()
+  facebook?: string;
+
+  @ApiProperty({ required: false, description: 'رابط انستجرام' })
+  @IsOptional()
+  @IsString()
+  instagram?: string;
+
+  @ApiProperty({ required: false, description: 'رابط تيك توك' })
+  @IsOptional()
+  @IsString()
+  tiktok?: string;
+
+  @ApiProperty({ required: false, description: 'مواعيد العمل', example: 'من 9 صباحاً إلى 10 مساءً' })
+  @IsOptional()
+  @IsString()
+  workingHours?: string;
 }

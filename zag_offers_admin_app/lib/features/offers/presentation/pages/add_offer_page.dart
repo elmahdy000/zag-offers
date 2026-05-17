@@ -13,6 +13,7 @@ import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_animate/flutter_animate.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class AddOfferPage extends StatefulWidget {
   final Offer? initialOffer;
@@ -135,9 +136,7 @@ class _AddOfferPageState extends State<AddOfferPage> {
   }
 
   void _showError(String msg) {
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(content: Text(msg, style: GoogleFonts.cairo()), backgroundColor: AppColors.error),
-    );
+    SnackBarUtils.showError(context, msg);
   }
 
   void _showSuccessDialog() {

@@ -8,6 +8,7 @@ import 'package:zag_offers_admin_app/features/coupons/domain/entities/coupon.dar
 import 'package:zag_offers_admin_app/features/coupons/presentation/bloc/coupons_bloc.dart';
 import 'package:zag_offers_admin_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class CouponsPage extends StatefulWidget {
   const CouponsPage({super.key});
@@ -46,9 +47,7 @@ class _CouponsPageState extends State<CouponsPage> {
             child: BlocConsumer<CouponsBloc, CouponsState>(
               listener: (context, state) {
                 if (state is CouponsError) {
-                  ScaffoldMessenger.of(context).showSnackBar(
-                    SnackBar(content: Text(state.message), backgroundColor: AppColors.error),
-                  );
+                  SnackBarUtils.showError(context, state.message);
                 }
               },
               builder: (context, state) {

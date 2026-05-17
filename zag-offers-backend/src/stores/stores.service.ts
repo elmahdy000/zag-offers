@@ -66,6 +66,12 @@ export class StoresService {
         status: true,
         categoryId: true,
         category: { select: { name: true } },
+        ratingAvg: true,
+        ratingCount: true,
+        workingHours: true,
+        facebook: true,
+        instagram: true,
+        tiktok: true,
       },
     });
 

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
+import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/widgets/dashboard_skeleton.dart';
@@ -157,6 +158,65 @@ class DashboardPage extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
+                // Status Banner
+                if (state is DashboardLoaded && state.stats.storeStatus == 'PENDING')
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: Colors.amber.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.hourglass_empty_rounded, color: Colors.amber),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'متجرك قيد المراجعة. يمكنك إضافة عروضك وسيتم تفعيلها فور اعتماد المتجر.',
+                              style: GoogleFonts.cairo(
+                                color: Colors.amber.shade800,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
+                if (state is DashboardLoaded && state.stats.storeStatus == 'REJECTED')
+                  SliverToBoxAdapter(
+                    child: Container(
+                      margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        color: AppColors.error.withValues(alpha: 0.1),
+                        borderRadius: BorderRadius.circular(16),
+                        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                      ),
+                      child: Row(
+                        children: [
+                          const Icon(Icons.error_outline_rounded, color: AppColors.error),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              'نعتذر، لقد تم رفض طلب تسجيل متجرك. يرجى التواصل مع الإدارة للتفاصيل.',
+                              style: GoogleFonts.cairo(
+                                color: AppColors.error,
+                                fontSize: 13,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+
                 // Action Grid - Professional Style
                 SliverToBoxAdapter(
                   child: Padding(
@@ -185,9 +245,7 @@ class DashboardPage extends StatelessWidget {
                               Icons.star_rounded,
                               'التقييمات',
                               Colors.amber,
-                              () => ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text('ميزة التقييمات ستتوفر قريباً')),
-                              ),
+                              () => SnackBarUtils.showInfo(context, 'ميزة التقييمات ستتوفر قريباً'),
                             ),
                             _buildCompactAction(
                               Icons.settings_rounded,

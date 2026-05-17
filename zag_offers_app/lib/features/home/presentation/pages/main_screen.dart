@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -20,6 +20,7 @@ import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.da
 import 'package:zag_offers_app/features/offers/presentation/pages/all_offers_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/home_page.dart';
 import 'package:zag_offers_app/injection_container.dart';
+import 'package:zag_offers_app/core/utils/snackbar_utils.dart';
 
 class MainScreen extends StatefulWidget {
   const MainScreen({super.key});
@@ -75,15 +76,9 @@ class MainScreenState extends State<MainScreen> {
       _newOfferSub = socketService.onNewOffer.listen((data) {
         if (!mounted) return;
         context.read<OffersBloc>().add(AddLiveOffer(data));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text(
-              'عرض جديد: ${data['title'] ?? 'تحقق من العروض'}',
-            ),
-            backgroundColor: AppColors.primary,
-            behavior: SnackBarBehavior.floating,
-            duration: const Duration(seconds: 3),
-          ),
+        SnackBarUtils.showInfo(
+          context,
+          'عرض جديد: ${data['title'] ?? 'تحقق من العروض'}',
         );
       });
     }

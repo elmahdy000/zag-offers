@@ -1,6 +1,7 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { FavoritesService } from './favorites.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { AnalyticsService } from '../analytics/analytics.service';
 
 describe('FavoritesService', () => {
   let service: FavoritesService;
@@ -12,6 +13,13 @@ describe('FavoritesService', () => {
       delete: jest.fn(),
       findMany: jest.fn(),
     },
+    offer: {
+      findUnique: jest.fn(),
+    },
+  };
+
+  const mockAnalytics = {
+    logEvent: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -19,6 +27,7 @@ describe('FavoritesService', () => {
       providers: [
         FavoritesService,
         { provide: PrismaService, useValue: mockPrisma },
+        { provide: AnalyticsService, useValue: mockAnalytics },
       ],
     }).compile();
 

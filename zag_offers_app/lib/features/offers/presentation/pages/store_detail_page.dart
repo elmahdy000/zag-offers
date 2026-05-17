@@ -5,6 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../injection_container.dart';
 import '../../../reviews/presentation/bloc/reviews_bloc.dart';
 import '../../domain/entities/store_entity.dart';
@@ -44,12 +45,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     final uri = Uri.parse(url);
     if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
       if (!context.mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('تعذر فتح التطبيق المطلوب على هذا الجهاز'),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SnackBarUtils.showError(context, 'تعذر فتح التطبيق المطلوب على هذا الجهاز');
     }
   }
 

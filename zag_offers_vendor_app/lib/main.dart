@@ -25,6 +25,7 @@ import 'core/utils/navigation_service.dart';
 import 'core/network/notification_service.dart';
 import 'injection_container.dart' as di;
 import 'core/widgets/splash_screen.dart';
+import 'core/services/location_service.dart';
 
 /// Top-level background handler — must be annotated so the VM keeps it alive.
 @pragma('vm:entry-point')
@@ -84,6 +85,8 @@ void main() async {
   }
 
   await di.init();
+  // تهيئة خدمة تحديد الموقع للتاجر لتخزين إحداثيات محله تلقائياً
+  await LocationService.initialize();
   runApp(const ZagOffersVendorApp());
 }
 

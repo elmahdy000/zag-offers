@@ -15,13 +15,35 @@ class StoreSetupRemoteDataSourceImpl implements StoreSetupRemoteDataSource {
 
   @override
   Future<StoreModel> createStore(Map<String, dynamic> data) async {
-    final response = await apiClient.dio.post('/stores', data: data);
-    return StoreModel.fromJson(response.data);
+    try {
+      final response = await apiClient.dio.post('/stores', data: data);
+      return StoreModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'];
+      throw Exception(msg is List ? msg.join(', ') : (msg?.toString() ?? 'فشل إنشاء المتجر'));
+    } catch (e) {
+      throw Exception('حدث خطأ غير متوقع: $e');
+    }
   }
 
   @override
   Future<List<CategoryModel>> getCategories() async {
-    final response = await apiClient.dio.get('/stores/categories');
-    return (response.data as List).map((e) => CategoryModel.fromJson(e)).toList();
+    try {
+      final response = await apiClient.dio.get('/stores/categories');
+      final data = response.data;
+      if (data is List) {
+        return data
+            .whereType<Map<String, dynamic>>()
+            .map((e) => CategoryModel.fromJson(e))
+            .toList();
+      }
+      return [];
+    } on DioException catch (e) {
+      final msg = e.response?.data?['message'];
+      throw Exception(msg?.toString() ?? 'فشل تحميل الأقسام');
+    } catch (e) {
+      throw Exception('حدث خطأ غير متوقع: $e');
+    }
   }
 }
+

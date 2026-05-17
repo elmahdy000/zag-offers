@@ -17,6 +17,7 @@ import '../../../../core/utils/image_url_helper.dart';
 import '../bloc/offers_bloc.dart';
 
 import 'offer_preview_page.dart';
+import '../../../../core/utils/snackbar_utils.dart';
 
 class AddEditOfferPage extends StatefulWidget {
   final OfferEntity? offer;
@@ -88,12 +89,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   Future<void> _pickImage() async {
     HapticFeedback.lightImpact();
     if (_imageUrls.length >= 5) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: Text('الحد الأقصى للصور هو 5 فقط', style: GoogleFonts.cairo()),
-          backgroundColor: AppColors.error,
-        ),
-      );
+      SnackBarUtils.showError(context, 'الحد الأقصى للصور هو 5 فقط');
       return;
     }
 
@@ -122,22 +118,12 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
         
         if (pickedFiles.length > remainingSlots) {
           if (!mounted) return;
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: Text('تم رفع $remainingSlots صور فقط (الحد الأقصى 5)', style: GoogleFonts.cairo()),
-              backgroundColor: AppColors.warning,
-            ),
-          );
+          SnackBarUtils.showInfo(context, 'تم رفع $remainingSlots صور فقط (الحد الأقصى 5)');
         }
       } catch (e) {
         setState(() => _isUploading = false);
         if (!mounted) return;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('فشل رفع بعض الصور', style: GoogleFonts.cairo()),
-            backgroundColor: AppColors.error,
-          ),
-        );
+        SnackBarUtils.showError(context, 'فشل رفع بعض الصور');
       }
     }
   }
@@ -189,9 +175,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     HapticFeedback.mediumImpact();
     if (_formKey.currentState!.validate()) {
       if (_imageUrls.isEmpty) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(content: Text('الرجاء إضافة صورة واحدة على الأقل للعرض', style: GoogleFonts.cairo()), backgroundColor: AppColors.error),
-        );
+        SnackBarUtils.showError(context, 'الرجاء إضافة صورة واحدة على الأقل للعرض');
         return;
       }
 
