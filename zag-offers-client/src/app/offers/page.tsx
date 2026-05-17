@@ -7,6 +7,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { API_URL, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
+import { usePublicSocket } from '@/lib/socket';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
@@ -70,6 +71,7 @@ function OffersPageContent() {
   }, [activeCat, area, search, sort, pathname, router, searchParams]);
 
   const [isOffline, setIsOffline] = useState(false);
+  const { socket } = usePublicSocket();
 
   const fetchData = useCallback(async () => {
     // Try to load from cache first for instant view
@@ -111,6 +113,20 @@ function OffersPageContent() {
   }, [offers.length]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCategoriesUpdated = () => {
+      localStorage.removeItem('cache_offers');
+      fetchData();
+    };
+
+    socket.on('categories_updated', handleCategoriesUpdated);
+    return () => {
+      socket.off('categories_updated', handleCategoriesUpdated);
+    };
+  }, [socket, fetchData]);
 
   // Monitor online/offline status
   useEffect(() => {

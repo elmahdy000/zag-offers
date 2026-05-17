@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
@@ -8,43 +8,60 @@ import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { Category } from '@/lib/types';
 import { resolveImageUrl } from '@/lib/utils';
+import { usePublicSocket } from '@/lib/socket';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const { socket } = usePublicSocket();
+
+  const fetchCats = useCallback(async (force = false) => {
+    // Try cache first
+    const cached = localStorage.getItem('cache_categories_full_v2');
+    if (!force && cached && categories.length === 0) {
+      setCategories(JSON.parse(cached));
+      setLoading(false);
+    }
+
+    try {
+      const res = await fetch(`${API_URL}/stores/categories`, { cache: 'no-store' });
+      if (res.ok) {
+        const dataRaw = await res.json();
+        const data = normalizeCategories(dataRaw);
+        setCategories(data);
+        localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
+      }
+    } catch (e) {
+      console.error('Offline or error:', e);
+    } finally {
+      setLoading(false);
+    }
+  }, [categories.length]);
 
   useEffect(() => {
-    const fetchCats = async () => {
-      // Try cache first
-      const cached = localStorage.getItem('cache_categories_full_v2');
-      if (cached && categories.length === 0) {
-        setCategories(JSON.parse(cached));
-        setLoading(false);
-      }
-
-      try {
-        const res = await fetch(`${API_URL}/stores/categories`);
-        if (res.ok) {
-          const dataRaw = await res.json();
-          const data = normalizeCategories(dataRaw);
-          setCategories(data);
-          localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
-        }
-      } catch (e) { 
-        console.error('Offline or error:', e); 
-      } finally { 
-        setLoading(false); 
-      }
-    };
     fetchCats();
 
     // Silent background sync when back online
     const handleOnline = () => fetchCats();
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [categories.length]);
+  }, [fetchCats]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCategoriesUpdated = () => {
+      localStorage.removeItem('cache_categories_full_v2');
+      fetchCats(true);
+    };
+
+    socket.on('categories_updated', handleCategoriesUpdated);
+    return () => {
+      socket.off('categories_updated', handleCategoriesUpdated);
+    };
+  }, [socket, fetchCats]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:py-20" dir="rtl">

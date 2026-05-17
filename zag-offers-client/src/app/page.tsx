@@ -38,6 +38,7 @@ function useAnalytics() {
 import { Offer, Category, Store, SortOption } from '@/lib/types';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
+import { usePublicSocket } from '@/lib/socket';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
@@ -65,6 +66,7 @@ function HomePageContent() {
   const { trackEvent } = useAnalytics();
 
   const [isOffline, setIsOffline] = useState(false);
+  const { socket } = usePublicSocket();
 
   const fetchData = useCallback(async (force = false) => {
     // Try to load from cache first
@@ -119,6 +121,20 @@ function HomePageContent() {
   }, [offers.length]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCategoriesUpdated = () => {
+      localStorage.removeItem(CACHE_KEY);
+      fetchData(true);
+    };
+
+    socket.on('categories_updated', handleCategoriesUpdated);
+    return () => {
+      socket.off('categories_updated', handleCategoriesUpdated);
+    };
+  }, [socket, fetchData]);
 
   // Monitor online status
   useEffect(() => {

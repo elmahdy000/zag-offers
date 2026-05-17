@@ -92,3 +92,24 @@ export const useSocket = (token?: string | null) => {
 
   return { socket, isConnected, connectionStatus };
 };
+
+export const usePublicSocket = () => {
+  const [socket, setSocket] = useState<Socket | null>(null);
+
+  useEffect(() => {
+    const newSocket = io(SOCKET_URL, {
+      transports: ['websocket', 'polling'],
+      reconnection: true,
+      reconnectionDelay: RECONNECT_INTERVAL,
+      reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+    });
+
+    setSocket(newSocket);
+
+    return () => {
+      newSocket.disconnect();
+    };
+  }, []);
+
+  return { socket };
+};
