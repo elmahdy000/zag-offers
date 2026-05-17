@@ -100,7 +100,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                 context.read<OffersBloc>().add(FetchHomeData());
               },
               child: CustomScrollView(
-                physics: const BouncingScrollPhysics(),
+                physics: const AlwaysScrollableScrollPhysics(
+                  parent: BouncingScrollPhysics(),
+                ),
                 slivers: [
                   _buildSliverAppBar(context, state),
                   SliverToBoxAdapter(
