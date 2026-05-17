@@ -5,6 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { OfferCard } from '@/components/offer-card';
+import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL } from '@/lib/constants';
 
 import { Offer } from '@/lib/types';
@@ -12,6 +13,7 @@ import { Offer } from '@/lib/types';
 export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
 
   useEffect(() => {
@@ -22,18 +24,16 @@ export default function FavoritesPage() {
   const fetchFavorites = useCallback(async () => {
     const token = localStorage.getItem('token');
     
-    // Load from cache first for instant UI
-    const cached = localStorage.getItem('cache_favorites_v2');
-    if (cached && favorites.length === 0) {
-      setFavorites(JSON.parse(cached));
+    const cached = safeJsonParse<Offer[]>(localStorage.getItem('cache_favorites_v2'), []);
+    if (cached.length > 0 && favorites.length === 0) {
+      setFavorites(cached);
       setLoading(false);
     }
 
     if (!token) {
-      const saved = localStorage.getItem('favorites');
-      const localFavs = saved ? JSON.parse(saved) : [];
-      setFavorites(localFavs);
-      localStorage.setItem('cache_favorites_v2', JSON.stringify(localFavs));
+      const saved = safeJsonParse<Offer[]>(localStorage.getItem('favorites'), []);
+      setFavorites(saved);
+      localStorage.setItem('cache_favorites_v2', JSON.stringify(saved));
       setLoading(false);
       return;
     }
@@ -51,8 +51,12 @@ export default function FavoritesPage() {
         setFavorites(offers);
         localStorage.setItem('cache_favorites_v2', JSON.stringify(offers));
       }
+      setError(null);
     } catch (e) {
       console.error('Failed to fetch favorites:', e);
+      if (!cached.length) {
+        setError('فشل تحميل المفضلة. يرجى التأكد من اتصالك بالإنترنت.');
+      }
     } finally {
       setLoading(false);
     }
@@ -145,6 +149,8 @@ export default function FavoritesPage() {
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1,2,3].map(i => <div key={i} className="h-40 bg-white/5 rounded-2xl animate-pulse" />)}
         </div>
+      ) : error ? (
+        <ErrorDisplay message={error} onRetry={fetchFavorites} />
       ) : favorites.length === 0 ? (
         <div className="text-center py-16 sm:py-24 bg-[#252525]/50 rounded-[2rem] border border-white/[0.05] shadow-inner">
           <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/10">

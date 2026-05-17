@@ -9,6 +9,7 @@ class SocketService {
   bool _isConnected = false;
   final Map<String, List<Function(dynamic)>> _eventHandlers = {};
   String? _userId;
+  String? _token;
 
   io.Socket? get socket => _socket;
   bool get isConnected => _isConnected;
@@ -19,10 +20,10 @@ class SocketService {
     }
 
     final prefs = await SharedPreferences.getInstance();
-    final token = prefs.getString('auth_token');
+    _token = prefs.getString('auth_token');
     final userData = prefs.getString('user_data');
 
-    if (token == null) {
+    if (_token == null) {
       log('WebSocket: No token found, cannot connect authenticated.');
       return;
     }
@@ -45,7 +46,7 @@ class SocketService {
     _socket = io.io(AppConstants.socketUrl, 
       io.OptionBuilder()
         .setTransports(['websocket'])
-        .setAuth({'token': token})
+        .setAuth({'token': _token})
         .enableReconnection()
         .setReconnectionAttempts(10)
         .setReconnectionDelay(1000)
@@ -64,8 +65,8 @@ class SocketService {
       log('WebSocket: Connected to server');
       
       // Join merchant room (React app compatibility)
-      if (_userId != null) {
-        _socket?.emit('join_room', {'token': token, 'userId': _userId});
+      if (_userId != null && _token != null) {
+        _socket?.emit('join_room', {'token': _token, 'userId': _userId});
         log('WebSocket: Joined merchant room: $_userId');
       }
     });
@@ -104,7 +105,10 @@ class SocketService {
     _isConnected = false;
   }
 
-  void updateToken(String token) {
+  void updateToken(String token) async {
+    _token = token;
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setString('auth_token', token);
     if (_socket != null) {
       _socket?.auth = {'token': token};
       _socket?.disconnect().connect();

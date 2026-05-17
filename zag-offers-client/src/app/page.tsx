@@ -187,8 +187,8 @@ function HomePageContent() {
     if (debouncedSearch) {
       const q = debouncedSearch.toLowerCase();
       result = result.filter(o =>
-        o.title.toLowerCase().includes(q) ||
-        o.store.name.toLowerCase().includes(q)
+        (o.title || '').toLowerCase().includes(q) ||
+        (o.store?.name || '').toLowerCase().includes(q)
       );
     }
 

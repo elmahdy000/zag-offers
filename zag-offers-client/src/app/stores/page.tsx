@@ -1,11 +1,12 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
 import { Store as StoreIcon, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
+import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 
 import { API_URL, BASE_URL } from '@/lib/constants';
 
@@ -14,38 +15,44 @@ import { Store } from '@/lib/types';
 export default function StoresListPage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
 
-  useEffect(() => {
-    const fetchStores = async () => {
-      // Try cache first
-      const cached = localStorage.getItem('cache_stores_list');
-      if (cached && stores.length === 0) {
-        setStores(JSON.parse(cached));
-        setLoading(false);
-      }
+  const fetchStores = useCallback(async () => {
+    const cached = safeJsonParse<Store[]>(localStorage.getItem('cache_stores_list'), []);
+    
+    if (cached.length > 0 && stores.length === 0) {
+      setStores(cached);
+      setLoading(false);
+    }
 
-      try {
-        const res = await fetch(`${API_URL}/stores?limit=100`, { cache: 'no-store' });
-        if (res.ok) {
-          const data = await res.json();
-          const storesData = Array.isArray(data) ? data : (data.items || []);
-          const validStores = storesData.filter((s: Store) => s && s.id && s.name);
-          setStores(validStores);
-          localStorage.setItem('cache_stores_list', JSON.stringify(validStores));
-        }
-      } catch (e) { 
-        console.error('Failed to fetch stores (offline?):', e); 
-      } finally { 
-        setLoading(false); 
+    try {
+      const res = await fetch(`${API_URL}/stores?limit=100`, { cache: 'no-store' });
+      if (res.ok) {
+        const data = await res.json();
+        const storesData = Array.isArray(data) ? data : (data.items || []);
+        const validStores = storesData.filter((s: Store) => s && s.id && s.name);
+        setStores(validStores);
+        localStorage.setItem('cache_stores_list', JSON.stringify(validStores));
       }
-    };
+      setError(null);
+    } catch (e) { 
+      console.error('Failed to fetch stores (offline?):', e); 
+      if (!cached.length) {
+        setError('فشل تحميل المتاجر. يرجى التأكد من اتصالك بالإنترنت.');
+      }
+    } finally { 
+      setLoading(false); 
+    }
+  }, [stores.length]);
+
+  useEffect(() => {
     fetchStores();
 
     const handleOnline = () => fetchStores();
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [stores.length]);
+  }, [fetchStores]);
 
   const filteredStores = stores.filter(s => {
     if (!s || !s.name || !s.area) return false;
@@ -76,6 +83,8 @@ export default function StoresListPage() {
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
           {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 sm:h-48 bg-white/5 rounded-2xl sm:rounded-[32px] animate-pulse" />)}
         </div>
+      ) : error ? (
+        <ErrorDisplay message={error} onRetry={fetchStores} />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
           {filteredStores.map((store) => {

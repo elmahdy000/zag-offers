@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import Link from 'next/link';
 import {
   Tag, Clock, ArrowUpRight, ChevronLeft, Activity,
@@ -114,6 +114,7 @@ export default function MerchantDashboard() {
   const [cachedStats, setCachedStats] = useState<any>(null);
   const [notification, setNotification] = useState<{ title: string; body: string; type?: string } | null>(null);
   const [isSyncing, setIsSyncing] = useState(false);
+  const syncTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   // Load cached data immediately
   const [lastUpdated, setLastUpdated] = useState<string>('');
@@ -183,8 +184,9 @@ export default function MerchantDashboard() {
 
   const handleRefresh = async () => {
     setIsSyncing(true);
+    if (syncTimeoutRef.current) clearTimeout(syncTimeoutRef.current);
     await Promise.all([refetchStats(), refetchOffers()]);
-    setTimeout(() => setIsSyncing(false), 800);
+    syncTimeoutRef.current = setTimeout(() => setIsSyncing(false), 800);
   };
 
   return (

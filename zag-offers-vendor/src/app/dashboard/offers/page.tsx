@@ -1,5 +1,5 @@
 'use client';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
 import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers, ChevronLeft } from 'lucide-react';
 import Link from 'next/link';
@@ -167,26 +167,29 @@ export default function OffersListPage() {
   const displayOffers = Array.isArray(offers) ? offers : cachedOffers;
   const offersArray = Array.isArray(displayOffers) ? displayOffers : [];
   
-  // Advanced Filtering & Search
-  const filtered = offersArray.filter((o: Offer) => {
+  const filters = useMemo(() => ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'], []);
+
+  const filtered = useMemo(() => offersArray.filter((o: Offer) => {
     const matchesFilter = activeFilter === 'ALL' || o.status === activeFilter;
     const matchesSearch = o.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
                           o.discount.toLowerCase().includes(searchQuery.toLowerCase());
     return matchesFilter && matchesSearch;
-  });
+  }), [offersArray, activeFilter, searchQuery]);
 
-  const grouped = filtered.reduce((acc: Record<string, Offer[]>, offer: Offer) => {
+  const grouped = useMemo(() => filtered.reduce((acc: Record<string, Offer[]>, offer: Offer) => {
     const cat = offer.store?.category?.name || 'عروض عامة';
     if (!acc[cat]) acc[cat] = [];
     acc[cat].push(offer);
     return acc;
-  }, {} as Record<string, Offer[]>);
+  }, {} as Record<string, Offer[]>), [filtered]);
 
-  const filters = ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'];
-  const counts: Record<string, number> = { 
-    ALL: offersArray.length,
-    ...filters.slice(1).reduce((acc, f) => ({ ...acc, [f]: offersArray.filter(o => o.status === f).length }), {})
-  };
+  const counts = useMemo(() => {
+    const result: Record<string, number> = { ALL: offersArray.length };
+    for (const f of filters.slice(1)) {
+      result[f] = offersArray.filter((o: Offer) => o.status === f).length;
+    }
+    return result;
+  }, [offersArray, filters]);
 
   if (isLoading && cachedOffers.length === 0) {
     return (

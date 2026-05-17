@@ -5,6 +5,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
+import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { usePublicSocket } from '@/lib/socket';
@@ -51,6 +52,7 @@ function OffersPageContent() {
   const [offers,     setOffers]     = useState<Offer[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading,    setLoading]    = useState(true);
+  const [error,      setError]      = useState<string | null>(null);
   const [search,     setSearch]     = useState(initialSearch);
   const [activeCat,  setActiveCat]  = useState(initialCat);
   const [area,       setArea]       = useState(initialArea);
@@ -74,12 +76,11 @@ function OffersPageContent() {
   const { socket } = usePublicSocket();
 
   const fetchData = useCallback(async () => {
-    // Try to load from cache first for instant view
-    const cachedOffers = localStorage.getItem('cache_offers');
+    const cachedOffers = safeJsonParse<Offer[]>(localStorage.getItem('cache_offers'), []);
     
-    if (cachedOffers && offers.length === 0) {
-      setOffers(JSON.parse(cachedOffers));
-      setLoading(false); // Hide initial loader if we have cache
+    if (cachedOffers.length > 0 && offers.length === 0) {
+      setOffers(cachedOffers);
+      setLoading(false);
     }
 
     try {
@@ -102,11 +103,14 @@ function OffersPageContent() {
       } else {
         setCategories([]);
       }
+      setError(null);
     } catch (e) { 
       console.error('Fetch error (possibly offline):', e); 
       setIsOffline(true);
-      // Avoid showing stale category cache when request fails.
       setCategories([]);
+      if (!cachedOffers.length) {
+        setError('فشل تحميل العروض. يرجى التأكد من اتصالك بالإنترنت.');
+      }
     } finally { 
       setLoading(false); 
     }
@@ -144,7 +148,7 @@ function OffersPageContent() {
     let list = offers.filter(o => {
       const q = debouncedSearch.toLowerCase();
       const matchSearch = !q
-        || o.title.toLowerCase().includes(q)
+        || (o.title || '').toLowerCase().includes(q)
         || o.store?.name?.toLowerCase().includes(q);
       const matchCat  = activeCat ? (o.store?.category?.id === activeCat || o.store?.categoryId === activeCat) : true;
       const matchArea = area ? o.store?.area === area : true;
@@ -287,6 +291,8 @@ function OffersPageContent() {
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
+      ) : error ? (
+        <ErrorDisplay message={error} onRetry={fetchData} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-3 text-center">
           <div className="w-16 h-16 bg-[#252525] rounded-full flex items-center justify-center text-2xl">🔍</div>

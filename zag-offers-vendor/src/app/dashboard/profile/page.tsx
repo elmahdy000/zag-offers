@@ -88,6 +88,7 @@ export default function StoreProfilePage() {
         locationUrl: formData.locationUrl.trim(),
         lat: formData.lat,
         lng: formData.lng,
+        images: store.images,
       },
       {
         onSuccess: () => {
@@ -153,7 +154,19 @@ export default function StoreProfilePage() {
     );
   }
 
-  if (!store) return null;
+  if (!store) {
+    return (
+      <div className="min-h-screen flex items-center justify-center p-6 bg-bg text-center">
+        <div>
+          <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center text-text-dim mb-4 mx-auto">
+            <Store size={32} />
+          </div>
+          <p className="text-text-dim text-sm font-bold">لم يتم العثور على بيانات المتجر</p>
+          <button onClick={() => refetch()} className="mt-4 text-primary font-black text-xs hover:underline">إعادة المحاولة</button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-8 lg:p-12 dir-rtl bg-bg min-h-screen max-w-7xl mx-auto animate-in">

@@ -12,6 +12,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
 import '../../../upload/domain/repositories/upload_repository.dart';
 import '../../../upload/domain/usecases/upload_usecase.dart';
+import '../../../dashboard/presentation/bloc/dashboard_bloc.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../../../core/utils/image_url_helper.dart';
 import '../bloc/offers_bloc.dart';
@@ -21,7 +22,8 @@ import '../../../../core/utils/snackbar_utils.dart';
 
 class AddEditOfferPage extends StatefulWidget {
   final OfferEntity? offer;
-  const AddEditOfferPage({super.key, this.offer});
+  final String? storeId;
+  const AddEditOfferPage({super.key, this.offer, this.storeId});
 
   @override
   State<AddEditOfferPage> createState() => _AddEditOfferPageState();
@@ -179,23 +181,28 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
         return;
       }
 
+      String resolvedStoreId = widget.storeId ?? widget.offer?.storeId ?? '';
+      if (resolvedStoreId.isEmpty) {
+        final dashState = context.read<DashboardBloc>().state;
+        if (dashState is DashboardLoaded) {
+          resolvedStoreId = dashState.storeId ?? '';
+        }
+      }
+
       final offer = OfferEntity(
         id: widget.offer?.id ?? '',
         title: _titleController.text,
         description: _descController.text,
-        images: _imageUrls.map(_resolveImageUrl).toList(),
+        images: _imageUrls.toList(),
         discount: _discountController.text,
         terms: _termsController.text,
         startDate: _startDate,
         endDate: _endDate,
         usageLimit: _usageLimit,
         status: widget.offer?.status ?? 'PENDING',
-        storeId: widget.offer?.storeId ?? '',
+        storeId: resolvedStoreId,
         oldPrice: double.tryParse(_oldPriceController.text),
         newPrice: double.tryParse(_newPriceController.text),
-        rejectionReason: widget.offer?.rejectionReason,
-        viewCount: widget.offer?.viewCount ?? 0,
-        isFeatured: widget.offer?.isFeatured ?? false,
       );
 
       Navigator.push(

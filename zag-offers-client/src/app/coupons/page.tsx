@@ -8,6 +8,7 @@ import {
 } from 'react-icons/ri';
 import Link from 'next/link';
 import axios from 'axios';
+import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL } from '@/lib/constants';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -31,6 +32,7 @@ interface Coupon {
 export default function MyCouponsPage() {
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
 
@@ -45,10 +47,9 @@ export default function MyCouponsPage() {
         return;
       }
 
-      // Load from cache first
-      const cached = localStorage.getItem('cache_my_coupons');
-      if (cached && coupons.length === 0) {
-        setCoupons(JSON.parse(cached));
+      const cached = safeJsonParse<Coupon[]>(localStorage.getItem('cache_my_coupons'), []);
+      if (cached.length > 0 && coupons.length === 0) {
+        setCoupons(cached);
         setLoading(false);
       }
 
@@ -59,9 +60,13 @@ export default function MyCouponsPage() {
         setCoupons(res.data);
         localStorage.setItem('cache_my_coupons', JSON.stringify(res.data));
         setIsOffline(false);
+        setError(null);
       } catch (e) { 
         console.error('Offline or server error:', e); 
         setIsOffline(true);
+        if (!cached.length) {
+          setError('فشل تحميل الكوبونات. يرجى التأكد من اتصالك بالإنترنت.');
+        }
       } finally { 
         setLoading(false); 
       }
@@ -93,6 +98,8 @@ export default function MyCouponsPage() {
         <div className="space-y-4">
           {[1,2,3].map(i => <div key={i} className="h-32 bg-white/5 rounded-[24px] animate-pulse" />)}
         </div>
+      ) : error ? (
+        <ErrorDisplay message={error} onRetry={() => window.location.reload()} />
       ) : isLoggedIn === false ? (
         <div className="text-center py-20 glass rounded-[32px]">
           <RiTicket2Fill className="mx-auto text-white/10 mb-4" size={64} />
@@ -166,7 +173,7 @@ export default function MyCouponsPage() {
                 className="absolute top-4 left-4 p-2 text-white/20 hover:text-white transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  window.location.href = `/offers/${coupon.offer?.id}`;
+                  if (coupon.offer?.id) window.location.href = `/offers/${coupon.offer.id}`;
                 }}
               >
                 <RiArrowRightLine size={18} />

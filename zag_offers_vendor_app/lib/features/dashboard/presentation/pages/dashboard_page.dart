@@ -8,7 +8,7 @@ import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/widgets/dashboard_skeleton.dart';
 import 'package:zag_offers_vendor_app/features/offers/presentation/pages/add_edit_offer_page.dart';
-import 'package:zag_offers_vendor_app/features/main/presentation/layout/main_layout.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/main_layout.dart';
 import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/store_setup_page.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/store_setup_bloc.dart';

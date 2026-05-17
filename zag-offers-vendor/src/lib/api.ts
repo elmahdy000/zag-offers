@@ -57,10 +57,9 @@ import { PerformanceMonitor } from './performance-monitor';
 
 /** إنشاء توقيع آمن للطلب (Request Signing) */
 function signRequest(url: string, timestamp: number) {
-  // في بيئة حقيقية، نستخدم مفتاح سري لا يظهر في الفرونت-إند
-  // هنا نستخدم نموذجاً لتوضيح المبدأ الأمني
-  const secret = 'zag_secure_v1';
-  return btoa(`${url}|${timestamp}|${secret}`).slice(0, 32);
+  // عملية أساسية بدون مفتاح سري حتى لا نكشفه في bundle المتصفح.
+  // سيتم تفعيل التوقيع الكامل لاحقاً في service worker أو proxy.
+  return btoa(`${url}|${timestamp}`).slice(0, 32);
 }
 
 /** Axios instance مع Authorization header وتتبع الأداء وتوقيع الطلبات */

@@ -60,8 +60,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   void dispose() {
     _pageController.dispose();
     _commentController.dispose();
-    _reviewsBloc.close();
-    _couponsBloc.close();
     super.dispose();
   }
 
@@ -94,7 +92,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final usageCount = (widget.offer.id.hashCode % 150) + 40;
+    const usageCount = 'الكثير';
 
     return MultiBlocProvider(
       providers: [
@@ -146,8 +144,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       SnackBarUtils.showError(context, state.message);
     }
     if (state is CouponGeneratedSuccess) {
-      final usageCount = (widget.offer.id.hashCode % 150) + 40;
-      _showCouponDialog(context, state.coupon.code, usageCount);
+      _showCouponDialog(context, state.coupon.code);
     }
   }
 
@@ -284,7 +281,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildContentSection(int usageCount) {
+  Widget _buildContentSection(String usageCount) {
     final theme = Theme.of(context);
     return SliverToBoxAdapter(
       child: Transform.translate(
@@ -318,7 +315,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildStatsRow(int usageCount) {
+  Widget _buildStatsRow(String usageCount) {
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -348,7 +345,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             const Icon(Icons.flash_on_rounded, color: Colors.orange, size: 18),
             const SizedBox(width: 4),
             Text(
-              '$usageCount مستفيد من العرض',
+              usageCount,
               style: textTheme.labelMedium?.copyWith(
                 fontWeight: FontWeight.bold,
               ),
@@ -504,7 +501,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildStickyActionArea(int usageCount) {
+  Widget _buildStickyActionArea(String usageCount) {
     return Positioned(
       bottom: 20,
       left: 20,
@@ -590,7 +587,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  void _showCouponDialog(BuildContext context, String code, int usageCount) {
+  void _showCouponDialog(BuildContext context, String code) {
     final theme = Theme.of(context);
     showDialog(
       context: context,
@@ -612,7 +609,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    '$usageCount مستفيد من العرض',
+                    'الكثير مستفيد من العرض',
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),

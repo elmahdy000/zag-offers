@@ -6,8 +6,8 @@ import { useRouter } from 'next/navigation';
 import { resolveImageUrl } from '@/lib/api';
 
 // --- Types & Constants ---
-const API = 'https://api.zagoffers.online/api';
-const UPLOADS = 'https://api.zagoffers.online';
+const API = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/api$/, '') + '/api';
+const UPLOADS = process.env.NEXT_PUBLIC_API_URL?.replace(/\/api$/, '') || 'https://api.zagoffers.online';
 
 interface Offer {
   id: string;
@@ -71,6 +71,7 @@ export default function HomePage() {
   const [offers, setOffers] = useState<Offer[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [filters, setFilters] = useState({ categoryId: '', area: '', search: '' });
   const [selectedOffer, setSelectedOffer] = useState<Offer | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState(false);
@@ -85,7 +86,9 @@ export default function HomePage() {
     try {
       const catRes = await fetch(`${API}/stores/categories`);
       if (catRes.ok) setCategories(await catRes.json());
-    } catch (e) { console.error("Data fetch error", e); }
+    } catch (e) {
+      console.error("Data fetch error", e);
+    }
   };
 
   const loadOffers = useCallback(async () => {
@@ -113,8 +116,11 @@ export default function HomePage() {
       }
 
       setOffers(items);
-    } catch (e) { console.error("Offers load error", e); }
-    finally { setLoading(false); }
+      setError(null);
+    } catch (e) {
+      console.error("Offers load error", e);
+      setError('فشل تحميل العروض');
+    } finally { setLoading(false); }
   }, [filters]);
 
   useEffect(() => { fetchInitialData(); }, []);
@@ -139,7 +145,7 @@ export default function HomePage() {
         * { box-sizing: border-box; }
         body { margin: 0; background: var(--bg); color: var(--text); font-family: 'Cairo', sans-serif; }
 
-        .navbar { height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 5%; sticky; top: 0; background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); z-index: 100; }
+        .navbar { height: 64px; border-bottom: 1px solid var(--border); display: flex; align-items: center; justify-content: space-between; padding: 0 5%; position: sticky; top: 0; background: rgba(15,15,15,0.8); backdrop-filter: blur(10px); z-index: 100; }
         .logo { font-size: 20px; font-weight: 800; text-decoration: none; color: white; }
         .logo span { color: var(--primary); }
         .nav-actions { display: flex; gap: 10px; }
@@ -240,6 +246,11 @@ export default function HomePage() {
         {loading ? (
           <div className="skeleton-grid">
             {[1,2,3,4,5,6,7,8].map(i => <div key={i} className="skeleton-card" />)}
+          </div>
+        ) : error ? (
+          <div className="text-center py-20">
+            <p style={{ color: 'var(--text-dim)', fontSize: '14px', fontWeight: 700 }}>{error}</p>
+            <button onClick={loadOffers} className="btn-auth primary" style={{ marginTop: '16px', display: 'inline-block', cursor: 'pointer' }}>إعادة المحاولة</button>
           </div>
         ) : (
           <div className="offers-grid">

@@ -63,7 +63,7 @@ final sl = GetIt.instance;
 
 Future<void> init() async {
   //! Features - Notifications
-  sl.registerFactory(() => NotificationBloc(repository: sl()));
+  sl.registerLazySingleton(() => NotificationBloc(repository: sl()));
   sl.registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(apiClient: sl()));
   
   //! Features - Auth

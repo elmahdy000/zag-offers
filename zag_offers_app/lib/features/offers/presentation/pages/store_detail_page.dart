@@ -36,8 +36,6 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
 
   @override
   void dispose() {
-    _offersBloc.close();
-    _reviewsBloc.close();
     super.dispose();
   }
 

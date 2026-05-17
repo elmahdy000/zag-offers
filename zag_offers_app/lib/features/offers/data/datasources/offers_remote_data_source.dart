@@ -1,5 +1,7 @@
 import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/network/dio_error_mapper.dart';
 import '../models/offer_model.dart';
 import '../models/store_model.dart';
 import '../models/category_model.dart';
@@ -44,7 +46,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       });
       return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -54,7 +56,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       final response = await apiClient.dio.get('/recommendations/trending');
       return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -64,7 +66,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       final response = await apiClient.dio.get('/recommendations');
       return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -74,7 +76,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       final response = await apiClient.dio.get('/offers/search', queryParameters: {'q': query});
       return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -84,7 +86,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       final response = await apiClient.dio.get('/stores');
       return _parseList(response.data, StoreModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -94,7 +96,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       final response = await apiClient.dio.get('/offers/store/$storeId');
       return _parseList(response.data, OfferModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -102,9 +104,12 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
   Future<OfferModel> getOfferById(String id) async {
     try {
       final response = await apiClient.dio.get('/offers/$id');
+      if (response.data is! Map<String, dynamic>) {
+        throw ServerException('Invalid response format for offer');
+      }
       return OfferModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 
@@ -114,7 +119,7 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
       final response = await apiClient.dio.get('/offers/categories');
       return _parseList(response.data, CategoryModel.fromJson);
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(mapDioErrorToMessage(e));
     }
   }
 }

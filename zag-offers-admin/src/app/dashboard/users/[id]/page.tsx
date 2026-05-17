@@ -146,8 +146,8 @@ export default function UserDetailPage() {
                  <div className="flex flex-col md:flex-row gap-10 items-start relative z-10">
                     <div className="h-32 w-32 rounded-[2rem] bg-slate-50 border border-slate-100 flex items-center justify-center overflow-hidden shrink-0 shadow-inner">
                        {user.avatar ? (
-                         <img src={user.avatar} alt={user.name} className="h-full w-full object-cover" />
-                       ) : (
+                          <img src={resolveImageUrl(user.avatar)} alt={user.name} className="h-full w-full object-cover" />
+                        ) : (
                          <UserIcon size={56} className="text-slate-300" strokeWidth={1} />
                        )}
                     </div>

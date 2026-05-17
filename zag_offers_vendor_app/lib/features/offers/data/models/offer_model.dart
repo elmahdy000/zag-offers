@@ -62,9 +62,6 @@ class OfferModel extends OfferEntity {
       'storeId': storeId,
       'originalPrice': oldPrice,
       'newPrice': newPrice,
-      'rejectionReason': rejectionReason,
-      'viewCount': viewCount,
-      'isFeatured': isFeatured,
     };
   }
 }

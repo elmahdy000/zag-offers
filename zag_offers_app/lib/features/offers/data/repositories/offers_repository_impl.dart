@@ -122,4 +122,18 @@ class OffersRepositoryImpl implements OffersRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, OfferEntity>> getOfferById(String id) async {
+    try {
+      final result = await remoteDataSource.getOfferById(id);
+      return Right(result);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'Server error'));
+    } on DioException catch (e) {
+      return Left(ServerFailure(mapDioErrorToMessage(e)));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

@@ -417,7 +417,7 @@ function StoresContent() {
           >
             <option value="">كل الفئات</option>
             {categories?.map((cat) => (
-              <option key={cat.id} value={cat.name}>{cat.name}</option>
+              <option key={cat.id} value={cat.id}>{cat.name}</option>
             ))}
           </select>
       </div>

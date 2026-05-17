@@ -17,11 +17,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<Map<String, dynamic>> login(String identifier, String password) async {
-    final response = await client.post(
-      '/auth/login',
-      data: {'phone': identifier, 'password': password},
-    );
-    return response.data;
+    try {
+      final response = await client.post(
+        '/auth/login',
+        data: {'phone': identifier, 'password': password},
+      );
+      return response.data;
+    } catch (e) {
+      debugPrint('Login error: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -39,11 +44,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
   @override
   Future<AdminUserModel> updateProfile({String? name, String? area}) async {
-    final response = await client.patch(
-      '/auth/profile',
-      data: {if (name != null) 'name': name, if (area != null) 'area': area},
-    );
-    return AdminUserModel.fromJson(response.data);
+    try {
+      final response = await client.patch(
+        '/auth/profile',
+        data: {if (name != null) 'name': name, if (area != null) 'area': area},
+      );
+      return AdminUserModel.fromJson(response.data);
+    } catch (e) {
+      debugPrint('Update profile error: $e');
+      rethrow;
+    }
   }
 
   @override
@@ -51,10 +61,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     String currentPassword,
     String newPassword,
   ) async {
-    await client.post(
-      '/auth/password',
-      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
-    );
+    try {
+      await client.post(
+        '/auth/password',
+        data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+      );
+    } catch (e) {
+      debugPrint('Update password error: $e');
+      rethrow;
+    }
   }
 
   @override

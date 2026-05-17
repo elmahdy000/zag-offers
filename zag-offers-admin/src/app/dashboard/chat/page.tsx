@@ -121,6 +121,8 @@ export default function AdminChatPage() {
   
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const selectedConvIdRef = useRef(selectedConvId);
+  selectedConvIdRef.current = selectedConvId;
   const adminId = getAdminId();
 
   const selectedConv = useMemo(() => 
@@ -133,7 +135,7 @@ export default function AdminChatPage() {
       try {
         const res = await adminApi().get<Conversation[]>('/chat/conversations');
         setConversations(Array.isArray(res.data) ? res.data : []);
-      } catch (e) {} finally { setLoading(false); }
+      } catch (e) { console.error('Failed to fetch conversations:', e); } finally { setLoading(false); }
     };
     fetchConvs();
   }, []);
@@ -148,12 +150,12 @@ export default function AdminChatPage() {
       try {
         const res = await adminApi().get<ConversationMessage[]>(`/chat/messages/${selectedConvId}`);
         setMessages(Array.isArray(res.data) ? res.data : []);
-      } catch (e) {}
+      } catch (e) { console.error('Failed to fetch messages:', e); }
     };
     fetchMsgs();
   }, [selectedConvId]);
 
-  // WebSocket
+  // WebSocket — single connection, no reconnect on conversation switch
   useEffect(() => {
     const token = getAdminToken();
     if (!token) return;
@@ -172,7 +174,7 @@ export default function AdminChatPage() {
 
     s.on('new_message', (msg: ConversationMessage & { conversationId: string }) => {
       console.log('Admin received new message:', msg);
-      if (msg.conversationId === selectedConvId) {
+      if (msg.conversationId === selectedConvIdRef.current) {
         setMessages(prev => prev.some(m => m.id === msg.id || (m.isOptimistic && m.text === msg.text)) 
           ? prev.map(m => (m.isOptimistic && m.text === msg.text) ? msg : m)
           : [...prev, msg]
@@ -183,7 +185,7 @@ export default function AdminChatPage() {
     s.on('conversation_update', (data: { conversationId: string, lastMessage: any }) => {
       setConversations(prev => {
         const index = prev.findIndex(c => c.id === data.conversationId);
-        if (index === -1) return prev; // Should refetch list if new conv
+        if (index === -1) return prev;
         const updated = [...prev];
         updated[index] = { 
           ...updated[index], 
@@ -195,7 +197,7 @@ export default function AdminChatPage() {
     });
 
     return () => { s.disconnect(); };
-  }, [adminId, selectedConvId]);
+  }, [adminId]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

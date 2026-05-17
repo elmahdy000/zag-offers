@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
+import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { Category } from '@/lib/types';
@@ -15,13 +16,13 @@ const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const { socket, isConnected } = usePublicSocket();
 
   const fetchCats = useCallback(async (force = false) => {
-    // Try cache first
-    const cached = localStorage.getItem('cache_categories_full_v2');
-    if (!force && cached && categories.length === 0) {
-      setCategories(JSON.parse(cached));
+    const cached = safeJsonParse<Category[]>(localStorage.getItem('cache_categories_full_v2'), []);
+    if (!force && cached.length > 0 && categories.length === 0) {
+      setCategories(cached);
       setLoading(false);
     }
 
@@ -35,8 +36,12 @@ export default function CategoriesPage() {
       const data = normalizeCategories(dataRaw);
       setCategories(data);
       localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
+      setError(null);
     } catch (e) {
       console.error('Offline or error:', e);
+      if (!cached.length) {
+        setError('فشل تحميل الأقسام. يرجى التأكد من اتصالك بالإنترنت.');
+      }
     } finally {
       setLoading(false);
     }
@@ -101,6 +106,8 @@ export default function CategoriesPage() {
             <div key={i} className="aspect-[4/5] bg-white/5 rounded-[2.5rem] animate-pulse border border-white/5" />
           ))}
         </div>
+      ) : error ? (
+        <ErrorDisplay message={error} onRetry={() => fetchCatsRef.current(true)} />
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {categories.map((cat, i) => (

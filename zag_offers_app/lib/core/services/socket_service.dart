@@ -11,18 +11,10 @@ class SocketService {
   io.Socket? _socket;
   bool _isInitialized = false;
 
-  // ---------------------------------------------------------------------------
-  // Broadcast streams — subscribe from any page without duplicate listeners
-  // ---------------------------------------------------------------------------
-
-  final _newOfferController =
-      StreamController<Map<String, dynamic>>.broadcast();
-  final _couponUpdateController =
-      StreamController<Map<String, dynamic>>.broadcast();
-  final _socialProofController =
-      StreamController<Map<String, dynamic>>.broadcast();
-  final _categoriesUpdatedController =
-      StreamController<Map<String, dynamic>>.broadcast();
+  late final StreamController<Map<String, dynamic>> _newOfferController;
+  late final StreamController<Map<String, dynamic>> _couponUpdateController;
+  late final StreamController<Map<String, dynamic>> _socialProofController;
+  late final StreamController<Map<String, dynamic>> _categoriesUpdatedController;
 
   /// Emitted when the admin approves a new offer and it goes live.
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
@@ -36,12 +28,19 @@ class SocketService {
   Stream<Map<String, dynamic>> get onCategoriesUpdated =>
       _categoriesUpdatedController.stream;
 
-  // ---------------------------------------------------------------------------
-  // Lifecycle
-  // ---------------------------------------------------------------------------
+  SocketService() {
+    _initControllers();
+  }
+
+  void _initControllers() {
+    _newOfferController = StreamController<Map<String, dynamic>>.broadcast();
+    _couponUpdateController = StreamController<Map<String, dynamic>>.broadcast();
+    _socialProofController = StreamController<Map<String, dynamic>>.broadcast();
+    _categoriesUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
+  }
 
   /// Connects to the WebSocket server and joins the user's private room.
-  /// Safe to call multiple times — subsequent calls are no-ops.
+  /// Safe to call multiple times — subsequent calls are no-ops after first init.
   void initSocket(String userId, String token) {
     if (_isInitialized) return;
 
@@ -64,15 +63,13 @@ class SocketService {
 
     _socket!.on('new_offer', (data) {
       log('[Socket] new_offer: $data');
-      final map = _toMap(data);
-      _newOfferController.add(map);
+      if (!_newOfferController.isClosed) _newOfferController.add(_toMap(data));
     });
 
     _socket!.on('social_proof', (data) {
       log('[Socket] social_proof: $data');
       final map = _toMap(data);
-      _socialProofController.add(map);
-      // Also push to NotificationBloc for the in-app toast
+      if (!_socialProofController.isClosed) _socialProofController.add(map);
       sl<NotificationBloc>().add(NewSocialProofReceived(
         storeName: map['storeName'] ?? '',
         offerTitle: map['offerTitle'] ?? '',
@@ -81,12 +78,12 @@ class SocketService {
 
     _socket!.on('coupon_update', (data) {
       log('[Socket] coupon_update: $data');
-      _couponUpdateController.add(_toMap(data));
+      if (!_couponUpdateController.isClosed) _couponUpdateController.add(_toMap(data));
     });
 
     _socket!.on('categories_updated', (data) {
       log('[Socket] categories_updated: $data');
-      _categoriesUpdatedController.add(_toMap(data));
+      if (!_categoriesUpdatedController.isClosed) _categoriesUpdatedController.add(_toMap(data));
     });
 
     _socket!.onConnectError((error) => log('[Socket] connect_error: $error'));
@@ -105,6 +102,12 @@ class SocketService {
     _socialProofController.close();
     _categoriesUpdatedController.close();
     _isInitialized = false;
+  }
+
+  /// Re-initializes after dispose so the service can be reused after logout/login.
+  void reinit() {
+    dispose();
+    _initControllers();
   }
 
   // ---------------------------------------------------------------------------

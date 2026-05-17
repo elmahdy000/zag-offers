@@ -1,10 +1,11 @@
 "use client";
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCheck, ArrowLeft, Trash2, Tag, Store, Ticket, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { ErrorDisplay } from '@/components/error-display';
 import { API_URL } from '@/lib/constants';
 
 interface Notification {
@@ -58,9 +59,10 @@ export default function NotificationsPage() {
   const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
 
-  const fetchNotifications = async () => {
+  const fetchNotifications = useCallback(async () => {
     const token = localStorage.getItem('token');
     if (!token) {
       setLoading(false);
@@ -77,14 +79,14 @@ export default function NotificationsPage() {
       }
     } catch (e) {
       console.error('Failed to fetch notifications:', e);
+      setError('فشل تحميل الإشعارات. يرجى التأكد من اتصالك بالإنترنت.');
     } finally {
       setLoading(false);
     }
-  };
-
-  useEffect(() => {
-    fetchNotifications();
   }, []);
+
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => { fetchNotifications(); }, []);
 
   const markAsRead = async (id: string) => {
     const token = localStorage.getItem('token');
@@ -95,7 +97,7 @@ export default function NotificationsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.map(n => n.id === id ? { ...n, isRead: true } : n));
-    } catch { /* silent */ }
+    } catch (e) { console.error('Failed to mark notification as read:', e); }
   };
 
   const handleNotifClick = async (notif: Notification) => {
@@ -121,7 +123,7 @@ export default function NotificationsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
-    } catch { /* silent */ }
+    } catch (e) { console.error('Failed to mark all as read:', e); }
   };
 
   const deleteNotification = async (e: React.MouseEvent, id: string) => {
@@ -135,7 +137,7 @@ export default function NotificationsPage() {
         headers: { Authorization: `Bearer ${token}` }
       });
       setNotifications(prev => prev.filter(n => n.id !== id));
-    } catch { /* silent */ }
+    } catch (e) { console.error('Failed to delete notification:', e); }
   };
 
   const deleteSelected = async () => {
@@ -153,7 +155,7 @@ export default function NotificationsPage() {
       );
       setNotifications(prev => prev.filter(n => !selectedIds.has(n.id)));
       setSelectedIds(new Set());
-    } catch { /* silent */ }
+    } catch (e) { console.error('Failed to delete selected notifications:', e); }
   };
 
   const toggleSelect = (e: React.MouseEvent, id: string) => {
@@ -213,6 +215,8 @@ export default function NotificationsPage() {
             <div key={i} className="h-32 bg-white/5 rounded-[2rem] animate-pulse" />
           ))}
         </div>
+      ) : error ? (
+        <ErrorDisplay message={error} onRetry={fetchNotifications} />
       ) : notifications.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}

@@ -20,6 +20,7 @@ interface Notification {
 export default function NotificationsPage() {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   const fetchNotifs = async () => {
     const token = getCookie('auth_token');
@@ -32,8 +33,10 @@ export default function NotificationsPage() {
         const data = await res.json();
         setNotifications(Array.isArray(data) ? data : []);
       }
+      setError(null);
     } catch (e) {
       console.error(e);
+      setError('فشل تحميل التنبيهات');
     } finally {
       setLoading(false);
     }
@@ -68,6 +71,22 @@ export default function NotificationsPage() {
   };
 
   if (loading) return <DashboardSkeleton />;
+
+  if (error) {
+    return (
+      <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto">
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
+            <Bell size={32} className="text-red-500" />
+          </div>
+          <p className="text-sm font-bold text-text-dim mb-4">{error}</p>
+          <button onClick={fetchNotifs} className="text-[11px] font-black bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-dark transition-all">
+            إعادة المحاولة
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto">

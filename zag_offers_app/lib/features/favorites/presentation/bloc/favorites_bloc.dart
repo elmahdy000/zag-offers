@@ -38,20 +38,24 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     Emitter<FavoritesState> emit,
   ) async {
     final toggleResult = await toggleFavoriteUseCase(event.offerId);
-    final toggleFailed = toggleResult.fold<bool>(
-      (failure) {
-        emit(FavoritesError(failure.message));
-        return true;
-      },
-      (_) => false,
-    );
-
-    if (toggleFailed) return;
-
-    final favoritesResult = await getFavoritesUseCase();
-    favoritesResult.fold(
+    toggleResult.fold(
       (failure) => emit(FavoritesError(failure.message)),
-      (favorites) => emit(FavoritesLoaded(favorites)),
+      (_) {
+        // Optimistically update local state to avoid a second API call.
+        // If we're on the favorites page, remove the toggled offer from the list.
+        if (state is FavoritesLoaded) {
+          final currentList = (state as FavoritesLoaded).favorites;
+          final wasFavorited = currentList.any((o) => o.id == event.offerId);
+          if (wasFavorited) {
+            emit(FavoritesLoaded(
+              currentList.where((o) => o.id != event.offerId).toList(),
+            ));
+          } else {
+            // When favoriting from outside the list, keep current state.
+            // The favorites page refreshes on FetchFavorites.
+          }
+        }
+      },
     );
   }
 }

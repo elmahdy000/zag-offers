@@ -110,7 +110,7 @@ export default function VendorChatPage() {
         setConversationId(conv.id);
         const msgsRes = await api.get(`/chat/messages/${conv.id}`);
         setMessages(Array.isArray(msgsRes.data) ? msgsRes.data : []);
-      } catch (e) {} finally { setLoading(false); }
+      } catch (e) { console.error('Failed to init chat:', e); } finally { setLoading(false); }
     };
     initChat();
   }, [userId]);

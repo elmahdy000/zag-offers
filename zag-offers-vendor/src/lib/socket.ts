@@ -27,6 +27,7 @@ export const useSocket = (token?: string | null) => {
     newSocket.on('connect', () => {
       setConnectionStatus('connected');
       console.log('Vendor Socket Connected');
+      newSocket.emit('join_room', { token: activeToken });
     });
 
     newSocket.on('disconnect', () => {

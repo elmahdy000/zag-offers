@@ -75,6 +75,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                   Tab(text: 'نشط'),
                   Tab(text: 'قيد المراجعة'),
                   Tab(text: 'منتهي'),
+                  Tab(text: 'مرفوض'),
                 ],
               ),
             ],
@@ -120,6 +121,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                 _buildOffersList(state.offers, 'ACTIVE'),
                 _buildOffersList(state.offers, 'PENDING'),
                 _buildOffersList(state.offers, 'EXPIRED'),
+                _buildOffersList(state.offers, 'REJECTED'),
               ],
             );
           }
@@ -399,6 +401,10 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       case 'EXPIRED':
         color = AppColors.textTertiary;
         text = 'منتهي';
+        break;
+      case 'REJECTED':
+        color = AppColors.error;
+        text = 'مرفوض';
         break;
       default:
         color = AppColors.textTertiary;

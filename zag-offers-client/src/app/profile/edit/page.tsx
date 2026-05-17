@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { ArrowRight, Save, User, MapPin, Lock, Loader2, CheckCircle2, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
+import { safeJsonParse } from '@/components/error-display';
 
 interface User {
   name: string;
@@ -27,10 +28,9 @@ export default function EditProfilePage() {
   const [message, setMessage] = useState<{ type: 'success' | 'error', text: string } | null>(null);
 
   useEffect(() => {
-    const savedUser = localStorage.getItem('user');
-    if (savedUser) {
+    const parsed = safeJsonParse<User | null>(localStorage.getItem('user'), null);
+    if (parsed) {
       setTimeout(() => {
-        const parsed = JSON.parse(savedUser);
         setUser(parsed);
         setName(parsed.name || '');
         setArea(parsed.area || '');

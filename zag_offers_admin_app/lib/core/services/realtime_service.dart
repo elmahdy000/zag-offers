@@ -59,6 +59,7 @@ class RealtimeService {
 
     socket.onConnect((_) {
       debugPrint('Realtime connected');
+      socket.emit('join_room', {'token': token});
     });
 
     socket.onDisconnect((_) {

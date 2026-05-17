@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../injection_container.dart' as di;
-import '../../data/datasources/offers_remote_data_source.dart';
+import '../../domain/repositories/offers_repository.dart';
 import 'offer_detail_page.dart';
 
 class OfferLoadingPage extends StatefulWidget {
@@ -21,23 +21,24 @@ class _OfferLoadingPageState extends State<OfferLoadingPage> {
   }
 
   Future<void> _fetchAndNavigate() async {
-    try {
-      final remoteDataSource = di.sl<OffersRemoteDataSource>();
-      final offer = await remoteDataSource.getOfferById(widget.offerId);
-      
-      if (mounted) {
+    final repository = di.sl<OffersRepository>();
+    final result = await repository.getOfferById(widget.offerId);
+    
+    if (!mounted) return;
+
+    result.fold(
+      (failure) {
+        SnackBarUtils.showError(context, failure.message);
+        Navigator.of(context).pop();
+      },
+      (offer) {
         Navigator.of(context).pushReplacement(
           MaterialPageRoute(
             builder: (_) => OfferDetailPage(offer: offer),
           ),
         );
-      }
-    } catch (e) {
-      if (mounted) {
-        SnackBarUtils.showError(context, 'فشل تحميل العرض، يرجى المحاولة مرة أخرى.');
-        Navigator.of(context).pop();
-      }
-    }
+      },
+    );
   }
 
   @override

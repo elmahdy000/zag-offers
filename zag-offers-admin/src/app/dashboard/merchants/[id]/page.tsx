@@ -119,7 +119,7 @@ export default function MerchantDetailPage() {
   const rejectMutation = useMutation({
     mutationFn: (reason: string) => adminApi().patch(`/admin/stores/${id}/reject`, { reason }),
     onSuccess: () => {
-      queryClient.invalidateQueries({ queryKey: ['store', id] });
+      queryClient.invalidateQueries({ queryKey: ['merchant-details', id] });
       showToast('تم رفض المتجر');
       setRejectModal(false);
       setRejectReason('');
@@ -296,25 +296,6 @@ export default function MerchantDetailPage() {
             <div className="space-y-3">
                {store.status === 'APPROVED' ? (
                  <button 
-                   onClick={() => changeStatusMutation.mutate('suspend')}
-                   disabled={changeStatusMutation.isPending}
-                   className="w-full h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
-                 >
-                   {changeStatusMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <ShieldOff size={18} />}
-                   إيقاف نشاط المتجر
-                 </button>
-               ) : (
-                 <button 
-                   onClick={() => changeStatusMutation.mutate('approve')}
-                   disabled={changeStatusMutation.isPending}
-                   className="w-full h-12 rounded-xl bg-emerald-600 text-white font-bold text-sm flex items-center justify-center gap-2 hover:bg-emerald-700 transition-all shadow-lg shadow-emerald-900/10"
-                 >
-                   {changeStatusMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : <ShieldCheck size={18} />}
-                   تفعيل المتجر الآن
-                 </button>
-               )}
-               {store.status === 'APPROVED' ? (
-                 <button
                    onClick={() => changeStatusMutation.mutate('suspend')}
                    disabled={changeStatusMutation.isPending}
                    className="w-full h-12 rounded-xl bg-rose-50 text-rose-600 font-bold text-sm flex items-center justify-center gap-2 hover:bg-rose-600 hover:text-white transition-all border border-rose-100"

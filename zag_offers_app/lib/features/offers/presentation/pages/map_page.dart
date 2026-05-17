@@ -465,7 +465,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                       const SizedBox(width: 4),
                                       Expanded(
                                         child: Text(
-                                          '???????? - ' + (store.area ?? '') + ' (???? ' + distance.toStringAsFixed(0) + '?)',
+                                          '${store.area ?? ''} (${distance.toStringAsFixed(0)}م)',
                                           style: GoogleFonts.cairo(
                                             color: Colors.white70,
                                             fontSize: 12,
