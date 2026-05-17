@@ -259,21 +259,27 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             fontWeight: FontWeight.w900,
             letterSpacing: -0.5,
           ),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         const SizedBox(height: 8),
         Row(
           children: [
-            Container(
-              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                borderRadius: BorderRadius.circular(12),
-              ),
-              child: Text(
-                widget.store.category ?? 'متجر',
-                style: theme.textTheme.labelMedium?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.bold,
+            Flexible(
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: Text(
+                  widget.store.category ?? 'متجر',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.bold,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
                 ),
               ),
             ),
@@ -284,11 +290,15 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
               color: theme.textTheme.bodyMedium?.color?.withValues(alpha: 0.6),
             ),
             const SizedBox(width: 4),
-            Text(
-              widget.store.area,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-                fontWeight: FontWeight.w500,
+            Flexible(
+              child: Text(
+                widget.store.area,
+                style: theme.textTheme.bodyMedium?.copyWith(
+                  color: AppColors.textSecondary,
+                  fontWeight: FontWeight.w500,
+                ),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
               ),
             ),
           ],
@@ -397,6 +407,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
 
   Widget _buildOfferCard(BuildContext context, dynamic offer) {
     final theme = Theme.of(context);
+    final String discountText = offer.discount?.toString() ?? '';
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -410,16 +421,18 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           width: 56,
           height: 56,
           child: NetworkImageWidget(
-            imageUrl: offer.image,
+            imageUrl: offer.image ?? (offer.images?.isNotEmpty == true ? offer.images!.first : null),
             borderRadius: BorderRadius.circular(12),
           ),
         ),
         title: Text(
-          offer.title,
+          offer.title ?? '',
           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
+          maxLines: 2,
+          overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          'خصم ${offer.discountPercentage.toInt()}%',
+          discountText.isNotEmpty ? 'خصم $discountText' : 'خصم مميز',
           style: theme.textTheme.labelMedium?.copyWith(
             color: AppColors.success,
             fontWeight: FontWeight.bold,
@@ -477,13 +490,19 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                         Row(
                           mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
-                            Text(
-                              review.customerName,
-                              style: theme.textTheme.titleSmall?.copyWith(
-                                fontWeight: FontWeight.bold,
+                            Expanded(
+                              child: Text(
+                                review.customerName,
+                                style: theme.textTheme.titleSmall?.copyWith(
+                                  fontWeight: FontWeight.bold,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
                               ),
                             ),
+                            const SizedBox(width: 8),
                             Row(
+                              mainAxisSize: MainAxisSize.min,
                               children: List.generate(
                                 5,
                                 (i) => Icon(
