@@ -5,7 +5,7 @@ import { useSearchParams, useRouter, usePathname } from 'next/navigation';
 import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
-import { API_URL, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
+import { API_URL, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { usePublicSocket } from '@/lib/socket';
 
@@ -14,17 +14,17 @@ import { Offer, Category, SortOption } from '@/lib/types';
 const AREAS = ZAGAZIG_AREAS;
 
 const CAT_ICONS: Record<string, React.ReactNode> = {
-  'مطاعم':         <Utensils size={14} />,
-  'كافيهات':       <Coffee size={14} />,
-  'ملابس':         <Shirt size={14} />,
-  'جيم':           <Dumbbell size={14} />,
-  'تجميل':         <Sparkles size={14} />,
-  'عيادات':        <Hospital size={14} />,
-  'سوبرماركت':    <ShoppingCart size={14} />,
-  'دورات':         <BookOpen size={14} />,
-  'خدمات سيارات': <Car size={14} />,
-  'خدمات محلية':  <Wrench size={14} />,
-  'default':       <Sparkles size={14} />,
+  'مطاعم':         <Utensils size={12} />,
+  'كافيهات':       <Coffee size={12} />,
+  'ملابس':         <Shirt size={12} />,
+  'جيم':           <Dumbbell size={12} />,
+  'تجميل':         <Sparkles size={12} />,
+  'عيادات':        <Hospital size={12} />,
+  'سوبرماركت':    <ShoppingCart size={12} />,
+  'دورات':         <BookOpen size={12} />,
+  'خدمات سيارات': <Car size={12} />,
+  'خدمات محلية':  <Wrench size={12} />,
+  'default':       <Sparkles size={12} />,
 };
 
 // --- Debounce Hook ---
@@ -166,8 +166,7 @@ function OffersPageContent() {
   const grouped = useMemo(() => {
     const groups: Record<string, Offer[]> = {};
     filtered.forEach(o => {
-      const rawName = o.store?.category?.name || 'عروض أخرى';
-      const catName = DISPLAY_NAMES[rawName] || rawName;
+      const catName = o.store?.category?.name || 'عروض أخرى';
       if (!groups[catName]) groups[catName] = [];
       groups[catName].push(o);
     });
@@ -175,35 +174,35 @@ function OffersPageContent() {
   }, [filtered]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
+    <div className="max-w-7xl mx-auto px-4 py-6" dir="rtl">
 
       {/* ─── Page Title ──────────────────────────────────── */}
-      <div className="mb-6 sm:mb-10">
-        <h1 className="text-2xl sm:text-3xl font-black flex items-center gap-3">
-          <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-            <Flame size={22} />
+      <div className="mb-5 sm:mb-8">
+        <h1 className="text-xl sm:text-2xl font-black flex items-center gap-2.5">
+          <div className="w-9 h-9 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
+            <Flame size={19} />
           </div>
           استكشف العروض
         </h1>
-        <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mt-2">
+        <p className="text-[#9A9A9A] text-[11px] sm:text-xs font-bold mt-1.5">
           عروض حية ومعتمدة من أفضل المحلات في الزقازيق
         </p>
       </div>
 
       {/* ─── Filters Card ────────────────────────────────── */}
-      <div className="bg-[#252525] border border-white/[0.07] rounded-2xl p-5 mb-8 space-y-4">
+      <div className="bg-[#252525] border border-white/[0.07] rounded-2xl p-4 mb-6 space-y-3">
 
         {/* Search */}
         <div className="relative">
           <Search
-            className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none"
-            size={18}
+            className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none"
+            size={16}
           />
           <input
             type="text"
             placeholder="ابحث عن عرض أو محل..."
             className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
-                       pr-11 pl-4 py-3 text-sm font-bold text-[#F0F0F0]
+                       pr-10 pl-3.5 py-2.5 text-sm font-bold text-[#F0F0F0]
                        placeholder:text-[#9A9A9A] outline-none
                        focus:border-[#FF6B00] focus:shadow-[0_0_0_3px_rgba(255,107,0,0.15)]
                        transition-all"
@@ -213,37 +212,37 @@ function OffersPageContent() {
         </div>
 
         {/* Category Ribbon */}
-        <div className="flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar scroll-smooth -mx-1 px-1">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar scroll-smooth -mx-0.5 px-0.5">
           <button
             onClick={() => setActiveCat('')}
-            className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap font-black transition-all text-xs sm:text-sm ${
+            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl whitespace-nowrap font-black transition-all text-[11px] sm:text-xs ${
               !activeCat 
               ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
               : 'bg-[#252525] text-white/60 hover:bg-[#252525] hover:text-white border border-white/5'
             }`}
           >
-            <Layers size={14} /> الكل
+            <Layers size={12} /> الكل
           </button>
           {categories.map(cat => (
             <button
               key={cat.id}
               onClick={() => setActiveCat(cat.id)}
-              className={`flex items-center gap-2 px-5 py-2.5 rounded-2xl whitespace-nowrap font-black transition-all text-xs sm:text-sm ${
+              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl whitespace-nowrap font-black transition-all text-[11px] sm:text-xs ${
                 activeCat === cat.id 
                 ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
                 : 'bg-[#252525] text-white/60 hover:bg-[#252525] hover:text-white border border-white/5'
               }`}
             >
-              {CAT_ICONS[cat.name] || CAT_ICONS.default} {DISPLAY_NAMES[cat.name] || cat.name}
+              {CAT_ICONS[cat.name] || CAT_ICONS.default} {cat.name}
             </button>
           ))}
         </div>
 
         {/* Filters Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
           <select
             className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
-                       pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
+                       pr-3.5 py-2.5 text-xs font-bold text-[#F0F0F0] cursor-pointer outline-none
                        focus:border-[#FF6B00] transition-all appearance-none"
             value={area}
             onChange={e => setArea(e.target.value)}
@@ -254,7 +253,7 @@ function OffersPageContent() {
 
           <select
             className="flex-1 min-w-[160px] bg-[#1E1E1E] border border-white/[0.07] rounded-xl
-                       pr-4 py-3 text-sm font-bold text-[#F0F0F0] cursor-pointer outline-none
+                       pr-3.5 py-2.5 text-xs font-bold text-[#F0F0F0] cursor-pointer outline-none
                        focus:border-[#FF6B00] transition-all appearance-none"
             value={sort}
             onChange={e => setSort(e.target.value as SortOption)}
@@ -268,14 +267,14 @@ function OffersPageContent() {
 
       {/* ─── Results Bar ─────────────────────────────────── */}
       {!loading && (
-        <div className="flex items-center justify-between mb-8">
-          <p className="text-sm font-semibold text-[#9A9A9A]">
+        <div className="flex items-center justify-between mb-6">
+          <p className="text-xs font-semibold text-[#9A9A9A]">
             وجدنا <span className="text-[#F0F0F0] font-bold">{filtered.length}</span> عرض متاح
           </p>
           {(search || activeCat || area) && (
             <button
               onClick={() => { setSearch(''); setActiveCat(''); setArea(''); }}
-              className="text-xs font-bold text-[#FF6B00] hover:underline"
+              className="text-[11px] font-bold text-[#FF6B00] hover:underline"
             >
               ✕ مسح الفلاتر
             </button>
@@ -285,36 +284,36 @@ function OffersPageContent() {
 
       {/* ─── Grouped Content ─────────────────────────────── */}
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
-          {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
+        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
+          {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center py-24 gap-4 text-center">
-          <div className="w-20 h-20 bg-[#252525] rounded-full flex items-center justify-center text-4xl">🔍</div>
-          <h3 className="text-lg font-bold">لا توجد عروض تطابق بحثك</h3>
-          <p className="text-sm text-[#9A9A9A] max-w-xs leading-relaxed">
+        <div className="flex flex-col items-center py-20 gap-3 text-center">
+          <div className="w-16 h-16 bg-[#252525] rounded-full flex items-center justify-center text-2xl">🔍</div>
+          <h3 className="text-base font-bold">لا توجد عروض تطابق بحثك</h3>
+          <p className="text-xs text-[#9A9A9A] max-w-xs leading-relaxed">
             جرّب تغيير كلمة البحث أو تحديد فلاتر مختلفة
           </p>
         </div>
       ) : (
         /* Render Grouped by Category */
-        <div className="space-y-16">
+        <div className="space-y-10">
           {Object.entries(grouped).map(([categoryName, categoryOffers]) => (
             <div key={categoryName} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Category Header */}
-              <div className="flex items-center gap-3 mb-6">
-                <div className="w-8 h-8 bg-[#FF6B00]/10 rounded-lg flex items-center justify-center text-[#FF6B00]">
-                  {CAT_ICONS[categoryName] || <Layers size={16} />}
+              <div className="flex items-center gap-2.5 mb-4">
+                <div className="w-7 h-7 bg-[#FF6B00]/10 rounded-lg flex items-center justify-center text-[#FF6B00]">
+                  {CAT_ICONS[categoryName] || <Layers size={13} />}
                 </div>
-                <h2 className="text-lg sm:text-xl font-black text-[#F0F0F0]">{categoryName}</h2>
+                <h2 className="text-sm sm:text-base font-black text-[#F0F0F0]">{categoryName}</h2>
                 <div className="h-px flex-1 bg-white/[0.04]" />
-                <span className="text-[9px] font-black text-[#9A9A9A] uppercase tracking-wider bg-white/[0.02] px-3 py-1 rounded-full border border-white/[0.05]">
+                <span className="text-[8px] font-black text-[#9A9A9A] uppercase tracking-wider bg-white/[0.02] px-2.5 py-0.5 rounded-full border border-white/[0.05]">
                   {categoryOffers.length}
                 </span>
               </div>
 
               {/* Offers Grid for this category */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-3 sm:gap-4">
+              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
                 {categoryOffers.map((offer) => (
                   <OfferCard key={offer.id} offer={offer} />
                 ))}

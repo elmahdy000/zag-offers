@@ -101,7 +101,6 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
   useEffect(() => {
     if (!offer?.id) return;
 
-    // Read favorite status from localStorage only (avoids N+1 API calls per card)
     try {
       const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
       setTimeout(() => {
@@ -110,7 +109,6 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     } catch { /* silent */ }
   }, [offer?.id]);
 
-  // ─── Guard: render nothing for invalid data ───────────────────────────────
   if (!offer || !offer.id) {
     console.error('Invalid offer data:', offer);
     return null;
@@ -121,7 +119,6 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     return null;
   }
 
-  // ─── Derived values ───────────────────────────────────────────────────────
   const daysLeft = calculateDaysLeft(offer.endDate);
 
   const logoUrl = resolveImageUrl(offer.store?.logo);
@@ -132,10 +129,10 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
   const expiryColor =
     daysLeft <= 0 ? 'text-red-400' : daysLeft <= 3 ? 'text-orange-400' : 'text-[#9A9A9A]';
   const expiryText =
-    daysLeft <= 0  ? '⚠️ انتهى'
-    : daysLeft === 1 ? '⚡ آخر يوم!'
-    : daysLeft <= 3  ? `⏰ ${daysLeft} أيام`
-    : `📅 ${daysLeft} يوم`;
+    daysLeft <= 0  ? 'منتهي'
+    : daysLeft === 1 ? 'آخر يوم!'
+    : daysLeft <= 3  ? `${daysLeft} أيام`
+    : `${daysLeft} يوم`;
 
   const discountDisplay = offer.discount ? offer.discount.trim() : '0%';
 
@@ -146,7 +143,6 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     const token = localStorage.getItem('token');
 
     if (token) {
-      // Use API if logged in — optimistic update
       setIsFav(prev => !prev);
       try {
         const res = await fetch(`${API_URL}/favorites/toggle/${offer.id}`, {
@@ -156,7 +152,6 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         if (res.ok) {
           const data = await res.json();
           setIsFav(data.favorited);
-          // Sync localStorage
           try {
             const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
             const updated = data.favorited
@@ -165,13 +160,12 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
             localStorage.setItem('favorites', JSON.stringify(updated));
           } catch { /* silent */ }
         } else {
-          setIsFav(prev => !prev); // revert on failure
+          setIsFav(prev => !prev);
         }
       } catch {
-        setIsFav(prev => !prev); // revert on error
+        setIsFav(prev => !prev);
       }
     } else {
-      // Fallback to localStorage
       try {
         const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
         const updated = isFav
@@ -190,71 +184,65 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
   return (
     <motion.div
-      whileHover={{ y: -4, transition: { duration: 0.2 } }}
+      whileHover={{ y: -3, transition: { duration: 0.15 } }}
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="group relative bg-[#252525] border border-white/[0.06] rounded-md overflow-hidden hover:border-[#FF6B00]/30 hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]
+      className="group relative bg-[#252525] border border-white/[0.06] rounded-lg overflow-hidden hover:border-[#FF6B00]/30 hover:shadow-[0_8px_20px_rgba(0,0,0,0.35)]
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className={`relative h-32 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
-        
-        {/* Background Image if exists */}
+      <div className={`relative h-[116px] bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+
         {offerImage && (
-          <Image 
-            src={offerImage} 
-            alt={offer.title} 
+          <Image
+            src={offerImage}
+            alt={offer.title}
             fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-80" 
+            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
             sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
             quality={75}
             priority={priority}
           />
         )}
 
-        {/* Overlay gradient to ensure text readability */}
         <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/5" />
 
-        {/* Featured */}
         {offer.featured && (
-          <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
-                          text-[#1a1a1a] text-[8px] font-semibold rounded-md shadow-lg uppercase tracking-tighter">
+          <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
+                          text-[#1a1a1a] text-[7px] font-semibold rounded-md shadow-lg">
             ⭐ مميز
           </div>
         )}
 
-        {/* Discount */}
-        <div className="absolute top-2 right-2 z-10 px-2 py-0.5
+        <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5
                         bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
-                        text-white text-[10px] font-black rounded-md
-                        shadow-[0_4px_12px_rgba(255,107,0,0.4)]">
+                        text-white text-[9px] font-black rounded-[4px]
+                        shadow-[0_3px_10px_rgba(255,107,0,0.35)]">
           {discountDisplay}
         </div>
 
-        {/* Fav */}
         <button
           onClick={toggleFav}
-          className={`absolute bottom-2 left-2 z-10 p-1 rounded-md backdrop-blur-md border transition-all
+          className={`absolute bottom-1.5 left-1.5 z-10 p-1 rounded-md backdrop-blur-md border transition-all
             ${isFav
               ? 'bg-red-500/20 border-red-500/50 text-red-400'
               : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
         >
-          <RiHeartFill size={12} className={isFav ? 'text-red-500' : 'text-white/40'} />
+          <RiHeartFill size={11} className={isFav ? 'text-red-500' : 'text-white/40'} />
         </button>
 
-        {/* Store Logo */}
-        <div className="absolute -bottom-3 right-3 z-20
-                        w-9 h-9 rounded-md border-2 border-[#252525]
-                        bg-[#1E1E1E] overflow-hidden shadow-xl
+        <div className="absolute -bottom-3 right-2.5 z-20
+                        w-8 h-8 rounded-md border-2 border-[#252525]
+                        bg-[#1E1E1E] overflow-hidden shadow-lg
                         flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
           {logoUrl
             ? <Image
                 src={logoUrl}
                 alt={offer.store?.name || 'Store Logo'}
-                width={40}
-                height={40}
+                width={32}
+                height={32}
                 className="w-full h-full object-cover"
                 loading="lazy"
-                sizes="40px"
+                sizes="32px"
                 quality={80}
               />
             : <div className="text-white/20 scale-75">{catIcon}</div>
@@ -263,65 +251,59 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-2.5 pt-3.5 pb-2.5 gap-1">
+      <div className="flex flex-col flex-1 px-2.5 pt-3 pb-2 gap-0.5">
 
-        {/* Category */}
         {catName && (
-          <span className="text-[8px] font-semibold text-[#FF6B00] uppercase tracking-widest flex items-center gap-1">
+          <span className="text-[7px] font-semibold text-[#FF6B00] uppercase tracking-widest flex items-center gap-1">
             <span className="scale-75 opacity-70">{catIcon}</span> {catName}
           </span>
         )}
 
-        {/* Title */}
-        <h3 className="text-[11px] font-semibold text-[#F0F0F0] leading-snug line-clamp-2
-                       group-hover:text-[#FF6B00] transition-colors min-h-[30px]">
+        <h3 className="text-[10.5px] font-semibold text-[#F0F0F0] leading-snug line-clamp-2
+                       group-hover:text-[#FF6B00] transition-colors min-h-[28px]">
           {offer.title}
         </h3>
 
-        {/* Prices */}
         {offer.newPrice ? (
-          <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-[14px] font-bold text-[#FF6B00]">
+          <div className="flex items-baseline gap-1.5 mt-0.5">
+            <span className="text-[13px] font-bold text-[#FF6B00]">
               {offer.newPrice} ج.م
             </span>
             {offer.originalPrice && (
-              <span className="text-[9px] text-[#9A9A9A] line-through font-semibold">
-                بدل {offer.originalPrice} ج.م
+              <span className="text-[8px] text-[#9A9A9A] line-through font-semibold">
+                {offer.originalPrice} ج.م
               </span>
             )}
           </div>
         ) : null}
 
-        {/* Store & Social Proof */}
-        <div className="flex items-center justify-between">
-          <p className="text-[9px] text-[#9A9A9A] font-semibold flex items-center gap-1">
-            <span className="opacity-50 text-[9px]">🏪</span>
+        <div className="flex items-center justify-between mt-0.5">
+          <p className="text-[8px] text-[#9A9A9A] font-semibold flex items-center gap-1 truncate max-w-[70%]">
+            <span className="opacity-50">🏪</span>
             {offer.store?.name}
           </p>
           {(offer._count?.coupons || 0) > 0 && (
-            <span className="text-[8px] font-semibold text-orange-400 bg-orange-500/5 px-1 py-0.5 rounded flex items-center gap-1">
+            <span className="text-[7px] font-semibold text-orange-400 bg-orange-500/5 px-1 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
               {offer._count?.coupons} طلب
             </span>
           )}
         </div>
 
-        {/* Meta */}
-        <div className="mt-auto pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1">
+        <div className="mt-auto pt-1.5 border-t border-white/[0.04] flex items-center justify-between gap-1">
           <div className="flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.03] rounded-md border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
-            <RiMapPin2Line size={10} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-[8px] font-semibold text-[#8A8A8A] truncate max-w-[70px] group-hover:text-white transition-colors">
+            <RiMapPin2Line size={9} className="text-[#FF6B00] flex-shrink-0" />
+            <span className="text-[7px] font-semibold text-[#8A8A8A] truncate max-w-[65px] group-hover:text-white transition-colors">
               {offer.store?.area || 'الزقازيق'}
             </span>
           </div>
-          <span className={`text-[8px] font-semibold ${expiryColor}`}>{expiryText}</span>
+          <span className={`text-[7px] font-semibold ${expiryColor}`}>{expiryText}</span>
         </div>
 
-        {/* CTA */}
         <div
-          className="mt-1 w-full py-1.5 text-center text-[10px] font-semibold text-[#FF6B00]
+          className="mt-1 w-full py-1 text-center text-[9px] font-semibold text-[#FF6B00]
                      bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-md
                      group-hover:bg-[#FF6B00] group-hover:text-white group-hover:border-[#FF6B00]
-                     group-hover:shadow-[0_4px_12px_rgba(255,107,0,0.3)]
+                     group-hover:shadow-[0_3px_10px_rgba(255,107,0,0.25)]
                      transition-all duration-200"
         >
           🏷️ احصل على العرض
@@ -333,14 +315,14 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
 /* ─── Skeleton ──────────────────────────────────── */
 export const SkeletonCard = () => (
-  <div className="bg-[#252525] border border-white/[0.07] rounded-xl overflow-hidden">
-    <div className="h-32 skeleton-shimmer" />
-    <div className="px-3 pt-6 pb-3 space-y-2.5">
-      <div className="h-2 w-1/3 skeleton-shimmer rounded-full" />
-      <div className="h-3.5 w-full skeleton-shimmer rounded-full" />
-      <div className="h-3.5 w-3/4 skeleton-shimmer rounded-full" />
-      <div className="h-2.5 w-1/2 skeleton-shimmer rounded-full" />
-      <div className="h-8 w-full skeleton-shimmer rounded-md mt-1.5" />
+  <div className="bg-[#252525] border border-white/[0.07] rounded-lg overflow-hidden">
+    <div className="h-[116px] skeleton-shimmer" />
+    <div className="px-2.5 pt-3 pb-2 space-y-2">
+      <div className="h-1.5 w-1/3 skeleton-shimmer rounded-full" />
+      <div className="h-3 w-full skeleton-shimmer rounded-full" />
+      <div className="h-2.5 w-3/4 skeleton-shimmer rounded-full" />
+      <div className="h-2 w-1/2 skeleton-shimmer rounded-full" />
+      <div className="h-6 w-full skeleton-shimmer rounded-md mt-1" />
     </div>
   </div>
 );
