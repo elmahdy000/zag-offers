@@ -139,11 +139,19 @@ export class OffersService {
       now.getDate(),
     );
 
+    const incomingStoreWhere =
+      store && typeof store === 'object'
+        ? (store as Prisma.StoreWhereInput)
+        : undefined;
+
     const finalWhere: Prisma.OfferWhereInput = {
       ...safeWhere,
       status: OfferStatus.ACTIVE,
       endDate: { gte: startOfToday },
-      store: { status: StoreStatus.APPROVED },
+      store: {
+        ...(incomingStoreWhere ?? {}),
+        status: StoreStatus.APPROVED,
+      },
     };
 
     const items = await this.prisma.offer.findMany({
