@@ -161,47 +161,58 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           : Column(
               children: [
                 Expanded(
-                  child: Stack(
-                    alignment: Alignment.center,
-                    children: [
-                      Positioned.fill(
-                        child: AnimatedBuilder(
-                          animation: _sweepController,
-                          builder: (context, child) {
-                            return CustomPaint(
-                              painter: _RadarPainter(
-                                angle: _sweepController.value * 2 * math.pi,
-                                primaryColor: AppColors.primary,
-                              ),
-                            );
-                          },
-                        ),
-                      ),
-                      ..._buildRadarNodes(),
-                      Positioned(
-                        child: Container(
-                          width: 48,
-                          height: 48,
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: AppColors.primary.withValues(alpha: 0.15),
-                            border: Border.all(color: AppColors.primary, width: 2),
-                            boxShadow: [
-                              BoxShadow(
-                                color: AppColors.primary.withValues(alpha: 0.5),
-                                blurRadius: 16,
-                                spreadRadius: 4,
-                              ),
-                            ],
+                  child: LayoutBuilder(
+                    builder: (context, constraints) {
+                      final center = Offset(
+                        constraints.maxWidth / 2,
+                        constraints.maxHeight / 2,
+                      );
+                      final radius =
+                          math.min(constraints.maxWidth, constraints.maxHeight) * 0.42;
+
+                      return Stack(
+                        alignment: Alignment.center,
+                        children: [
+                          Positioned.fill(
+                            child: AnimatedBuilder(
+                              animation: _sweepController,
+                              builder: (context, child) {
+                                return CustomPaint(
+                                  painter: _RadarPainter(
+                                    angle: _sweepController.value * 2 * math.pi,
+                                    primaryColor: AppColors.primary,
+                                  ),
+                                );
+                              },
+                            ),
                           ),
-                          child: const Icon(
-                            Icons.my_location_rounded,
-                            color: Colors.white,
-                            size: 20,
+                          ..._buildRadarNodes(center, radius),
+                          Positioned(
+                            child: Container(
+                              width: 48,
+                              height: 48,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: AppColors.primary.withValues(alpha: 0.15),
+                                border: Border.all(color: AppColors.primary, width: 2),
+                                boxShadow: [
+                                  BoxShadow(
+                                    color: AppColors.primary.withValues(alpha: 0.5),
+                                    blurRadius: 16,
+                                    spreadRadius: 4,
+                                  ),
+                                ],
+                              ),
+                              child: const Icon(
+                                Icons.my_location_rounded,
+                                color: Colors.white,
+                                size: 20,
+                              ),
+                            ),
                           ),
-                        ),
-                      ),
-                    ],
+                        ],
+                      );
+                    },
                   ),
                 ),
                 _buildBottomCarousel(),
@@ -210,100 +221,101 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     );
   }
 
-  List<Widget> _buildRadarNodes() {
+  List<Widget> _buildRadarNodes(Offset center, double radius) {
     return _radarNodes.map((node) {
       final isSelected = _selectedStoreIndex == node.index;
-      return LayoutBuilder(
-        builder: (context, constraints) {
-          final center = Offset(constraints.maxWidth / 2, constraints.maxHeight / 2);
-          final radius = math.min(constraints.maxWidth, constraints.maxHeight) * 0.42;
 
-          final nodeRadius = node.normalizedRadius * radius;
-          final x = center.dx + nodeRadius * math.cos(node.angle);
-          final y = center.dy + nodeRadius * math.sin(node.angle);
+      final nodeRadius = node.normalizedRadius * radius;
+      final x = center.dx + nodeRadius * math.cos(node.angle);
+      final y = center.dy + nodeRadius * math.sin(node.angle);
 
-          final storeColor = _getCategoryColor(node.store.category);
+      final storeColor = _getCategoryColor(node.store.category);
 
-          return Positioned(
-            left: x - 24,
-            top: y - 24,
-            child: AnimatedBuilder(
-              animation: _sweepController,
-              builder: (context, child) {
-                double diff = (_sweepController.value * 2 * math.pi - node.angle) % (2 * math.pi);
-                bool isSweeping = diff < 0.25;
+      return Positioned(
+        left: x - 24,
+        top: y - 24,
+        child: AnimatedBuilder(
+          animation: _sweepController,
+          builder: (context, child) {
+            double diff =
+                (_sweepController.value * 2 * math.pi - node.angle) %
+                    (2 * math.pi);
+            bool isSweeping = diff < 0.25;
 
-                return GestureDetector(
-                  onTap: () {
-                    setState(() {
-                      _selectedStoreIndex = node.index;
-                    });
-                    _pageController.animateToPage(
-                      node.index,
-                      duration: const Duration(milliseconds: 400),
-                      curve: Curves.easeInOut,
-                    );
-                  },
-                  child: Container(
-                    width: 48,
-                    height: 48,
-                    alignment: Alignment.center,
-                    child: Stack(
-                      alignment: Alignment.center,
-                      children: [
-                        AnimatedContainer(
-                          duration: const Duration(milliseconds: 300),
-                          width: isSelected ? 48 : (isSweeping ? 42 : 36),
-                          height: isSelected ? 48 : (isSweeping ? 42 : 36),
-                          decoration: BoxDecoration(
-                            shape: BoxShape.circle,
-                            color: isSelected
-                                ? storeColor.withValues(alpha: 0.25)
-                                : const Color(0xFF1E293B).withValues(alpha: 0.8),
-                            border: Border.all(
-                              color: isSelected ? storeColor : (isSweeping ? Colors.white : storeColor.withValues(alpha: 0.6)),
-                              width: isSelected ? 3.0 : 1.5,
-                            ),
-                            boxShadow: [
-                              BoxShadow(
-                                color: storeColor.withValues(alpha: isSelected ? 0.6 : 0.2),
-                                blurRadius: isSelected ? 12 : 6,
-                                spreadRadius: isSelected ? 3 : 1,
-                              ),
-                            ],
-                          ),
-                          child: ClipOval(
-                            child: node.store.logo != null && node.store.logo!.isNotEmpty
-                                ? Image.network(
-                                    node.store.logo!,
-                                    width: double.infinity,
-                                    height: double.infinity,
-                                    fit: BoxFit.cover,
-                                    errorBuilder: (_, __, ___) => Icon(
-                                      _getCategoryIcon(node.store.category),
-                                      color: Colors.white,
-                                      size: 16,
-                                    ),
-                                  )
-                                : Icon(
-                                    _getCategoryIcon(node.store.category),
-                                    color: Colors.white,
-                                    size: 16,
-                                  ),
-                          ),
-                        ),
-                        if (isSelected)
-                          Positioned.fill(
-                            child: _PulsingRing(color: storeColor),
-                          ),
-                      ],
-                    ),
-                  ),
+            return GestureDetector(
+              onTap: () {
+                setState(() {
+                  _selectedStoreIndex = node.index;
+                });
+                _pageController.animateToPage(
+                  node.index,
+                  duration: const Duration(milliseconds: 400),
+                  curve: Curves.easeInOut,
                 );
               },
-            ),
-          );
-        },
+              child: SizedBox(
+                width: 48,
+                height: 48,
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    AnimatedContainer(
+                      duration: const Duration(milliseconds: 300),
+                      width: isSelected ? 48 : (isSweeping ? 42 : 36),
+                      height: isSelected ? 48 : (isSweeping ? 42 : 36),
+                      decoration: BoxDecoration(
+                        shape: BoxShape.circle,
+                        color: isSelected
+                            ? storeColor.withValues(alpha: 0.25)
+                            : const Color(0xFF1E293B).withValues(alpha: 0.8),
+                        border: Border.all(
+                          color: isSelected
+                              ? storeColor
+                              : (isSweeping
+                                  ? Colors.white
+                                  : storeColor.withValues(alpha: 0.6)),
+                          width: isSelected ? 3.0 : 1.5,
+                        ),
+                        boxShadow: [
+                          BoxShadow(
+                            color: storeColor
+                                .withValues(alpha: isSelected ? 0.6 : 0.2),
+                            blurRadius: isSelected ? 12 : 6,
+                            spreadRadius: isSelected ? 3 : 1,
+                          ),
+                        ],
+                      ),
+                      child: ClipOval(
+                        child: node.store.logo != null &&
+                                node.store.logo!.isNotEmpty
+                            ? Image.network(
+                                node.store.logo!,
+                                width: double.infinity,
+                                height: double.infinity,
+                                fit: BoxFit.cover,
+                                errorBuilder: (_, __, ___) => Icon(
+                                  _getCategoryIcon(node.store.category),
+                                  color: Colors.white,
+                                  size: 16,
+                                ),
+                              )
+                            : Icon(
+                                _getCategoryIcon(node.store.category),
+                                color: Colors.white,
+                                size: 16,
+                              ),
+                      ),
+                    ),
+                    if (isSelected)
+                      Positioned.fill(
+                        child: _PulsingRing(color: storeColor),
+                      ),
+                  ],
+                ),
+              ),
+            );
+          },
+        ),
       );
     }).toList();
   }
