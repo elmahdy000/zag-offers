@@ -3,7 +3,6 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../domain/entities/category_entity.dart';
-import '../constants/offer_categories.dart';
 import '../pages/all_offers_page.dart';
 import '../pages/categories_page.dart';
 
@@ -17,10 +16,8 @@ class CategoriesSection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // If no categories from backend, fallback to hardcoded ones for UI continuity
     final bool hasDynamicData = categories.isNotEmpty;
-    final displayCount = hasDynamicData ? categories.length : browseCategories.length;
-    final int limit = displayCount > 8 ? 8 : displayCount;
+    final int limit = categories.length > 12 ? 12 : categories.length;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -55,6 +52,14 @@ class CategoriesSection extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
+        if (!hasDynamicData)
+          const SizedBox(
+            height: 80,
+            child: Center(
+              child: Text('لا توجد تصنيفات حالياً'),
+            ),
+          )
+        else
         SizedBox(
           height: 135,
           child: ListView.builder(
@@ -62,34 +67,12 @@ class CategoriesSection extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             itemCount: limit,
             itemBuilder: (context, index) {
-              String name;
-              String? image;
-              Color color;
-              IconData icon;
-              String filterName;
-
-              if (hasDynamicData) {
-                final cat = categories[index];
-                name = CategoryUtils.getDisplayName(cat.name);
-                
-                // Fallback to local asset if backend image is null
-                final localCat = browseCategories.firstWhere(
-                  (c) => c.backendName == cat.name || c.name == cat.name,
-                  orElse: () => browseCategories[0],
-                );
-                
-                image = cat.image ?? localCat.imagePath;
-                color = CategoryUtils.getColor(cat.name);
-                icon = CategoryUtils.getIcon(cat.name);
-                filterName = cat.name;
-              } else {
-                final cat = browseCategories[index];
-                name = cat.name;
-                image = cat.imagePath; // Using local asset path as URL for NetworkImageWidget fallback
-                color = cat.color;
-                icon = cat.icon;
-                filterName = cat.backendName ?? cat.name;
-              }
+              final cat = categories[index];
+              final String name = CategoryUtils.getDisplayName(cat.name);
+              final String? image = cat.image;
+              final Color color = CategoryUtils.getColor(cat.name);
+              final IconData icon = CategoryUtils.getIcon(cat.name);
+              final String filterName = cat.name;
 
               return Padding(
                 padding: const EdgeInsets.only(right: 16),

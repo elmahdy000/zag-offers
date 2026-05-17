@@ -74,14 +74,10 @@ function OffersPageContent() {
   const fetchData = useCallback(async () => {
     // Try to load from cache first for instant view
     const cachedOffers = localStorage.getItem('cache_offers');
-    const cachedCats = localStorage.getItem('cache_categories');
     
     if (cachedOffers && offers.length === 0) {
       setOffers(JSON.parse(cachedOffers));
       setLoading(false); // Hide initial loader if we have cache
-    }
-    if (cachedCats && categories.length === 0) {
-      setCategories(JSON.parse(cachedCats));
     }
 
     try {
@@ -100,17 +96,19 @@ function OffersPageContent() {
       if (catRes.ok) {
         const catsRaw = await catRes.json();
         const cats = normalizeCategories(catsRaw);
-        const filteredCats = cats.filter((c: Category) => c.name !== 'عيادات');
-        setCategories(filteredCats);
-        localStorage.setItem('cache_categories', JSON.stringify(filteredCats));
+        setCategories(cats);
+      } else {
+        setCategories([]);
       }
     } catch (e) { 
       console.error('Fetch error (possibly offline):', e); 
       setIsOffline(true);
+      // Avoid showing stale category cache when request fails.
+      setCategories([]);
     } finally { 
       setLoading(false); 
     }
-  }, [offers.length, categories.length]);
+  }, [offers.length]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 
@@ -324,4 +322,5 @@ export default function OffersListingPage() {
     </Suspense>
   );
 }
+
 

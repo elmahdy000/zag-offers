@@ -192,12 +192,11 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     <motion.div
       whileHover={{ y: -4, transition: { duration: 0.2 } }}
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="group relative bg-[#252525] border border-white/[0.06] rounded-xl overflow-hidden
-                 hover:border-[#FF6B00]/30 hover:shadow-[0_12px_32px_rgba(0,0,0,0.4)]
+      className="group relative bg-[#252525] border border-white/[0.06] rounded-md overflow-hidden hover:border-[#FF6B00]/30 hover:shadow-[0_10px_24px_rgba(0,0,0,0.35)]
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className={`relative h-36 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+      <div className={`relative h-32 bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
         
         {/* Background Image if exists */}
         {offerImage && (
@@ -218,7 +217,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         {/* Featured */}
         {offer.featured && (
           <div className="absolute top-2 left-2 z-10 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
-                          text-[#1a1a1a] text-[8px] font-black rounded-md shadow-lg uppercase tracking-tighter">
+                          text-[#1a1a1a] text-[8px] font-semibold rounded-md shadow-lg uppercase tracking-tighter">
             ⭐ مميز
           </div>
         )}
@@ -244,7 +243,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
         {/* Store Logo */}
         <div className="absolute -bottom-3 right-3 z-20
-                        w-10 h-10 rounded-xl border-2 border-[#252525]
+                        w-9 h-9 rounded-md border-2 border-[#252525]
                         bg-[#1E1E1E] overflow-hidden shadow-xl
                         flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
           {logoUrl
@@ -264,29 +263,29 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-3 pt-4 pb-3 gap-1">
+      <div className="flex flex-col flex-1 px-2.5 pt-3.5 pb-2.5 gap-1">
 
         {/* Category */}
         {catName && (
-          <span className="text-[9px] font-black text-[#FF6B00] uppercase tracking-widest flex items-center gap-1">
+          <span className="text-[8px] font-semibold text-[#FF6B00] uppercase tracking-widest flex items-center gap-1">
             <span className="scale-75 opacity-70">{catIcon}</span> {catName}
           </span>
         )}
 
         {/* Title */}
-        <h3 className="text-[12px] font-bold text-[#F0F0F0] leading-snug line-clamp-2
-                       group-hover:text-[#FF6B00] transition-colors min-h-[34px]">
+        <h3 className="text-[11px] font-semibold text-[#F0F0F0] leading-snug line-clamp-2
+                       group-hover:text-[#FF6B00] transition-colors min-h-[30px]">
           {offer.title}
         </h3>
 
         {/* Prices */}
         {offer.newPrice ? (
           <div className="flex items-baseline gap-2 mt-1">
-            <span className="text-[15px] font-black text-[#FF6B00]">
+            <span className="text-[14px] font-bold text-[#FF6B00]">
               {offer.newPrice} ج.م
             </span>
             {offer.originalPrice && (
-              <span className="text-[10px] text-[#9A9A9A] line-through font-bold">
+              <span className="text-[9px] text-[#9A9A9A] line-through font-semibold">
                 بدل {offer.originalPrice} ج.م
               </span>
             )}
@@ -295,12 +294,12 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
         {/* Store & Social Proof */}
         <div className="flex items-center justify-between">
-          <p className="text-[10px] text-[#9A9A9A] font-bold flex items-center gap-1">
+          <p className="text-[9px] text-[#9A9A9A] font-semibold flex items-center gap-1">
             <span className="opacity-50 text-[9px]">🏪</span>
             {offer.store?.name}
           </p>
           {(offer._count?.coupons || 0) > 0 && (
-            <span className="text-[8px] font-black text-orange-400 bg-orange-500/5 px-1 py-0.5 rounded flex items-center gap-1">
+            <span className="text-[8px] font-semibold text-orange-400 bg-orange-500/5 px-1 py-0.5 rounded flex items-center gap-1">
               {offer._count?.coupons} طلب
             </span>
           )}
@@ -310,17 +309,17 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         <div className="mt-auto pt-2 border-t border-white/[0.04] flex items-center justify-between gap-1">
           <div className="flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.03] rounded-md border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
             <RiMapPin2Line size={10} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-[9px] font-black text-[#8A8A8A] truncate max-w-[70px] group-hover:text-white transition-colors">
+            <span className="text-[8px] font-semibold text-[#8A8A8A] truncate max-w-[70px] group-hover:text-white transition-colors">
               {offer.store?.area || 'الزقازيق'}
             </span>
           </div>
-          <span className={`text-[9px] font-black ${expiryColor}`}>{expiryText}</span>
+          <span className={`text-[8px] font-semibold ${expiryColor}`}>{expiryText}</span>
         </div>
 
         {/* CTA */}
         <div
-          className="mt-1 w-full py-1.5 text-center text-[11px] font-black text-[#FF6B00]
-                     bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-lg
+          className="mt-1 w-full py-1.5 text-center text-[10px] font-semibold text-[#FF6B00]
+                     bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-md
                      group-hover:bg-[#FF6B00] group-hover:text-white group-hover:border-[#FF6B00]
                      group-hover:shadow-[0_4px_12px_rgba(255,107,0,0.3)]
                      transition-all duration-200"
@@ -341,7 +340,8 @@ export const SkeletonCard = () => (
       <div className="h-3.5 w-full skeleton-shimmer rounded-full" />
       <div className="h-3.5 w-3/4 skeleton-shimmer rounded-full" />
       <div className="h-2.5 w-1/2 skeleton-shimmer rounded-full" />
-      <div className="h-8 w-full skeleton-shimmer rounded-lg mt-1.5" />
+      <div className="h-8 w-full skeleton-shimmer rounded-md mt-1.5" />
     </div>
   </div>
 );
+

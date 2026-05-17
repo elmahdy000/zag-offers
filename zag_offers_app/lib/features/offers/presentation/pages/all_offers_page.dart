@@ -2,8 +2,10 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/utils/category_utils.dart';
 import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
 import 'package:zag_offers_app/features/offers/domain/entities/offer_entity.dart';
+import 'package:zag_offers_app/features/offers/domain/entities/category_entity.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
@@ -104,6 +106,9 @@ class _AllOffersPageState extends State<AllOffersPage> {
     return Scaffold(
       body: BlocBuilder<OffersBloc, OffersState>(
         builder: (context, state) {
+          final dynamicCategories = state is OffersLoaded ? state.categories : const <CategoryEntity>[];
+          final hasBackendCategories = dynamicCategories.isNotEmpty;
+          final categoryCount = hasBackendCategories ? dynamicCategories.length + 1 : 1; // + "الكل"
           return CustomScrollView(
             slivers: [
               SliverAppBar(
@@ -168,10 +173,14 @@ class _AllOffersPageState extends State<AllOffersPage> {
                         child: ListView.builder(
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
-                          itemCount: searchSidebarCategories.length,
+                          itemCount: categoryCount,
                           itemBuilder: (context, index) {
-                            final categoryItem = searchSidebarCategories[index];
-                            final categoryBackendName = categoryItem.backendName ?? categoryItem.name;
+                            final bool isAll = index == 0;
+                            final categoryBackendName = isAll ? 'الكل' : dynamicCategories[index - 1].name;
+                            final categoryDisplayName = isAll
+                                ? 'الكل'
+                                : CategoryUtils.getDisplayName(dynamicCategories[index - 1].name);
+                            final categoryImage = isAll ? null : dynamicCategories[index - 1].image;
                             final isSelected = _selectedCategory == categoryBackendName;
                             return Padding(
                               padding: const EdgeInsets.only(right: 16),
@@ -197,16 +206,16 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                         ),
                                       ),
                                       child: ClipOval(
-                                        child: categoryItem.imagePath != null
+                                        child: categoryImage != null
                                             ? NetworkImageWidget(
-                                                imageUrl: categoryItem.imagePath!,
+                                                imageUrl: categoryImage,
                                                 fit: BoxFit.cover,
                                               )
                                             : Container(
-                                                color: categoryItem.color.withValues(alpha: 0.1),
+                                                color: AppColors.primary.withValues(alpha: 0.1),
                                                 child: Icon(
-                                                  categoryItem.icon,
-                                                  color: categoryItem.color,
+                                                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(categoryBackendName),
+                                                  color: AppColors.primary,
                                                   size: 20,
                                                 ),
                                               ),
@@ -214,7 +223,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                     ),
                                     const SizedBox(height: 2),
                                     Text(
-                                      categoryItem.name,
+                                      categoryDisplayName,
                                       style: theme.textTheme.labelSmall?.copyWith(
                                             color: isSelected ? AppColors.primary : AppColors.textSecondary,
                                             fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,

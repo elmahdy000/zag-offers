@@ -4,11 +4,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/utils/category_utils.dart';
 import 'package:zag_offers_app/features/offers/domain/entities/offer_entity.dart';
+import 'package:zag_offers_app/features/offers/domain/entities/category_entity.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
-import 'package:zag_offers_app/features/offers/presentation/constants/offer_categories.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
@@ -189,7 +190,7 @@ class _SearchPageState extends State<SearchPage> {
 
             return Row(
               children: [
-                _buildSidebar(context),
+                _buildSidebar(context, state),
                 Expanded(child: _buildOffersGrid(context, state)),
               ],
             );
@@ -275,8 +276,11 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSidebar(BuildContext context) {
+  Widget _buildSidebar(BuildContext context, OffersLoaded state) {
     final theme = Theme.of(context);
+    final dynamicCategories = state.categories;
+    final itemCount = dynamicCategories.length + 1; // + "الكل"
+
     return Container(
       width: 96,
       decoration: BoxDecoration(
@@ -290,10 +294,14 @@ class _SearchPageState extends State<SearchPage> {
       ),
       child: ListView.builder(
         padding: const EdgeInsets.symmetric(vertical: 12),
-        itemCount: searchSidebarCategories.length,
+        itemCount: itemCount,
         itemBuilder: (context, index) {
-          final category = searchSidebarCategories[index];
-          final categoryBackendName = category.backendName ?? category.name;
+          final bool isAll = index == 0;
+          final categoryBackendName = isAll ? 'الكل' : dynamicCategories[index - 1].name;
+          final categoryDisplayName = isAll
+              ? 'الكل'
+              : CategoryUtils.getDisplayName(dynamicCategories[index - 1].name);
+          final categoryImage = isAll ? null : dynamicCategories[index - 1].image;
           final isSelected = _selectedCategory == categoryBackendName;
           
           return Padding(
@@ -333,16 +341,16 @@ class _SearchPageState extends State<SearchPage> {
                         ),
                       ),
                       child: ClipOval(
-                        child: category.imagePath != null
+                        child: categoryImage != null
                             ? NetworkImageWidget(
-                                imageUrl: category.imagePath!,
+                                imageUrl: categoryImage,
                                 fit: BoxFit.cover,
                               )
                             : Container(
-                                color: category.color.withValues(alpha: 0.1),
+                                color: AppColors.primary.withValues(alpha: 0.1),
                                 child: Icon(
-                                  category.icon,
-                                  color: category.color,
+                                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(categoryBackendName),
+                                  color: AppColors.primary,
                                   size: 20,
                                 ),
                               ),
@@ -350,7 +358,7 @@ class _SearchPageState extends State<SearchPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
-                      category.name,
+                      categoryDisplayName,
                       textAlign: TextAlign.center,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,

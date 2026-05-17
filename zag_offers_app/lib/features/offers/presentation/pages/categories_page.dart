@@ -6,7 +6,6 @@ import 'package:zag_offers_app/core/widgets/glassmorphism_card.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
 import '../bloc/offers_bloc.dart';
 import '../bloc/offers_state.dart';
-import '../constants/offer_categories.dart';
 import 'all_offers_page.dart';
 
 class CategoriesPage extends StatelessWidget {
@@ -62,21 +61,26 @@ class CategoriesPage extends StatelessWidget {
           ),
           BlocBuilder<OffersBloc, OffersState>(
             builder: (context, state) {
-              final List<dynamic> items;
-              final bool isDynamic;
-
-              if (state is OffersLoaded && state.categories.isNotEmpty) {
-                items = state.categories;
-                isDynamic = true;
-              } else {
-                items = browseCategories;
-                isDynamic = false;
-              }
+              final items = state is OffersLoaded ? state.categories : const [];
+              final isDynamic = items.isNotEmpty;
 
               return CustomScrollView(
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   const SliverToBoxAdapter(child: SizedBox(height: 100)),
+                  if (!isDynamic)
+                    SliverFillRemaining(
+                      hasScrollBody: false,
+                      child: Center(
+                        child: Text(
+                          'لا توجد تصنيفات حالياً',
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ),
+                    )
+                  else
                   SliverPadding(
                     padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
                     sliver: SliverGrid(
@@ -92,33 +96,14 @@ class CategoriesPage extends StatelessWidget {
                           final String? image;
                           final Color color;
                           final IconData icon;
-                          final String? description;
                           final String filterName;
 
-                          if (isDynamic) {
-                            final cat = items[index];
-                            name = CategoryUtils.getDisplayName(cat.name);
-                            
-                            // Fallback to local asset if backend image is null
-                            final localCat = browseCategories.firstWhere(
-                              (c) => c.backendName == cat.name || c.name == cat.name,
-                              orElse: () => browseCategories[0],
-                            );
-                            
-                            image = cat.image ?? localCat.imagePath;
-                            color = CategoryUtils.getColor(cat.name);
-                            icon = CategoryUtils.getIcon(cat.name);
-                            description = null;
-                            filterName = cat.name;
-                          } else {
-                            final cat = items[index];
-                            name = cat.name;
-                            image = cat.imagePath;
-                            color = cat.color;
-                            icon = cat.icon;
-                            description = cat.description;
-                            filterName = cat.backendName ?? cat.name;
-                          }
+                          final cat = items[index];
+                          name = CategoryUtils.getDisplayName(cat.name);
+                          image = cat.image;
+                          color = CategoryUtils.getColor(cat.name);
+                          icon = CategoryUtils.getIcon(cat.name);
+                          filterName = cat.name;
 
                           return GlassmorphismCard(
                             borderRadius: 28,
@@ -183,23 +168,6 @@ class CategoriesPage extends StatelessWidget {
                                   maxLines: 1,
                                   overflow: TextOverflow.ellipsis,
                                 ),
-                                if (description != null) ...[
-                                  const SizedBox(height: 2),
-                                  Padding(
-                                    padding: const EdgeInsets.symmetric(horizontal: 12),
-                                    child: Text(
-                                      description,
-                                      textAlign: TextAlign.center,
-                                      maxLines: 1,
-                                      overflow: TextOverflow.ellipsis,
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                        color: AppColors.textSecondary,
-                                        fontWeight: FontWeight.w600,
-                                        fontSize: 10,
-                                      ),
-                                    ),
-                                  ),
-                                ],
                               ],
                             ),
                           );

@@ -43,7 +43,7 @@ const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
 
 
-const CACHE_KEY = 'zag_offers_home_cache_v3';
+const CACHE_KEY = 'zag_offers_home_cache_v4';
 const CACHE_DURATION = 5 * 60 * 1000;
 
 function HomePageContent() {
@@ -92,26 +92,16 @@ function HomePageContent() {
       ]);
 
       const normalizedCats = normalizeCategories(cData);
-      // Filter out clinics and duplicates by display name
-      const seenNames = new Set<string>();
-      const uniqueCats = normalizedCats
-        .filter((c: Category) => !['عيادات', 'سوبرماركت', 'خدمات محلية'].includes(c.name))
-        .filter((c: Category) => {
-          const dispName = getCatName(c.name);
-          if (seenNames.has(dispName)) return false;
-          seenNames.add(dispName);
-          return true;
-        });
 
       setOffers(oData);
-      setCategories(uniqueCats);
+      setCategories(normalizedCats);
       setStores(sData);
       setRecommended(rData);
       
       // Save to cache
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         offers: oData,
-        categories: uniqueCats,
+        categories: normalizedCats,
         stores: sData,
         recommended: rData,
         timestamp: Date.now()
@@ -196,12 +186,12 @@ function HomePageContent() {
       <div className="absolute top-[20%] left-0 w-[400px] h-[400px] bg-[#D95A00]/5 blur-[100px] rounded-full -translate-x-1/2 -z-10" />
 
       {/* ─── Hero Section ────────────────────────────────── */}
-      <section className="pt-12 sm:pt-20 pb-16 px-4">
-        <div className="max-w-5xl mx-auto text-center space-y-8">
+      <section className="pt-10 sm:pt-16 pb-12 px-4">
+        <div className="max-w-5xl mx-auto text-center space-y-6">
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full"
+            className="inline-flex items-center gap-2 px-3 py-1 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full"
           >
             <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse" />
             <span className="text-[11px] sm:text-xs font-black text-[#FF6B00] uppercase tracking-wider">عروض الزقازيق الحصرية</span>
@@ -211,7 +201,7 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-3xl sm:text-5xl md:text-6xl font-black leading-tight tracking-tight"
+            className="text-2xl sm:text-4xl md:text-5xl font-black leading-tight tracking-tight"
           >
             <span className="text-[#F0F0F0]">أفضل</span> <br />
             <span className="text-transparent bg-clip-text bg-gradient-to-l from-[#FF6B00] via-[#FF8C35] to-[#FFA15A]">العروض والخصومات في</span> <span className="text-white">زاج</span>
@@ -221,7 +211,7 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.2 }}
-            className="text-[#9A9A9A] text-xs sm:text-base font-bold max-w-xl mx-auto leading-relaxed"
+            className="text-[#9A9A9A] text-[11px] sm:text-sm font-semibold max-w-xl mx-auto leading-relaxed"
           >
             بوابتك لأفضل كوبونات الخصم والعروض المباشرة من أقوى محلات ومطاعم مدينتك.
           </motion.p>
@@ -232,19 +222,19 @@ function HomePageContent() {
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
-            className="max-w-2xl mx-auto relative group"
+            className="max-w-xl mx-auto relative group"
           >
             {/* Pulsing Aura */}
             <div className="absolute -inset-1.5 bg-gradient-to-r from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] rounded-[2.5rem] blur-xl opacity-0 group-focus-within:opacity-30 transition-all duration-700 animate-pulse" />
             
-            <div className="relative flex items-center bg-[#1E1E1E]/90 backdrop-blur-3xl border border-white/5 p-2 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
-              <div className="flex items-center justify-center w-12 h-12 rounded-full bg-white/5 mx-2">
+            <div className="relative flex items-center bg-[#1E1E1E]/90 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 mx-2">
                 <RiSearch2Line className="text-[#FF6B00]" size={20} />
               </div>
               <input 
                 type="text" 
                 placeholder="ابحث عن عرض، محل، أو صنف..."
-                className="flex-1 bg-transparent py-3 text-sm sm:text-base font-black text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
+                className="flex-1 bg-transparent py-2.5 text-xs sm:text-sm font-semibold text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
@@ -252,7 +242,7 @@ function HomePageContent() {
                 <span>CTRL</span>
                 <span>K</span>
               </div>
-              <button className="px-8 py-3 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black text-xs rounded-[2rem] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,107,0,0.3)]">
+              <button className="px-6 py-2.5 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-bold text-[11px] rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,107,0,0.3)]">
                 بحث
               </button>
             </div>
@@ -261,7 +251,7 @@ function HomePageContent() {
       </section>
 
       {/* ─── Categories & Areas Filter ──────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4 mb-16">
+      <section className="max-w-7xl mx-auto px-4 mb-12">
         <div className="flex flex-col gap-8">
           
           {/* Categories Row */}
@@ -269,7 +259,7 @@ function HomePageContent() {
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
                 <div className="w-1.5 h-6 bg-[#FF6B00] rounded-full" />
-                <h2 className="text-xl sm:text-2xl font-black text-white">الأقسام</h2>
+                <h2 className="text-lg sm:text-xl font-black text-white">الأقسام</h2>
               </div>
               <div className="flex items-center gap-4">
                 <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs font-black text-[#9A9A9A] hover:text-white transition-all">
@@ -279,16 +269,16 @@ function HomePageContent() {
               </div>
             </div>
 
-            <div className="flex items-center gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex items-center gap-3 overflow-x-auto no-scrollbar scroll-smooth pb-4 -mx-4 px-4 sm:mx-0 sm:px-0">
               <Link 
                 href="/offers"
-                className={`flex-shrink-0 group relative w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+                className={`flex-shrink-0 group relative w-24 sm:w-28 aspect-[4/5] rounded-[2rem] overflow-hidden border transition-all duration-500
                   ${!activeCat 
                     ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
                     : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
               >
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-                  <span className={`text-sm sm:text-base font-black tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
+                  <span className={`text-xs sm:text-sm font-bold tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
                   {!activeCat && <div className="absolute bottom-6 w-1 h-1 bg-[#FF6B00] rounded-full" />}
                 </div>
               </Link>
@@ -302,7 +292,7 @@ function HomePageContent() {
                 >
                   <Link 
                     href={`/offers?category=${c.id}`}
-                    className={`flex-shrink-0 group relative block w-28 sm:w-32 aspect-[4/5] rounded-[2.5rem] overflow-hidden border transition-all duration-500
+                    className={`flex-shrink-0 group relative block w-24 sm:w-28 aspect-[4/5] rounded-[2rem] overflow-hidden border transition-all duration-500
                       ${activeCat === c.id 
                         ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
                         : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
@@ -320,7 +310,7 @@ function HomePageContent() {
                     <div className={`absolute inset-0 bg-gradient-to-t transition-all duration-500 ${activeCat === c.id ? 'from-[#FF6B00]/60 via-[#FF6B00]/10 to-transparent' : 'from-black/90 via-black/30 to-transparent'}`} />
                     
                     <div className="absolute inset-0 flex flex-col items-center justify-end pb-5 z-20">
-                      <span className={`text-[10px] sm:text-xs font-black tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
+                      <span className={`text-[9px] sm:text-[10px] font-bold tracking-widest transition-all duration-300 ${activeCat === c.id ? 'text-white scale-110' : 'text-white/70 group-hover:text-white'}`}>
                         {getCatName(c.name)}
                       </span>
                       {activeCat === c.id && <div className="absolute bottom-2.5 w-1 h-1 bg-white rounded-full shadow-[0_0_10px_white]" />}
@@ -342,7 +332,7 @@ function HomePageContent() {
                 <button
                   key={area}
                   onClick={() => setActiveArea(area === 'الكل' ? '' : area)}
-                  className={`flex-shrink-0 px-5 py-2.5 rounded-2xl text-xs font-black transition-all border
+                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-semibold transition-all border
                     ${(area === 'الكل' && !activeArea) || activeArea === area
                       ? 'bg-[#FF6B00] text-white border-[#FF6B00] shadow-[0_4px_15px_rgba(255,107,0,0.3)] scale-105'
                       : 'bg-white/5 text-[#9A9A9A] border-white/5 hover:bg-white/10'}`}
@@ -362,19 +352,19 @@ function HomePageContent() {
           <motion.section 
             initial={{ opacity: 0, x: 20 }}
             animate={{ opacity: 1, x: 0 }}
-            className="max-w-7xl mx-auto px-4 mb-20"
+            className="max-w-7xl mx-auto px-4 mb-16"
           >
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
                   <RiSparkling2Fill size={20} />
                 </div>
-                <h2 className="text-xl sm:text-2xl font-black text-white">عروض مختارة لك</h2>
+                <h2 className="text-lg sm:text-xl font-black text-white">عروض مختارة لك</h2>
               </div>
             </div>
-            <div className="flex gap-6 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
               {recommended.map((offer) => (
-                <div key={offer.id} className="min-w-[280px] sm:min-w-[340px]">
+                <div key={offer.id} className="min-w-[240px] sm:min-w-[280px]">
                   <OfferCard 
                     offer={offer} 
                     priority={offer.id === recommended[0]?.id || offer.id === recommended[1]?.id} 
@@ -388,15 +378,15 @@ function HomePageContent() {
 
       {/* ─── Featured Stores Bento ───────────────────────── */}
       {!activeCat && !search && stores.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 mb-24">
+        <section className="max-w-7xl mx-auto px-4 mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-xl sm:text-2xl font-black text-white">براندات بنحبها</h2>
+            <h2 className="text-lg sm:text-xl font-black text-white">براندات بنحبها</h2>
             <Link href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
           </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
             {stores.slice(0, 12).map(store => (
               <Link key={store.id} href={`/stores/${store.id}`} className="group">
-                <div className="bg-[#252525] border border-white/5 rounded-2xl p-4 sm:p-5 flex flex-col items-center justify-center space-y-2 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
+                <div className="bg-[#252525] border border-white/5 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center space-y-2 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
                   <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
                     {store.logo ? (
                       <Image 
@@ -411,7 +401,7 @@ function HomePageContent() {
                       <RiStore3Fill className="text-white/20" size={20} />
                     )}
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-black text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
+                  <span className="text-[9px] sm:text-[10px] font-semibold text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
                 </div>
               </Link>
             ))}
@@ -426,7 +416,7 @@ function HomePageContent() {
             <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
               <RiFireFill size={20} />
             </div>
-            <h2 className="text-xl sm:text-2xl font-black text-white">
+            <h2 className="text-lg sm:text-xl font-black text-white">
               {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
             </h2>
           </div>
@@ -435,7 +425,7 @@ function HomePageContent() {
             <select 
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="bg-[#252525] border border-white/5 text-[#F0F0F0] text-xs font-black px-4 py-2 rounded-xl outline-none cursor-pointer"
+              className="bg-[#252525] border border-white/5 text-[#F0F0F0] text-[11px] font-semibold px-3 py-2 rounded-lg outline-none cursor-pointer"
             >
               <option value="newest">📅 الأحدث</option>
               <option value="expiring">⏰ ينتهي قريباً</option>
@@ -500,3 +490,5 @@ export default function HomePage() {
     </Suspense>
   );
 }
+
+

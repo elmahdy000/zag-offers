@@ -17,7 +17,7 @@ export default function CategoriesPage() {
   useEffect(() => {
     const fetchCats = async () => {
       // Try cache first
-      const cached = localStorage.getItem('cache_categories_full');
+      const cached = localStorage.getItem('cache_categories_full_v2');
       if (cached && categories.length === 0) {
         setCategories(JSON.parse(cached));
         setLoading(false);
@@ -28,17 +28,8 @@ export default function CategoriesPage() {
         if (res.ok) {
           const dataRaw = await res.json();
           const data = normalizeCategories(dataRaw);
-          const seenNames = new Set<string>();
-          const uniqueCats = data
-            .filter((c: Category) => !['عيادات', 'سوبرماركت', 'خدمات محلية'].includes(c.name))
-            .filter((c: Category) => {
-              const dispName = getCatName(c.name);
-              if (seenNames.has(dispName)) return false;
-              seenNames.add(dispName);
-              return true;
-            });
-          setCategories(uniqueCats);
-          localStorage.setItem('cache_categories_full', JSON.stringify(uniqueCats));
+          setCategories(data);
+          localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
         }
       } catch (e) { 
         console.error('Offline or error:', e); 
@@ -110,4 +101,5 @@ export default function CategoriesPage() {
     </div>
   );
 }
+
 
