@@ -3,6 +3,8 @@ export interface Category {
   name: string;
   description?: string;
   icon?: string;
+  image?: string;
+  priority?: number;
 }
 
 export interface Store {

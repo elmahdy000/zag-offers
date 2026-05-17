@@ -463,14 +463,18 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                     children: [
                                       const Icon(IconlyLight.location, color: Colors.white54, size: 14),
                                       const SizedBox(width: 4),
-                                      Text(
-                                        'الزقازيق - ${store.area} (يبعد ${distance.toStringAsFixed(0)}م)',
-                                        style: GoogleFonts.cairo(
-                                          color: Colors.white70,
-                                          fontSize: 12,
+                                      Expanded(
+                                        child: Text(
+                                          '???????? - ' + (store.area ?? '') + ' (???? ' + distance.toStringAsFixed(0) + '?)',
+                                          style: GoogleFonts.cairo(
+                                            color: Colors.white70,
+                                            fontSize: 12,
+                                          ),
+                                          maxLines: 1,
+                                          overflow: TextOverflow.ellipsis,
                                         ),
                                       ),
-                                      const Spacer(),
+                                      const SizedBox(width: 8),
                                       Container(
                                         padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
                                         decoration: BoxDecoration(

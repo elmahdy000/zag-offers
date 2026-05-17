@@ -6,6 +6,7 @@ import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, S
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { API_URL, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
+import { normalizeCategories } from '@/lib/category-utils';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
@@ -97,7 +98,8 @@ function OffersPageContent() {
         setIsOffline(false);
       }
       if (catRes.ok) {
-        const cats = await catRes.json();
+        const catsRaw = await catRes.json();
+        const cats = normalizeCategories(catsRaw);
         const filteredCats = cats.filter((c: Category) => c.name !== 'عيادات');
         setCategories(filteredCats);
         localStorage.setItem('cache_categories', JSON.stringify(filteredCats));
@@ -322,3 +324,4 @@ export default function OffersListingPage() {
     </Suspense>
   );
 }
+

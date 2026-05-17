@@ -37,12 +37,13 @@ function useAnalytics() {
 
 import { Offer, Category, Store, SortOption } from '@/lib/types';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
+import { normalizeCategories } from '@/lib/category-utils';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
 
 
-const CACHE_KEY = 'zag_offers_home_cache_v2';
+const CACHE_KEY = 'zag_offers_home_cache_v3';
 const CACHE_DURATION = 5 * 60 * 1000;
 
 function HomePageContent() {
@@ -67,7 +68,7 @@ function HomePageContent() {
 
   const fetchData = useCallback(async (force = false) => {
     // Try to load from cache first
-    const cachedData = localStorage.getItem('home_cache_v2');
+    const cachedData = localStorage.getItem(CACHE_KEY);
     if (cachedData && offers.length === 0) {
       const parsed = JSON.parse(cachedData);
       setOffers(parsed.offers || []);
@@ -90,9 +91,10 @@ function HomePageContent() {
         oRes.json(), cRes.json(), sRes.json(), rRes.json()
       ]);
 
+      const normalizedCats = normalizeCategories(cData);
       // Filter out clinics and duplicates by display name
       const seenNames = new Set<string>();
-      const uniqueCats = cData
+      const uniqueCats = normalizedCats
         .filter((c: Category) => !['عيادات', 'سوبرماركت', 'خدمات محلية'].includes(c.name))
         .filter((c: Category) => {
           const dispName = getCatName(c.name);
@@ -107,7 +109,7 @@ function HomePageContent() {
       setRecommended(rData);
       
       // Save to cache
-      localStorage.setItem('home_cache_v2', JSON.stringify({
+      localStorage.setItem(CACHE_KEY, JSON.stringify({
         offers: oData,
         categories: uniqueCats,
         stores: sData,
@@ -118,7 +120,7 @@ function HomePageContent() {
     } catch (e) {
       console.error('Fetch error:', e);
       setIsOffline(true);
-      if (!localStorage.getItem('home_cache_v2')) {
+      if (!localStorage.getItem(CACHE_KEY)) {
         setError('فشل تحميل البيانات. يرجى التأكد من اتصالك بالإنترنت.');
       }
     } finally {
@@ -307,7 +309,7 @@ function HomePageContent() {
                   >
                     <div className="absolute inset-0 bg-[#151515]">
                       <Image 
-                        src={c.icon ? resolveImageUrl(c.icon) : (CAT_ASSETS[c.name] || CAT_ASSETS.default)} 
+                        src={c.image ? resolveImageUrl(c.image) : (c.icon ? resolveImageUrl(c.icon) : (CAT_ASSETS[c.name] || CAT_ASSETS.default))} 
                         alt={c.name} 
                         fill
                         className={`object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 

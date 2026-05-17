@@ -5,6 +5,7 @@ import { motion } from 'framer-motion';
 import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
+import { normalizeCategories } from '@/lib/category-utils';
 import { Category } from '@/lib/types';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
@@ -25,7 +26,8 @@ export default function CategoriesPage() {
       try {
         const res = await fetch(`${API_URL}/stores/categories`);
         if (res.ok) {
-          const data = await res.json();
+          const dataRaw = await res.json();
+          const data = normalizeCategories(dataRaw);
           const seenNames = new Set<string>();
           const uniqueCats = data
             .filter((c: Category) => !['عيادات', 'سوبرماركت', 'خدمات محلية'].includes(c.name))
@@ -85,7 +87,7 @@ export default function CategoriesPage() {
               >
                 <div className="absolute inset-0 bg-[#252525]">
                   <img 
-                    src={CAT_ASSETS[cat.name] || CAT_ASSETS.default} 
+                    src={cat.image || CAT_ASSETS[cat.name] || CAT_ASSETS.default} 
                     alt={cat.name} 
                     className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
                   />
@@ -108,3 +110,4 @@ export default function CategoriesPage() {
     </div>
   );
 }
+
