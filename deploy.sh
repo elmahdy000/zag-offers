@@ -21,7 +21,7 @@ npm install
 npx prisma generate
 npx prisma db push
 npm run build
-npx prisma db seed
+NODE_ENV=production npx prisma db seed
 pm2 restart zag-backend
 echo "✅ Backend deployed and seeded successfully"
 

@@ -1,4 +1,4 @@
-import { PrismaClient, Role, StoreStatus, OfferStatus } from '@prisma/client';
+import { PrismaClient, Role } from '@prisma/client';
 import { PrismaPg } from '@prisma/adapter-pg';
 import { Pool } from 'pg';
 import * as bcrypt from 'bcrypt';
@@ -11,40 +11,80 @@ const pool = new Pool({ connectionString });
 const adapter = new PrismaPg(pool);
 const prisma = new PrismaClient({ adapter });
 
-async function main() {
-  const password = await bcrypt.hash('password123', 10);
+// ──────────────────────────────────────────────────────────────────────────────
+// PRODUCTION CATEGORIES  — these are always safe to upsert
+// ──────────────────────────────────────────────────────────────────────────────
+const PRODUCTION_CATEGORIES = [
+  'دلع كرشك',
+  'روقان',
+  'شياكة',
+  'فورمة',
+  'دلع بنات',
+  'طور نفسك',
+  'دلع عربيتك',
+  'اون فاير',
+  'عيالنا',
+  'ست البيت',
+  'عروستي',
+  'حلى بوقك',
+  'نعيماً',
+];
 
-  console.log('Seeding database with Zagazig offers...');
+// ──────────────────────────────────────────────────────────────────────────────
+// DEPRECATED CATEGORIES — cleaned up if they still exist
+// ──────────────────────────────────────────────────────────────────────────────
+const DEPRECATED_CATEGORIES = ['سوبرماركت', 'خدمات محلية', 'عيادات'];
 
-  // Cleanup unwanted categories
+async function seedProduction() {
+  console.log('🌱 [PROD] Seeding production data…');
+
+  // Remove old / renamed categories
   await prisma.category.deleteMany({
-    where: {
-      name: {
-        in: ['سوبرماركت', 'خدمات محلية', 'عيادات']
-      }
-    }
+    where: { name: { in: DEPRECATED_CATEGORIES } },
   });
 
-  // 1. Create Admin
-  const admin = await prisma.user.upsert({
+  // Upsert each category
+  for (const name of PRODUCTION_CATEGORIES) {
+    await prisma.category.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log(`✅ [PROD] ${PRODUCTION_CATEGORIES.length} categories ensured.`);
+
+  console.log('✅ [PROD] Production seed complete.');
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
+// DEV-ONLY — fake merchants, stores & offers
+// Run ONLY when NODE_ENV=development
+// ──────────────────────────────────────────────────────────────────────────────
+async function seedDev() {
+  console.log('🔧 [DEV]  Seeding development test data…');
+
+  const password = await bcrypt.hash('password123', 10);
+
+  // Test admin
+  await prisma.user.upsert({
     where: { phone: '01000000000' },
     update: {},
     create: {
       phone: '01000000000',
       password,
-      name: 'مدير النظام',
+      name: 'مدير النظام (تجريبي)',
       role: Role.ADMIN,
     },
   });
 
-  // 2. Create Merchants
+  // Test merchants
   const merchant1 = await prisma.user.upsert({
     where: { phone: '01111111111' },
     update: {},
     create: {
       phone: '01111111111',
       password,
-      name: 'محمود البرنس',
+      name: 'محمود البرنس (تجريبي)',
       role: Role.MERCHANT,
     },
   });
@@ -55,141 +95,95 @@ async function main() {
     create: {
       phone: '01222222222',
       password,
-      name: 'سارة أحمد',
+      name: 'سارة أحمد (تجريبي)',
       role: Role.MERCHANT,
     },
   });
 
-  // 3. Create Test Customer
+  // Test customer
   await prisma.user.upsert({
     where: { phone: '01033333333' },
     update: {},
     create: {
       phone: '01033333333',
       password,
-      name: 'أحمد محمد',
+      name: 'أحمد محمد (تجريبي)',
       role: Role.CUSTOMER,
     },
   });
 
-  // 4. Create Categories
-  const categories = [
-    'دلع كرشك',
-    'روقان',
-    'شياكة',
-    'فورمة',
-    'دلع بنات',
-    'طور نفسك',
-    'دلع عربيتك',
-    'اون فاير',
-    'عيالنا',
-    'ست البيت',
-    'عروستي',
-    'حلى بوقك',
-    'نعيماً'
-  ];
+  // Fetch category IDs
+  const getCat = async (name: string) => {
+    const c = await prisma.category.findUnique({ where: { name } });
+    return c?.id;
+  };
 
-  const catMap: Record<string, string> = {};
-  for (const name of categories) {
-    const cat = await prisma.category.upsert({
-      where: { name },
-      update: {},
-      create: { name },
-    });
-    catMap[name] = cat.id;
-  }
-
-  // 5. Create Stores
-  const storesData = [
+  const testStores = [
     {
       name: 'مطعم البرنس - القومية',
       address: 'شارع القومية، الزقازيق',
       area: 'القومية',
       phone: '01011122233',
-      categoryId: catMap['دلع كرشك'],
+      categoryName: 'دلع كرشك',
       ownerId: merchant1.id,
-      status: StoreStatus.APPROVED,
     },
     {
       name: 'أروما كافيه',
       address: 'بجوار بوابة الجامعة الرئيسية',
       area: 'الجامعة',
       phone: '01099887766',
-      categoryId: catMap['روقان'],
+      categoryName: 'روقان',
       ownerId: merchant1.id,
-      status: StoreStatus.APPROVED,
     },
     {
       name: 'أتيليه روعة للأزياء',
       address: 'فلل الجامعة، الزقازيق',
       area: 'الفلل',
       phone: '01234567890',
-      categoryId: catMap['شياكة'],
+      categoryName: 'شياكة',
       ownerId: merchant2.id,
-      status: StoreStatus.APPROVED,
     },
-    {
-      name: 'تيتان جيم',
-      address: 'شارع طلبة عويضة، الزقازيق',
-      area: 'طلبة عويضة',
-      phone: '01555443322',
-      categoryId: catMap['فورمة'],
-      ownerId: merchant1.id,
-      status: StoreStatus.APPROVED,
-    },
-    {
-      name: 'مركز الابتكار التعليمي',
-      address: 'وسط البلد، خلف سينما عرابي',
-      area: 'وسط البلد',
-      phone: '01012345678',
-      categoryId: catMap['طور نفسك'],
-      ownerId: admin.id,
-      status: StoreStatus.APPROVED,
-    }
   ];
 
-  for (const s of storesData) {
-    // Check if store exists by name + address to avoid duplicates
+  for (const s of testStores) {
     const existing = await prisma.store.findFirst({
-        where: { name: s.name, address: s.address }
+      where: { name: s.name, address: s.address },
     });
     if (existing) continue;
 
-    const store = await prisma.store.create({
-      data: s,
-    });
+    const categoryId = await getCat(s.categoryName);
+    if (!categoryId) continue;
 
-    // 6. Create Offers for each store
-    if (s.categoryId === catMap['دلع كرشك']) {
-      await prisma.offer.create({
-        data: {
-          title: 'وجبة العيلة الاقتصادية',
-          description: 'خصم 20% على كل صواني العيلة يومي الجمعة والسبت',
-          discount: '20% خصم',
-          terms: 'العرض متاح للطلبات داخل المطعم فقط',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000),
-          status: OfferStatus.ACTIVE,
-          storeId: store.id,
-        },
-      });
-    } else if (s.categoryId === catMap['طور نفسك']) {
-      await prisma.offer.create({
-        data: {
-          title: 'منحة البرمجة للشباب',
-          description: 'احصل على كورس Full Stack بخصم 50% لأول 20 مشترك',
-          discount: '50% خصم',
-          terms: 'الأولوية لطلبة كليات الحاسبات والهندسة',
-          startDate: new Date(),
-          endDate: new Date(Date.now() + 10 * 24 * 60 * 60 * 1000),
-          status: OfferStatus.ACTIVE,
-          storeId: store.id,
-        },
-      });
-    }
+    await prisma.store.create({
+      data: {
+        name: s.name,
+        address: s.address,
+        area: s.area,
+        phone: s.phone,
+        categoryId,
+        ownerId: s.ownerId,
+        status: 'APPROVED',
+      },
+    });
   }
 
-  console.log('Seed completed successfully!');
+  console.log('✅ [DEV]  Dev seed complete.');
+}
+
+async function main() {
+  const env = process.env.NODE_ENV ?? 'production';
+  const devSeedEnabled = process.env.ENABLE_DEV_SEED === 'true';
+  console.log(`\n🚀 Running seed in [${env}] mode…\n`);
+
+  await seedProduction();
+
+  if (env === 'development' && devSeedEnabled) {
+    await seedDev();
+  } else {
+    console.log(
+      '⏭️  [SAFE] Skipping dev test data. Requires NODE_ENV=development and ENABLE_DEV_SEED=true.',
+    );
+  }
 }
 
 main()
