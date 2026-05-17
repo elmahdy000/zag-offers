@@ -85,7 +85,7 @@ function OffersPageContent() {
     try {
       const [offRes, catRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=40`, { cache: 'no-store' }),
-        fetch(`${API_URL}/stores/categories`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers/categories`, { cache: 'no-store' }),
       ]);
       
       if (offRes.ok) {

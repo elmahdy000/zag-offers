@@ -26,7 +26,7 @@ export default function CategoriesPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/stores/categories`, { cache: 'no-store' });
+      const res = await fetch(`${API_URL}/offers/categories`, { cache: 'no-store' });
       if (res.ok) {
         const dataRaw = await res.json();
         const data = normalizeCategories(dataRaw);

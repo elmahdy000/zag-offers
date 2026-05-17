@@ -77,8 +77,8 @@ export function useCategories() {
   return useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
-      // NOTE: endpoint is /stores/categories (not /categories)
-      const res = await fetch(`${API_URL}/stores/categories`);
+      // Categories for offer filtering should come from offers categories endpoint.
+      const res = await fetch(`${API_URL}/offers/categories`);
       if (!res.ok) throw new Error('Failed to fetch categories');
       return res.json();
     },

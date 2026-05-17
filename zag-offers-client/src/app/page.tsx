@@ -84,7 +84,7 @@ function HomePageContent() {
       setLoading(true);
       const [oRes, cRes, sRes, rRes] = await Promise.all([
         fetch(`${API_URL}/offers?limit=24`, { cache: 'no-store' }),
-        fetch(`${API_URL}/stores/categories`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers/categories`, { cache: 'no-store' }),
         fetch(`${API_URL}/stores?limit=12`, { cache: 'no-store' }),
         fetch(`${API_URL}/recommendations`, { cache: 'no-store' })
       ]);
