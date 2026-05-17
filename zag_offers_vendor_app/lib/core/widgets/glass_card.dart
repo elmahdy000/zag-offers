@@ -87,7 +87,7 @@ class GlassButton extends StatelessWidget {
               ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withOpacity(0.2),
+            color: Colors.black.withValues(alpha: 0.2),
             blurRadius: 12,
             offset: const Offset(0, 4),
           ),
@@ -167,7 +167,7 @@ class GlassContainer extends StatelessWidget {
                     center: Alignment.topRight,
                     radius: 1.5,
                     colors: [
-                      AppColors.primary.withOpacity(0.05),
+                      AppColors.primary.withValues(alpha: 0.05),
                       Colors.transparent,
                     ],
                   ),
@@ -187,7 +187,7 @@ class GlassContainer extends StatelessWidget {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
+                    color: Colors.black.withValues(alpha: 0.3),
                     blurRadius: 40,
                     offset: const Offset(0, 16),
                   ),

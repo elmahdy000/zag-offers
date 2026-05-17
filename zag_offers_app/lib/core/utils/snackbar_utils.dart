@@ -53,12 +53,12 @@ class SnackBarUtils {
             color: const Color(0xFF0D1422), // Premium Dark Navy/Obsidian
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
-              color: accentColor.withOpacity(0.3),
+              color: accentColor.withValues(alpha: 0.3),
               width: 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: accentColor.withOpacity(0.12),
+                color: accentColor.withValues(alpha: 0.12),
                 blurRadius: 20,
                 offset: const Offset(0, 8),
               ),
@@ -85,7 +85,7 @@ class SnackBarUtils {
                   width: 34,
                   height: 34,
                   decoration: BoxDecoration(
-                    color: accentColor.withOpacity(0.15),
+                    color: accentColor.withValues(alpha: 0.15),
                     shape: BoxShape.circle,
                   ),
                   child: Icon(

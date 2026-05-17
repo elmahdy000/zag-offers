@@ -29,9 +29,9 @@ class AppColors {
   static const Color textTertiary = Color(0xFF888888); // Added for compatibility
   
   // Glass Effects - Enhanced
-  static Color glassBackground = Colors.white.withOpacity(0.02);
-  static Color glassBorder = Colors.white.withOpacity(0.05);
-  static Color glassHeavy = Colors.white.withOpacity(0.08);
+  static Color glassBackground = Colors.white.withValues(alpha: 0.02);
+  static Color glassBorder = Colors.white.withValues(alpha: 0.05);
+  static Color glassHeavy = Colors.white.withValues(alpha: 0.08);
   
   // Status Colors (from React app)
   static const Color emerald = Color(0xFF00D4AA);

@@ -7,13 +7,12 @@ import 'package:zag_offers_app/core/constants/app_constants.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
-import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/map_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
-import 'package:zag_offers_app/features/offers/presentation/pages/search_page.dart';
+
 import 'package:zag_offers_app/features/offers/presentation/widgets/ads_slider.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/categories_section.dart';
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
@@ -176,7 +175,6 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Widget _buildSliverAppBar(BuildContext context, OffersLoaded state) {
-    final hasMapData = state.featuredStores.isNotEmpty;
     final canOpenMap = AppConstants.mapsEnabled;
     final theme = Theme.of(context);
 
@@ -234,7 +232,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           icon: const Icon(Icons.tune_rounded),
           onPressed: () {
             HapticFeedback.lightImpact();
-            if (state is OffersLoaded) _showFilterSheet(context, state);
+            _showFilterSheet(context, state);
           },
         ),
         const SizedBox(width: 8),
@@ -292,9 +290,9 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           return Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
             decoration: BoxDecoration(
-              color: Colors.green.withOpacity(0.05 + (_pulseController.value * 0.05)),
+              color: Colors.green.withValues(alpha: 0.05 + (_pulseController.value * 0.05)),
               borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.green.withOpacity(0.1 + (_pulseController.value * 0.1))),
+              border: Border.all(color: Colors.green.withValues(alpha: 0.1 + (_pulseController.value * 0.1))),
             ),
             child: Row(
               mainAxisSize: MainAxisSize.min,
@@ -307,7 +305,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     shape: BoxShape.circle,
                     boxShadow: [
                       BoxShadow(
-                        color: Colors.green.withOpacity(0.4 * _pulseController.value),
+                        color: Colors.green.withValues(alpha: 0.4 * _pulseController.value),
                         blurRadius: 8 * _pulseController.value,
                         spreadRadius: 2 * _pulseController.value,
                       ),
@@ -554,68 +552,6 @@ class _HomeErrorState extends StatelessWidget {
                     ),
                   ],
                 ),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
-
-class _HomeEmptyState extends StatelessWidget {
-  final VoidCallback onRetry;
-
-  const _HomeEmptyState({required this.onRetry});
-
-  @override
-  Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: const EdgeInsets.all(40),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.local_offer_outlined,
-                size: 64,
-                color: AppColors.primary,
-              ),
-            ),
-            const SizedBox(height: 24),
-            Text(
-              'لا توجد عروض حالياً',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              'سنقوم بإضافة عروض جديدة قريباً جداً في منطقتك. ترقبوا الإشعارات!',
-              textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
-            ),
-            const SizedBox(height: 32),
-            TextButton.icon(
-              onPressed: onRetry,
-              icon: const Icon(Icons.sync_rounded),
-              label: const Text(
-                'تحديث الصفحة',
-                style: TextStyle(fontWeight: FontWeight.bold),
-              ),
-              style: TextButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
               ),
             ),
           ],

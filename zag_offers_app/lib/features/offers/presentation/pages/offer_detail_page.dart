@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
-import 'package:share_plus/share_plus.dart';
+import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams;
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
@@ -73,10 +73,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     final discountText = widget.offer.discount.isNotEmpty
         ? widget.offer.discount
         : '${widget.offer.discountPercentage.toInt()}%';
-    Share.share(
-      'شاهد هذا العرض من ${widget.offer.store.name}\n'
-      '${widget.offer.title}\n'
-      'الخصم: $discountText',
+    SharePlus.instance.share(
+      ShareParams(
+        text: 'شاهد هذا العرض من ${widget.offer.store.name}\n'
+            '${widget.offer.title}\n'
+            'الخصم: $discountText',
+      ),
     );
   }
 

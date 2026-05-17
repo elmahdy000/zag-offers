@@ -365,7 +365,7 @@ class SimpleChartPainter extends CustomPainter {
       ..shader = LinearGradient(
         begin: Alignment.topCenter,
         end: Alignment.bottomCenter,
-        colors: [color.withOpacity(0.3), color.withOpacity(0.01)],
+        colors: [color.withValues(alpha: 0.3), color.withValues(alpha: 0.01)],
       ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
       ..style = PaintingStyle.fill;
 
@@ -408,7 +408,7 @@ class SimpleChartPainter extends CustomPainter {
     final pointPaint = Paint()..color = color..style = PaintingStyle.fill;
     for (var point in points) {
       canvas.drawCircle(point, 4, pointPaint);
-      canvas.drawCircle(point, 6, Paint()..color = Colors.white.withOpacity(0.5)..style = PaintingStyle.stroke..strokeWidth = 1);
+      canvas.drawCircle(point, 6, Paint()..color = Colors.white.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1);
     }
   }
 

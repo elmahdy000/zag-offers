@@ -401,7 +401,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                     if (coupon.offer.oldPrice != null) ...[
                                       const SizedBox(width: 6),
                                       Text(
-                                        '${coupon.offer.oldPrice!.toStringAsFixed(0)}',
+                                        coupon.offer.oldPrice!.toStringAsFixed(0),
                                         style: TextStyle(
                                           decoration: TextDecoration.lineThrough,
                                           color: Colors.grey,

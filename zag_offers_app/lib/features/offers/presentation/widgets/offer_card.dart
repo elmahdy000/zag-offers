@@ -153,7 +153,7 @@ class OfferCard extends StatelessWidget {
           ),
           const SizedBox(height: 4),
           Text(
-            '${offer.store.area ?? ""} • ${offer.store.category ?? ""}',
+            '${offer.store.area} • ${offer.store.category ?? ""}',
             style: TextStyle(
               fontSize: 9,
               fontWeight: FontWeight.w500,
