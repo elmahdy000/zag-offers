@@ -1,3 +1,4 @@
+import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
@@ -81,10 +82,13 @@ class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
     emit(StoreSetupLoading());
     try {
       _categories = await repository.getCategories();
+      debugPrint('[StoreSetupBloc] ✅ Loaded ${_categories.length} categories');
       emit(CategoriesLoaded(_categories));
     } on DioException catch (e) {
+      debugPrint('[StoreSetupBloc] ❌ DioException loading categories: ${e.message} | status: ${e.response?.statusCode}');
       emit(StoreSetupError(mapDioErrorToMessage(e), categories: _categories));
     } catch (e) {
+      debugPrint('[StoreSetupBloc] ❌ Exception loading categories: $e');
       emit(StoreSetupError(
         e.toString().replaceAll('Exception: ', ''),
         categories: _categories,

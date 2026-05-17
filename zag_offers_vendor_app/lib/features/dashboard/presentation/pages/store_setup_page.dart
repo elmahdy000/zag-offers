@@ -341,50 +341,63 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     final hasValidSelection =
         categories.any((c) => c.id == _selectedCategoryId);
 
-    return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 12),
-      decoration: BoxDecoration(
-        color: AppColors.card,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.border),
-      ),
-      child: isLoadingCategories
-          ? const Padding(
-              padding: EdgeInsets.symmetric(vertical: 18),
-              child: Row(
-                children: [
-                  SizedBox(width: 8),
-                  SizedBox(
-                    width: 18,
-                    height: 18,
-                    child: CircularProgressIndicator(strokeWidth: 2),
-                  ),
-                  SizedBox(width: 12),
-                  Text('جاري تحميل الأقسام...'),
-                ],
-              ),
-            )
-          : DropdownButtonHideUnderline(
-              child: DropdownButtonFormField<String>(
-                value: hasValidSelection ? _selectedCategoryId : null,
-                hint: Text('اختر القسم', style: GoogleFonts.cairo(fontSize: 14)),
-                items: categories.map((c) {
-                  return DropdownMenuItem(
-                    value: c.id,
-                    child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
-                  );
-                }).toList(),
-                onChanged: (v) => setState(() => _selectedCategoryId = v),
-                validator: (v) => v == null ? 'يرجى اختيار القسم' : null,
-                decoration: const InputDecoration(
-                  border: InputBorder.none,
-                  prefixIcon: Icon(Icons.category_rounded,
-                      size: 20, color: AppColors.textTertiary),
-                ),
-              ),
+    if (isLoadingCategories) {
+      return Container(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 18),
+        decoration: BoxDecoration(
+          color: AppColors.card,
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(color: AppColors.border),
+        ),
+        child: Row(
+          children: [
+            const Icon(Icons.category_rounded, size: 20, color: AppColors.textTertiary),
+            const SizedBox(width: 12),
+            const SizedBox(
+              width: 16,
+              height: 16,
+              child: CircularProgressIndicator(strokeWidth: 2),
             ),
+            const SizedBox(width: 12),
+            Text('جاري تحميل الأقسام...', style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textTertiary)),
+          ],
+        ),
+      );
+    }
+
+    return DropdownButtonFormField<String>(
+      value: hasValidSelection ? _selectedCategoryId : null,
+      hint: Text('اختر القسم', style: GoogleFonts.cairo(fontSize: 14)),
+      style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary),
+      isExpanded: true,
+      items: categories.map((c) {
+        return DropdownMenuItem<String>(
+          value: c.id,
+          child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
+        );
+      }).toList(),
+      onChanged: (v) => setState(() => _selectedCategoryId = v),
+      validator: (v) => v == null ? 'يرجى اختيار القسم' : null,
+      decoration: InputDecoration(
+        prefixIcon: const Icon(Icons.category_rounded, size: 20, color: AppColors.textTertiary),
+        filled: true,
+        fillColor: AppColors.card,
+        border: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide.none),
+        enabledBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: BorderSide(color: AppColors.border)),
+        focusedBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.primary)),
+        errorBorder: OutlineInputBorder(
+            borderRadius: BorderRadius.circular(16),
+            borderSide: const BorderSide(color: AppColors.error)),
+      ),
     );
   }
+
 
   Widget _buildImagePickers() {
     return Row(
