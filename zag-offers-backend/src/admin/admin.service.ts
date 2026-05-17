@@ -1105,6 +1105,11 @@ export class AdminService {
     }
 
     await this.clearCache();
+    this.eventsGateway.broadcastCategoriesUpdated({
+      action: 'CREATED',
+      categoryId: created.id,
+      categoryName: created.name,
+    });
     return created;
   }
 
@@ -1155,6 +1160,11 @@ export class AdminService {
     }
 
     await this.clearCache();
+    this.eventsGateway.broadcastCategoriesUpdated({
+      action: 'UPDATED',
+      categoryId: updated.id,
+      categoryName: updated.name,
+    });
     return updated;
   }
 
@@ -1185,6 +1195,11 @@ export class AdminService {
     }
 
     await this.clearCache();
+    this.eventsGateway.broadcastCategoriesUpdated({
+      action: 'DELETED',
+      categoryId: deleted.id,
+      categoryName: category.name,
+    });
     return deleted;
   }
 

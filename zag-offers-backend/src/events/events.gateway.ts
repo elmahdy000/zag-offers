@@ -93,6 +93,12 @@ export interface WsAnnouncement {
   timestamp: string;
 }
 
+export interface WsCategoriesUpdated {
+  action: 'CREATED' | 'UPDATED' | 'DELETED';
+  categoryId?: string;
+  categoryName?: string;
+}
+
 interface ConnectedClient {
   userId: string;
   role: string;
@@ -393,6 +399,16 @@ export class EventsGateway
       ...data,
       timestamp: new Date().toISOString(),
     });
+  }
+
+  broadcastCategoriesUpdated(data: WsCategoriesUpdated) {
+    this.server.emit('categories_updated', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+    this.logger.log(
+      `Broadcast categories_updated: ${data.action} ${data.categoryName ?? ''}`,
+    );
   }
 
   getConnectedCount(): number {

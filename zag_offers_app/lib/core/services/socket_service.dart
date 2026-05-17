@@ -21,6 +21,8 @@ class SocketService {
       StreamController<Map<String, dynamic>>.broadcast();
   final _socialProofController =
       StreamController<Map<String, dynamic>>.broadcast();
+  final _categoriesUpdatedController =
+      StreamController<Map<String, dynamic>>.broadcast();
 
   /// Emitted when the admin approves a new offer and it goes live.
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
@@ -31,6 +33,8 @@ class SocketService {
 
   /// Emitted when any customer generates a coupon (social-proof ticker).
   Stream<Map<String, dynamic>> get onSocialProof => _socialProofController.stream;
+  Stream<Map<String, dynamic>> get onCategoriesUpdated =>
+      _categoriesUpdatedController.stream;
 
   // ---------------------------------------------------------------------------
   // Lifecycle
@@ -80,6 +84,11 @@ class SocketService {
       _couponUpdateController.add(_toMap(data));
     });
 
+    _socket!.on('categories_updated', (data) {
+      log('[Socket] categories_updated: $data');
+      _categoriesUpdatedController.add(_toMap(data));
+    });
+
     _socket!.onConnectError((error) => log('[Socket] connect_error: $error'));
     _socket!.onDisconnect((_) => log('[Socket] Disconnected'));
 
@@ -94,6 +103,7 @@ class SocketService {
     _newOfferController.close();
     _couponUpdateController.close();
     _socialProofController.close();
+    _categoriesUpdatedController.close();
     _isInitialized = false;
   }
 

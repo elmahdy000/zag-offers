@@ -36,6 +36,7 @@ class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   String? _userRole;
   StreamSubscription<Map<String, dynamic>>? _newOfferSub;
+  StreamSubscription<Map<String, dynamic>>? _categoriesUpdatedSub;
   final Set<int> _loadedTabs = {0};
 
   @override
@@ -81,12 +82,18 @@ class MainScreenState extends State<MainScreen> {
           'عرض جديد: ${data['title'] ?? 'تحقق من العروض'}',
         );
       });
+
+      _categoriesUpdatedSub = socketService.onCategoriesUpdated.listen((_) {
+        if (!mounted) return;
+        context.read<OffersBloc>().add(FetchHomeData());
+      });
     }
   }
 
   @override
   void dispose() {
     _newOfferSub?.cancel();
+    _categoriesUpdatedSub?.cancel();
     super.dispose();
   }
 
