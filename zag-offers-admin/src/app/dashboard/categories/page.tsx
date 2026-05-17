@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   Loader2,
   Plus,
@@ -10,11 +10,14 @@ import {
   Image as ImageIcon,
   Edit,
   Store,
-  ChevronRight
+  ChevronRight,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import { useSocketContext } from '@/components/SocketProvider';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -24,6 +27,7 @@ interface CategoryItem {
   id: string;
   name: string;
   image?: string | null;
+  priority?: number;
   _count?: {
     stores: number;
   };
@@ -41,15 +45,36 @@ export default function CategoriesPage() {
   const [formData, setFormData] = useState({
     name: '',
     image: '',
+    priority: 0,
   });
 
+  const { socket } = useSocketContext();
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleCategoriesUpdated = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-categories'] });
+    };
+
+    socket.on('categories_updated', handleCategoriesUpdated);
+    return () => {
+      socket.off('categories_updated', handleCategoriesUpdated);
+    };
+  }, [socket, queryClient]);
+
   // Queries
-  const { data: categories, isLoading } = useQuery({
+  const { data: categories, isLoading, isError, error: queryError, refetch } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: async () => {
       const response = await adminApi().get('/admin/categories');
+      if (!Array.isArray(response.data)) {
+        throw new Error('Invalid response format: expected an array');
+      }
       return response.data as CategoryItem[];
     },
+    staleTime: 300000,
+    retry: 1,
   });
 
   // Mutations
@@ -111,10 +136,11 @@ export default function CategoriesPage() {
       setFormData({
         name: category.name,
         image: category.image || '',
+        priority: category.priority ?? 0,
       });
     } else {
       setEditingCategory(null);
-      setFormData({ name: '', image: '' });
+      setFormData({ name: '', image: '', priority: 0 });
     }
     setIsUpsertOpen(true);
   };
@@ -141,6 +167,23 @@ export default function CategoriesPage() {
           Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-48 animate-pulse rounded-[2.5rem] bg-slate-100 border border-slate-200" />
           ))
+        ) : isError ? (
+          <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+            <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
+              <AlertTriangle size={36} />
+            </div>
+            <h3 className="text-xl font-bold text-slate-900 tracking-tight">فشل تحميل التصنيفات</h3>
+            <p className="mt-2 text-sm font-medium text-slate-500">
+              {queryError instanceof Error ? queryError.message : 'حدث خطأ أثناء تحميل البيانات'}
+            </p>
+            <button
+              onClick={() => refetch()}
+              className="mt-6 flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3 text-sm font-bold text-white shadow-lg shadow-orange-200 transition-all hover:bg-orange-700"
+            >
+              <RefreshCw size={16} />
+              <span>إعادة المحاولة</span>
+            </button>
+          </div>
         ) : categories?.map((category) => (
           <motion.div 
             layout
@@ -267,6 +310,20 @@ export default function CategoriesPage() {
                     value={formData.name} 
                     onChange={e => setFormData({...formData, name: e.target.value})} 
                     placeholder="مثلاً: مطاعم، ملابس..."
+                    className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all" 
+                  />
+                </div>
+
+                <div className="space-y-2">
+                  <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    الأولوية (رقم أعلى = ظهور أولاً)
+                  </label>
+                  <input 
+                    type="number" 
+                    min="0"
+                    value={formData.priority} 
+                    onChange={e => setFormData({...formData, priority: parseInt(e.target.value) || 0})} 
+                    placeholder="0"
                     className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all" 
                   />
                 </div>

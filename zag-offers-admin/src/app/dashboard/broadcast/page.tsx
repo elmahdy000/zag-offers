@@ -92,8 +92,7 @@ export default function BroadcastPage() {
 
   const handleConfirmedSend = () => {
     setConfirmOpen(false);
-    // Resolve image URL at send time (handles both raw paths and full URLs safely)
-    const resolvedImage = imageUrl ? resolveImageUrl(imageUrl) : undefined;
+    const resolvedImage = imageUrl ? (imageUrl.startsWith('http') ? imageUrl : resolveImageUrl(imageUrl)) : undefined;
     broadcastMutation.mutate({ title, body, area: area || undefined, imageUrl: resolvedImage });
   };
 
@@ -166,11 +165,11 @@ export default function BroadcastPage() {
               
               <div className="grid gap-4 sm:grid-cols-2">
                 <div className="relative group h-32 rounded-2xl border-2 border-dashed border-slate-200 bg-slate-50/50 flex flex-col items-center justify-center gap-2 cursor-pointer hover:border-orange-400 hover:bg-orange-50/30 transition-all overflow-hidden">
-                  {isUploading ? (
+                    {isUploading ? (
                     <Loader2 className="animate-spin text-orange-600" size={24} />
                   ) : imageUrl ? (
                     <>
-                      <img src={resolveImageUrl(imageUrl)} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
+                      <img src={imageUrl.startsWith('http') ? imageUrl : resolveImageUrl(imageUrl)} alt="Uploaded" className="absolute inset-0 w-full h-full object-cover" />
                       <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
                         <span className="text-white text-xs font-bold uppercase tracking-widest">تغيير الصورة</span>
                       </div>
@@ -279,7 +278,7 @@ export default function BroadcastPage() {
                         </div>
                         {imageUrl && (
                           <div className="mt-3 rounded-2xl overflow-hidden border border-slate-100 shadow-inner">
-                            <img src={resolveImageUrl(imageUrl)} alt="Preview" className="w-full h-24 object-cover" />
+                            <img src={imageUrl.startsWith('http') ? imageUrl : resolveImageUrl(imageUrl)} alt="Preview" className="w-full h-24 object-cover" />
                           </div>
                         )}
                      </motion.div>

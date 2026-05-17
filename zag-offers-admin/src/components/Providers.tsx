@@ -4,6 +4,7 @@ import { ReactQueryDevtools } from '@tanstack/react-query-devtools';
 import { useState } from 'react';
 
 import { ToastProvider } from './shared/Toast';
+import { SocketProvider } from './SocketProvider';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -22,9 +23,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <ToastProvider>
-        {children}
-      </ToastProvider>
+      <SocketProvider>
+        <ToastProvider>
+          {children}
+        </ToastProvider>
+      </SocketProvider>
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}

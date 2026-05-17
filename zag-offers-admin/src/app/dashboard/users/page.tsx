@@ -20,7 +20,8 @@ import {
   Ticket,
   ChevronRight,
   CheckCircle2,
-  AlertTriangle
+  AlertTriangle,
+  RefreshCw
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +31,7 @@ import { adminApi } from '@/lib/api';
 import { UserCard } from '@/components/users/UserCard';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/components/shared/Toast';
+import { useSocketContext } from '@/components/SocketProvider';
 
 interface UserItem {
   id: string;
@@ -72,6 +74,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
 
 export default function UsersPage() {
   const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -100,7 +103,16 @@ export default function UsersPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useQuery({
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-users'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-users', debouncedSearch, roleFilter, page],
     queryFn: async () => {
       const response = await adminApi().get('/admin/users', {
@@ -111,8 +123,10 @@ export default function UsersPage() {
           limit: 20,
         },
       });
+      if (!Array.isArray(response.data?.items)) throw new Error('Invalid response');
       return response.data as { items: UserItem[]; meta: { total: number; lastPage: number } };
     },
+    retry: 1,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -258,7 +272,15 @@ export default function UsersPage() {
         </div>
       </div>
 
-      {isLoading ? (
+      {isError ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
+          <AlertTriangle size={48} className="mb-4 opacity-20 text-rose-500" />
+          <p className="text-lg font-bold text-slate-500 mt-4">فشل تحميل البيانات</p>
+          <button onClick={() => refetch()} className="mt-6 h-12 px-6 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+            <RefreshCw size={18} /> إعادة المحاولة
+          </button>
+        </div>
+      ) : isLoading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-56 animate-pulse bg-white rounded-2xl border border-slate-100 shadow-sm" />

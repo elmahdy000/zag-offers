@@ -1,9 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import {
   AlertTriangle,
   Loader2,
+  RefreshCw,
   Pencil,
   Search,
   Tag,
@@ -30,6 +31,7 @@ import { adminApi, resolveImageUrl } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { OfferCard } from '@/components/offers/OfferCard';
 import { useToast } from '@/components/shared/Toast';
+import { useSocketContext } from '@/components/SocketProvider';
 import Pagination from '@/components/shared/Pagination';
 
 interface OfferRow {
@@ -62,6 +64,7 @@ const statusLabels: Record<string, string> = {
 
 export default function OffersManagementPage() {
   const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -75,8 +78,11 @@ export default function OffersManagementPage() {
   const [uploading, setUploading] = useState(false);
   const [tempImages, setTempImages] = useState<string[]>([]);
 
+  const createFormRef = useRef<HTMLFormElement>(null);
+  const editFormRef = useRef<HTMLFormElement>(null);
+
   const handlePriceCalc = (formType: 'create' | 'edit', field: 'original' | 'new' | 'discount', value: string) => {
-    const form = document.querySelector(formType === 'create' ? '#create-offer-form' : '#edit-offer-form') as HTMLFormElement;
+    const form = formType === 'create' ? createFormRef.current : editFormRef.current;
     if (!form) return;
 
     const originalInput = form.elements.namedItem('originalPrice') as HTMLInputElement;
@@ -129,7 +135,16 @@ export default function OffersManagementPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useQuery({
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-offers'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['all-offers', debouncedSearch, statusFilter, page],
     queryFn: async () => {
       const response = await adminApi().get('/admin/offers', {
@@ -140,19 +155,24 @@ export default function OffersManagementPage() {
           limit: 20,
         },
       });
-      return response.data as { items: OfferRow[]; meta: { total: number; lastPage: number } };
+      const result = response.data as { items: OfferRow[]; meta: { total: number; lastPage: number } };
+      if (!result || !Array.isArray(result.items)) throw new Error('Invalid response format');
+      return result;
     },
+    retry: 1,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
 
-  const { data: offerDetails, isLoading: detailsLoading } = useQuery<OfferDetails>({
+  const { data: offerDetails, isLoading: detailsLoading, isError: isDetailsError, error: detailsError, refetch: refetchDetails } = useQuery<OfferDetails>({
     queryKey: ['offer-details', selectedOfferId],
     queryFn: async () => {
       const response = await adminApi().get<OfferDetails>(`/admin/offers/${selectedOfferId}`);
+      if (!response.data) throw new Error('Invalid response');
       return response.data;
     },
     enabled: !!selectedOfferId,
+    retry: 1,
   });
 
   useEffect(() => {
@@ -161,13 +181,16 @@ export default function OffersManagementPage() {
     }
   }, [offerDetails, isEditing]);
 
-  const { data: storesData } = useQuery({
+  const { data: storesData, isError: isStoresError, error: storesError, refetch: refetchStores } = useQuery({
     queryKey: ['all-stores-list'],
     queryFn: async () => {
       const response = await adminApi().get('/admin/stores', { params: { limit: 100 } });
-      return response.data.items as { id: string; name: string }[];
+      const items = response.data.items as { id: string; name: string }[];
+      if (!Array.isArray(items)) throw new Error('Invalid response format');
+      return items;
     },
     enabled: isCreating || isEditing,
+    retry: 1,
     staleTime: 300000,
     refetchOnWindowFocus: false,
   });
@@ -280,6 +303,15 @@ export default function OffersManagementPage() {
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
           {Array.from({ length: 10 }).map((_, i) => <div key={i} className="h-40 animate-pulse bg-white rounded-2xl border border-slate-100" />)}
         </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-red-200 text-slate-400">
+          <AlertTriangle size={48} className="mb-4 text-red-400" />
+          <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل البيانات</h3>
+          <p className="text-sm font-medium mt-1 text-slate-500">{(error as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+          <button onClick={() => refetch()} className="mt-6 px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/10">
+            <RefreshCw size={16} /> إعادة المحاولة
+          </button>
+        </div>
       ) : offers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
           <Tag size={48} className="mb-4 opacity-10" />
@@ -326,6 +358,15 @@ export default function OffersManagementPage() {
 
               {detailsLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={32} /></div>
+              ) : isDetailsError ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <AlertTriangle size={48} className="mb-4 text-red-400" />
+                  <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل التفاصيل</h3>
+                  <p className="text-sm font-medium mt-1 text-slate-500">{(detailsError as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+                  <button onClick={() => refetchDetails()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
+                    <RefreshCw size={16} /> إعادة المحاولة
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-8">
                   <div className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 border border-slate-100">
@@ -339,7 +380,7 @@ export default function OffersManagementPage() {
                   </div>
 
                   {isEditing ? (
-                    <form id="edit-offer-form" onSubmit={(e) => { 
+                    <form ref={editFormRef} id="edit-offer-form" onSubmit={(e) => { 
                       e.preventDefault(); 
                       const fd = new FormData(e.currentTarget); 
                       const formData = Object.fromEntries(fd.entries());
@@ -469,7 +510,7 @@ export default function OffersManagementPage() {
                 </button>
               </div>
 
-              <form id="create-offer-form" onSubmit={(e) => {
+              <form ref={createFormRef} id="create-offer-form" onSubmit={(e) => {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
                 const formData = Object.fromEntries(fd.entries());
@@ -478,7 +519,6 @@ export default function OffersManagementPage() {
                   originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
                   newPrice: formData.newPrice ? Number(formData.newPrice) : null,
                   images: tempImages,
-                  status: 'ACTIVE' // Admin-created offers are auto-active
                 };
                 createOfferMutation.mutate(data);
               }} className="space-y-6">
@@ -517,17 +557,23 @@ export default function OffersManagementPage() {
                       <input type="date" name="startDate" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 pl-10 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
                     </div>
                   </div>
-                  <div className="space-y-2">
-                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانتهاء</label>
-                    <div className="relative">
-                      <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
-                      <input type="date" name="endDate" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 pl-10 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">تاريخ الانتهاء</label>
+                      <div className="relative">
+                        <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
+                        <input type="date" name="endDate" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 pl-10 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</label>
+                      <select name="status" defaultValue="ACTIVE" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm">
+                        {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                      </select>
                     </div>
                   </div>
-                </div>
 
-                <div className="space-y-4">
-                  <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">صور العرض</label>
+                  <div className="space-y-4">
+                    <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">صور العرض</label>
                   <div className="grid grid-cols-4 gap-4">
                     {tempImages.map((img, i) => (
                       <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">

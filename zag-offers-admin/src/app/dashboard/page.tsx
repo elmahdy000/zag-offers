@@ -44,11 +44,13 @@ import {
   Database,
   RefreshCcw,
   Terminal,
+  AlertTriangle,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import { useSocketContext } from '@/components/SocketProvider';
 
 interface GlobalStats {
   users: { totalUsers: number; totalMerchants: number };
@@ -140,23 +142,36 @@ function useDarkMode() {
 }
 
 // ─── Keyboard Shortcuts Hook ──────────────────────────
-function useKeyboardShortcuts(callbacks: { onSearch: () => void; onRefresh: () => void }) {
+function useKeyboardShortcuts(onSearch: () => void, onRefresh: () => void) {
+  const onSearchRef = useRef(onSearch);
+  const onRefreshRef = useRef(onRefresh);
+  onSearchRef.current = onSearch;
+  onRefreshRef.current = onRefresh;
+
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       if (e.ctrlKey || e.metaKey) {
-        if (e.key === 'k') {
-          e.preventDefault();
-          callbacks.onSearch();
-        }
-        if (e.key === 'r') {
-          e.preventDefault();
-          callbacks.onRefresh();
-        }
+        if (e.key === 'k') { e.preventDefault(); onSearchRef.current(); }
+        if (e.key === 'r') { e.preventDefault(); onRefreshRef.current(); }
       }
     };
     window.addEventListener('keydown', handler);
     return () => window.removeEventListener('keydown', handler);
-  }, [callbacks]);
+  }, []);
+}
+
+// ─── Error Panel Component ────────────────────────────
+function ErrorPanel({ message, onRetry }: { message: string; onRetry?: () => void }) {
+  return (
+    <div className="admin-panel p-10 text-center">
+      <div className="mx-auto mb-4 h-12 w-12 rounded-2xl bg-rose-50 text-rose-600 border border-rose-100 flex items-center justify-center">
+        <AlertTriangle size={22} />
+      </div>
+      <h3 className="text-lg font-bold text-slate-900 mb-2">فشل تحميل البيانات</h3>
+      <p className="text-sm font-medium text-slate-500">{message}</p>
+      {onRetry && <button onClick={onRetry} className="mt-4 inline-flex items-center gap-2 rounded-xl bg-orange-600 px-5 py-2.5 text-sm font-bold text-white">إعادة المحاولة</button>}
+    </div>
+  );
 }
 
 // ─── Export to CSV Helper ─────────────────────────────
@@ -187,12 +202,15 @@ function useActivityLogs() {
       timestamp: new Date().toISOString(),
       details,
     };
-    setLogs(prev => [newLog, ...prev].slice(0, 100)); // Keep last 100
-    // Persist to localStorage
-    try {
-      localStorage.setItem('admin_activity_logs', JSON.stringify([newLog, ...logs].slice(0, 100)));
-    } catch { /* ignore */ }
-  }, [logs]);
+    setLogs(prev => {
+      const updated = [newLog, ...prev].slice(0, 100);
+      // Persist to localStorage
+      try {
+        localStorage.setItem('admin_activity_logs', JSON.stringify(updated));
+      } catch { /* ignore */ }
+      return updated;
+    });
+  }, []);
 
   // Load logs on mount
   useEffect(() => {
@@ -482,6 +500,7 @@ function useDemoMode() {
 
 export default function AdminDashboard() {
   const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
   const { isDark, toggle, mounted } = useDarkMode();
   const { logs, addLog, clearLogs } = useActivityLogs();
   const {
@@ -543,64 +562,85 @@ export default function AdminDashboard() {
   }, [autoRefresh, queryClient]);
 
   // ─── Keyboard Shortcuts ─────────────────────────────
-  useKeyboardShortcuts({
-    onSearch: () => searchInputRef.current?.focus(),
-    onRefresh: () => {
+  useKeyboardShortcuts(
+    () => searchInputRef.current?.focus(),
+    () => {
       queryClient.invalidateQueries({ queryKey: ['global-stats'] });
       queryClient.invalidateQueries({ queryKey: ['stats-period'] });
       queryClient.invalidateQueries({ queryKey: ['top-stores'] });
       queryClient.invalidateQueries({ queryKey: ['top-categories'] });
       queryClient.invalidateQueries({ queryKey: ['pending-items'] });
     },
-  });
+  );
 
-  const { data: stats, isLoading: statsLoading } = useQuery({
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-stats-period'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-top-stores'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-top-categories'] });
+      queryClient.invalidateQueries({ queryKey: ['admin-pending'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
+  const { data: stats, isLoading: statsLoading, isError: statsError, error: statsErrorObj, refetch: refetchStats } = useQuery({
     queryKey: ['global-stats'],
     queryFn: async () => {
       const response = await adminApi().get<GlobalStats>('/admin/stats/global');
+      if (!response.data || typeof response.data !== 'object') throw new Error('Invalid response format');
       return response.data;
     },
     staleTime: 120000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: pStats, isLoading: pStatsLoading } = useQuery({
+  const { data: pStats, isLoading: pStatsLoading, isError: pStatsError, error: pStatsErrorObj, refetch: refetchPStats } = useQuery({
     queryKey: ['stats-period', period],
     queryFn: async () => {
       const params: any = { period };
       if (dateRange.from) params.from = dateRange.from;
       if (dateRange.to) params.to = dateRange.to;
       const response = await adminApi().get<PeriodStats>('/admin/stats/period', { params });
+      if (!response.data || typeof response.data !== 'object') throw new Error('Invalid response format');
       return response.data;
     },
     staleTime: 30000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
+    retry: 1,
   });
 
-  const { data: topStores = [], isLoading: topStoresLoading } = useQuery({
+  const { data: topStores = [], isLoading: topStoresLoading, isError: topStoresError, error: topStoresErrorObj, refetch: refetchTopStores } = useQuery({
     queryKey: ['top-stores'],
     queryFn: async () => {
       const response = await adminApi().get<TopStore[]>('/admin/stats/top-stores', { params: { limit: 5 } });
+      if (!Array.isArray(response.data)) throw new Error('Invalid response format');
       return response.data;
     },
     staleTime: 180000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: topCategories = [], isLoading: topCategoriesLoading } = useQuery({
+  const { data: topCategories = [], isLoading: topCategoriesLoading, isError: topCategoriesError, error: topCategoriesErrorObj, refetch: refetchTopCategories } = useQuery({
     queryKey: ['top-categories'],
     queryFn: async () => {
       const response = await adminApi().get<TopCategory[]>('/admin/stats/top-categories');
+      if (!Array.isArray(response.data)) throw new Error('Invalid response format');
       return response.data;
     },
     staleTime: 180000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: pendingData, isLoading: pendingLoading } = useQuery({
+  const { data: pendingData, isLoading: pendingLoading, isError: pendingError, error: pendingErrorObj, refetch: refetchPending } = useQuery({
     queryKey: ['pending-items'],
     queryFn: async () => {
       const ax = adminApi();
@@ -608,6 +648,7 @@ export default function AdminDashboard() {
         ax.get<any[]>('/admin/stores/pending'),
         ax.get<any[]>('/admin/offers/pending'),
       ]);
+      if (!Array.isArray(storesResponse.data) || !Array.isArray(offersResponse.data)) throw new Error('Invalid response format');
       return {
         stores: storesResponse.data,
         offers: offersResponse.data,
@@ -616,6 +657,7 @@ export default function AdminDashboard() {
     staleTime: 45000,
     refetchInterval: autoRefresh ? 5 * 60 * 1000 : false,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
   const actionMutation = useMutation({
@@ -728,6 +770,14 @@ export default function AdminDashboard() {
     return (
       <div className={`flex h-screen items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
         <Loader2 className="h-10 w-10 animate-spin text-orange-600" />
+      </div>
+    );
+  }
+
+  if (statsError) {
+    return (
+      <div className={`flex h-screen items-center justify-center ${isDark ? 'bg-slate-900' : 'bg-white'}`}>
+        <ErrorPanel message={statsErrorObj instanceof Error ? statsErrorObj.message : 'حدث خطأ في تحميل الإحصائيات'} onRetry={refetchStats} />
       </div>
     );
   }
@@ -1024,6 +1074,11 @@ export default function AdminDashboard() {
       </AnimatePresence>
 
       {/* Dynamic Stats Grid */}
+      {pStatsError && (
+        <div className="bg-rose-50 border border-rose-200 rounded-2xl p-4 text-center">
+          <ErrorPanel message={pStatsErrorObj instanceof Error ? pStatsErrorObj.message : 'حدث خطأ في تحميل إحصائيات الفترة'} onRetry={refetchPStats} />
+        </div>
+      )}
       <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard
           label="إجمالي المستخدمين"
@@ -1175,6 +1230,8 @@ export default function AdminDashboard() {
             <div className="flex-1">
               {pendingLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" /></div>
+              ) : pendingError ? (
+                <div className="py-10"><ErrorPanel message={pendingErrorObj instanceof Error ? pendingErrorObj.message : 'حدث خطأ في تحميل الطلبات'} onRetry={refetchPending} /></div>
               ) : filteredPendingItems.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-20 px-6 text-center">
                   <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-2xl bg-slate-50 text-slate-300">
@@ -1257,6 +1314,7 @@ export default function AdminDashboard() {
             </h3>
             <div className="space-y-4">
               {topCategoriesLoading ? Array.from({ length: 4 }).map((_, i) => <div key={i} className="h-8 animate-pulse bg-slate-50 rounded-lg" />) :
+                topCategoriesError ? <ErrorPanel message={topCategoriesErrorObj instanceof Error ? topCategoriesErrorObj.message : 'حدث خطأ في تحميل التصنيفات'} onRetry={refetchTopCategories} /> :
                 topCategories.slice(0, 5).map((cat, i) => (
                   <div key={i} className="space-y-1.5">
                     <div className="flex justify-between text-xs font-bold">
@@ -1282,6 +1340,7 @@ export default function AdminDashboard() {
             </h3>
             <div className="space-y-5">
               {topStoresLoading ? Array.from({ length: 3 }).map((_, i) => <div key={i} className="h-12 animate-pulse bg-slate-50 rounded-xl" />) :
+                topStoresError ? <ErrorPanel message={topStoresErrorObj instanceof Error ? topStoresErrorObj.message : 'حدث خطأ في تحميل المتاجر'} onRetry={refetchTopStores} /> :
                 topStores.map((store, i) => {
                   const totalClaims = (store.offers || []).reduce((sum, off) => sum + (off._count?.coupons || 0), 0);
 

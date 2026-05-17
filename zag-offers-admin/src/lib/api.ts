@@ -75,6 +75,10 @@ _axiosInstance.interceptors.response.use(
     console.error('API Error Message:', error.message);
     if (error.response) {
       console.error('API Error Status:', error.response.status);
+      if (error.response.status === 401 && typeof window !== 'undefined') {
+        deleteCookie('admin_token');
+        window.location.href = '/login';
+      }
     }
     if (error.config) {
       console.error('API Error Path:', error.config.url);

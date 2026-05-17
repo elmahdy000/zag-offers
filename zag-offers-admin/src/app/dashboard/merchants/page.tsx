@@ -23,6 +23,8 @@ import {
   Info,
   ExternalLink,
   Tag,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -33,6 +35,7 @@ import { adminApi, resolveImageUrl } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { MerchantCard } from '@/components/merchants/MerchantCard';
 import { useToast } from '@/components/shared/Toast';
+import { useSocketContext } from '@/components/SocketProvider';
 import Pagination from '@/components/shared/Pagination';
 
 interface MerchantRow {
@@ -66,6 +69,7 @@ interface Category {
 
 export default function MerchantsPage() {
   const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -94,15 +98,25 @@ export default function MerchantsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: categories = [] } = useQuery({
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-merchants'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
+  const { data: categories = [], isError: isCategoriesError, error: categoriesError, refetch: refetchCategories } = useQuery({
     queryKey: ['categories'],
     queryFn: async () => {
       const response = await adminApi().get<Category[]>('/admin/categories');
-      return response.data;
+      return Array.isArray(response.data) ? response.data : [];
     },
+    retry: 1,
   });
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-merchants', debouncedSearch, status, categoryId, page],
     queryFn: async () => {
       const response = await adminApi().get('/admin/stores', {
@@ -114,17 +128,22 @@ export default function MerchantsPage() {
           limit: 12,
         },
       });
-      return response.data as { items: MerchantRow[]; meta: { total: number; lastPage: number } };
+      const result = response.data as { items: MerchantRow[]; meta: { total: number; lastPage: number } };
+      if (!result || !Array.isArray(result.items)) throw new Error('Invalid response format');
+      return result;
     },
+    retry: 1,
   });
 
-  const { data: merchantDetails, isLoading: detailsLoading } = useQuery({
+  const { data: merchantDetails, isLoading: detailsLoading, isError: isDetailsError, error: detailsError, refetch: refetchDetails } = useQuery({
     queryKey: ['merchant-details', selectedMerchantId],
     queryFn: async () => {
       const response = await adminApi().get<MerchantDetails>(`/admin/stores/${selectedMerchantId}`);
+      if (!response.data) throw new Error('Invalid response');
       return response.data;
     },
     enabled: !!selectedMerchantId,
+    retry: 1,
   });
 
   const updateMerchantMutation = useMutation({
@@ -212,6 +231,15 @@ export default function MerchantsPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-56 animate-pulse bg-white rounded-2xl border border-slate-100 shadow-sm" />)}
         </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-red-200 text-slate-400">
+          <AlertTriangle size={48} className="mb-4 text-red-400" />
+          <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل البيانات</h3>
+          <p className="text-sm font-medium mt-1 text-slate-500">{(error as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+          <button onClick={() => refetch()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
+            <RefreshCw size={16} /> إعادة المحاولة
+          </button>
+        </div>
       ) : merchants.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
           <Store size={48} className="mb-4 opacity-20" />
@@ -263,6 +291,15 @@ export default function MerchantsPage() {
 
               {detailsLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={32} /></div>
+              ) : isDetailsError ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <AlertTriangle size={48} className="mb-4 text-red-400" />
+                  <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل التفاصيل</h3>
+                  <p className="text-sm font-medium mt-1 text-slate-500">{(detailsError as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+                  <button onClick={() => refetchDetails()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
+                    <RefreshCw size={16} /> إعادة المحاولة
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-8">
                   <div className="flex items-center gap-5 p-5 rounded-2xl bg-slate-50 border border-slate-100">
@@ -304,6 +341,18 @@ export default function MerchantsPage() {
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">رقم الواتساب</label>
                         <input name="whatsapp" defaultValue={merchantDetails?.whatsapp} placeholder="01xxxxxxxxx" className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">البريد الإلكتروني</label>
+                        <input name="email" defaultValue={merchantDetails?.owner.email || ''} dir="ltr" className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">رقم الهاتف</label>
+                        <input name="phone" defaultValue={merchantDetails?.phone || ''} className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all" />
+                      </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">العنوان</label>
+                        <input name="address" defaultValue={merchantDetails?.address || ''} className="h-[48px] w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-medium focus:border-orange-500 focus:bg-white focus:outline-none transition-all" />
                       </div>
                       <div className="space-y-2">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider mr-1">الحالة</label>

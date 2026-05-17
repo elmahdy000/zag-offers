@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import {
   Loader2,
+  RefreshCw,
   Search,
   Ticket,
   X,
@@ -25,6 +26,7 @@ import { adminApi } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { CouponCard } from '@/components/coupons/CouponCard';
 import { useToast } from '@/components/shared/Toast';
+import { useSocketContext } from '@/components/SocketProvider';
 
 interface CouponRow {
   id: string;
@@ -70,6 +72,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
 
 export default function CouponsManagementPage() {
   const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -81,12 +84,15 @@ export default function CouponsManagementPage() {
   const [busyId, setBusyId] = useState<string | null>(null);
 
   // Fetch Stores for Filter
-  const { data: storesData } = useQuery({
+  const { data: storesData, isError: isStoresError, error: storesError, refetch: refetchStores } = useQuery({
     queryKey: ['admin-stores-list'],
     queryFn: async () => {
       const response = await adminApi().get('/admin/stores', { params: { limit: 1000 } });
-      return response.data as { items: { id: string; name: string }[] };
+      const result = response.data as { items: { id: string; name: string }[] };
+      if (!result || !Array.isArray(result.items)) throw new Error('Invalid response format');
+      return result;
     },
+    retry: 1,
   });
 
   useEffect(() => {
@@ -97,7 +103,16 @@ export default function CouponsManagementPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useQuery({
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-coupons'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-coupons', debouncedSearch, statusFilter, storeIdFilter, page],
     queryFn: async () => {
       const response = await adminApi().get('/admin/coupons', {
@@ -109,17 +124,22 @@ export default function CouponsManagementPage() {
           limit: 12,
         },
       });
-      return response.data as { items: CouponRow[]; meta: { total: number; lastPage: number } };
+      const result = response.data as { items: CouponRow[]; meta: { total: number; lastPage: number } };
+      if (!result || !Array.isArray(result.items)) throw new Error('Invalid response format');
+      return result;
     },
+    retry: 1,
   });
 
-  const { data: couponDetails, isLoading: detailsLoading } = useQuery({
+  const { data: couponDetails, isLoading: detailsLoading, isError: isDetailsError, error: detailsError, refetch: refetchDetails } = useQuery({
     queryKey: ['coupon-details', selectedCouponId],
     queryFn: async () => {
       const response = await adminApi().get<CouponDetails>(`/admin/coupons/${selectedCouponId}`);
+      if (!response.data) throw new Error('Invalid response');
       return response.data;
     },
     enabled: !!selectedCouponId,
+    retry: 1,
   });
 
   const deleteMutation = useMutation({
@@ -185,6 +205,15 @@ export default function CouponsManagementPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => <div key={i} className="h-40 animate-pulse bg-white rounded-2xl border border-slate-100 shadow-sm" />)}
         </div>
+      ) : isError ? (
+        <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-red-200 text-slate-400">
+          <AlertTriangle size={48} className="mb-4 text-red-400" />
+          <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل البيانات</h3>
+          <p className="text-sm font-medium mt-1 text-slate-500">{(error as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+          <button onClick={() => refetch()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
+            <RefreshCw size={16} /> إعادة المحاولة
+          </button>
+        </div>
       ) : coupons.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
           <Ticket size={48} className="mb-4 opacity-20" />
@@ -225,6 +254,15 @@ export default function CouponsManagementPage() {
 
               {detailsLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={32} /></div>
+              ) : isDetailsError ? (
+                <div className="flex flex-col items-center justify-center py-20 text-slate-400">
+                  <AlertTriangle size={48} className="mb-4 text-red-400" />
+                  <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل التفاصيل</h3>
+                  <p className="text-sm font-medium mt-1 text-slate-500">{(detailsError as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+                  <button onClick={() => refetchDetails()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
+                    <RefreshCw size={16} /> إعادة المحاولة
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-8">
                   {/* Visual Coupon Identity */}

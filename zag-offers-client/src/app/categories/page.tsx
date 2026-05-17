@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
@@ -15,7 +15,7 @@ const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
-  const { socket } = usePublicSocket();
+  const { socket, isConnected } = usePublicSocket();
 
   const fetchCats = useCallback(async (force = false) => {
     // Try cache first
@@ -26,13 +26,15 @@ export default function CategoriesPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/offers/categories`, { cache: 'no-store' });
-      if (res.ok) {
-        const dataRaw = await res.json();
-        const data = normalizeCategories(dataRaw);
-        setCategories(data);
-        localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
+      const t = Date.now();
+      const res = await fetch(`${API_URL}/offers/categories?_t=${t}`, { cache: 'no-store' });
+      if (!res.ok) {
+        throw new Error(`HTTP ${res.status}`);
       }
+      const dataRaw = await res.json();
+      const data = normalizeCategories(dataRaw);
+      setCategories(data);
+      localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
     } catch (e) {
       console.error('Offline or error:', e);
     } finally {
@@ -40,28 +42,43 @@ export default function CategoriesPage() {
     }
   }, [categories.length]);
 
+  // Stable ref for socket/polling/online handlers
+  const fetchCatsRef = useRef(fetchCats);
+  fetchCatsRef.current = fetchCats;
+
   useEffect(() => {
-    fetchCats();
+    fetchCatsRef.current();
 
     // Silent background sync when back online
-    const handleOnline = () => fetchCats();
+    const handleOnline = () => fetchCatsRef.current();
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [fetchCats]);
+  }, []);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleCategoriesUpdated = () => {
       localStorage.removeItem('cache_categories_full_v2');
-      fetchCats(true);
+      fetchCatsRef.current(true);
     };
 
     socket.on('categories_updated', handleCategoriesUpdated);
     return () => {
       socket.off('categories_updated', handleCategoriesUpdated);
     };
-  }, [socket, fetchCats]);
+  }, [socket]);
+
+  // Polling fallback when socket is not connected
+  useEffect(() => {
+    if (isConnected) return;
+
+    const interval = setInterval(() => {
+      fetchCatsRef.current(true);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isConnected]);
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-12 sm:py-20" dir="rtl">

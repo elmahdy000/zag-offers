@@ -19,7 +19,9 @@ import {
   Calendar,
   MessageCircle,
   Image as ImageIcon,
-  Upload
+  Upload,
+  RefreshCw,
+  AlertTriangle
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,6 +32,7 @@ import { ZAGAZIG_AREAS, DISPLAY_NAMES } from '@/lib/constants';
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/components/shared/Toast';
+import { useSocketContext } from '@/components/SocketProvider';
 
 interface StoreItem {
   id: string;
@@ -81,6 +84,7 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
 
 function StoresContent() {
   const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -128,7 +132,16 @@ function StoresContent() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data, isLoading } = useQuery({
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-stores'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['admin-stores', debouncedSearch, statusFilter, categoryFilter, page],
     queryFn: async () => {
       const response = await adminApi().get('/admin/stores', {
@@ -140,6 +153,9 @@ function StoresContent() {
           limit: 20,
         },
       });
+      if (!response.data || !Array.isArray(response.data.items)) {
+        throw new Error('Invalid response format for stores');
+      }
       return response.data as { 
         items: StoreItem[]; 
         meta: { total: number; lastPage: number } 
@@ -147,36 +163,48 @@ function StoresContent() {
     },
     staleTime: 60000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: categories } = useQuery({
+  const { data: categories, isError: isCategoriesError, error: categoriesError, refetch: refetchCategories } = useQuery({
     queryKey: ['admin-categories'],
     queryFn: async () => {
       const response = await adminApi().get('/admin/categories');
-      return response.data as { id: string; name: string }[];
+      const result = response.data as { id: string; name: string }[];
+      if (!Array.isArray(result)) {
+        throw new Error('Invalid response format for categories');
+      }
+      return result;
     },
     staleTime: 300000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: merchants, isLoading: isLoadingMerchants } = useQuery({
+  const { data: merchants, isLoading: isLoadingMerchants, isError: isMerchantsError, error: merchantsError, refetch: refetchMerchants } = useQuery({
     queryKey: ['admin-merchants'],
     queryFn: async () => {
       // نطلب كل المستخدمين ليتمكن الأدمن من اختيار أي حساب
       const response = await adminApi().get('/admin/users', { params: { limit: 200 } });
-      return response.data.items as { id: string; name: string; phone: string, role: string }[];
+      const result = response.data.items as { id: string; name: string; phone: string, role: string }[];
+      if (!Array.isArray(result)) {
+        throw new Error('Invalid response format for merchants');
+      }
+      return result;
     },
     staleTime: 300000,
     refetchOnWindowFocus: false,
+    retry: 1,
   });
 
-  const { data: storeDetails, isLoading: detailsLoading } = useQuery({
+  const { data: storeDetails, isLoading: detailsLoading, isError: isDetailsError, error: detailsError, refetch: refetchDetails } = useQuery({
     queryKey: ['admin-store-details', selectedStoreId],
     queryFn: async () => {
       const response = await adminApi().get<StoreDetails>(`/admin/stores/${selectedStoreId}`);
       return response.data;
     },
     enabled: !!selectedStoreId,
+    retry: 1,
   });
 
   const deleteMutation = useMutation({
@@ -392,14 +420,40 @@ function StoresContent() {
               <option key={cat.id} value={cat.name}>{cat.name}</option>
             ))}
           </select>
-        </div>
       </div>
+    </div>
+
+      {isCategoriesError && (
+        <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
+            <AlertTriangle size={36} />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">فشل تحميل البيانات</h3>
+          <p className="mt-2 text-sm font-medium text-slate-500">حدث خطأ أثناء تحميل البيانات</p>
+          <button onClick={() => refetchCategories()} className="mt-6 flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3 text-sm font-bold text-white">
+            <RefreshCw size={16} />
+            <span>إعادة المحاولة</span>
+          </button>
+        </div>
+      )}
 
       {isLoading ? (
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {Array.from({ length: 8 }).map((_, i) => (
             <div key={i} className="h-56 animate-pulse bg-white rounded-2xl border border-slate-100 shadow-sm" />
           ))}
+        </div>
+      ) : isError ? (
+        <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+          <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
+            <AlertTriangle size={36} />
+          </div>
+          <h3 className="text-xl font-bold text-slate-900">فشل تحميل البيانات</h3>
+          <p className="mt-2 text-sm font-medium text-slate-500">حدث خطأ أثناء تحميل البيانات</p>
+          <button onClick={() => refetch()} className="mt-6 flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3 text-sm font-bold text-white">
+            <RefreshCw size={16} />
+            <span>إعادة المحاولة</span>
+          </button>
         </div>
       ) : stores.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-slate-200 text-slate-400">
@@ -619,6 +673,31 @@ function StoresContent() {
         )}
       </AnimatePresence>
 
+      {isDetailsError && selectedStoreId && (
+        <AnimatePresence>
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+            <motion.div 
+              initial={{ scale: 0.9, opacity: 0 }} 
+              animate={{ scale: 1, opacity: 1 }} 
+              exit={{ scale: 0.9, opacity: 0 }}
+              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white p-8 shadow-2xl border border-slate-100"
+            >
+              <div className="flex flex-col items-center justify-center py-20 text-center">
+                <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
+                  <AlertTriangle size={36} />
+                </div>
+                <h3 className="text-xl font-bold text-slate-900">فشل تحميل البيانات</h3>
+                <p className="mt-2 text-sm font-medium text-slate-500">حدث خطأ أثناء تحميل البيانات</p>
+                <button onClick={() => refetchDetails()} className="mt-6 flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3 text-sm font-bold text-white">
+                  <RefreshCw size={16} />
+                  <span>إعادة المحاولة</span>
+                </button>
+              </div>
+            </motion.div>
+          </div>
+        </AnimatePresence>
+      )}
+
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteModal && (
@@ -818,7 +897,7 @@ function StoresContent() {
                       } focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all cursor-pointer`}
                     >
                       <option value="">اختر الفئة</option>
-                        {categories?.filter(c => c.name !== 'سوبرماركت' && c.name !== 'خدمات محلية').map((cat) => (
+                        {categories?.map((cat) => (
                           <option key={cat.id} value={cat.id}>
                             {DISPLAY_NAMES[cat.name] || cat.name}
                           </option>
@@ -881,6 +960,19 @@ function StoresContent() {
                     ))}
                   </select>
                   {formErrors.ownerId && <p className="text-xs text-rose-600">{formErrors.ownerId}</p>}
+                  {isMerchantsError && (
+                    <div className="col-span-full flex flex-col items-center justify-center py-20 text-center">
+                      <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
+                        <AlertTriangle size={36} />
+                      </div>
+                      <h3 className="text-xl font-bold text-slate-900">فشل تحميل البيانات</h3>
+                      <p className="mt-2 text-sm font-medium text-slate-500">حدث خطأ أثناء تحميل البيانات</p>
+                      <button onClick={() => refetchMerchants()} className="mt-6 flex items-center gap-2 rounded-xl bg-orange-600 px-6 py-3 text-sm font-bold text-white">
+                        <RefreshCw size={16} />
+                        <span>إعادة المحاولة</span>
+                      </button>
+                    </div>
+                  )}
                 </div>
 
                 <div className="grid gap-6 sm:grid-cols-2">

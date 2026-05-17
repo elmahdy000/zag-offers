@@ -5,7 +5,7 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
-import { useSocket } from '@/hooks/useSocket';
+import { useSocketContext } from '@/components/SocketProvider';
 import { useToast } from './shared/Toast';
 
 async function fetchPendingCount() {
@@ -26,27 +26,13 @@ export default function DashboardHeader() {
   const { showToast } = useToast();
   const [search, setSearch] = useState('');
 
-  // Get token and user from localStorage (simplified for now)
-  const [authData, setAuthData] = useState<{ token: string; userId: string } | null>(null);
-
-  useEffect(() => {
-    if (typeof window !== 'undefined') {
-      const token = document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
-      const userStr = localStorage.getItem('admin_user');
-      if (token && userStr) {
-        const user = JSON.parse(userStr);
-        setAuthData({ token, userId: user.id });
-      }
-    }
-  }, []);
-
   const { data: pendingCount = 0 } = useQuery<number>({
     queryKey: ['pending-count'],
     queryFn: fetchPendingCount,
     staleTime: 30000,
   });
 
-  const socket = useSocket(authData?.token ?? null, authData?.userId ?? null, 'ADMIN');
+  const { socket } = useSocketContext();
 
   useEffect(() => {
     if (!socket) return;

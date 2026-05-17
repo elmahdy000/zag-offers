@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback, useMemo, Suspense } from 'react';
+import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiSearch2Line, RiFireFill, RiSparkling2Fill, 
@@ -66,7 +66,7 @@ function HomePageContent() {
   const { trackEvent } = useAnalytics();
 
   const [isOffline, setIsOffline] = useState(false);
-  const { socket } = usePublicSocket();
+  const { socket, isConnected } = usePublicSocket();
 
   const fetchData = useCallback(async (force = false) => {
     // Try to load from cache first
@@ -82,15 +82,20 @@ function HomePageContent() {
 
     try {
       setLoading(true);
-      const [oRes, cRes, sRes, rRes] = await Promise.all([
-        fetch(`${API_URL}/offers?limit=24`, { cache: 'no-store' }),
-        fetch(`${API_URL}/offers/categories`, { cache: 'no-store' }),
-        fetch(`${API_URL}/stores?limit=12`, { cache: 'no-store' }),
-        fetch(`${API_URL}/recommendations`, { cache: 'no-store' })
+      const t = Date.now();
+      const responses = await Promise.all([
+        fetch(`${API_URL}/offers?limit=24&_t=${t}`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers/categories?_t=${t}`, { cache: 'no-store' }),
+        fetch(`${API_URL}/stores?limit=12&_t=${t}`, { cache: 'no-store' }),
+        fetch(`${API_URL}/recommendations?_t=${t}`, { cache: 'no-store' })
       ]);
 
+      for (const res of responses) {
+        if (!res.ok) throw new Error(`HTTP ${res.status} for ${res.url}`);
+      }
+
       const [oData, cData, sData, rData] = await Promise.all([
-        oRes.json(), cRes.json(), sRes.json(), rRes.json()
+        responses[0].json(), responses[1].json(), responses[2].json(), responses[3].json()
       ]);
 
       const normalizedCats = normalizeCategories(cData);
@@ -120,25 +125,40 @@ function HomePageContent() {
     }
   }, [offers.length]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  // Stable ref so socket/polling/online handlers never get stale closures
+  const fetchDataRef = useRef(fetchData);
+  fetchDataRef.current = fetchData;
+
+  useEffect(() => { fetchDataRef.current(); }, []);
 
   useEffect(() => {
     if (!socket) return;
 
     const handleCategoriesUpdated = () => {
       localStorage.removeItem(CACHE_KEY);
-      fetchData(true);
+      fetchDataRef.current(true);
     };
 
     socket.on('categories_updated', handleCategoriesUpdated);
     return () => {
       socket.off('categories_updated', handleCategoriesUpdated);
     };
-  }, [socket, fetchData]);
+  }, [socket]);
+
+  // Polling fallback when socket is not connected
+  useEffect(() => {
+    if (isConnected) return;
+
+    const interval = setInterval(() => {
+      fetchDataRef.current(true);
+    }, 30000);
+
+    return () => clearInterval(interval);
+  }, [isConnected]);
 
   // Monitor online status
   useEffect(() => {
-    const handleOnline = () => { setIsOffline(false); fetchData(); };
+    const handleOnline = () => { fetchDataRef.current(true); setIsOffline(false); };
     const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
@@ -146,7 +166,7 @@ function HomePageContent() {
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };
-  }, [fetchData]);
+  }, []);
 
   const filteredOffers = useMemo(() => {
     let result = [...offers];
@@ -188,7 +208,7 @@ function HomePageContent() {
       <div className="min-h-screen flex items-center justify-center p-4 text-center">
         <div>
           <h2 className="text-xl font-black text-white mb-4">{error}</h2>
-          <button onClick={() => fetchData(true)} className="px-6 py-2 bg-[#FF6B00] text-white rounded-lg">إعادة المحاولة</button>
+          <button onClick={() => fetchDataRef.current(true)} className="px-6 py-2 bg-[#FF6B00] text-white rounded-lg">إعادة المحاولة</button>
         </div>
       </div>
     );

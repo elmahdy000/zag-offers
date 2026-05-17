@@ -1,6 +1,6 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import {
   History,
   Loader2,
@@ -19,10 +19,13 @@ import {
   PlusCircle,
   Settings,
   X,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
-import { useQuery } from '@tanstack/react-query';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi } from '@/lib/api';
+import { useSocketContext } from '@/components/SocketProvider';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -148,11 +151,23 @@ function LogDetailsModal({ log, onClose }: { log: AuditLog; onClose: () => void 
 }
 
 export default function AuditLogsPage() {
+  const queryClient = useQueryClient();
+  const { socket } = useSocketContext();
+
+  useEffect(() => {
+    if (!socket) return;
+    const handler = () => {
+      queryClient.invalidateQueries({ queryKey: ['audit-logs'] });
+    };
+    socket.on('admin_notification', handler);
+    return () => { socket.off('admin_notification', handler); };
+  }, [socket, queryClient]);
+
   const [page, setPage] = useState(1);
   const [actionFilter, setActionFilter] = useState('');
   const [selectedLog, setSelectedLog] = useState<AuditLog | null>(null);
 
-  const { data, isLoading } = useQuery({
+  const { data, isLoading, isError, error, refetch } = useQuery({
     queryKey: ['audit-logs', page, actionFilter],
     queryFn: async () => {
       const response = await adminApi().get('/admin/audit-logs', {
@@ -162,8 +177,10 @@ export default function AuditLogsPage() {
           action: actionFilter || undefined,
         },
       });
+      if (!Array.isArray(response.data?.items)) throw new Error('Invalid response');
       return response.data as { items: AuditLog[]; meta: { total: number; lastPage: number } };
     },
+    retry: 1,
   });
 
   const logs = data?.items ?? [];
@@ -211,7 +228,19 @@ export default function AuditLogsPage() {
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-50">
-              {isLoading ? (
+              {isError ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-20 text-center">
+                    <div className="flex flex-col items-center text-slate-400">
+                      <AlertTriangle size={48} className="mb-4 opacity-40 text-rose-500" />
+                      <p className="text-lg font-bold text-slate-500">فشل تحميل البيانات</p>
+                      <button onClick={() => refetch()} className="mt-6 h-10 px-5 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+                        <RefreshCw size={16} /> إعادة المحاولة
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              ) : isLoading ? (
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td colSpan={5} className="px-6 py-8"><div className="h-4 bg-slate-100 rounded-full w-full" /></td>

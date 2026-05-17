@@ -95,6 +95,7 @@ export const useSocket = (token?: string | null) => {
 
 export const usePublicSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
+  const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
     const newSocket = io(SOCKET_URL, {
@@ -104,6 +105,14 @@ export const usePublicSocket = () => {
       reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
     });
 
+    newSocket.on('connect', () => {
+      setIsConnected(true);
+    });
+
+    newSocket.on('disconnect', () => {
+      setIsConnected(false);
+    });
+
     setSocket(newSocket);
 
     return () => {
@@ -111,5 +120,5 @@ export const usePublicSocket = () => {
     };
   }, []);
 
-  return { socket };
+  return { socket, isConnected };
 };

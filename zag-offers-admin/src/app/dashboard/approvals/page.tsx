@@ -21,9 +21,12 @@ import {
   ClipboardCheck,
   History,
   CheckCircle2,
+  RefreshCw,
+  AlertTriangle,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import { useSocketContext } from '@/components/SocketProvider';
 import { motion, AnimatePresence } from 'framer-motion';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -96,6 +99,7 @@ export default function ApprovalsPage() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
+  const { socket } = useSocketContext();
   const [activeTab, setActiveTab] = useState<TabType>('stores');
   const [search, setSearch] = useState('');
   const [debouncedSearch, setDebouncedSearch] = useState('');
@@ -107,6 +111,25 @@ export default function ApprovalsPage() {
   const [offerLoadingId, setOfferLoadingId] = useState<string | null>(null);
   const [fullscreenImage, setFullscreenImage] = useState<string | null>(null);
 
+
+
+  useEffect(() => {
+    if (!socket) return;
+
+    const handleAdminNotification = () => {
+      queryClient.invalidateQueries({ queryKey: ['pending-stores'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-offers'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-stores'] });
+      queryClient.invalidateQueries({ queryKey: ['approved-offers'] });
+      queryClient.invalidateQueries({ queryKey: ['pending-count'] });
+    };
+
+    socket.on('admin_notification', handleAdminNotification);
+    return () => {
+      socket.off('admin_notification', handleAdminNotification);
+    };
+  }, [socket, queryClient]);
+
   useEffect(() => {
     const timer = setTimeout(() => {
       setDebouncedSearch(search.trim().toLowerCase());
@@ -114,44 +137,52 @@ export default function ApprovalsPage() {
     return () => clearTimeout(timer);
   }, [search]);
 
-  const { data: stores = [], isLoading: storesLoading } = useQuery({
+  const { data: stores = [], isLoading: storesLoading, isError: storesError, refetch: refetchStores } = useQuery({
     queryKey: ['pending-stores'],
     queryFn: async () => {
       const response = await adminApi().get<PendingStore[]>('/admin/stores/pending');
+      if (!Array.isArray(response.data)) throw new Error('Invalid response');
       return response.data;
     },
+    retry: 1,
     staleTime: 45000,
     refetchOnWindowFocus: false,
   });
 
-  const { data: offers = [], isLoading: offersLoading } = useQuery({
+  const { data: offers = [], isLoading: offersLoading, isError: offersError, refetch: refetchOffers } = useQuery({
     queryKey: ['pending-offers'],
     queryFn: async () => {
       const response = await adminApi().get<PendingOffer[]>('/admin/offers/pending');
+      if (!Array.isArray(response.data)) throw new Error('Invalid response');
       return response.data;
     },
+    retry: 1,
     staleTime: 45000,
     refetchOnWindowFocus: false,
   });
 
-  const { data: approvedStores = [] } = useQuery({
+  const { data: approvedStores = [], isError: approvedStoresError, refetch: refetchApprovedStores } = useQuery({
     queryKey: ['approved-stores'],
     queryFn: async () => {
       const response = await adminApi().get<{ items: PendingStore[] }>('/admin/stores?status=APPROVED&limit=50');
+      if (!Array.isArray(response.data?.items)) throw new Error('Invalid response');
       return response.data.items;
     },
     enabled: activeTab === 'history',
+    retry: 1,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
 
-  const { data: approvedOffers = [] } = useQuery({
+  const { data: approvedOffers = [], isError: approvedOffersError, refetch: refetchApprovedOffers } = useQuery({
     queryKey: ['approved-offers'],
     queryFn: async () => {
       const response = await adminApi().get<{ items: PendingOffer[] }>('/admin/offers?status=ACTIVE&limit=50');
+      if (!Array.isArray(response.data?.items)) throw new Error('Invalid response');
       return response.data.items;
     },
     enabled: activeTab === 'history',
+    retry: 1,
     staleTime: 60000,
     refetchOnWindowFocus: false,
   });
@@ -164,21 +195,25 @@ export default function ApprovalsPage() {
     return combined.sort((a, b) => new Date(b.updatedAt).getTime() - new Date(a.updatedAt).getTime());
   }, [approvedStores, approvedOffers]);
 
-  const { data: storeDetails, isLoading: storeDetailsLoading } = useQuery({
+  const { data: storeDetails, isLoading: storeDetailsLoading, isError: storeDetailsError, refetch: refetchStoreDetails } = useQuery({
     queryKey: ['pending-store-details', selectedStoreId],
     queryFn: async () => {
       const response = await adminApi().get<StoreDetails>(`/admin/stores/${selectedStoreId}`);
+      if (!response.data || typeof response.data !== 'object') throw new Error('Invalid response');
       return response.data;
     },
+    retry: 1,
     enabled: !!selectedStoreId,
   });
 
-  const { data: offerDetails, isLoading: offerDetailsLoading } = useQuery({
+  const { data: offerDetails, isLoading: offerDetailsLoading, isError: offerDetailsError, refetch: refetchOfferDetails } = useQuery({
     queryKey: ['pending-offer-details', selectedOfferId],
     queryFn: async () => {
       const response = await adminApi().get<OfferDetails>(`/admin/offers/${selectedOfferId}`);
+      if (!response.data || typeof response.data !== 'object') throw new Error('Invalid response');
       return response.data;
     },
+    retry: 1,
     enabled: !!selectedOfferId,
   });
 
@@ -274,7 +309,17 @@ export default function ApprovalsPage() {
             </thead>
             <tbody className="divide-y divide-slate-100">
               {activeTab === 'stores' && (
-                filteredStores.length === 0 ? (
+                storesError ? (
+                  <tr><td colSpan={5} className="py-24 text-center">
+                    <div className="flex flex-col items-center text-slate-400">
+                      <AlertTriangle size={48} className="mb-4 opacity-40 text-rose-500" />
+                      <p className="text-lg font-bold text-slate-500">فشل تحميل البيانات</p>
+                      <button onClick={() => refetchStores()} className="mt-6 h-10 px-5 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+                        <RefreshCw size={16} /> إعادة المحاولة
+                      </button>
+                    </div>
+                  </td></tr>
+                ) : filteredStores.length === 0 ? (
                   <tr><td colSpan={5} className="py-24 text-center text-slate-400 font-bold">لا توجد طلبات متاجر بانتظار المراجعة</td></tr>
                 ) : filteredStores.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
@@ -313,7 +358,17 @@ export default function ApprovalsPage() {
               )}
 
               {activeTab === 'offers' && (
-                filteredOffers.length === 0 ? (
+                offersError ? (
+                  <tr><td colSpan={5} className="py-24 text-center">
+                    <div className="flex flex-col items-center text-slate-400">
+                      <AlertTriangle size={48} className="mb-4 opacity-40 text-rose-500" />
+                      <p className="text-lg font-bold text-slate-500">فشل تحميل البيانات</p>
+                      <button onClick={() => refetchOffers()} className="mt-6 h-10 px-5 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+                        <RefreshCw size={16} /> إعادة المحاولة
+                      </button>
+                    </div>
+                  </td></tr>
+                ) : filteredOffers.length === 0 ? (
                   <tr><td colSpan={5} className="py-24 text-center text-slate-400 font-bold">لا توجد طلبات عروض بانتظار المراجعة</td></tr>
                 ) : filteredOffers.map((item) => (
                   <tr key={item.id} className="hover:bg-slate-50/50 transition-all group">
@@ -349,7 +404,17 @@ export default function ApprovalsPage() {
               )}
 
               {activeTab === 'history' && (
-                filteredHistory.length === 0 ? (
+                (approvedStoresError || approvedOffersError) ? (
+                  <tr><td colSpan={5} className="py-24 text-center">
+                    <div className="flex flex-col items-center text-slate-400">
+                      <AlertTriangle size={48} className="mb-4 opacity-40 text-rose-500" />
+                      <p className="text-lg font-bold text-slate-500">فشل تحميل البيانات</p>
+                      <button onClick={() => { refetchApprovedStores(); refetchApprovedOffers(); }} className="mt-6 h-10 px-5 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+                        <RefreshCw size={16} /> إعادة المحاولة
+                      </button>
+                    </div>
+                  </td></tr>
+                ) : filteredHistory.length === 0 ? (
                   <tr><td colSpan={5} className="py-24 text-center text-slate-400 font-bold">لا توجد عمليات موافقة حديثة</td></tr>
                 ) : filteredHistory.map((item) => (
                   <tr 
@@ -404,6 +469,14 @@ export default function ApprovalsPage() {
 
               {storeDetailsLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={32} /></div>
+              ) : storeDetailsError ? (
+                <div className="py-20 flex flex-col items-center text-slate-400">
+                  <AlertTriangle size={48} className="mb-4 opacity-40 text-rose-500" />
+                  <p className="text-lg font-bold text-slate-500">فشل تحميل البيانات</p>
+                  <button onClick={() => refetchStoreDetails()} className="mt-6 h-10 px-5 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+                    <RefreshCw size={16} /> إعادة المحاولة
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-8">
                   <div className="flex items-center gap-6 p-6 rounded-2xl bg-slate-50 border border-slate-100">
@@ -461,6 +534,14 @@ export default function ApprovalsPage() {
 
               {offerDetailsLoading ? (
                 <div className="py-20 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={32} /></div>
+              ) : offerDetailsError ? (
+                <div className="py-20 flex flex-col items-center text-slate-400">
+                  <AlertTriangle size={48} className="mb-4 opacity-40 text-rose-500" />
+                  <p className="text-lg font-bold text-slate-500">فشل تحميل البيانات</p>
+                  <button onClick={() => refetchOfferDetails()} className="mt-6 h-10 px-5 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg">
+                    <RefreshCw size={16} /> إعادة المحاولة
+                  </button>
+                </div>
               ) : (
                 <div className="space-y-8">
                   <div className="space-y-6">

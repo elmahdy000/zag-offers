@@ -14,6 +14,7 @@ import {
   Database,
   Server,
   Activity,
+  AlertTriangle,
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -215,40 +216,47 @@ export default function SettingsPage() {
                       <div className="p-2 bg-slate-50 text-slate-600 rounded-lg border border-slate-100"><Info size={20} /></div>
                       مؤشرات أداء النظام
                     </h3>
-                    <div className="grid gap-4 sm:grid-cols-2">
-                      <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-md transition-all">
-                        <div className="flex items-center gap-4">
-                           <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Server size={20} /></div>
-                           <div>
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">حالة السيرفر</p>
-                              <p className="text-lg font-bold text-slate-900">مستقر وفعال</p>
-                           </div>
-                        </div>
-                        <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+                    {healthLoading ? (
+                      <div className="py-10 flex justify-center"><Loader2 className="animate-spin text-orange-600" size={24} /></div>
+                    ) : healthError ? (
+                      <div className="py-10 flex flex-col items-center text-slate-400">
+                        <AlertTriangle size={40} className="mb-4 opacity-40 text-rose-500" />
+                        <p className="text-base font-bold text-slate-500">تعذر التحقق من حالة النظام</p>
                       </div>
-                      
-                      <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-md transition-all">
-                        <div className="flex items-center gap-4">
-                           <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><Database size={20} /></div>
-                           <div>
-                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">قاعدة البيانات</p>
-                              <p className="text-lg font-bold text-slate-900">متصلة (PostgreSQL)</p>
-                           </div>
-                        </div>
-                        <CheckCircle2 size={20} className="text-emerald-500" />
-                      </div>
-                    </div>
+                    ) : (
+                      <>
+                        <div className="grid gap-4 sm:grid-cols-2">
+                          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-md transition-all">
+                            <div className="flex items-center gap-4">
+                               <div className="h-10 w-10 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center"><Server size={20} /></div>
+                               <div>
+                                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">حالة السيرفر</p>
+                                  <p className="text-lg font-bold text-slate-900">{healthData?.status || 'غير متوفر'}</p>
+                               </div>
+                            </div>
+                            <div className="h-3 w-3 rounded-full bg-emerald-500 animate-pulse" />
+                          </div>
 
-                    <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-2 gap-8">
-                       <div>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">إصدار التحكم</p>
-                          <p className="text-xl font-bold text-slate-900">v2.4.0</p>
-                       </div>
-                       <div>
-                          <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">آخر تحديث أمني</p>
-                          <p className="text-xl font-bold text-slate-900">منذ 12 ساعة</p>
-                       </div>
-                    </div>
+                          <div className="p-6 rounded-2xl bg-slate-50 border border-slate-100 flex items-center justify-between group hover:bg-white hover:shadow-md transition-all">
+                            <div className="flex items-center gap-4">
+                               <div className="h-10 w-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center"><Database size={20} /></div>
+                               <div>
+                                  <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">قاعدة البيانات</p>
+                                  <p className="text-lg font-bold text-slate-900">{healthData?.db || 'غير متوفر'}</p>
+                               </div>
+                            </div>
+                            <CheckCircle2 size={20} className="text-emerald-500" />
+                          </div>
+                        </div>
+
+                        <div className="mt-8 pt-8 border-t border-slate-100 grid grid-cols-1 gap-8">
+                           <div>
+                              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest mb-1.5">إصدار التحكم</p>
+                              <p className="text-xl font-bold text-slate-900">{healthData?.version || 'غير متوفر'}</p>
+                           </div>
+                        </div>
+                      </>
+                    )}
                   </div>
                 </motion.div>
               )}
