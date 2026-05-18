@@ -83,6 +83,22 @@ model Category {
   stores   Store[]
 }
 
+model Banner {
+  id        String   @id @default(uuid())
+  title     String
+  subtitle  String?
+  tag       String?
+  image     String?
+  actionUrl String?
+  isActive  Boolean  @default(true)
+  priority  Int      @default(0)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([isActive])
+  @@index([priority])
+}
+
 model Store {
   id         String      @id @default(uuid())
   name       String
@@ -314,4 +330,3 @@ model AnalyticsEvent {
   @@index([userId, eventType])
   @@index([storeId, eventType])
 }
-

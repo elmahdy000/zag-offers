@@ -367,6 +367,58 @@ export class AdminController {
     return this.adminService.deleteCategory(id, req.user.id);
   }
 
+  @Get('banners')
+  @ApiOperation({ summary: 'List banners' })
+  getAllBanners() {
+    return this.adminService.getAllBanners();
+  }
+
+  @Post('banners')
+  @ApiOperation({ summary: 'Create banner' })
+  createBanner(
+    @Body()
+    body: {
+      title: string;
+      subtitle?: string;
+      tag?: string;
+      image?: string;
+      actionUrl?: string;
+      isActive?: boolean;
+      priority?: number;
+    },
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.adminService.createBanner(body, req.user.id);
+  }
+
+  @Patch('banners/:id')
+  @ApiOperation({ summary: 'Update banner' })
+  updateBanner(
+    @Param('id') id: string,
+    @Body()
+    body: {
+      title?: string;
+      subtitle?: string;
+      tag?: string;
+      image?: string;
+      actionUrl?: string;
+      isActive?: boolean;
+      priority?: number;
+    },
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.adminService.updateBanner(id, body, req.user.id);
+  }
+
+  @Delete('banners/:id')
+  @ApiOperation({ summary: 'Delete banner' })
+  deleteBanner(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.adminService.deleteBanner(id, req.user.id);
+  }
+
   @Get('coupons')
   @ApiOperation({ summary: 'List coupons with filters and pagination' })
   @ApiQuery({ name: 'status', enum: CouponStatus, required: false })

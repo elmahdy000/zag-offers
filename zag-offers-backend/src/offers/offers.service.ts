@@ -44,6 +44,14 @@ export class OffersService {
     });
   }
 
+  async getBanners() {
+    const prismaAny = this.prisma as any;
+    return prismaAny.banner.findMany({
+      where: { isActive: true },
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
   async create(
     data: Prisma.OfferCreateInput,
     merchantId: string,

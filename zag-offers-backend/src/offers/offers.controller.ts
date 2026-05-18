@@ -119,6 +119,13 @@ export class OffersController {
     return this.offersService.getCategories();
   }
 
+  @Get('banners')
+  @UseInterceptors(CacheInterceptor)
+  @ApiOperation({ summary: 'List active home banners' })
+  getBanners() {
+    return this.offersService.getBanners();
+  }
+
   @Get('my')
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT)

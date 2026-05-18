@@ -1210,6 +1210,145 @@ export class AdminService {
     return deleted;
   }
 
+  async getAllBanners() {
+    const prismaAny = this.prisma as any;
+    return prismaAny.banner.findMany({
+      orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
+    });
+  }
+
+  async createBanner(
+    data: {
+      title: string;
+      subtitle?: string;
+      tag?: string;
+      image?: string;
+      actionUrl?: string;
+      isActive?: boolean;
+      priority?: number;
+    },
+    adminId?: string,
+  ) {
+    const title = data.title?.trim();
+    if (!title) throw new BadRequestException('Banner title is required');
+
+    const prismaAny = this.prisma as any;
+    const created = await prismaAny.banner.create({
+      data: {
+        title,
+        subtitle: data.subtitle?.trim() || null,
+        tag: data.tag?.trim() || null,
+        image: data.image?.trim() || null,
+        actionUrl: data.actionUrl?.trim() || null,
+        isActive: data.isActive ?? true,
+        priority: data.priority !== undefined ? Number(data.priority) : 0,
+      },
+    });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'CREATE_BANNER',
+        adminId,
+        targetId: created.id,
+        targetName: created.title,
+      });
+    }
+
+    await this.clearCache();
+    this.eventsGateway.broadcastBannersUpdated({
+      action: 'CREATED',
+      bannerId: created.id,
+      bannerTitle: created.title,
+    });
+    return created;
+  }
+
+  async updateBanner(
+    id: string,
+    data: {
+      title?: string;
+      subtitle?: string;
+      tag?: string;
+      image?: string;
+      actionUrl?: string;
+      isActive?: boolean;
+      priority?: number;
+    },
+    adminId?: string,
+  ) {
+    const prismaAny = this.prisma as any;
+    const existing = await prismaAny.banner.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Banner not found');
+
+    const title = data.title?.trim();
+    if (data.title !== undefined && !title) {
+      throw new BadRequestException('Banner title cannot be empty');
+    }
+
+    const updated = await prismaAny.banner.update({
+      where: { id },
+      data: {
+        ...(title !== undefined ? { title } : {}),
+        ...(data.subtitle !== undefined
+          ? { subtitle: data.subtitle.trim() || null }
+          : {}),
+        ...(data.tag !== undefined ? { tag: data.tag.trim() || null } : {}),
+        ...(data.image !== undefined
+          ? { image: data.image.trim() || null }
+          : {}),
+        ...(data.actionUrl !== undefined
+          ? { actionUrl: data.actionUrl.trim() || null }
+          : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+        ...(data.priority !== undefined
+          ? { priority: Number(data.priority) }
+          : {}),
+      },
+    });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'UPDATE_BANNER',
+        adminId,
+        targetId: updated.id,
+        targetName: updated.title,
+      });
+    }
+
+    await this.clearCache();
+    this.eventsGateway.broadcastBannersUpdated({
+      action: 'UPDATED',
+      bannerId: updated.id,
+      bannerTitle: updated.title,
+    });
+    return updated;
+  }
+
+  async deleteBanner(id: string, adminId?: string) {
+    const prismaAny = this.prisma as any;
+    const existing = await prismaAny.banner.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Banner not found');
+
+    const deleted = await prismaAny.banner.delete({ where: { id } });
+
+    if (adminId) {
+      await this.auditLogService.log({
+        action: 'DELETE_BANNER',
+        adminId,
+        targetId: deleted.id,
+        targetName: existing.title,
+      });
+    }
+
+    await this.clearCache();
+    this.eventsGateway.broadcastBannersUpdated({
+      action: 'DELETED',
+      bannerId: deleted.id,
+      bannerTitle: existing.title,
+    });
+    return deleted;
+  }
+
   async getAllCoupons(params: {
     status?: CouponStatus;
     storeId?: string;

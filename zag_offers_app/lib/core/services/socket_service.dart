@@ -15,6 +15,7 @@ class SocketService {
   late final StreamController<Map<String, dynamic>> _couponUpdateController;
   late final StreamController<Map<String, dynamic>> _socialProofController;
   late final StreamController<Map<String, dynamic>> _categoriesUpdatedController;
+  late final StreamController<Map<String, dynamic>> _bannersUpdatedController;
 
   /// Emitted when the admin approves a new offer and it goes live.
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
@@ -27,6 +28,8 @@ class SocketService {
   Stream<Map<String, dynamic>> get onSocialProof => _socialProofController.stream;
   Stream<Map<String, dynamic>> get onCategoriesUpdated =>
       _categoriesUpdatedController.stream;
+  Stream<Map<String, dynamic>> get onBannersUpdated =>
+      _bannersUpdatedController.stream;
 
   SocketService() {
     _initControllers();
@@ -37,6 +40,7 @@ class SocketService {
     _couponUpdateController = StreamController<Map<String, dynamic>>.broadcast();
     _socialProofController = StreamController<Map<String, dynamic>>.broadcast();
     _categoriesUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
+    _bannersUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
   }
 
   /// Connects to the WebSocket server and joins the user's private room.
@@ -86,6 +90,11 @@ class SocketService {
       if (!_categoriesUpdatedController.isClosed) _categoriesUpdatedController.add(_toMap(data));
     });
 
+    _socket!.on('banners_updated', (data) {
+      log('[Socket] banners_updated: $data');
+      if (!_bannersUpdatedController.isClosed) _bannersUpdatedController.add(_toMap(data));
+    });
+
     _socket!.onConnectError((error) => log('[Socket] connect_error: $error'));
     _socket!.onDisconnect((_) => log('[Socket] Disconnected'));
 
@@ -101,6 +110,7 @@ class SocketService {
     _couponUpdateController.close();
     _socialProofController.close();
     _categoriesUpdatedController.close();
+    _bannersUpdatedController.close();
     _isInitialized = false;
   }
 

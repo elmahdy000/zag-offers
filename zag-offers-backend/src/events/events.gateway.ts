@@ -99,6 +99,12 @@ export interface WsCategoriesUpdated {
   categoryName?: string;
 }
 
+export interface WsBannersUpdated {
+  action: 'CREATED' | 'UPDATED' | 'DELETED' | 'REORDERED';
+  bannerId?: string;
+  bannerTitle?: string;
+}
+
 interface ConnectedClient {
   userId: string;
   role: string;
@@ -408,6 +414,16 @@ export class EventsGateway
     });
     this.logger.log(
       `Broadcast categories_updated: ${data.action} ${data.categoryName ?? ''}`,
+    );
+  }
+
+  broadcastBannersUpdated(data: WsBannersUpdated) {
+    this.server.emit('banners_updated', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
+    this.logger.log(
+      `Broadcast banners_updated: ${data.action} ${data.bannerTitle ?? ''}`,
     );
   }
 
