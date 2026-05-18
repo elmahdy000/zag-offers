@@ -27,7 +27,7 @@ class MainLayout extends StatefulWidget {
   State<MainLayout> createState() => MainLayoutState();
 }
 
-class MainLayoutState extends State<MainLayout> {
+class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   int _currentIndex = 0;
   late SocketService _socketService;
   String? _storeId;
@@ -41,11 +41,20 @@ class MainLayoutState extends State<MainLayout> {
   @override
   void initState() {
     super.initState();
+    WidgetsBinding.instance.addObserver(this);
     _socketService = di.sl<SocketService>();
     _socketService.connect();
     _setupSocketListeners();
     _registerFcmToken();
     _loadStoreId();
+  }
+
+  @override
+  void didChangeAppLifecycleState(AppLifecycleState state) {
+    if (state == AppLifecycleState.resumed) {
+      context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+      context.read<OffersBloc>().add(GetMyOffersRequested());
+    }
   }
 
   Future<void> _loadStoreId() async {
@@ -72,6 +81,7 @@ class MainLayoutState extends State<MainLayout> {
 
   @override
   void dispose() {
+    WidgetsBinding.instance.removeObserver(this);
     _socketService.off('merchant_notification');
     _socketService.disconnect();
     super.dispose();
