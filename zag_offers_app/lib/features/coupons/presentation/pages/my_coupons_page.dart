@@ -353,7 +353,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 itemCount: coupons.length,
                 itemBuilder: (context, index) {
                   final coupon = coupons[index];
-                  final isActive = coupon.status == 'GENERATED';
+                  final isActive = coupon.isActive;
 
                   return Container(
                     margin: const EdgeInsets.only(bottom: 20),
@@ -478,6 +478,10 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 },
               ),
             );
+          }
+
+          if (state is CouponGeneratedSuccess) {
+            return const Center(child: CircularProgressIndicator());
           }
 
           return const SizedBox();

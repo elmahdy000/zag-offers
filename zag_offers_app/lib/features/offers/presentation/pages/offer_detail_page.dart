@@ -71,8 +71,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   void _shareOffer() {
     HapticFeedback.lightImpact();
     final discountText = widget.offer.discount.isNotEmpty
-        ? widget.offer.discount
-        : '${widget.offer.discountPercentage.toInt()}%';
+        ? (widget.offer.discount.startsWith('خصم')
+            ? widget.offer.discount
+            : 'خصم ${widget.offer.discount}')
+        : 'خصم ${widget.offer.discountPercentage.toInt()}%';
     SharePlus.instance.share(
       ShareParams(
         text: 'شاهد هذا العرض من ${widget.offer.store.name}\n'

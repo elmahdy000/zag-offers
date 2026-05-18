@@ -24,6 +24,11 @@ String mapDioErrorToMessage(
     case DioExceptionType.cancel:
       return 'تم إلغاء الطلب قبل اكتماله.';
     case DioExceptionType.badResponse:
+      final statusCode = error.response?.statusCode;
+      if (statusCode == 401) return 'انتهت صلاحية الجلسة، يرجى تسجيل الدخول مرة أخرى';
+      if (statusCode == 403) return 'ليس لديك صلاحية لهذا الإجراء';
+      if (statusCode == 404) return 'العنصر المطلوب غير موجود';
+      if (statusCode != null && statusCode >= 500) return 'حدث خطأ في السيرفر، حاول مرة أخرى لاحقًا';
       return fallbackMessage;
     case DioExceptionType.unknown:
       return 'حدثت مشكلة في الشبكة. حاول مرة أخرى بعد التأكد من الاتصال.';

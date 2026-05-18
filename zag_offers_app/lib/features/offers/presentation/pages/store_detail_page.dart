@@ -2,12 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:url_launcher/url_launcher.dart';
-import '../../../../core/widgets/network_image_widget.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../injection_container.dart';
 import '../../../reviews/presentation/bloc/reviews_bloc.dart';
+import '../../domain/entities/offer_entity.dart';
 import '../../domain/entities/store_entity.dart';
 import '../bloc/offers_bloc.dart';
 import '../bloc/offers_event.dart';
@@ -408,9 +409,9 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     );
   }
 
-  Widget _buildOfferCard(BuildContext context, dynamic offer) {
+  Widget _buildOfferCard(BuildContext context, OfferEntity offer) {
     final theme = Theme.of(context);
-    final String discountText = offer.discount?.toString() ?? '';
+    final String discountText = offer.discount;
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
@@ -429,7 +430,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           ),
         ),
         title: Text(
-          offer.title ?? '',
+          offer.title,
           style: theme.textTheme.titleSmall?.copyWith(fontWeight: FontWeight.bold),
           maxLines: 2,
           overflow: TextOverflow.ellipsis,

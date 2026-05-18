@@ -53,12 +53,19 @@ class OfferModel extends OfferEntity {
 
   static double _parseDiscountPercentage(String discount) {
     try {
+      // Convert Arabic-Indic numerals to ASCII digits
+      const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+      const ascii = '0123456789';
+      String normalized = discount;
+      for (int i = 0; i < arabicIndic.length; i++) {
+        normalized = normalized.replaceAll(arabicIndic[i], ascii[i]);
+      }
       // Strip common suffixes/prefixes
-      String cleaned = discount
+      String cleaned = normalized
           .replaceAll('%', '')
           .replaceAll('خصم', '')
           .replaceAll('ج', '')
-          .replaceAll(RegExp(r'[^\d.]'), '')  // keep only digits and decimal point
+          .replaceAll(RegExp(r'[^\d.]'), '')
           .trim();
       return double.tryParse(cleaned) ?? 0.0;
     } catch (_) {
