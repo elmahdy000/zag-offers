@@ -407,7 +407,7 @@ export class AdminService {
   async approveStore(id: string, adminId: string) {
     const store = await this.prisma.store.findUnique({
       where: { id },
-      include: { owner: true },
+      include: { owner: { select: { id: true, name: true, fcmToken: true, email: true, phone: true, avatar: true, role: true } } },
     });
     if (!store) throw new NotFoundException('Store not found');
     if (store.status === StoreStatus.APPROVED) {
@@ -417,7 +417,7 @@ export class AdminService {
     const updated = await this.prisma.store.update({
       where: { id },
       data: { status: StoreStatus.APPROVED },
-      include: { owner: true, category: true },
+      include: { owner: { select: { id: true, name: true, email: true, phone: true, avatar: true, role: true } }, category: true },
     });
 
     this.eventsGateway.notifyMerchant(store.ownerId, {
@@ -447,14 +447,14 @@ export class AdminService {
   async rejectStore(id: string, adminId: string, reason?: string) {
     const store = await this.prisma.store.findUnique({
       where: { id },
-      include: { owner: true },
+      include: { owner: { select: { id: true, name: true, fcmToken: true, email: true, phone: true, avatar: true, role: true } } },
     });
     if (!store) throw new NotFoundException('Store not found');
 
     const updated = await this.prisma.store.update({
       where: { id },
       data: { status: StoreStatus.REJECTED },
-      include: { owner: true },
+      include: { owner: { select: { id: true, name: true, fcmToken: true, email: true, phone: true, avatar: true, role: true } } },
     });
 
     this.eventsGateway.notifyMerchant(store.ownerId, {
@@ -485,7 +485,7 @@ export class AdminService {
   async suspendStore(id: string, reason?: string) {
     const store = await this.prisma.store.findUnique({
       where: { id },
-      include: { owner: true },
+      include: { owner: { select: { id: true, name: true, fcmToken: true, email: true, phone: true, avatar: true, role: true } } },
     });
     if (!store) throw new NotFoundException('Store not found');
 
@@ -754,7 +754,7 @@ export class AdminService {
   async approveOffer(id: string, adminId: string) {
     const offer = await this.prisma.offer.findUnique({
       where: { id },
-      include: { store: { include: { owner: true } } },
+      include: { store: { include: { owner: { select: { id: true, name: true, email: true, phone: true, avatar: true, role: true } } } } },
     });
     if (!offer) throw new NotFoundException('Offer not found');
     if (offer.status === OfferStatus.ACTIVE) {
@@ -800,7 +800,7 @@ export class AdminService {
   async rejectOffer(id: string, adminId: string, reason?: string) {
     const offer = await this.prisma.offer.findUnique({
       where: { id },
-      include: { store: { include: { owner: true } } },
+      include: { store: { include: { owner: { select: { id: true, name: true, email: true, phone: true, avatar: true, role: true } } } } },
     });
     if (!offer) throw new NotFoundException('Offer not found');
 

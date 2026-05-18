@@ -215,8 +215,8 @@ export class NotificationsService implements OnModuleInit {
                 `area_${existing.area.replace(/\s+/g, '_')}`,
               );
           }
-        } catch {
-          // Ignore stale-token unsubscribe errors
+        } catch (e) {
+          this.logger.warn(`FCM unsubscribe (stale token) failed: ${e}`);
         }
       }
 
@@ -267,8 +267,8 @@ export class NotificationsService implements OnModuleInit {
               `area_${user.area.replace(/\s+/g, '_')}`,
             );
         }
-      } catch {
-        // Ignore unsubscribe failure
+      } catch (e) {
+        this.logger.warn(`FCM area unsubscribe failed: ${e}`);
       }
     }
 

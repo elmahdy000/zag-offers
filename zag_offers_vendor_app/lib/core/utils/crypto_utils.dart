@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:developer' as dev;
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:crypto/crypto.dart';
 
@@ -6,7 +7,6 @@ class CryptoUtils {
   static const String _userKey = 'vendor_user';
   static const String _cachePrefix = 'cache_vendor_';
 
-  // Secure storage (React app compatibility)
   static Future<Map<String, dynamic>?> loadSecureUserData() async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -16,7 +16,7 @@ class CryptoUtils {
         return Map<String, dynamic>.from(jsonDecode(userData));
       }
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to load user data: $e');
     }
     return null;
   }
@@ -26,7 +26,7 @@ class CryptoUtils {
       final prefs = await SharedPreferences.getInstance();
       await prefs.setString(_userKey, jsonEncode(userData));
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to save user data: $e');
     }
   }
 
@@ -35,11 +35,10 @@ class CryptoUtils {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove(_userKey);
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to clear user data: $e');
     }
   }
 
-  // Cache management (React app compatibility)
   static Future<T?> getCache<T>(String key) async {
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -48,12 +47,10 @@ class CryptoUtils {
       
       if (cachedData != null) {
         final decoded = jsonDecode(cachedData);
-        if (decoded is T) {
-          return decoded;
-        }
+        return decoded as T;
       }
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to get cache: $e');
     }
     return null;
   }
@@ -64,7 +61,7 @@ class CryptoUtils {
       final cacheKey = '$_cachePrefix$key';
       await prefs.setString(cacheKey, jsonEncode(data));
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to set cache: $e');
     }
   }
 
@@ -74,7 +71,7 @@ class CryptoUtils {
       final cacheKey = '$_cachePrefix$key';
       await prefs.remove(cacheKey);
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to clear cache: $e');
     }
   }
 
@@ -89,43 +86,16 @@ class CryptoUtils {
         }
       }
     } catch (e) {
-      // Handle error silently
+      dev.log('Failed to clear all cache: $e');
     }
   }
 
-  // Simple encryption for sensitive data
-  static String encrypt(String text, String key) {
-    final bytes = utf8.encode(text);
-    final keyBytes = utf8.encode(key);
-    final encrypted = <int>[];
-    
-    for (int i = 0; i < bytes.length; i++) {
-      encrypted.add(bytes[i] ^ keyBytes[i % keyBytes.length]);
-    }
-    
-    return base64Encode(encrypted);
-  }
-
-  static String decrypt(String encryptedText, String key) {
-    final encrypted = base64Decode(encryptedText);
-    final keyBytes = utf8.encode(key);
-    final decrypted = <int>[];
-    
-    for (int i = 0; i < encrypted.length; i++) {
-      decrypted.add(encrypted[i] ^ keyBytes[i % keyBytes.length]);
-    }
-    
-    return utf8.decode(decrypted);
-  }
-
-  // Generate hash for data integrity
   static String generateHash(String data) {
     final bytes = utf8.encode(data);
     final digest = sha256.convert(bytes);
     return digest.toString();
   }
 
-  // Validate data integrity
   static bool validateHash(String data, String hash) {
     return generateHash(data) == hash;
   }

@@ -63,7 +63,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       if (items.length > 50) items = items.sublist(0, 50);
       
       await prefs.setString(storageKey, json.encode(items));
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to persist notification: $e');
+    }
   }
 }
 

@@ -104,7 +104,9 @@ class NotificationService {
     if (_fcmToken != null) {
       try {
         await di.sl<AuthRemoteDataSource>().updateFcmToken(_fcmToken!);
-      } catch (_) {}
+      } catch (e) {
+        debugPrint('FCM token update failed: $e');
+      }
     }
   }
 

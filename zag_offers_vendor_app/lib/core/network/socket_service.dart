@@ -111,7 +111,8 @@ class SocketService {
     await prefs.setString('auth_token', token);
     if (_socket != null) {
       _socket?.auth = {'token': token};
-      _socket?.disconnect().connect();
+      _socket?.disconnect();
+      _socket?.connect();
     } else {
       connect();
     }
