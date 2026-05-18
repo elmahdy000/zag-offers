@@ -166,7 +166,6 @@ export class OffersController {
 
   @Get(':id')
   @UseGuards(OptionalJwtAuthGuard)
-  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get offer by ID' })
   async findOne(
     @Param('id') id: string,

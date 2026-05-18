@@ -139,6 +139,12 @@ export class CouponsService {
       eventType: 'COUPON_GENERATE',
     });
 
+    // Ensure the offer views are incremented when someone takes the offer
+    void this.prisma.offer.update({
+      where: { id: offerId },
+      data: { views: { increment: 1 } },
+    }).catch(err => console.error('Failed to increment views during coupon generation:', err));
+
     return newCoupon;
   }
 
