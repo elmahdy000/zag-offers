@@ -37,13 +37,15 @@ interface OfferDetails {
   title: string;
   description: string;
   discount: string;
+  views: number;
+  discountType?: string;
   status: 'PENDING' | 'ACTIVE' | 'EXPIRED' | 'REJECTED' | 'PAUSED';
   images?: string[];
   createdAt: string;
   startDate: string;
   endDate: string;
   store: { id: string; name: string; logo?: string | null; category: { name: string } };
-  _count: { redemptions: number };
+  _count: { coupons: number; favorites: number; reviews: number };
 }
 
 export default function OfferDetailPage() {
@@ -117,6 +119,9 @@ export default function OfferDetailPage() {
   }
 
   const formatDate = (d: string) => new Date(d).toLocaleDateString('ar-EG', { year: 'numeric', month: 'long', day: 'numeric' });
+  const views = offer.views ?? 0;
+  const redemptions = offer._count?.coupons ?? 0;
+  const conversionRate = views > 0 ? Math.round((redemptions / views) * 100) : 0;
 
   return (
     <div className="p-6 lg:p-10 space-y-8">
@@ -199,11 +204,11 @@ export default function OfferDetailPage() {
                </div>
             </div>
 
-            {/* Performance Analytics (Placeholders for now) */}
+            {/* Performance Analytics */}
             <div className="grid gap-6 sm:grid-cols-3">
-               <OfferStat label="إجمالي الاستخدام" value={offer._count.redemptions} icon={Users} color="text-indigo-600" bg="bg-indigo-50" />
-               <OfferStat label="عدد المشاهدات" value="1.2k" icon={Eye} color="text-emerald-600" bg="bg-emerald-50" />
-               <OfferStat label="معدل التحويل" value="12%" icon={TrendingUp} color="text-amber-600" bg="bg-amber-50" />
+               <OfferStat label="إجمالي الاستخدام" value={redemptions} icon={Users} color="text-indigo-600" bg="bg-indigo-50" />
+               <OfferStat label="عدد المشاهدات" value={views.toLocaleString('ar-EG')} icon={Eye} color="text-emerald-600" bg="bg-emerald-50" />
+               <OfferStat label="معدل التحويل" value={conversionRate > 0 ? `${conversionRate}%` : '---'} icon={TrendingUp} color="text-amber-600" bg="bg-amber-50" />
             </div>
 
             {/* Terms & Conditions */}

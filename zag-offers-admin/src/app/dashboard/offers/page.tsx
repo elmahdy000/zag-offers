@@ -39,6 +39,7 @@ interface OfferRow {
   title: string;
   description?: string;
   discount: string;
+  discountType?: string;
   status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'PAUSED';
   createdAt: string;
   startDate?: string;
@@ -51,6 +52,7 @@ interface OfferRow {
 
 interface OfferDetails extends OfferRow {
   images: string[];
+  discountType?: string;
   _count: { coupons: number; favorites: number; reviews: number };
 }
 
@@ -95,16 +97,7 @@ export default function OffersManagementPage() {
     const newVal = parseFloat(newInput.value);
     const discValStr = discountInput.value.trim();
 
-    if (field === 'original' || field === 'new') {
-      if (origVal && newVal && origVal > 0) {
-        if (newVal < origVal) {
-          const pct = Math.round(((origVal - newVal) / origVal) * 100);
-          if (pct >= 0 && pct <= 100) {
-            discountInput.value = `${pct}%`;
-          }
-        }
-      }
-    } else if (field === 'discount') {
+    if (field === 'discount') {
       if (origVal && origVal > 0) {
         const pctMatch = discValStr.match(/^(\d+)(%?)$/);
         if (pctMatch) {
@@ -114,6 +107,11 @@ export default function OffersManagementPage() {
             newInput.value = calculatedNew.toString();
           }
         }
+      }
+    } else if (origVal && newVal && origVal > 0 && newVal < origVal) {
+      const pct = Math.round(((origVal - newVal) / origVal) * 100);
+      if (pct >= 0 && pct <= 100) {
+        discountInput.value = `${pct}%`;
       }
     }
   };
@@ -432,6 +430,16 @@ export default function OffersManagementPage() {
                           {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
                         </select>
                       </div>
+                      <div className="space-y-2">
+                        <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">نوع الخصم</label>
+                        <select name="discountType" defaultValue={offerDetails?.discountType || 'PERCENTAGE'} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm">
+                          <option value="PERCENTAGE">نسبة مئوية (%)</option>
+                          <option value="FIXED_AMOUNT">قيمة ثابتة (ج.م)</option>
+                          <option value="BOGO">اشترِ واحصل على واحد</option>
+                          <option value="FREE_SHIPPING">توصيل مجاني</option>
+                          <option value="OTHER">أخرى</option>
+                        </select>
+                      </div>
 
                       <div className="space-y-4">
                         <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">صور العرض</label>
@@ -514,8 +522,19 @@ export default function OffersManagementPage() {
                 e.preventDefault();
                 const fd = new FormData(e.currentTarget);
                 const formData = Object.fromEntries(fd.entries());
+                const discountVal = (formData.discount as string || '').trim();
+                if (!discountVal) {
+                  showToast('يرجى إدخال قيمة الخصم', 'error');
+                  return;
+                }
+                const storeIdVal = formData.storeId as string;
+                if (!storeIdVal) {
+                  showToast('يرجى اختيار المتجر', 'error');
+                  return;
+                }
                 const data = {
                   ...formData,
+                  discount: discountVal,
                   originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
                   newPrice: formData.newPrice ? Number(formData.newPrice) : null,
                   images: tempImages,
@@ -563,13 +582,23 @@ export default function OffersManagementPage() {
                         <CalendarIcon className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={16} />
                         <input type="date" name="endDate" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 pl-10 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
                       </div>
-                    </div>
-                    <div className="space-y-2">
-                      <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</label>
-                      <select name="status" defaultValue="ACTIVE" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm">
-                        {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
-                      </select>
-                    </div>
+                   </div>
+                   <div className="space-y-2">
+                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الحالة</label>
+                     <select name="status" defaultValue="ACTIVE" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm">
+                       {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
+                     </select>
+                   </div>
+                   <div className="space-y-2">
+                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">نوع الخصم</label>
+                     <select name="discountType" defaultValue="PERCENTAGE" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm">
+                       <option value="PERCENTAGE">نسبة مئوية (%)</option>
+                       <option value="FIXED_AMOUNT">قيمة ثابتة (ج.م)</option>
+                       <option value="BOGO">اشترِ واحصل على واحد</option>
+                       <option value="FREE_SHIPPING">توصيل مجاني</option>
+                       <option value="OTHER">أخرى</option>
+                     </select>
+                   </div>
                   </div>
 
                   <div className="space-y-4">

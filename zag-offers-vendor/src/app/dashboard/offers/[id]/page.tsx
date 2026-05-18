@@ -3,13 +3,13 @@
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import Link from 'next/link';
-import {
-  ChevronRight, Edit3, Trash2, Tag, Users, Clock, Calendar,
+import { ChevronRight, Edit3, Trash2, Tag, Users, Clock, Calendar,
   CheckCircle2, XCircle, AlertCircle, PauseCircle, TrendingUp,
   Image as ImageIcon, ChevronLeft, ChevronRight as ChevronR, X, Loader2
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
+import { useNotifications } from '@/components/notification-provider';
 
 interface Offer {
   id: string;
@@ -33,13 +33,14 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   ACTIVE:   { label: 'نشط ومتاح',        color: 'bg-emerald-500/15 text-emerald-400 border-emerald-500/30', icon: <CheckCircle2 size={14} /> },
   PAUSED:   { label: 'متوقف مؤقتاً',     color: 'bg-blue-500/15 text-blue-400 border-blue-500/30',         icon: <PauseCircle size={14} /> },
   REJECTED: { label: 'مرفوض',            color: 'bg-red-500/15 text-red-400 border-red-500/30',            icon: <XCircle size={14} /> },
-  EXPIRED:  { label: 'منتهي الصلاحية',   color: 'bg-white/5 text-text-dim border-white/10',              icon: <Clock size={14} /> },
+  EXPIRED:  { label: 'منتهي الصلاحية',   color: 'bg-glass-heavy text-text-dimmer border-glass-border',              icon: <Clock size={14} /> },
 };
 
 export default function OfferDetailPage() {
   const router = useRouter();
   const params = useParams();
   const id = params?.id as string;
+  const { addError, addSuccess } = useNotifications();
 
   const [offer, setOffer] = useState<Offer | null>(null);
   const [loading, setLoading] = useState(true);
@@ -51,7 +52,10 @@ export default function OfferDetailPage() {
     if (!id) return;
     vendorApi().get(`/offers/${id}`).then(r => {
       setOffer(r.data);
-    }).catch(() => router.push('/dashboard/offers'))
+    }).catch(() => {
+      addError('فشل تحميل العرض');
+      router.push('/dashboard/offers');
+    })
       .finally(() => setLoading(false));
   }, [id]);
 
@@ -60,9 +64,10 @@ export default function OfferDetailPage() {
     setDeleting(true);
     try {
       await vendorApi().delete(`/offers/${id}`);
+      addSuccess('تم حذف العرض بنجاح');
       router.push('/dashboard/offers');
     } catch {
-      alert('فشل الحذف، حاول مرة أخرى');
+      addError('فشل الحذف، حاول مرة أخرى');
       setDeleting(false);
     }
   };
@@ -75,7 +80,21 @@ export default function OfferDetailPage() {
     );
   }
 
-  if (!offer) return null;
+  if (!offer) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg p-6">
+        <div className="text-center">
+          <div className="w-16 h-16 bg-glass-heavy rounded-3xl flex items-center justify-center text-text-dim mb-4 mx-auto">
+            <Tag size={32} />
+          </div>
+          <p className="text-text-dim text-sm font-bold">لم يتم العثور على العرض</p>
+          <button onClick={() => router.push('/dashboard/offers')} className="mt-4 text-primary font-black text-xs hover:underline">
+            العودة إلى العروض
+          </button>
+        </div>
+      </div>
+    );
+  }
 
   const cfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.EXPIRED;
   const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / 86_400_000);
@@ -102,17 +121,17 @@ export default function OfferDetailPage() {
               alt=""
             />
             <button onClick={() => setLightbox(false)}
-              className="absolute top-4 left-4 w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white">
+              className="absolute top-4 left-4 w-10 h-10 bg-glass-heavy rounded-xl flex items-center justify-center text-white">
               <X size={20} />
             </button>
             {offer.images.length > 1 && (
               <>
                 <button onClick={e => { e.stopPropagation(); setActiveImg(p => (p - 1 + offer.images.length) % offer.images.length); }}
-                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white">
+                  className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-glass-heavy rounded-xl flex items-center justify-center text-white">
                   <ChevronR size={20} />
                 </button>
                 <button onClick={e => { e.stopPropagation(); setActiveImg(p => (p + 1) % offer.images.length); }}
-                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-white/10 rounded-xl flex items-center justify-center text-white">
+                  className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 bg-glass-heavy rounded-xl flex items-center justify-center text-white">
                   <ChevronLeft size={20} />
                 </button>
               </>
@@ -122,7 +141,7 @@ export default function OfferDetailPage() {
       </AnimatePresence>
 
       {/* ── Hero Image ── */}
-      <div className="relative h-64 sm:h-80 bg-white/5 overflow-hidden">
+      <div className="relative h-64 sm:h-80 bg-card overflow-hidden">
         {offer.images.length > 0 ? (
           <>
             <img
@@ -144,13 +163,13 @@ export default function OfferDetailPage() {
           </>
         ) : (
           <div className="w-full h-full flex items-center justify-center">
-            <ImageIcon size={48} className="text-white/10" />
+            <ImageIcon size={48} className="text-text-tertiary" />
           </div>
         )}
 
         {/* Back button */}
         <button onClick={() => router.back()}
-          className="absolute top-4 right-4 w-10 h-10 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-white/10">
+          className="absolute top-4 right-4 w-10 h-10 bg-black/40 backdrop-blur-md rounded-xl flex items-center justify-center text-white border border-glass-border">
           <ChevronRight size={20} />
         </button>
 
@@ -216,7 +235,7 @@ export default function OfferDetailPage() {
             </div>
           )}
 
-          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-white/5">
+          <div className="grid grid-cols-2 gap-4 pt-2 border-t border-glass-border">
             <div>
               <p className="text-[10px] text-text-dimmer font-bold mb-1">تاريخ البداية</p>
               <div className="flex items-center gap-1.5 text-[12px] font-bold text-text">
@@ -235,7 +254,7 @@ export default function OfferDetailPage() {
           </div>
 
           {offer.usageLimit && (
-            <div className="pt-2 border-t border-white/5">
+            <div className="pt-2 border-t border-glass-border">
               <p className="text-[10px] text-text-dimmer font-bold mb-1">حد الاستخدام</p>
               <p className="text-[13px] font-bold text-text">{offer.usageLimit.toLocaleString('ar-EG')} كوبون كحد أقصى</p>
             </div>

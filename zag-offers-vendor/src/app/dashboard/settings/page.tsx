@@ -83,7 +83,7 @@ export default function SettingsPage() {
           >
             <Link 
               href={section.href}
-              className="glass p-6 rounded-[2rem] border border-white/5 flex items-center justify-between hover:border-primary/30 transition-all group active:scale-[0.99] bg-white/[0.01]"
+              className="glass p-6 rounded-[2rem] border border-glass-border flex items-center justify-between hover:border-primary/30 transition-all group active:scale-[0.99] bg-glass"
             >
               <div className="flex items-center gap-5">
                 <div className={`w-14 h-14 ${section.bg} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg`}>
@@ -93,7 +93,7 @@ export default function SettingsPage() {
                   <div className="flex items-center gap-3">
                     <h3 className="font-black text-text text-sm">{section.title}</h3>
                     {section.tag && (
-                      <span className="text-[8px] font-black bg-white/10 text-primary px-2 py-0.5 rounded-md uppercase tracking-wider">
+                      <span className="text-[8px] font-black bg-glass-heavy text-primary px-2 py-0.5 rounded-md uppercase tracking-wider">
                         {section.tag}
                       </span>
                     )}
@@ -103,7 +103,7 @@ export default function SettingsPage() {
                   </p>
                 </div>
               </div>
-              <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-dimmer group-hover:text-primary group-hover:bg-primary/10 transition-all">
+              <div className="w-10 h-10 rounded-xl bg-glass-heavy flex items-center justify-center text-text-dimmer group-hover:text-primary group-hover:bg-primary/10 transition-all">
                 <ChevronLeft size={18} />
               </div>
             </Link>
@@ -113,7 +113,7 @@ export default function SettingsPage() {
 
       {/* Performance Status Section */}
       <div className="mt-6">
-        <div className="glass p-6 rounded-[2rem] border border-white/5 bg-white/[0.01]">
+        <div className="glass p-6 rounded-[2rem] border border-glass-border bg-glass">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
               <Activity size={20} />
@@ -125,7 +125,7 @@ export default function SettingsPage() {
           </div>
           
           <div className="grid grid-cols-2 gap-4">
-             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+             <div className="p-4 bg-glass-heavy rounded-2xl border border-glass-border">
                 <div className="flex items-center gap-2 mb-2 text-text-dim">
                    <Wifi size={14} />
                    <span className="text-[10px] font-black uppercase">سرعة الـ API</span>
@@ -137,7 +137,7 @@ export default function SettingsPage() {
                    <span className="text-[10px] font-bold text-text-dimmer mb-1">ms</span>
                 </div>
              </div>
-             <div className="p-4 bg-white/5 rounded-2xl border border-white/5">
+             <div className="p-4 bg-glass-heavy rounded-2xl border border-glass-border">
                 <div className="flex items-center gap-2 mb-2 text-text-dim">
                    <Zap size={14} />
                    <span className="text-[10px] font-black uppercase">جودة الخدمة</span>
@@ -151,7 +151,7 @@ export default function SettingsPage() {
       </div>
 
       <div className="mt-12 grid grid-cols-1 md:grid-cols-2 gap-4">
-        <div className="p-8 glass rounded-[2.5rem] border border-dashed border-white/10 flex flex-col items-center text-center bg-white/[0.01]">
+        <div className="p-8 glass rounded-[2.5rem] border border-dashed border-glass-border flex flex-col items-center text-center bg-glass">
           <HelpCircle className="text-text-dimmer mb-4" size={32} />
           <h4 className="text-[11px] font-black text-text uppercase tracking-widest mb-1">مركز المساعدة</h4>
           <p className="text-[10px] font-bold text-text-dimmer max-w-[200px] leading-relaxed">
@@ -162,7 +162,7 @@ export default function SettingsPage() {
           </a>
         </div>
 
-        <div className="p-8 glass rounded-[2.5rem] border border-white/5 flex flex-col items-center justify-center text-center bg-red-500/[0.02]">
+        <div className="p-8 glass rounded-[2.5rem] border border-glass-border flex flex-col items-center justify-center text-center bg-red-500/[0.02]">
           <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 mb-4">
              <LogOut size={24} />
           </div>

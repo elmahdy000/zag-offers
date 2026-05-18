@@ -238,7 +238,7 @@ export default function NewOfferPage() {
         <div className="flex items-center gap-6">
           <button
             onClick={() => router.back()}
-            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all border border-white/5"
+            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all border border-glass-border"
           >
             <ArrowRight size={24} />
           </button>
@@ -281,7 +281,7 @@ export default function NewOfferPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-[2.5rem] border border-white/5 p-8 sm:p-10 inner-shadow relative overflow-hidden"
+            className="glass rounded-[2.5rem] border border-glass-border p-8 sm:p-10 inner-shadow relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             
@@ -294,7 +294,7 @@ export default function NewOfferPage() {
                 </div>
                 
                 <div
-                  className="relative min-h-[200px] rounded-[2rem] border-2 border-dashed border-white/5 bg-white/[0.02] p-4 flex flex-wrap gap-4 items-center justify-center cursor-pointer group transition-all hover:border-primary/30"
+                  className="relative min-h-[200px] rounded-[2rem] border-2 border-dashed border-glass-border bg-glass p-4 flex flex-wrap gap-4 items-center justify-center cursor-pointer group transition-all hover:border-primary/30"
                   onClick={() => document.getElementById('imageInput')?.click()}
                 >
                   <AnimatePresence mode="popLayout">
@@ -305,7 +305,7 @@ export default function NewOfferPage() {
                           initial={{ opacity: 0, scale: 0.8 }}
                           animate={{ opacity: 1, scale: 1 }}
                           exit={{ opacity: 0, scale: 0.8 }}
-                          className={`relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border ${index === 0 ? 'border-primary shadow-lg shadow-primary/20' : 'border-white/10'} group/img shadow-xl`}
+                          className={`relative w-24 h-24 sm:w-32 sm:h-32 rounded-2xl overflow-hidden border ${index === 0 ? 'border-primary shadow-lg shadow-primary/20' : 'border-glass-border'} group/img shadow-xl`}
                         >
                           <img src={img.url} alt={`Preview ${index}`} className="w-full h-full object-cover" />
                           {index === 0 && (
@@ -330,7 +330,7 @@ export default function NewOfferPage() {
                         animate={{ opacity: 1 }}
                         className="flex flex-col items-center gap-4 py-8"
                       >
-                        <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-500">
+                        <div className="w-16 h-16 bg-glass-heavy rounded-2xl flex items-center justify-center group-hover:scale-110 group-hover:bg-primary/10 transition-all duration-500">
                           <Upload className="text-text-dim group-hover:text-primary transition-colors" size={32} />
                         </div>
                         <div className="text-center">
@@ -351,7 +351,7 @@ export default function NewOfferPage() {
                     <input
                       type="text"
                       placeholder="مثلاً: خصم 50% على الملابس"
-                      className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all"
+                      className="w-full bg-card border border-glass-border rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all"
                       value={formData.title}
                       onChange={(e) => setFormData({ ...formData, title: e.target.value })}
                     />
@@ -365,7 +365,7 @@ export default function NewOfferPage() {
                     <input
                       type="date"
                       min={new Date().toISOString().split('T')[0]}
-                      className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all appearance-none"
+                      className="w-full bg-card border border-glass-border rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all appearance-none"
                       value={formData.expiryDate}
                       onChange={(e) => setFormData({ ...formData, expiryDate: e.target.value })}
                     />
@@ -379,7 +379,7 @@ export default function NewOfferPage() {
                     <input
                       type="text"
                       placeholder="50%"
-                      className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all"
+                      className="w-full bg-card border border-glass-border rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all"
                       value={formData.discount}
                       onChange={(e) => setFormData({ ...formData, discount: e.target.value })}
                     />
@@ -393,7 +393,7 @@ export default function NewOfferPage() {
                     <input
                       type="number"
                       placeholder="100"
-                      className="w-full bg-white/[0.03] border border-white/5 rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all"
+                      className="w-full bg-card border border-glass-border rounded-2xl py-4 pr-12 pl-4 text-sm font-black text-text outline-none focus:border-primary/50 transition-all"
                       value={formData.originalPrice}
                       onChange={(e) => setFormData({ ...formData, originalPrice: e.target.value })}
                     />
@@ -405,7 +405,7 @@ export default function NewOfferPage() {
                   <textarea
                     placeholder="اكتب هنا تفاصيل العرض والشروط..."
                     rows={4}
-                    className="w-full bg-white/[0.03] border border-white/5 rounded-3xl py-4 px-6 text-sm font-bold text-text outline-none focus:border-primary/50 transition-all resize-none"
+                    className="w-full bg-card border border-glass-border rounded-3xl py-4 px-6 text-sm font-bold text-text outline-none focus:border-primary/50 transition-all resize-none"
                     value={formData.description}
                     onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                   />
@@ -435,8 +435,8 @@ export default function NewOfferPage() {
              <Info size={14} className="text-primary" /> معاينة مباشرة (موبايل)
            </div>
 
-           <div className="glass rounded-[3rem] p-6 border border-white/5 inner-shadow relative">
-              <div className="aspect-[4/5] rounded-[2.5rem] bg-white/5 border border-white/5 overflow-hidden relative group">
+           <div className="glass rounded-[3rem] p-6 border border-glass-border inner-shadow relative">
+              <div className="aspect-[4/5] rounded-[2.5rem] bg-glass-heavy border border-glass-border overflow-hidden relative group">
                  {offerImages.length > 0 ? (
                     <img src={offerImages[0].url} className="w-full h-full object-cover transition-transform duration-1000 group-hover:scale-110" alt="Preview" />
                   ) : (
@@ -454,7 +454,7 @@ export default function NewOfferPage() {
               {offerImages.length > 1 && (
                 <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {offerImages.map((img, i) => (
-                    <div key={i} className={`w-12 h-12 rounded-xl border-2 shrink-0 overflow-hidden ${i === 0 ? 'border-primary' : 'border-white/10'}`}>
+                    <div key={i} className={`w-12 h-12 rounded-xl border-2 shrink-0 overflow-hidden ${i === 0 ? 'border-primary' : 'border-glass-border'}`}>
                       <img src={img.url} className="w-full h-full object-cover" />
                     </div>
                   ))}
@@ -471,7 +471,7 @@ export default function NewOfferPage() {
                     </p>
                  </div>
 
-                 <div className="pt-4 border-t border-white/5 flex items-center justify-between">
+                 <div className="pt-4 border-t border-glass-border flex items-center justify-between">
                     <div className="flex flex-col gap-1">
                        {Boolean(formData.originalPrice) && (
                          <span className="text-xs text-text-dimmer line-through">EGP {formData.originalPrice}</span>

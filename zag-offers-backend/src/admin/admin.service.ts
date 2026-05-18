@@ -18,6 +18,7 @@ import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { CreateUserDto } from './dto/create-user.dto';
+import { UpdateOfferDto } from './dto/update-offer.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
 
@@ -52,6 +53,7 @@ type OfferUpdatePayload = {
   title?: string;
   description?: string;
   discount?: string;
+  discountType?: string;
   terms?: string;
   startDate?: string;
   endDate?: string;
@@ -61,12 +63,15 @@ type OfferUpdatePayload = {
   images?: string[];
   originalPrice?: number;
   newPrice?: number;
+  minSpend?: number;
+  isFeatured?: boolean;
 };
 
 type OfferCreatePayload = {
   title: string;
   description: string;
   discount: string;
+  discountType?: string;
   storeId: string;
   startDate: string;
   endDate: string;
@@ -75,6 +80,8 @@ type OfferCreatePayload = {
   usageLimit?: number;
   originalPrice?: number;
   newPrice?: number;
+  minSpend?: number;
+  isFeatured?: boolean;
 };
 
 @Injectable()
@@ -174,11 +181,11 @@ export class AdminService {
     let from: Date;
 
     if (period === 'today') {
-      from = new Date(now.setHours(0, 0, 0, 0));
+      from = new Date(now.getFullYear(), now.getMonth(), now.getDate());
     } else if (period === 'week') {
-      from = new Date(now.setDate(now.getDate() - 7));
+      from = new Date(now.getTime() - 7 * 86400000);
     } else {
-      from = new Date(now.setMonth(now.getMonth() - 1));
+      from = new Date(now.getFullYear(), now.getMonth() - 1, now.getDate());
     }
 
     const [newUsers, newStores, newOffers, newCoupons] = await Promise.all([
@@ -232,15 +239,6 @@ export class AdminService {
       include: {
         category: { select: { name: true } },
         _count: { select: { offers: true, reviews: true } },
-        offers: {
-          include: {
-            _count: {
-              select: {
-                coupons: true,
-              },
-            },
-          },
-        },
       },
       take: limit,
       orderBy: { reviews: { _count: 'desc' } },
@@ -574,7 +572,7 @@ export class AdminService {
               owner: { select: { id: true, name: true, phone: true } },
             },
           },
-          _count: { select: { coupons: true } },
+          _count: { select: { coupons: { where: { status: 'USED' } } } },
         },
         skip,
         take: limit,
@@ -604,7 +602,7 @@ export class AdminService {
             category: true,
           },
         },
-        _count: { select: { coupons: true } },
+        _count: { select: { coupons: { where: { status: 'USED' } } } },
       },
       orderBy: { createdAt: 'asc' },
       take: 20,
@@ -636,7 +634,7 @@ export class AdminService {
           orderBy: { createdAt: 'desc' },
           take: 20,
         },
-        _count: { select: { coupons: true, favorites: true, reviews: true } },
+        _count: { select: { coupons: { where: { status: 'USED' } }, favorites: true, reviews: true } },
       },
     });
 
@@ -706,6 +704,15 @@ export class AdminService {
         ...(payload.newPrice !== undefined
           ? { newPrice: payload.newPrice ? +payload.newPrice : null }
           : {}),
+        ...(payload.discountType !== undefined
+          ? { discountType: payload.discountType }
+          : {}),
+        ...(payload.minSpend !== undefined
+          ? { minSpend: payload.minSpend ? +payload.minSpend : null }
+          : {}),
+        ...(payload.isFeatured !== undefined
+          ? { isFeatured: payload.isFeatured }
+          : {}),
         ...(startDate ? { startDate } : {}),
         ...(endDate ? { endDate } : {}),
       },
@@ -718,7 +725,7 @@ export class AdminService {
             },
           },
         },
-        _count: { select: { coupons: true } },
+        _count: { select: { coupons: { where: { status: 'USED' } } } },
       },
     });
 
@@ -1410,11 +1417,17 @@ export class AdminService {
     return createdStore;
   }
 
-  async createOffer(payload: OfferCreatePayload, adminId: string) {
+  async createOffer(payload: UpdateOfferDto, adminId: string) {
+    const storeId = payload.storeId!;
+    if (!storeId) throw new BadRequestException('Store ID is required');
     const store = await this.prisma.store.findUnique({
-      where: { id: payload.storeId },
+      where: { id: storeId },
     });
     if (!store) throw new NotFoundException('المحل غير موجود');
+
+    if (!payload.title || !payload.description || !payload.discount || !payload.startDate || !payload.endDate) {
+      throw new BadRequestException('Missing required fields: title, description, discount, startDate, endDate');
+    }
 
     const startDate = new Date(payload.startDate);
     const endDate = new Date(payload.endDate);
@@ -1432,6 +1445,7 @@ export class AdminService {
         title: payload.title,
         description: payload.description,
         discount: payload.discount,
+        discountType: payload.discountType || 'PERCENTAGE',
         terms: payload.terms,
         usageLimit: payload.usageLimit ? +payload.usageLimit : null,
         startDate,
@@ -1440,7 +1454,9 @@ export class AdminService {
         status: OfferStatus.ACTIVE,
         originalPrice: payload.originalPrice ? +payload.originalPrice : null,
         newPrice: payload.newPrice ? +payload.newPrice : null,
-        store: { connect: { id: payload.storeId } },
+        minSpend: payload.minSpend ? +payload.minSpend : null,
+        isFeatured: payload.isFeatured ?? false,
+        store: { connect: { id: storeId } },
       },
       include: { store: true },
     });

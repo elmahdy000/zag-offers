@@ -15,7 +15,7 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import Image from 'next/image';
 import { BASE_URL, API_URL } from '@/lib/constants';
-import { resolveImageUrl, calculateDaysLeft } from '@/lib/utils';
+import { resolveImageUrl, calculateDaysLeft, formatDiscount } from '@/lib/utils';
 
 interface Offer {
   id: string;
@@ -134,7 +134,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     : daysLeft <= 3  ? `${daysLeft} أيام`
     : `${daysLeft} يوم`;
 
-  const discountDisplay = offer.discount ? offer.discount.trim() : '0%';
+  const discountDisplay = formatDiscount(offer.discount?.trim() || '') || '0%';
 
   const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault();

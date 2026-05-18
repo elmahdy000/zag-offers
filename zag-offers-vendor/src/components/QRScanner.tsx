@@ -114,7 +114,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                <p className="text-white/40 text-[10px] font-black uppercase tracking-widest leading-none mt-1">{debug}</p>
              </div>
           </div>
-          <button onClick={onClose} className="w-10 h-10 rounded-full bg-white/5 flex items-center justify-center text-white/60 hover:text-white">
+          <button onClick={onClose} className="w-10 h-10 rounded-full bg-glass-heavy flex items-center justify-center text-white/60 hover:text-white">
             <X size={20} />
           </button>
         </div>
@@ -152,7 +152,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
                   const nextCam = cameras[nextIndex];
                   setActiveCam(nextCam.id);
                 }}
-                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${activeCam === cam.id ? 'bg-primary text-white border-primary' : 'bg-white/5 text-text-dim border-white/5'}`}
+                className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${activeCam === cam.id ? 'bg-primary text-white border-primary' : 'bg-glass-heavy text-text-dim border-glass-border'}`}
               >
                 كاميرا {idx + 1}
               </button>

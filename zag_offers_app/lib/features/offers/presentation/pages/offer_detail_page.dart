@@ -335,7 +335,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             ],
           ),
           child: Text(
-            'خصم ${widget.offer.discountPercentage.toInt()}%',
+            widget.offer.discount.isNotEmpty ? widget.offer.discount : 'عرض مميز',
             style: textTheme.labelMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -866,7 +866,15 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 },
               );
             }
-            return const SizedBox();
+            return Padding(
+              padding: const EdgeInsets.symmetric(vertical: 32),
+              child: Center(
+                child: Text(
+                  'تعذر تحميل التقييمات',
+                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                ),
+              ),
+            );
           },
         ),
       ],

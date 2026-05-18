@@ -85,7 +85,7 @@ export default function DashboardLayout({
         </AnimatePresence>
 
         {/* Mobile Header */}
-        <header className="lg:hidden glass sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-white/5 bg-bg/80">
+        <header className="lg:hidden glass sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-glass-border bg-bg/80">
           <div className="flex items-center gap-3">
              <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
                 <span className="text-white font-black text-xs">Z</span>
@@ -98,7 +98,7 @@ export default function DashboardLayout({
           
           <button 
             onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5"
+            className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-glass-border"
           >
             {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
           </button>

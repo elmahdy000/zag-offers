@@ -62,16 +62,16 @@ const StatCard = ({ card, index, loading = false }: { card: any, index: number, 
     className="group relative"
   >
     <div className={`absolute inset-0 ${card.bg} blur-3xl opacity-0 group-hover:opacity-20 transition-opacity rounded-[2.5rem]`} />
-    <div className={`glass rounded-[2.5rem] p-6 border ${card.border} relative overflow-hidden flex flex-col justify-between min-h-[180px] hover:border-white/20 transition-all duration-500`}>
+    <div className={`glass rounded-[2.5rem] p-6 border ${card.border} relative overflow-hidden flex flex-col justify-between min-h-[180px] hover:border-primary/30 transition-all duration-500`}>
       {loading ? (
         <div className="animate-pulse space-y-4">
           <div className="flex justify-between">
-            <div className="w-12 h-12 bg-white/5 rounded-2xl" />
-            <div className="w-16 h-8 bg-white/5 rounded-xl" />
+            <div className="w-12 h-12 bg-glass-heavy rounded-2xl" />
+            <div className="w-16 h-8 bg-glass-heavy rounded-xl" />
           </div>
           <div className="space-y-2">
-            <div className="h-2 w-20 bg-white/5 rounded" />
-            <div className="h-8 w-24 bg-white/5 rounded" />
+            <div className="h-2 w-20 bg-glass-heavy rounded" />
+            <div className="h-8 w-24 bg-glass-heavy rounded" />
           </div>
         </div>
       ) : (
@@ -204,9 +204,9 @@ export default function MerchantDashboard() {
                 initial={{ opacity: 0, y: -20, scale: 0.9 }}
                 animate={{ opacity: 1, y: 0, scale: 1 }}
                 exit={{ opacity: 0, y: -20, scale: 0.9 }}
-                className="fixed top-24 left-4 right-4 sm:left-auto sm:right-8 sm:w-96 z-[1000] glass-heavy rounded-[2.5rem] border border-white/10 p-6 shadow-2xl flex gap-5 items-center shadow-primary/10"
+                className="fixed top-24 left-4 right-4 sm:left-auto sm:right-8 sm:w-96 z-[1000] glass-heavy rounded-[2.5rem] border border-glass-border p-6 shadow-2xl flex gap-5 items-center shadow-primary/10"
               >
-                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-emerald-500/20 text-emerald-400' : 'bg-primary/20 text-primary'}`}>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shrink-0 ${notification.type === 'success' ? 'bg-secondary/10 text-secondary' : 'bg-primary/10 text-primary'}`}>
                   <Bell size={24} className="animate-bounce" />
                 </div>
                 <div className="flex-1">
@@ -222,7 +222,7 @@ export default function MerchantDashboard() {
             <div className="space-y-2">
               <motion.div 
                 initial={{ opacity: 0, x: -10 }} animate={{ opacity: 1, x: 0 }}
-                className="flex items-center gap-3 px-3 py-1 bg-white/5 border border-white/5 rounded-full w-fit"
+                className="flex items-center gap-3 px-3 py-1 bg-glass-heavy border border-glass-border rounded-full w-fit"
               >
                 <div className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-pulse" />
                 <span className="text-[9px] font-black text-text-dim uppercase tracking-[0.2em]">
@@ -240,7 +240,7 @@ export default function MerchantDashboard() {
               <Link href="/dashboard/offers/new" className="flex-1 sm:flex-none bg-primary text-white h-14 px-8 rounded-2xl font-black text-sm shadow-2xl shadow-primary/30 hover:scale-[1.03] active:scale-[0.97] transition-all flex items-center justify-center gap-3">
                 <Plus size={20} strokeWidth={3} /> إضافة عرض
               </Link>
-              <button onClick={handleRefresh} className="w-14 h-14 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5 active:rotate-180 duration-500">
+              <button onClick={handleRefresh} className="w-14 h-14 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-glass-border active:rotate-180 duration-500">
                 <RefreshCcw size={20} className={isSyncing ? 'animate-spin' : ''} />
               </button>
             </div>
@@ -269,8 +269,8 @@ export default function MerchantDashboard() {
                 animate={{ opacity: 1, y: 0 }}
                 transition={{ delay: 0.4 + i * 0.1 }}
               >
-                <Link href={action.href} className={`flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] glass border border-white/5 hover:border-white/20 transition-all group active:scale-95 ${action.bg}`}>
-                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-white/10`}>
+                <Link href={action.href} className={`flex flex-col items-center justify-center gap-4 p-8 rounded-[2.5rem] glass border border-glass-border hover:border-primary/30 transition-all group active:scale-95 ${action.bg}`}>
+                  <div className={`w-14 h-14 rounded-2xl flex items-center justify-center transition-all duration-500 group-hover:scale-110 group-hover:bg-glass-heavy`}>
                     <action.icon size={28} className={action.color} strokeWidth={2.5} />
                   </div>
                   <span className="text-[12px] font-black text-text tracking-tight">{action.label}</span>
@@ -285,9 +285,9 @@ export default function MerchantDashboard() {
             {/* Left: Top Performing Offers */}
             <motion.div 
               initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.6 }}
-              className="lg:col-span-7 glass rounded-[3rem] border border-white/5 overflow-hidden"
+              className="lg:col-span-7 glass rounded-[3rem] border border-glass-border overflow-hidden"
             >
-              <div className="px-8 py-7 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <div               className="px-8 py-7 border-b border-glass-border flex items-center justify-between bg-glass">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary shadow-lg">
                     <Target size={20} />
@@ -302,7 +302,7 @@ export default function MerchantDashboard() {
 
               <div className="p-4 space-y-3">
                 {displayStats?.topOffers?.length > 0 ? displayStats.topOffers.slice(0, 5).map((offer: any, idx: number) => (
-                  <div key={offer.id} className="p-4 rounded-3xl hover:bg-white/[0.03] transition-all group border border-transparent hover:border-white/5">
+                  <div key={offer.id} className="p-4 rounded-3xl hover:bg-glass-heavy transition-all group border border-transparent hover:border-glass-border">
                     <div className="flex items-center justify-between mb-4">
                       <div className="flex items-center gap-4">
                         <div className="text-[10px] font-black text-text-dimmer w-5 italic">#{idx + 1}</div>
@@ -316,7 +316,7 @@ export default function MerchantDashboard() {
                       </div>
                     </div>
                     {/* Visual Progress Bar */}
-                    <div className="h-1.5 w-full bg-white/5 rounded-full overflow-hidden">
+                    <div className="h-1.5 w-full bg-glass-heavy rounded-full overflow-hidden">
                        <motion.div 
                          initial={{ width: 0 }}
                          animate={{ width: `${Math.min((offer.couponsCount / (displayStats.totalClaimsCount || 1)) * 100 * 2, 100)}%` }}
@@ -336,9 +336,9 @@ export default function MerchantDashboard() {
             {/* Right: Real-time Activity Feed */}
             <motion.div 
               initial={{ opacity: 0, x: -20 }} animate={{ opacity: 1, x: 0 }} transition={{ delay: 0.7 }}
-              className="lg:col-span-5 glass rounded-[3rem] border border-white/5 overflow-hidden"
+              className="lg:col-span-5 glass rounded-[3rem] border border-glass-border overflow-hidden"
             >
-              <div className="px-8 py-7 border-b border-white/5 flex items-center justify-between bg-white/[0.01]">
+              <div               className="px-8 py-7 border-b border-glass-border flex items-center justify-between bg-glass">
                 <div className="flex items-center gap-3">
                   <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary shadow-lg">
                     <Activity size={20} />
@@ -348,10 +348,10 @@ export default function MerchantDashboard() {
                 <Link href="/dashboard/coupons" className="text-[10px] font-black text-primary bg-primary/10 px-4 py-2 rounded-xl hover:bg-primary/20 transition-all">سجل العمليات</Link>
               </div>
 
-              <div className="divide-y divide-white/5">
+              <div className="divide-y divide-glass-border">
                 {displayStats?.recentCoupons?.length > 0 ? displayStats.recentCoupons.slice(0, 6).map((c: any) => (
-                  <div key={c.id} className="p-5 flex items-start gap-4 hover:bg-white/[0.02] transition-colors relative">
-                    <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center border border-white/5 ${c.status === 'USED' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-primary/10 text-primary'}`}>
+                  <div key={c.id} className="p-5 flex items-start gap-4 hover:bg-glass transition-colors relative">
+                    <div className={`w-10 h-10 rounded-xl shrink-0 flex items-center justify-center border border-glass-border ${c.status === 'USED' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-primary/10 text-primary'}`}>
                       {c.status === 'USED' ? <ShieldCheck size={18} /> : <MousePointer2 size={18} />}
                     </div>
                     <div className="flex-1 min-w-0">

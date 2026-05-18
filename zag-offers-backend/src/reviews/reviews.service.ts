@@ -82,23 +82,23 @@ export class ReviewsService {
       orderBy: { createdAt: 'desc' },
     });
 
-    // Enriched with verification status
-    return Promise.all(
-      reviews.map(async (review) => {
-        const coupon = await this.prisma.coupon.findFirst({
-          where: {
-            offerId: review.offerId as string,
-            customerId: review.customerId,
-            // If they generated a coupon, we consider them verified
-          },
-        });
+    if (reviews.length === 0) return [];
 
-        return {
-          ...review,
-          isVerified: !!coupon,
-        };
-      }),
-    );
+    // Batch coupon verification instead of N+1
+    const customerIds = [...new Set(reviews.map((r) => r.customerId))];
+    const coupons = await this.prisma.coupon.findMany({
+      where: {
+        offerId,
+        customerId: { in: customerIds },
+      },
+      select: { customerId: true },
+    });
+    const verifiedCustomerIds = new Set(coupons.map((c) => c.customerId));
+
+    return reviews.map((review) => ({
+      ...review,
+      isVerified: verifiedCustomerIds.has(review.customerId),
+    }));
   }
 
   async remove(id: string, customerId: string) {

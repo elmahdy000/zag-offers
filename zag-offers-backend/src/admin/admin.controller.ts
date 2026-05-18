@@ -205,7 +205,7 @@ export class AdminController {
 
   @Post('offers')
   @ApiOperation({ summary: 'Create a new offer as admin' })
-  createOffer(@Body() body: any, @Request() req: { user: { id: string } }) {
+  createOffer(@Body() body: UpdateOfferDto, @Request() req: { user: { id: string } }) {
     return this.adminService.createOffer(body, req.user.id);
   }
 

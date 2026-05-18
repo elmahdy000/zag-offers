@@ -28,7 +28,7 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   ACTIVE:   { label: 'نشط',     color: 'bg-secondary/10 text-secondary border-secondary/20',  icon: <CheckCircle2 size={10} />, order: 2 },
   PAUSED:   { label: 'متوقف',   color: 'bg-blue-500/10 text-blue-400 border-blue-500/20',   icon: <PauseCircle size={10} />, order: 3 },
   REJECTED: { label: 'مرفوض',   color: 'bg-red-500/10 text-red-500 border-red-500/20',    icon: <XCircle size={10} />, order: 4 },
-  EXPIRED:  { label: 'منتهي',   color: 'bg-white/5 text-text-dim border-white/5',       icon: <Clock size={10} />, order: 5 },
+  EXPIRED:  { label: 'منتهي',   color: 'bg-glass-heavy text-text-dim border-glass-border',       icon: <Clock size={10} />, order: 5 },
 };
 
 function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) => void }) {
@@ -40,12 +40,12 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="glass rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all flex flex-col bg-white/[0.01] border border-white/5 shadow-xl"
+      className="glass rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all flex flex-col bg-glass border border-glass-border shadow-xl"
     >
       {/* Header Info */}
       <div className="p-5 flex flex-col flex-1">
         <div className="flex items-start justify-between gap-4 mb-4">
-          <div className="relative w-16 h-16 rounded-2xl bg-white/5 overflow-hidden border border-white/10 shrink-0">
+          <div className="relative w-16 h-16 rounded-2xl bg-glass-heavy overflow-hidden border border-glass-border shrink-0">
             {offer.images && offer.images.length > 0 ? (
               <Image
                 src={resolveImageUrl(offer.images[0])}
@@ -55,7 +55,7 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
                 sizes="64px"
               />
             ) : (
-              <div className="w-full h-full flex items-center justify-center text-white/10">
+              <div className="w-full h-full flex items-center justify-center text-text-tertiary">
                 <Tag size={24} />
               </div>
             )}
@@ -72,14 +72,14 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
 
         {/* Dense Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <div className="bg-white/[0.03] rounded-2xl p-3 border border-white/5">
+          <div className="bg-glass-heavy rounded-2xl p-3 border border-glass-border">
             <div className="flex items-center gap-2 mb-1">
                <TrendingUp size={12} className="text-primary" />
                <span className="text-[10px] font-black text-text-dim">المشاهدات</span>
             </div>
             <span className="text-lg font-black text-white tabular-nums">{offer.views || 0}</span>
           </div>
-          <div className="bg-white/[0.03] rounded-2xl p-3 border border-white/5">
+          <div className="bg-glass-heavy rounded-2xl p-3 border border-glass-border">
             <div className="flex items-center gap-2 mb-1">
                <Users size={12} className="text-secondary" />
                <span className="text-[10px] font-black text-text-dim">الكوبونات</span>
@@ -103,7 +103,7 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
         </div>
 
         {/* Actions */}
-        <div className="mt-auto flex gap-2 pt-4 border-t border-white/5">
+        <div className="mt-auto flex gap-2 pt-4 border-t border-glass-border">
           <Link
             href={`/dashboard/offers/${offer.id}/edit`}
             className="flex-1 bg-primary text-white font-black text-[11px] py-3 rounded-xl transition-all flex items-center justify-center gap-2 shadow-lg shadow-primary/20 hover:scale-[1.02] active:scale-95"
@@ -194,9 +194,9 @@ export default function OffersListPage() {
   if (isLoading && cachedOffers.length === 0) {
     return (
       <div className="p-8 max-w-7xl mx-auto space-y-8">
-        <div className="h-20 bg-white/5 rounded-3xl animate-pulse" />
+        <div className="h-20 bg-glass-heavy rounded-3xl animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[1,2,3].map(i => <div key={i} className="h-64 bg-white/5 rounded-3xl animate-pulse" />)}
+          {[1,2,3].map(i => <div key={i} className="h-64 bg-glass-heavy rounded-3xl animate-pulse" />)}
         </div>
       </div>
     );
@@ -211,7 +211,7 @@ export default function OffersListPage() {
             <h1 className="text-4xl font-black text-text tracking-tighter">إدارة العروض</h1>
             <button 
               onClick={() => refetch()} 
-              className={`p-2.5 rounded-xl bg-white/5 border border-white/10 text-text-dim hover:text-primary hover:bg-primary/10 transition-all ${isLoading ? 'animate-spin' : ''}`}
+              className={`p-2.5 rounded-xl bg-glass-heavy border border-glass-border text-text-dim hover:text-primary hover:bg-primary/10 transition-all ${isLoading ? 'animate-spin' : ''}`}
               title="تحديث البيانات"
             >
               <TrendingUp size={18} className="rotate-90" />
@@ -233,7 +233,7 @@ export default function OffersListPage() {
       </div>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-6 mb-10 scrollbar-none border-b border-white/5">
+      <div className="flex gap-2 overflow-x-auto pb-6 mb-10 scrollbar-none border-b border-glass-border">
         {filters.map(f => {
           const cfg = f === 'ALL' ? null : STATUS_CONFIG[f];
           const isActive = activeFilter === f;
@@ -244,12 +244,12 @@ export default function OffersListPage() {
               className={`flex items-center gap-3 px-5 py-3 rounded-2xl text-xs font-black transition-all shrink-0 border ${
                 isActive
                   ? 'bg-primary text-white border-primary shadow-xl shadow-primary/20'
-                  : 'bg-white/5 text-text-dim border-white/5 hover:border-white/10 hover:text-text'
+                  : 'bg-glass-heavy text-text-dim border-glass-border hover:border-glass-border hover:text-text'
               }`}
             >
               {cfg?.icon}
               {f === 'ALL' ? 'كل العروض' : cfg?.label}
-              <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${isActive ? 'bg-white/20' : 'bg-white/5 text-text-dimmer'}`}>
+              <span className={`px-2 py-0.5 rounded-lg text-[10px] font-black ${isActive ? 'bg-white/20' : 'bg-glass-heavy text-text-dimmer'}`}>
                 {counts[f] || 0}
               </span>
             </button>
@@ -259,9 +259,9 @@ export default function OffersListPage() {
 
       {/* Grid Content */}
       {filtered.length === 0 ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-32 glass rounded-[3rem] flex flex-col items-center justify-center text-center border-dashed border-white/10">
-          <div className="w-24 h-24 bg-white/5 rounded-[2.5rem] flex items-center justify-center mb-8 border border-white/5">
-            <Tag size={40} className="text-white/10" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-32 glass rounded-[3rem] flex flex-col items-center justify-center text-center border-dashed border-glass-border">
+          <div className="w-24 h-24 bg-glass-heavy rounded-[2.5rem] flex items-center justify-center mb-8 border border-glass-border">
+            <Tag size={40} className="text-text-tertiary" />
           </div>
           <h3 className="text-2xl font-black text-text mb-3">لم يتم العثور على عروض</h3>
           <p className="text-text-dim font-bold text-sm max-w-xs mx-auto leading-relaxed">
@@ -276,8 +276,8 @@ export default function OffersListPage() {
                 <Layers size={18} className="text-primary" />
               </div>
               <h2 className="text-xl font-black text-white tracking-tight">{category}</h2>
-              <div className="flex-1 h-px bg-gradient-to-l from-white/10 to-transparent" />
-              <span className="text-[11px] font-black text-text-dim bg-white/5 px-3 py-1 rounded-xl border border-white/5">
+              <div className="flex-1 h-px bg-gradient-to-l from-glass-border to-transparent" />
+              <span className="text-[11px] font-black text-text-dim bg-glass-heavy px-3 py-1 rounded-xl border border-glass-border">
                 {catOffers.length} عرض
               </span>
             </div>

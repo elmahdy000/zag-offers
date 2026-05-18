@@ -398,7 +398,12 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             ),
           );
         }
-        return const SliverToBoxAdapter(child: SizedBox());
+        return const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(child: Text('تعذر تحميل العروض')),
+          ),
+        );
       },
     );
   }
@@ -430,7 +435,9 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           overflow: TextOverflow.ellipsis,
         ),
         subtitle: Text(
-          discountText.isNotEmpty ? 'خصم $discountText' : 'خصم مميز',
+          discountText.isNotEmpty
+              ? (discountText.startsWith('خصم') ? discountText : 'خصم $discountText')
+              : 'خصم مميز',
           style: theme.textTheme.labelMedium?.copyWith(
             color: AppColors.success,
             fontWeight: FontWeight.bold,
@@ -532,7 +539,12 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             ),
           );
         }
-        return const SliverToBoxAdapter(child: SizedBox());
+        return const SliverToBoxAdapter(
+          child: Padding(
+            padding: EdgeInsets.symmetric(vertical: 32),
+            child: Center(child: Text('تعذر تحميل التقييمات')),
+          ),
+        );
       },
     );
   }

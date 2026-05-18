@@ -104,7 +104,7 @@ export default function LoginPage() {
           <p className="text-text-dim text-[13px] font-bold mt-1">Zag Offers Merchant Hub</p>
         </div>
 
-        <div className="glass p-8 rounded-[2.5rem] relative overflow-hidden border border-white/5 inner-shadow">
+        <div className="glass p-8 rounded-[2.5rem] relative overflow-hidden border border-glass-border inner-shadow">
           <form onSubmit={handleLogin} className="space-y-4">
             {error && (
               <motion.div 
@@ -124,7 +124,7 @@ export default function LoginPage() {
                   type="tel" 
                   autoFocus
                   placeholder="01xxxxxxxxx"
-                  className="w-full bg-bg2/50 border border-white/5 rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
+                  className="w-full bg-card border border-border rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   required
@@ -139,7 +139,7 @@ export default function LoginPage() {
                 <input 
                   type={showPassword ? 'text' : 'password'} 
                   placeholder="••••••••"
-                  className="w-full bg-bg2/50 border border-white/5 rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
+                  className="w-full bg-card border border-border rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                   required
@@ -157,7 +157,7 @@ export default function LoginPage() {
             <button 
               type="submit" 
               disabled={loading}
-              className="w-full py-4 bg-primary text-white font-black rounded-xl shadow-lg shadow-primary/20 hover:bg-primary-lt active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-[15px] mt-4"
+              className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary-lt active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-[15px] mt-4"
             >
               {loading ? <Loader2 className="animate-spin" size={20} /> : (
                 <>

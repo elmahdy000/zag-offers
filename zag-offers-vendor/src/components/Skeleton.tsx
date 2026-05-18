@@ -2,7 +2,7 @@ import React from 'react';
 
 const Skeleton = ({ className }: { className?: string }) => {
   return (
-    <div className={`animate-pulse bg-white/[0.03] border border-white/[0.03] rounded-2xl ${className}`}></div>
+    <div className={`shimmer rounded-2xl ${className}`}></div>
   );
 };
 

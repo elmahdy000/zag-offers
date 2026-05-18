@@ -4,6 +4,7 @@ import {
   ArgumentsHost,
   HttpException,
   HttpStatus,
+  Logger,
 } from '@nestjs/common';
 
 /* eslint-disable @typescript-eslint/no-unsafe-assignment, @typescript-eslint/no-unsafe-member-access, @typescript-eslint/no-unsafe-call, @typescript-eslint/no-unsafe-enum-comparison */
@@ -86,7 +87,7 @@ export class GlobalExceptionFilter implements ExceptionFilter {
       }
     } else {
       // Log non-http exceptions for debugging
-      console.error('Non-HTTP Exception:', String(exception));
+      Logger.error(`Non-HTTP Exception: ${String(exception)}`, 'GlobalExceptionFilter');
     }
 
     const requestUrl =

@@ -27,7 +27,7 @@ export { getCookie, deleteCookie };
 /** تحويل المسار النسبي لصورة إلى رابط كامل */
 
 
-import { secureUserData, secureStoreData } from './crypto';
+import { secureUserData, secureStoreData, secureStorage } from './crypto';
 
 /** قراءة بيانات المستخدم المخزنة بشكل آمن */
 export function getVendorUser() {
@@ -85,7 +85,7 @@ export function vendorApi() {
     return config;
   });
 
-  // تتبع وقت نهاية الطلب وحساب المدة
+  // تتبع وقت نهاية الطلب وحساب المدة + معالجة الأخطاء
   instance.interceptors.response.use(
     (response) => {
       const startTime = (response.config as any).metadata?.startTime;
@@ -106,6 +106,11 @@ export function vendorApi() {
           status: error.response?.status,
           error: true
         });
+      }
+      if (error.response?.status === 401 && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        deleteCookie('auth_token');
+        if (typeof secureStorage !== 'undefined') secureStorage.clear();
+        window.location.href = '/login';
       }
       return Promise.reject(error);
     }

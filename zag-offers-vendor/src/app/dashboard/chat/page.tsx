@@ -8,6 +8,7 @@ import { vendorApi, getCookie } from '@/lib/api';
 import { io, Socket } from 'socket.io-client';
 
 import { secureUserData } from '@/lib/crypto';
+import { useNotifications } from '@/components/notification-provider';
 
 const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
@@ -29,7 +30,7 @@ const MessageBubble = memo(({ msg, isMe }: { msg: Message, isMe: boolean }) => {
         <div className={`px-4 py-2.5 rounded-2xl text-[14px] font-bold shadow-sm ${
           isMe 
             ? 'bg-primary text-white rounded-bl-none shadow-primary/10' 
-            : 'bg-white/5 border border-white/5 text-text rounded-br-none'
+            : 'bg-glass-heavy border border-glass-border text-text rounded-br-none'
         } ${msg.isOptimistic ? 'opacity-50' : 'opacity-100'}`}>
           {msg.text}
         </div>
@@ -57,7 +58,7 @@ const ChatInput = memo(({ onSend }: { onSend: (text: string) => void }) => {
   };
 
   return (
-    <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-2xl p-1 focus-within:border-primary/30 transition-all">
+    <div className="flex items-center gap-2 bg-glass-heavy border border-glass-border rounded-2xl p-1 focus-within:border-primary/30 transition-all">
       <input
         type="text"
         value={inputValue}
@@ -86,6 +87,7 @@ export default function VendorChatPage() {
   const [userId, setUserId] = useState('');
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
+  const { addError } = useNotifications();
 
   useEffect(() => {
     try {
@@ -110,7 +112,7 @@ export default function VendorChatPage() {
         setConversationId(conv.id);
         const msgsRes = await api.get(`/chat/messages/${conv.id}`);
         setMessages(Array.isArray(msgsRes.data) ? msgsRes.data : []);
-      } catch (e) { console.error('Failed to init chat:', e); } finally { setLoading(false); }
+      } catch (e) { console.error('Failed to init chat:', e); addError('فشل تحميل المحادثة'); } finally { setLoading(false); }
     };
     initChat();
   }, [userId]);
@@ -135,6 +137,7 @@ export default function VendorChatPage() {
 
     s.on('connect_error', (err) => {
       console.error('Socket Connection Error:', err.message);
+      addError('فشل الاتصال بخادم الدعم الفني، حاول مرة أخرى');
     });
 
     s.on('new_message', (msg: Message) => {
@@ -174,14 +177,15 @@ export default function VendorChatPage() {
       setMessages(prev => prev.map(m => m.id === tmpId ? res.data : m));
     } catch (e) {
       setMessages(prev => prev.filter(m => m.id !== tmpId));
+      addError('فشل إرسال الرسالة');
     }
   }, [userId, conversationId]);
 
   return (
     <div className="fixed inset-0 bg-bg z-[100] flex flex-col overflow-hidden" dir="rtl">
       {/* Header */}
-      <div className="px-5 py-4 flex items-center gap-4 z-10 border-b border-white/5 bg-bg/80 backdrop-blur-xl shrink-0">
-        <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-white/5">
+      <div className="px-5 py-4 flex items-center gap-4 z-10 border-b border-glass-border bg-bg/80 backdrop-blur-xl shrink-0">
+        <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-glass-border">
           <ChevronRight size={20} />
         </button>
         <div className="flex items-center gap-3">
@@ -205,7 +209,7 @@ export default function VendorChatPage() {
       </div>
 
       {/* Input - Isolated Component */}
-      <div className="px-4 py-4 bg-bg border-t border-white/5 shrink-0">
+      <div className="px-4 py-4 bg-bg border-t border-glass-border shrink-0">
         <ChatInput onSend={handleSend} />
       </div>
     </div>

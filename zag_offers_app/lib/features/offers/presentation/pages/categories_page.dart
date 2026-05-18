@@ -61,6 +61,20 @@ class CategoriesPage extends StatelessWidget {
           ),
           BlocBuilder<OffersBloc, OffersState>(
             builder: (context, state) {
+              if (state is OffersLoading) {
+                return const Center(child: CircularProgressIndicator());
+              }
+              if (state is OffersError) {
+                return Center(
+                  child: Text(
+                    'تعذر تحميل التصنيفات',
+                    style: theme.textTheme.titleMedium?.copyWith(
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
+                );
+              }
               final items = state is OffersLoaded ? state.categories : const [];
               final isDynamic = items.isNotEmpty;
 

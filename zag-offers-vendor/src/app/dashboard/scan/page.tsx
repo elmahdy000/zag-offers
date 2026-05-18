@@ -188,13 +188,13 @@ export default function ScanPage() {
       
       {/* Header */}
       <div className="relative px-6 pt-4 pb-2 flex items-center justify-between z-50">
-        <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-white/5 active:scale-90">
+        <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-glass-border active:scale-90">
           <ChevronRight size={20} />
         </button>
         <div className="flex flex-col items-center">
           <h1 className="text-lg font-black text-text tracking-tight">تفعيل الكوبونات</h1>
           <div className="flex items-center gap-1.5 mt-1">
-             <div className={`w-1.5 h-1.5 rounded-full ${scanning ? 'bg-primary animate-pulse' : 'bg-white/20'}`} />
+             <div className={`w-1.5 h-1.5 rounded-full ${scanning ? 'bg-primary animate-pulse' : 'bg-glass-heavy'}`} />
              <span className="text-[10px] font-bold text-text-dimmer uppercase tracking-widest">{scanning ? 'نشط الآن' : 'في انتظار المسح'}</span>
           </div>
         </div>
@@ -210,7 +210,7 @@ export default function ScanPage() {
               if (isManual) { setIsManual(false); startScanner(); } 
               else { stopScanner(); setIsManual(true); }
             }}
-            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-white/5 active:scale-90 ${isManual ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'glass text-text-dim'}`}
+            className={`w-10 h-10 rounded-xl flex items-center justify-center transition-all border border-glass-border active:scale-90 ${isManual ? 'bg-primary text-white shadow-lg shadow-primary/30' : 'glass text-text-dim'}`}
           >
             {isManual ? <Scan size={18} /> : <Keyboard size={18} />}
           </button>
@@ -221,7 +221,7 @@ export default function ScanPage() {
         <AnimatePresence mode="wait">
           {(!result && !isManual) ? (
             <motion.div key="scanner-ui" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full mt-2 space-y-4">
-              <div className="relative aspect-[3/4] w-full bg-black rounded-[3rem] overflow-hidden border-2 border-white/5 shadow-2xl">
+              <div className="relative aspect-[3/4] w-full bg-black rounded-[3rem] overflow-hidden border-2 border-glass-border shadow-2xl">
                 <div id="reader" className="w-full h-full" />
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute top-10 right-10 w-16 h-16 border-t-4 border-r-4 border-primary rounded-tr-3xl" />
@@ -245,7 +245,7 @@ export default function ScanPage() {
                   <p className="text-[10px] font-black text-text-dimmer uppercase tracking-widest text-center">آخر العمليات</p>
                   <div className="space-y-2">
                     {recentScans.map((scan) => (
-                      <div key={scan.id} className="glass p-3 rounded-2xl border border-white/5 flex items-center justify-between">
+                      <div key={scan.id} className="glass p-3 rounded-2xl border border-glass-border flex items-center justify-between">
                         <div className="flex items-center gap-3">
                           <div className="w-8 h-8 bg-emerald-500/10 rounded-lg flex items-center justify-center text-emerald-500">
                             <CheckCircle2 size={16} />
@@ -266,7 +266,7 @@ export default function ScanPage() {
             </motion.div>
           ) : isManual && !result ? (
             <motion.div key="manual-ui" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm mt-8">
-              <div className="glass p-8 rounded-[3rem] border border-white/10 shadow-2xl space-y-8">
+              <div className="glass p-8 rounded-[3rem] border border-glass-border shadow-2xl space-y-8">
                 <div className="text-center">
                   <h3 className="text-xl font-black text-text">إدخال يدوي</h3>
                   <p className="text-text-dim text-sm font-bold">اكتب كود الكوبون المكون من 6-8 أرقام</p>
@@ -274,7 +274,7 @@ export default function ScanPage() {
                 <input 
                   type="text" value={manualCode}
                   onChange={(e) => setManualCode(e.target.value.toUpperCase())}
-                  className="w-full bg-white/5 border-2 border-white/5 rounded-2xl py-6 text-center text-3xl font-black tracking-[0.3em] text-primary outline-none focus:border-primary/30"
+                  className="w-full bg-glass-heavy border-2 border-glass-border rounded-2xl py-6 text-center text-3xl font-black tracking-[0.3em] text-primary outline-none focus:border-primary/30"
                   maxLength={10}
                 />
                 <button 
@@ -288,7 +288,7 @@ export default function ScanPage() {
             </motion.div>
           ) : (
             <motion.div key="result-ui" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm mt-6">
-              <div className="glass p-8 rounded-[3rem] border border-white/10 shadow-2xl relative">
+              <div className="glass p-8 rounded-[3rem] border border-glass-border shadow-2xl relative">
                 {status === 'success' ? (
                   <div className="py-4 text-center space-y-8">
                     <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 mx-auto border-4 border-emerald-500/10"><CheckCircle2 size={50} /></div>
@@ -301,7 +301,7 @@ export default function ScanPage() {
                     <div className="w-24 h-24 bg-red-500/10 rounded-full flex items-center justify-center text-red-500 mx-auto border-4 border-red-500/10"><AlertCircle size={50} /></div>
                     <h3 className="text-2xl font-black text-text">خطأ</h3>
                     <p className="text-red-500/80 font-bold">{message}</p>
-                    <button onClick={() => { setResult(null); setManualCode(''); setStatus('idle'); startScanner(); }} className="w-full py-5 bg-white/5 text-text font-black rounded-2xl border border-white/10">إعادة المحاولة</button>
+                    <button onClick={() => { setResult(null); setManualCode(''); setStatus('idle'); startScanner(); }} className="w-full py-5 bg-glass-heavy text-text font-black rounded-2xl border border-glass-border">إعادة المحاولة</button>
                   </div>
                 ) : (
                   <div className="space-y-8">
@@ -309,10 +309,10 @@ export default function ScanPage() {
                       <h3 className="text-2xl font-black text-text">تأكيد الكوبون</h3>
                       <p className="text-text-dim text-sm font-bold mt-1">راجع البيانات قبل التفعيل النهائي</p>
                     </div>
-                    <div className="p-6 bg-white/[0.03] rounded-[2.5rem] border border-white/5 space-y-4 text-right">
+                    <div className="p-6 bg-glass-heavy rounded-[2.5rem] border border-glass-border space-y-4 text-right">
                         <p className="text-[10px] font-black text-text-dim uppercase tracking-wider">العرض</p>
                         <p className="text-xl font-black text-text leading-tight">{couponData?.offer?.title || 'جاري التحميل...'}</p>
-                        <div className="pt-4 border-t border-white/5 flex justify-between items-center">
+                        <div className="pt-4 border-t border-glass-border flex justify-between items-center">
                            <div><p className="text-[10px] font-black text-text-dim">الخصم</p><p className="text-3xl font-black text-primary">{couponData?.offer?.discount}</p></div>
                            <div className="text-left"><p className="text-[10px] font-black text-text-dim">الكود</p><p className="text-sm font-black text-text font-mono">{result}</p></div>
                         </div>

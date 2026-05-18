@@ -59,7 +59,7 @@ export default function SecurityPage() {
       <div className="flex items-center gap-6 mb-12">
         <button
           onClick={() => router.back()}
-          className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-white/5"
+          className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-glass-border"
         >
           <ArrowRight size={24} />
         </button>
@@ -72,7 +72,7 @@ export default function SecurityPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="glass p-8 sm:p-10 rounded-[3rem] border border-white/5 space-y-8 inner-shadow bg-white/[0.01]">
+        <div className="glass p-8 sm:p-10 rounded-[3rem] border border-glass-border space-y-8 inner-shadow bg-glass">
           <div className="space-y-6">
             <div className="space-y-2.5">
               <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">كلمة المرور الحالية</label>
@@ -82,13 +82,13 @@ export default function SecurityPage() {
                   type="password" 
                   value={formData.currentPassword}
                   onChange={e => setFormData({ ...formData, currentPassword: e.target.value })}
-                  className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
+                  className="w-full bg-bg border border-glass-border rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
                   placeholder="••••••••"
                 />
               </div>
             </div>
 
-            <div className="h-px bg-white/5 w-full" />
+            <div className="h-px bg-glass-heavy w-full" />
 
             <div className="space-y-2.5">
               <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">كلمة المرور الجديدة</label>
@@ -98,7 +98,7 @@ export default function SecurityPage() {
                   type="password" 
                   value={formData.newPassword}
                   onChange={e => setFormData({ ...formData, newPassword: e.target.value })}
-                  className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-blue-500 outline-none transition-all text-sm font-bold text-text shadow-inner" 
+                  className="w-full bg-bg border border-glass-border rounded-2xl py-4 pr-12 focus:border-blue-500 outline-none transition-all text-sm font-bold text-text shadow-inner" 
                   placeholder="••••••••"
                 />
               </div>
@@ -112,7 +112,7 @@ export default function SecurityPage() {
                   type="password" 
                   value={formData.confirmPassword}
                   onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
-                  className="w-full bg-bg border border-white/5 rounded-2xl py-4 pr-12 focus:border-blue-500 outline-none transition-all text-sm font-bold text-text shadow-inner" 
+                  className="w-full bg-bg border border-glass-border rounded-2xl py-4 pr-12 focus:border-blue-500 outline-none transition-all text-sm font-bold text-text shadow-inner" 
                   placeholder="••••••••"
                 />
               </div>
@@ -156,7 +156,7 @@ export default function SecurityPage() {
         </div>
       </form>
 
-      <div className="mt-12 p-8 glass rounded-[2.5rem] border border-dashed border-white/10 text-center">
+      <div className="mt-12 p-8 glass rounded-[2.5rem] border border-dashed border-glass-border text-center">
         <p className="text-[10px] font-bold text-text-dimmer leading-relaxed">
           في حال نسيان كلمة المرور الحالية، يرجى التواصل مع إدارة <span className="text-primary font-black">Zag Offers</span> لإعادة تعيين حسابك يدوياً لضمان أعلى مستويات الأمان.
         </p>

@@ -49,7 +49,7 @@ export class CouponsService {
     }
 
     // التحقق من usageLimit — لو العرض له حد أقصى
-    if (offer.usageLimit !== null && offer.usageLimit !== undefined) {
+    if (offer.usageLimit != null && offer.usageLimit > 0) {
       const usedCount = await this.prisma.coupon.count({
         where: {
           offerId,

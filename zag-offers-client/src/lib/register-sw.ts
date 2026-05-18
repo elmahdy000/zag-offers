@@ -11,10 +11,9 @@ export function register() {
             if (newWorker) {
               newWorker.addEventListener('statechange', () => {
                 if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
-                  // New content is available
-                  if (confirm('يوجد تحديث جديد! هل تريد التحديث؟')) {
-                    window.location.reload();
-                  }
+                  // New content is available — auto-update after brief delay
+                  console.log('New SW version available, updating...');
+                  setTimeout(() => window.location.reload(), 3000);
                 }
               });
             }

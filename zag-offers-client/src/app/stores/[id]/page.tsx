@@ -8,6 +8,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { API_URL, BASE_URL } from '@/lib/constants';
 import { OfferCard } from '@/components/offer-card';
+import { ErrorDisplay } from '@/components/error-display';
 import { resolveImageUrl } from '@/lib/utils';
 
 interface Category {
@@ -37,6 +38,7 @@ export default function StoreDetailsPage() {
   const [store, setStore] = useState<Store | null>(null);
   const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -73,6 +75,7 @@ export default function StoreDetailsPage() {
         }
       } catch (e) { 
         console.error('Failed to fetch store data:', e);
+        setError('فشل تحميل بيانات المتجر. تأكد من اتصالك بالإنترنت وحاول مرة أخرى.');
       } finally { 
         setLoading(false); 
       }
@@ -81,6 +84,7 @@ export default function StoreDetailsPage() {
   }, [id]);
 
   if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل بيانات المتجر...</div>;
+  if (error) return <ErrorDisplay message={error} onRetry={() => window.location.reload()} />;
   if (!store) return <div className="text-center py-20 font-black">المتجر غير موجود</div>;
 
   const logoUrl = resolveImageUrl(store.logo);

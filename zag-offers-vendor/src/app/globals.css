@@ -5,28 +5,34 @@
   --font-cairo: "Cairo", sans-serif;
   
   --color-primary:      #FF6B00;
-  --color-primary-lt:   #FF8C35;
+  --color-primary-lt:   #FF8533;
   --color-primary-dk:   #D95A00;
   --color-primary-glow: rgba(255, 107, 0, 0.25);
   
-  --color-secondary:    #00C853;
+  --color-secondary:    #00D4AA;
   --color-secondary-dk: #00A844;
   
-  --color-bg:           #0A0A0B;
+  --color-bg:           #0A0A0A;
   --color-bg2:          #111112;
-  --color-surface:      #161618;
-  --color-card:         #1C1C1E;
-  --color-card-hover:   #232326;
+  --color-surface:      #1A1A1A;
+  --color-card:         #141414;
+  --color-card-hover:   #1C1C1E;
   
-  --color-border:       rgba(255, 255, 255, 0.05);
+  --color-border:       #2A2A2A;
   --color-border-hover: rgba(255, 107, 0, 0.35);
   
-  --color-text:         #F5F5F7;
-  --color-text-dim:     #86868B;
-  --color-text-dimmer:  #424245;
+  --color-text:         #FFFFFF;
+  --color-text-dim:     #A0A0A0;
+  --color-text-dimmer:  #666666;
+  --color-text-tertiary: #404040;
 
-  --shadow-glass: 0 8px 32px 0 rgba(0, 0, 0, 0.37);
+  --color-glass:        rgba(255, 255, 255, 0.02);
+  --color-glass-border:  rgba(255, 255, 255, 0.05);
+  --color-glass-heavy:  rgba(255, 255, 255, 0.08);
+
+  --shadow-glass: 0 8px 20px rgba(0, 0, 0, 0.2);
   --shadow-glow: 0 0 20px rgba(255, 107, 0, 0.15);
+  --shadow-primary: 0 8px 20px rgba(255, 107, 0, 0.2);
 }
 
 :root {
@@ -41,21 +47,58 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* ── Precision Glass ── */
+/* ── Glass Card ── */
 .glass {
-  background: rgba(22, 22, 24, 0.8);
+  background: var(--color-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid var(--color-border);
+  border: 1px solid var(--color-glass-border);
   box-shadow: var(--shadow-glass);
 }
 
 .glass-light {
-  background: rgba(255, 255, 255, 0.02);
+  background: var(--color-glass);
   backdrop-filter: blur(10px);
+  border: 1px solid var(--color-glass-border);
+}
+
+.glass-heavy {
+  background: var(--color-glass-heavy);
+  backdrop-filter: blur(20px);
+  border: 1px solid var(--color-glass-border);
+  box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+}
+
+/* ── Card surface ── */
+.card-surface {
+  background: var(--color-card);
+  border: 1px solid var(--color-border);
+  border-radius: 16px;
+}
+
+/* ── Status Badge ── */
+.badge-active {
+  background: rgba(0, 212, 170, 0.1);
+  color: var(--color-secondary);
+  border: 1px solid rgba(0, 212, 170, 0.2);
+}
+.badge-pending {
+  background: rgba(255, 193, 7, 0.1);
+  color: #FFC107;
+  border: 1px solid rgba(255, 193, 7, 0.2);
+}
+.badge-rejected {
+  background: rgba(255, 61, 0, 0.1);
+  color: var(--color-error, #FF3D00);
+  border: 1px solid rgba(255, 61, 0, 0.2);
+}
+.badge-expired {
+  background: rgba(255, 255, 255, 0.03);
+  color: var(--color-text-dimmer);
   border: 1px solid rgba(255, 255, 255, 0.05);
 }
 
+/* ── Sidebar Item ── */
 .sidebar-item {
   @apply flex items-center gap-3 px-4 py-2.5 rounded-xl transition-all duration-300 font-bold text-[13px];
 }
@@ -76,4 +119,15 @@ body {
 
 .inner-shadow {
   box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+/* ── Shimmer Animation ── */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+.shimmer {
+  background: linear-gradient(90deg, var(--color-surface) 25%, var(--color-border) 50%, var(--color-surface) 75%);
+  background-size: 200% 100%;
+  animation: shimmer 1.5s ease-in-out infinite;
 }

@@ -12,11 +12,13 @@ import { useVendorStore, useUpdateStore } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion, AnimatePresence } from 'framer-motion';
 import { ConfirmModal } from '@/components/ConfirmModal';
+import { useNotifications } from '@/components/notification-provider';
 
 export default function StoreProfilePage() {
   const [saving, setSaving] = useState(false);
   const [success, setSuccess] = useState(false);
   const [imageToDelete, setImageToDelete] = useState<number | null>(null);
+  const { addError, addSuccess, addWarning } = useNotifications();
 
   const [formData, setFormData] = useState({
     name: '',
@@ -63,12 +65,13 @@ export default function StoreProfilePage() {
         updateStore({ logo: res.data.url }, {
           onSuccess: () => {
             setSuccess(true);
+            addSuccess('تم رفع الشعار بنجاح');
             setTimeout(() => setSuccess(false), 3000);
           }
         });
       }
     } catch (err) {
-      alert('فشل رفع اللوجو، حاول مرة أخرى');
+      addError('فشل رفع اللوجو، حاول مرة أخرى');
     } finally {
       setSaving(false);
     }
@@ -76,7 +79,10 @@ export default function StoreProfilePage() {
 
   const handleSave = async () => {
     if (!store) return;
-    if (!formData.name.trim()) return alert('اسم المتجر مطلوب');
+    if (!formData.name.trim()) {
+      addError('اسم المتجر مطلوب');
+      return;
+    }
     
     setSaving(true);
     updateStore(
@@ -104,7 +110,8 @@ export default function StoreProfilePage() {
 
   const detectLocation = () => {
     if (!navigator.geolocation) {
-      return alert('متصفحك لا يدعم تحديد الموقع الجغرافي.');
+      addWarning('متصفحك لا يدعم تحديد الموقع الجغرافي');
+      return;
     }
     setDetecting(true);
     navigator.geolocation.getCurrentPosition(
@@ -119,7 +126,7 @@ export default function StoreProfilePage() {
       (error) => {
         setDetecting(false);
         console.error(error);
-        alert('فشل تحديد الموقع تلقائياً. يرجى تفعيل الـ GPS والسماح بالإذن.');
+        addError('فشل تحديد الموقع تلقائياً. يرجى تفعيل الـ GPS والسماح بالإذن.');
       },
       { enableHighAccuracy: true, timeout: 10000 }
     );
@@ -158,7 +165,7 @@ export default function StoreProfilePage() {
     return (
       <div className="min-h-screen flex items-center justify-center p-6 bg-bg text-center">
         <div>
-          <div className="w-16 h-16 bg-white/5 rounded-3xl flex items-center justify-center text-text-dim mb-4 mx-auto">
+          <div className="w-16 h-16 bg-glass-heavy rounded-3xl flex items-center justify-center text-text-dim mb-4 mx-auto">
             <Store size={32} />
           </div>
           <p className="text-text-dim text-sm font-bold">لم يتم العثور على بيانات المتجر</p>
@@ -188,9 +195,9 @@ export default function StoreProfilePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
         {/* Profile Sidebar */}
         <div className="space-y-8">
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="glass p-8 rounded-[2.5rem] border border-white/10 flex flex-col items-center relative overflow-hidden bg-bg2/40">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.1 }} className="glass p-8 rounded-[2.5rem] border border-glass-border flex flex-col items-center relative overflow-hidden bg-bg2/40">
              <div className="relative mb-6">
-                <div className="w-36 h-36 bg-bg2 border-4 border-white/10 rounded-[2.5rem] overflow-hidden shadow-2xl relative group">
+                <div className="w-36 h-36 bg-bg2 border-4 border-glass-border rounded-[2.5rem] overflow-hidden shadow-2xl relative group">
                   {store.logo ? (
                     <img src={resolveImageUrl(store.logo)} alt="" className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                   ) : (
@@ -212,7 +219,7 @@ export default function StoreProfilePage() {
 
              <div className="text-center">
                <h3 className="text-lg font-black text-text mb-1">{formData.name || 'جاري التحميل...'}</h3>
-               <div className="inline-flex items-center gap-2 bg-white/5 px-3 py-1 rounded-full border border-white/5">
+               <div className="inline-flex items-center gap-2 bg-glass-heavy px-3 py-1 rounded-full border border-glass-border">
                   <div className={`w-2 h-2 rounded-full ${store.status === 'APPROVED' ? 'bg-emerald-500 shadow-[0_0_8px_#10b981]' : 'bg-amber-500'}`} />
                   <span className="text-[10px] font-black text-text-dim uppercase tracking-wider">
                     {store.status === 'APPROVED' ? 'حساب معتمد' : 'تحت المراجعة'}
@@ -242,7 +249,7 @@ export default function StoreProfilePage() {
 
         {/* Main Forms Section */}
         <div className="lg:col-span-2 space-y-8">
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="glass p-8 sm:p-10 rounded-[2.5rem] border border-white/10 shadow-xl bg-bg2/20">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.3 }} className="glass p-8 sm:p-10 rounded-[2.5rem] border border-glass-border shadow-xl bg-bg2/20">
             <div className="flex items-center gap-3 mb-8">
               <div className="w-10 h-10 bg-primary/10 rounded-xl flex items-center justify-center text-primary">
                 <Info size={20} />
@@ -257,7 +264,7 @@ export default function StoreProfilePage() {
                 </label>
                 <input 
                   type="text" value={formData.name} onChange={e => setFormData({ ...formData, name: e.target.value })}
-                  className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                  className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
                 />
               </div>
               <div className="space-y-2">
@@ -266,7 +273,7 @@ export default function StoreProfilePage() {
                 </label>
                 <input 
                   type="text" value={formData.phone} onChange={e => setFormData({ ...formData, phone: e.target.value })}
-                  className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                  className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
                 />
               </div>
               <div className="space-y-2">
@@ -276,7 +283,7 @@ export default function StoreProfilePage() {
                 <input 
                   type="text" value={formData.whatsapp} onChange={e => setFormData({ ...formData, whatsapp: e.target.value })}
                   placeholder="2010XXXXXXXX"
-                  className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                  className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
                 />
               </div>
               <div className="space-y-2">
@@ -287,7 +294,7 @@ export default function StoreProfilePage() {
                   <input 
                     type="text" value={formData.locationUrl} onChange={e => setFormData({ ...formData, locationUrl: e.target.value })}
                     placeholder="https://maps.google.com/..."
-                    className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 pl-12 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                    className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 pl-12 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
                   />
                   {formData.locationUrl && (
                     <a href={formData.locationUrl} target="_blank" className="absolute left-4 top-1/2 -translate-y-1/2 text-primary hover:scale-110 transition-transform">
@@ -302,11 +309,11 @@ export default function StoreProfilePage() {
                 </label>
                 <textarea 
                   value={formData.address} onChange={e => setFormData({ ...formData, address: e.target.value })}
-                  className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all min-h-[100px] resize-none shadow-inner"
+                  className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all min-h-[100px] resize-none shadow-inner"
                 />
               </div>
 
-              <div className="md:col-span-2 pt-6 border-t border-white/5 space-y-4">
+              <div className="md:col-span-2 pt-6 border-t border-glass-border space-y-4">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 bg-primary/5 p-6 rounded-3xl border border-primary/10">
                   <div className="space-y-1">
                     <h4 className="text-sm font-black text-primary flex items-center gap-2">
@@ -349,7 +356,7 @@ export default function StoreProfilePage() {
                       placeholder="سيتم تحديده تلقائياً"
                       value={formData.lat || ''} 
                       onChange={e => setFormData({ ...formData, lat: e.target.value ? parseFloat(e.target.value) : null })}
-                      className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                      className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
                     />
                   </div>
                   <div className="space-y-2">
@@ -362,7 +369,7 @@ export default function StoreProfilePage() {
                       placeholder="سيتم تحديده تلقائياً"
                       value={formData.lng || ''} 
                       onChange={e => setFormData({ ...formData, lng: e.target.value ? parseFloat(e.target.value) : null })}
-                      className="w-full bg-bg/50 border border-white/5 rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
+                      className="w-full bg-glass-heavy border border-glass-border rounded-2xl py-4 px-5 text-sm font-bold text-text focus:border-primary outline-none transition-all shadow-inner"
                     />
                   </div>
                 </div>
@@ -380,7 +387,7 @@ export default function StoreProfilePage() {
           </motion.div>
 
           {/* Photo Gallery Card */}
-          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="glass p-8 sm:p-10 rounded-[2.5rem] border border-white/10 shadow-xl bg-bg2/20">
+          <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }} transition={{ delay: 0.4 }} className="glass p-8 sm:p-10 rounded-[2.5rem] border border-glass-border shadow-xl bg-bg2/20">
             <div className="flex items-center justify-between mb-8">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 bg-secondary/10 rounded-xl flex items-center justify-center text-secondary">
@@ -388,7 +395,7 @@ export default function StoreProfilePage() {
                 </div>
                 <h3 className="text-lg font-black text-text">معرض الصور</h3>
               </div>
-              <button onClick={() => document.getElementById('gallery-upload')?.click()} className="bg-white/5 hover:bg-white/10 text-text px-4 py-2 rounded-xl text-[10px] font-black border border-white/10 transition-all flex items-center gap-2">
+              <button onClick={() => document.getElementById('gallery-upload')?.click()} className="bg-glass-heavy text-text px-4 py-2 rounded-xl text-[10px] font-black border border-glass-border transition-all flex items-center gap-2">
                 <Plus size={14} /> إضافة صور
               </button>
               <input type="file" id="gallery-upload" className="hidden" accept="image/*" multiple onChange={async (e) => {
@@ -411,7 +418,7 @@ export default function StoreProfilePage() {
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-4">
               {(store.images || []).map((img: string, idx: number) => (
-                <div key={idx} className="aspect-square rounded-3xl overflow-hidden border border-white/5 relative group bg-bg shadow-lg">
+                <div key={idx} className="aspect-square rounded-3xl overflow-hidden border border-glass-border relative group bg-bg shadow-lg">
                   <img src={resolveImageUrl(img)} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" alt="" />
                   <div className="absolute inset-0 bg-black/40 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-center backdrop-blur-[1px]">
                     <button onClick={() => setImageToDelete(idx)} className="bg-red-500 text-white p-3 rounded-2xl shadow-lg hover:scale-110 transition-transform">
@@ -420,8 +427,8 @@ export default function StoreProfilePage() {
                   </div>
                 </div>
               ))}
-              <button onClick={() => document.getElementById('gallery-upload')?.click()} className="aspect-square rounded-3xl border-2 border-dashed border-white/10 hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 text-text-dimmer group">
-                 <div className="w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center group-hover:bg-primary/10 transition-all">
+              <button onClick={() => document.getElementById('gallery-upload')?.click()} className="aspect-square rounded-3xl border-2 border-dashed border-glass-border hover:border-primary/50 hover:bg-primary/5 transition-all flex flex-col items-center justify-center gap-2 text-text-dimmer group">
+                 <div className="w-10 h-10 rounded-xl bg-glass-heavy flex items-center justify-center group-hover:bg-primary/10 transition-all">
                     <Camera size={22} />
                  </div>
                  <span className="text-[9px] font-black uppercase tracking-widest">أضف صورة</span>

@@ -97,7 +97,7 @@ export default function NotificationsPage() {
         </div>
         <button 
           onClick={markAllRead}
-          className="text-[11px] font-black text-text-dim bg-white/5 px-4 py-2 rounded-xl hover:bg-white/10 transition-all border border-white/5"
+           className="text-[11px] font-black text-text-dim bg-glass-heavy px-4 py-2 rounded-xl hover:bg-card transition-all border border-glass-border"
         >
           تحديد الكل كمقروء
         </button>
@@ -118,11 +118,11 @@ export default function NotificationsPage() {
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
                 className={`glass p-5 rounded-[1.8rem] border flex items-center gap-5 transition-all group ${
-                  n.isRead ? 'bg-white/[0.01] border-white/5' : 'bg-primary/5 border-primary/20 shadow-lg shadow-primary/5'
+                  n.isRead ? 'bg-glass border-glass-border' : 'bg-primary/5 border-primary/20 shadow-lg shadow-primary/5'
                 }`}
               >
                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center border shrink-0 ${
-                  n.isRead ? 'bg-white/5 border-white/5' : 'bg-white/10 border-white/10'
+                  'bg-glass-heavy border-glass-border'
                 }`}>
                   {getIcon(n.type)}
                 </div>
@@ -148,7 +148,7 @@ export default function NotificationsPage() {
       </div>
 
       {/* Quick Help Footer */}
-      <div className="mt-12 p-6 glass rounded-[2.5rem] border border-white/5 bg-gradient-to-br from-primary/5 to-transparent flex items-center justify-between">
+      <div className="mt-12 p-6 glass rounded-[2.5rem] border border-glass-border bg-gradient-to-br from-primary/5 to-transparent flex items-center justify-between">
          <div className="flex items-center gap-4">
             <div className="w-10 h-10 bg-primary/20 rounded-xl flex items-center justify-center text-primary">
                <MessageSquare size={18} />

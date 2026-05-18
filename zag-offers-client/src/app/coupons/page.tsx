@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import axios from 'axios';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
+import { useNotifications } from '@/components/notification-provider';
 import { API_URL } from '@/lib/constants';
 import { QRCodeSVG } from 'qrcode.react';
 
@@ -30,6 +31,7 @@ interface Coupon {
 }
 
 export default function MyCouponsPage() {
+  const { addNotification } = useNotifications();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -265,7 +267,7 @@ export default function MyCouponsPage() {
                         });
                       } else {
                         navigator.clipboard.writeText(selectedCoupon.code);
-                        alert('تم نسخ الكود بنجاح');
+                        addNotification('✅ تم النسخ', 'تم نسخ كود الكوبون بنجاح');
                       }
                     }}
                     className="flex items-center justify-center gap-2 py-4 bg-black text-white font-black rounded-2xl hover:scale-[1.02] transition-all shadow-lg shadow-black/10"

@@ -54,7 +54,7 @@ class ErrorBoundary extends Component<Props, State> {
               <Link
                 href="/dashboard"
                 onClick={() => this.setState({ hasError: false })}
-                className="w-full py-4 bg-white/5 text-text font-black rounded-2xl border border-white/5 hover:bg-white/10 transition-all flex items-center justify-center gap-3"
+                className="w-full py-4 bg-glass-heavy text-text font-black rounded-2xl border border-glass-border hover:bg-glass-heavy/50 transition-all flex items-center justify-center gap-3"
               >
                 <Home size={18} /> العودة للرئيسية
               </Link>

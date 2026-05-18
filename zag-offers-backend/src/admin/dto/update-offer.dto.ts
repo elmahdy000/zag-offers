@@ -3,6 +3,7 @@ import { OfferStatus } from '@prisma/client';
 import {
   ArrayMaxSize,
   IsArray,
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsInt,
@@ -29,6 +30,11 @@ export class UpdateOfferDto {
   @IsOptional()
   @IsString()
   discount?: string;
+
+  @ApiPropertyOptional({ example: 'BOGO' })
+  @IsOptional()
+  @IsString()
+  discountType?: string;
 
   @ApiPropertyOptional({ example: 'لا يُجمع مع عروض أخرى' })
   @IsOptional()
@@ -88,4 +94,15 @@ export class UpdateOfferDto {
   @IsNumber()
   @Min(0)
   newPrice?: number;
+
+  @ApiPropertyOptional({ example: 200 })
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  minSpend?: number;
+
+  @ApiPropertyOptional({ example: false })
+  @IsOptional()
+  @IsBoolean()
+  isFeatured?: boolean;
 }

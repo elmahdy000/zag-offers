@@ -14,7 +14,7 @@ export default function EmptyState({ title, description, actionText, onAction }:
     <motion.div 
       initial={{ opacity: 0, y: 20 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center p-12 text-center glass rounded-[2.5rem] border-dashed border-2 border-white/5 bg-white/[0.01]"
+      className="flex flex-col items-center justify-center p-12 text-center glass rounded-[2.5rem] border-2 border-dashed border-glass-border bg-glass"
     >
       <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20">
         <Tag className="text-primary" size={32} />
@@ -25,7 +25,7 @@ export default function EmptyState({ title, description, actionText, onAction }:
       {actionText && (
         <button 
           onClick={onAction}
-          className="bg-primary text-white px-6 py-3 rounded-xl font-black text-[13px] shadow-lg shadow-primary/20 hover:bg-primary-lt transition-all flex items-center gap-2 group"
+          className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-[13px] shadow-lg shadow-primary/20 hover:bg-primary-lt transition-all flex items-center gap-2 group"
         >
           {actionText}
           <Plus size={16} className="group-hover:rotate-90 transition-transform" />

@@ -53,7 +53,13 @@ class OfferModel extends OfferEntity {
 
   static double _parseDiscountPercentage(String discount) {
     try {
-      final cleaned = discount.replaceAll('%', '').trim();
+      // Strip common suffixes/prefixes
+      String cleaned = discount
+          .replaceAll('%', '')
+          .replaceAll('خصم', '')
+          .replaceAll('ج', '')
+          .replaceAll(RegExp(r'[^\d.]'), '')  // keep only digits and decimal point
+          .trim();
       return double.tryParse(cleaned) ?? 0.0;
     } catch (_) {
       return 0.0;

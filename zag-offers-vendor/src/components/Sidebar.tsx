@@ -86,11 +86,11 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   if (!mounted) return null;
 
   return (
-    <aside className="w-[280px] lg:w-[260px] h-full lg:h-[calc(100vh-2rem)] lg:m-4 flex flex-col z-[70]">
-      <div className="glass h-full flex flex-col rounded-none lg:rounded-[2.5rem] border-l lg:border border-white/5 bg-bg/95 lg:bg-white/[0.02] overflow-hidden">
-        
+      <aside className="w-[280px] lg:w-[260px] h-full lg:h-[calc(100vh-2rem)] lg:m-4 flex flex-col z-[70]">
+        <div className="glass h-full flex flex-col rounded-none lg:rounded-[2.5rem] border-l lg:border border-glass-border bg-bg/95 lg:bg-glass overflow-hidden">
+
         {/* Header */}
-        <div className="p-5 pb-4 flex items-center justify-between border-b border-white/5 bg-white/[0.01]">
+        <div className="p-5 pb-4 flex items-center justify-between border-b border-glass-border bg-glass">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-xl shadow-primary/30">
               <span className="text-white font-black text-base italic">Z</span>
@@ -103,13 +103,13 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setShowBell(!showBell)}
-              className="relative w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center text-text-dim"
+              className="relative w-10 h-10 rounded-xl bg-glass border border-glass-border flex items-center justify-center text-text-dim"
             >
               <Bell size={18} />
               {unreadCount > 0 && <span className="absolute -top-1 -right-1 w-2.5 h-2.5 bg-primary rounded-full shadow-lg shadow-primary/50" />}
             </button>
             {onClose && (
-              <button onClick={onClose} className="lg:hidden w-10 h-10 rounded-xl bg-white/5 flex items-center justify-center text-text-dim border border-white/5">
+              <button onClick={onClose} className="lg:hidden w-10 h-10 rounded-xl bg-glass flex items-center justify-center text-text-dim border border-glass-border">
                 <X size={18} />
               </button>
             )}
@@ -117,7 +117,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         </div>
 
         {/* Navigation */}
-        <nav className="flex-1 px-4 py-6 flex flex-col gap-1.5 overflow-y-auto scrollbar-none">
+        <nav className="flex-1 px-4 py-6 flex flex-col gap-1 overflow-y-auto scrollbar-none">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             const content = (
@@ -128,10 +128,10 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
             );
 
             const className = `
-              group flex items-center gap-4 px-5 py-4 rounded-2xl transition-all duration-200
+              group flex items-center gap-4 px-5 py-3.5 rounded-2xl transition-all duration-200
               ${isActive 
                 ? 'bg-primary text-white shadow-lg shadow-primary/10' 
-                : 'text-text-dim hover:text-text hover:bg-white/5'}
+                : 'text-text-dim hover:text-text hover:bg-glass-heavy'}
             `;
 
             if (item.external) {
@@ -156,7 +156,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         </nav>
 
         {/* Logout */}
-        <div className="p-4 border-t border-white/5">
+        <div className="p-4 border-t border-glass-border">
           <button
             onClick={handleLogout}
             className="w-full flex items-center gap-3 p-3.5 rounded-2xl hover:bg-red-500/10 transition-all text-red-500/50 hover:text-red-500 group"
@@ -172,7 +172,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
         {showBell && (
           <motion.div
             initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: 10 }}
-            className="absolute top-20 right-4 left-4 lg:left-auto lg:w-80 bg-bg/95 backdrop-blur-xl border border-white/10 rounded-3xl shadow-2xl z-[100] p-4 max-h-[70vh] overflow-y-auto scrollbar-none"
+            className="absolute top-20 right-4 left-4 lg:left-auto lg:w-80 bg-bg/95 backdrop-blur-xl border border-glass-border rounded-3xl shadow-2xl z-[100] p-4 max-h-[70vh] overflow-y-auto scrollbar-none"
           >
             <div className="flex items-center justify-between mb-4 px-2">
                <span className="text-xs font-black text-text">الإشعارات</span>
@@ -182,7 +182,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
                <p className="py-8 text-center text-[10px] text-text-dimmer font-bold">لا توجد إشعارات</p>
             ) : (
                notifications.map(n => (
-                 <div key={n.id} className="p-3 mb-2 rounded-xl bg-white/5 border border-white/5 last:mb-0">
+                 <div key={n.id} className="p-3 mb-2 rounded-xl bg-card border border-glass-border last:mb-0">
                     <p className="text-[12px] font-bold text-text">{n.title}</p>
                     <p className="text-[10px] text-text-dim mt-0.5">{n.body}</p>
                  </div>

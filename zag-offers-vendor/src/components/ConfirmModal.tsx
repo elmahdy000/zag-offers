@@ -70,7 +70,7 @@ export function ConfirmModal({
             initial={{ opacity: 0, scale: 0.9, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
-            className="relative w-full max-w-md glass rounded-[2.5rem] border border-white/10 p-8 shadow-2xl bg-bg/90"
+            className="relative w-full max-w-md glass rounded-[2.5rem] border border-glass-border p-8 shadow-2xl bg-bg/90"
             dir="rtl"
           >
             <button 
@@ -101,7 +101,7 @@ export function ConfirmModal({
                 </button>
                 <button
                   onClick={onClose}
-                  className="flex-1 glass text-text font-black py-4 rounded-2xl hover:bg-white/5 active:scale-[0.98] transition-all text-sm border border-white/5"
+                  className="flex-1 glass text-text font-black py-4 rounded-2xl hover:bg-glass-heavy active:scale-[0.98] transition-all text-sm border border-glass-border"
                 >
                   {cancelText}
                 </button>

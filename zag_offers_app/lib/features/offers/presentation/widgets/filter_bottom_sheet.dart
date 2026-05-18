@@ -130,7 +130,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                 ),
                 Text(
-                  '${_currentDiscount.toInt()}%+',
+                  'خصم ${_currentDiscount.toInt()}% فأكثر',
                   style: theme.textTheme.titleMedium?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.bold,
