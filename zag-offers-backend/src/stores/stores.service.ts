@@ -107,9 +107,15 @@ export class StoresService {
   }
 
   async getVendorDashboardStats(userId: string) {
-    const store = await this.prisma.store.findFirst({
-      where: { ownerId: userId },
-    });
+    const store =
+      (await this.prisma.store.findFirst({
+        where: { ownerId: userId, status: StoreStatus.APPROVED },
+        orderBy: { createdAt: 'desc' },
+      })) ??
+      (await this.prisma.store.findFirst({
+        where: { ownerId: userId },
+        orderBy: { createdAt: 'desc' },
+      }));
 
     if (!store) {
       throw new NotFoundException('لا يوجد محل مرتبط بهذا التاجر');
@@ -309,13 +315,20 @@ export class StoresService {
   }
 
   async getMyStore(merchantId: string): Promise<Store> {
-    const stores = await this.prisma.store.findMany({
-      where: { ownerId: merchantId },
-      include: { category: true, owner: { select: { email: true } } },
-    });
-    if (stores.length === 0)
-      throw new NotFoundException('لا يوجد محل مرتبط بهذا التاجر');
-    return stores[0];
+    const store =
+      (await this.prisma.store.findFirst({
+        where: { ownerId: merchantId, status: StoreStatus.APPROVED },
+        include: { category: true, owner: { select: { email: true } } },
+        orderBy: { createdAt: 'desc' },
+      })) ??
+      (await this.prisma.store.findFirst({
+        where: { ownerId: merchantId },
+        include: { category: true, owner: { select: { email: true } } },
+        orderBy: { createdAt: 'desc' },
+      }));
+    if (!store)
+      throw new NotFoundException('No store found for this merchant');
+    return store;
   }
 
   async createCategory(name: string) {
@@ -339,3 +352,4 @@ export class StoresService {
     return this.prisma.store.update({ where: { id: storeId }, data });
   }
 }
+
