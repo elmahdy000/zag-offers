@@ -314,7 +314,7 @@ export class AuthService {
     if (data.area && oldUser?.area !== data.area && user.fcmToken) {
       void this.notificationsService
         .saveFcmToken(userId, user.fcmToken)
-        .catch(() => {});
+        .catch((e) => console.warn(`FCM token save on area change failed: ${e}`));
     }
 
     return this.sanitizeUser(user);

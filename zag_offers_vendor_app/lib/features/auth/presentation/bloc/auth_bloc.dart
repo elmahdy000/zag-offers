@@ -96,9 +96,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CheckAuthStatus event,
     Emitter<AuthState> emit,
   ) async {
-    // Add a small delay to show the splash screen and avoid flicker
-    await Future.delayed(const Duration(milliseconds: 1500));
-    final user = await authRepository.checkAuthStatus();
+    final results = await Future.wait([
+      Future.delayed(const Duration(milliseconds: 1500)),
+      authRepository.checkAuthStatus(),
+    ]);
+    final user = results[1] as UserEntity?;
     if (user != null) {
       emit(AuthAuthenticated(user));
     } else {
@@ -110,7 +112,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    // Remove FCM token from backend before clearing local auth
     await NotificationService.removeTokenFromBackend();
     await authRepository.logout();
     emit(AuthUnauthenticated());

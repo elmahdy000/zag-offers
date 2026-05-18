@@ -1,5 +1,5 @@
 import 'package:get_it/get_it.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 
 import 'core/network/api_client.dart';
 import 'core/network/socket_service.dart';
@@ -54,12 +54,12 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl(), sharedPreferences: sl()),
+    () => AuthRepositoryImpl(remoteDataSource: sl(), secureStorage: sl()),
   );
 
   // Data sources
   sl.registerLazySingleton<AuthRemoteDataSource>(
-    () => AuthRemoteDataSourceImpl(apiClient: sl(), sharedPreferences: sl()),
+    () => AuthRemoteDataSourceImpl(apiClient: sl(), secureStorage: sl()),
   );
 
   // --- Features - Dashboard ---
@@ -159,10 +159,9 @@ Future<void> init() async {
       () => NotificationsRepositoryImpl(apiClient: sl()));
 
   // --- Core ---
-  sl.registerLazySingleton(() => ApiClient());
-  sl.registerLazySingleton(() => SocketService());
+  sl.registerLazySingleton(() => ApiClient(secureStorage: sl()));
+  sl.registerLazySingleton(() => SocketService(secureStorage: sl()));
 
   // --- External ---
-  final sharedPreferences = await SharedPreferences.getInstance();
-  sl.registerLazySingleton(() => sharedPreferences);
+  sl.registerLazySingleton(() => const FlutterSecureStorage());
 }

@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:socket_io_client/socket_io_client.dart' as io;
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
 
 class SocketService {
@@ -9,7 +9,10 @@ class SocketService {
   bool _isConnected = false;
   final Map<String, List<Function(dynamic)>> _eventHandlers = {};
   String? _userId;
-  String? _token;
+  final FlutterSecureStorage _secureStorage;
+
+  SocketService({FlutterSecureStorage? secureStorage})
+      : _secureStorage = secureStorage ?? const FlutterSecureStorage();
 
   io.Socket? get socket => _socket;
   bool get isConnected => _isConnected;
@@ -19,11 +22,10 @@ class SocketService {
       return;
     }
 
-    final prefs = await SharedPreferences.getInstance();
-    _token = prefs.getString('auth_token');
-    final userData = prefs.getString('user_data');
+    final token = await _secureStorage.read(key: 'auth_token');
+    final userData = await _secureStorage.read(key: 'user_data');
 
-    if (_token == null) {
+    if (token == null) {
       log('WebSocket: No token found, cannot connect authenticated.');
       return;
     }
@@ -46,7 +48,7 @@ class SocketService {
     _socket = io.io(AppConstants.socketUrl, 
       io.OptionBuilder()
         .setTransports(['websocket'])
-        .setAuth({'token': _token})
+        .setAuth({'token': token})
         .enableReconnection()
         .setReconnectionAttempts(10)
         .setReconnectionDelay(1000)
@@ -65,8 +67,8 @@ class SocketService {
       log('WebSocket: Connected to server');
       
       // Join merchant room (React app compatibility)
-      if (_userId != null && _token != null) {
-        _socket?.emit('join_room', {'token': _token, 'userId': _userId});
+      if (_userId != null) {
+        _socket?.emit('join_room', {'token': token, 'userId': _userId});
         log('WebSocket: Joined merchant room: $_userId');
       }
     });
@@ -106,9 +108,7 @@ class SocketService {
   }
 
   void updateToken(String token) async {
-    _token = token;
-    final prefs = await SharedPreferences.getInstance();
-    await prefs.setString('auth_token', token);
+    await _secureStorage.write(key: 'auth_token', value: token);
     if (_socket != null) {
       _socket?.auth = {'token': token};
       _socket?.disconnect();

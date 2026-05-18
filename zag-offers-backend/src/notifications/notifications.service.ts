@@ -193,19 +193,19 @@ export class NotificationsService implements OnModuleInit {
           await admin
             .messaging()
             .unsubscribeFromTopic([existing.fcmToken], 'all_users')
-            .catch(() => {});
+            .catch((e) => this.logger.warn(`FCM unsubscribe all_users failed: ${e}`));
           await admin
             .messaging()
             .unsubscribeFromTopic([existing.fcmToken], 'all_customers')
-            .catch(() => {});
+            .catch((e) => this.logger.warn(`FCM unsubscribe all_customers failed: ${e}`));
           await admin
             .messaging()
             .unsubscribeFromTopic([existing.fcmToken], 'all_merchants')
-            .catch(() => {});
+            .catch((e) => this.logger.warn(`FCM unsubscribe all_merchants failed: ${e}`));
           await admin
             .messaging()
             .unsubscribeFromTopic([existing.fcmToken], 'all_admins')
-            .catch(() => {});
+            .catch((e) => this.logger.warn(`FCM unsubscribe all_admins failed: ${e}`));
 
           if (existing.area) {
             await admin

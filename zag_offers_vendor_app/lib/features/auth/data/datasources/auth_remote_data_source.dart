@@ -1,7 +1,7 @@
 import 'dart:convert';
 import 'dart:developer';
 import 'package:dio/dio.dart';
-import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../../../../core/network/api_client.dart';
 import '../models/user_model.dart';
 
@@ -13,11 +13,11 @@ abstract class AuthRemoteDataSource {
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient apiClient;
-  final SharedPreferences sharedPreferences;
+  final FlutterSecureStorage secureStorage;
 
   AuthRemoteDataSourceImpl({
     required this.apiClient,
-    required this.sharedPreferences,
+    required this.secureStorage,
   });
 
   @override
@@ -37,8 +37,8 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         throw Exception('هذا التطبيق مخصص لحسابات التجار فقط.');
       }
 
-      await sharedPreferences.setString('auth_token', token);
-      await sharedPreferences.setString('user_data', jsonEncode(response.data['user']));
+      await secureStorage.write(key: 'auth_token', value: token);
+      await secureStorage.write(key: 'user_data', value: jsonEncode(response.data['user']));
 
       return user;
     } catch (e) {
