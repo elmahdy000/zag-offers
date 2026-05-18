@@ -20,6 +20,17 @@ export interface Store {
   category?: Category;
 }
 
+export interface Banner {
+  id: string;
+  title: string;
+  subtitle?: string;
+  tag?: string;
+  image?: string;
+  actionUrl?: string;
+  isActive: boolean;
+  priority: number;
+}
+
 export interface Offer {
   id: string;
   title: string;

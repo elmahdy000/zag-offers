@@ -35,7 +35,7 @@ function useAnalytics() {
   return { trackEvent };
 }
 
-import { Offer, Category, Store, SortOption } from '@/lib/types';
+import { Offer, Category, Store, Banner, SortOption } from '@/lib/types';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { usePublicSocket } from '@/lib/socket';
@@ -55,6 +55,7 @@ function HomePageContent() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [stores, setStores] = useState<Store[]>([]);
   const [recommended, setRecommended] = useState<Offer[]>([]);
+  const [banners, setBanners] = useState<Banner[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(catIdParam || '');
@@ -77,6 +78,7 @@ function HomePageContent() {
       setCategories(parsed.categories || []);
       setStores(parsed.stores || []);
       setRecommended(parsed.recommended || []);
+      setBanners(parsed.banners || []);
       setLoading(false);
     }
 
@@ -87,15 +89,16 @@ function HomePageContent() {
         fetch(`${API_URL}/offers?limit=24&_t=${t}`, { cache: 'no-store' }),
         fetch(`${API_URL}/offers/categories?_t=${t}`, { cache: 'no-store' }),
         fetch(`${API_URL}/stores?limit=12&_t=${t}`, { cache: 'no-store' }),
-        fetch(`${API_URL}/recommendations?_t=${t}`, { cache: 'no-store' })
+        fetch(`${API_URL}/recommendations?_t=${t}`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers/banners?_t=${t}`, { cache: 'no-store' })
       ]);
 
       for (const res of responses) {
         if (!res.ok) throw new Error(`HTTP ${res.status} for ${res.url}`);
       }
 
-      const [oData, cData, sData, rData] = await Promise.all([
-        responses[0].json(), responses[1].json(), responses[2].json(), responses[3].json()
+      const [oData, cData, sData, rData, bData] = await Promise.all([
+        responses[0].json(), responses[1].json(), responses[2].json(), responses[3].json(), responses[4].json()
       ]);
 
       const normalizedCats = normalizeCategories(cData);
@@ -104,6 +107,7 @@ function HomePageContent() {
       setCategories(normalizedCats);
       setStores(sData);
       setRecommended(rData);
+      setBanners(Array.isArray(bData) ? bData : []);
       
       // Save to cache
       localStorage.setItem(CACHE_KEY, JSON.stringify({
@@ -111,6 +115,7 @@ function HomePageContent() {
         categories: normalizedCats,
         stores: sData,
         recommended: rData,
+        banners: Array.isArray(bData) ? bData : [],
         timestamp: Date.now()
       }));
       setIsOffline(false);
@@ -140,8 +145,16 @@ function HomePageContent() {
     };
 
     socket.on('categories_updated', handleCategoriesUpdated);
+
+    const handleBannersUpdated = () => {
+      localStorage.removeItem(CACHE_KEY);
+      fetchDataRef.current(true);
+    };
+
+    socket.on('banners_updated', handleBannersUpdated);
     return () => {
       socket.off('categories_updated', handleCategoriesUpdated);
+      socket.off('banners_updated', handleBannersUpdated);
     };
   }, [socket]);
 
@@ -285,6 +298,46 @@ function HomePageContent() {
           </motion.div>
         </div>
       </section>
+
+      {/* ─── Banners Carousel ──────────────────────────── */}
+      {banners.length > 0 && (
+        <section className="max-w-7xl mx-auto px-4 mb-10">
+          <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
+            {banners.map((banner) => (
+              <a
+                key={banner.id}
+                href={banner.actionUrl || '#'}
+                className="group relative flex-shrink-0 w-[85vw] sm:w-[500px] h-[160px] sm:h-[200px] rounded-[2rem] overflow-hidden border border-white/5 bg-[#252525] transition-all duration-500 hover:border-[#FF6B00]/30"
+              >
+                {banner.image ? (
+                  <Image
+                    src={resolveImageUrl(banner.image)}
+                    alt={banner.title}
+                    fill
+                    className="object-cover transition-all duration-700 group-hover:scale-105"
+                    sizes="(max-width: 640px) 85vw, 500px"
+                    quality={80}
+                  />
+                ) : (
+                  <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B00]/20 to-[#D95A00]/10" />
+                )}
+                <div className="absolute inset-0 bg-gradient-to-t from-black/70 via-transparent to-transparent" />
+                {banner.tag && (
+                  <span className="absolute top-3 right-3 px-3 py-1 bg-[#FF6B00] text-white text-[10px] font-black rounded-full">
+                    {banner.tag}
+                  </span>
+                )}
+                <div className="absolute bottom-4 right-4 left-4">
+                  <h3 className="text-white text-base sm:text-lg font-black">{banner.title}</h3>
+                  {banner.subtitle && (
+                    <p className="text-white/70 text-xs sm:text-sm font-semibold mt-1">{banner.subtitle}</p>
+                  )}
+                </div>
+              </a>
+            ))}
+          </div>
+        </section>
+      )}
 
       {/* ─── Categories & Areas Filter ──────────────────────────── */}
       <section className="max-w-7xl mx-auto px-4 mb-12">

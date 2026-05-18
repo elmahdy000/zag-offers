@@ -15,6 +15,7 @@ type BannerItem = {
   subtitle?: string | null;
   tag?: string | null;
   image?: string | null;
+  actionUrl?: string | null;
   isActive: boolean;
   priority: number;
 };
@@ -24,6 +25,7 @@ const initialForm = {
   subtitle: '',
   tag: '',
   image: '',
+  actionUrl: '',
   priority: 0,
   isActive: true,
 };
@@ -64,6 +66,7 @@ export default function BannersPage() {
         subtitle: form.subtitle || undefined,
         tag: form.tag || undefined,
         image: form.image || undefined,
+        actionUrl: form.actionUrl || undefined,
         priority: Number(form.priority || 0),
         isActive: form.isActive,
       };
@@ -108,6 +111,7 @@ export default function BannersPage() {
       subtitle: banner.subtitle || '',
       tag: banner.tag || '',
       image: banner.image || '',
+      actionUrl: banner.actionUrl || '',
       priority: banner.priority || 0,
       isActive: banner.isActive,
     });
@@ -163,7 +167,7 @@ export default function BannersPage() {
                 <div className="mt-3">
                   <div className="text-sm font-bold text-slate-900">{banner.title}</div>
                   <div className="text-xs text-slate-500">{banner.subtitle || '-'}</div>
-                  <div className="mt-2 text-xs text-slate-400">Priority: {banner.priority} | {banner.isActive ? 'Active' : 'Inactive'}</div>
+                  <div className="mt-2 text-xs text-slate-400">Priority: {banner.priority} | {banner.isActive ? 'Active' : 'Inactive'}{banner.actionUrl ? ' | Has link' : ''}</div>
                 </div>
                 <div className="mt-3 flex gap-2">
                   <button onClick={() => openEdit(banner)} className="flex-1 rounded-xl bg-slate-100 py-2 text-xs font-bold text-slate-700">
@@ -188,6 +192,7 @@ export default function BannersPage() {
               <input className="w-full rounded-xl border px-3 py-2" placeholder="العنوان" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
               <input className="w-full rounded-xl border px-3 py-2" placeholder="الوصف" value={form.subtitle} onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))} />
               <input className="w-full rounded-xl border px-3 py-2" placeholder="التاج" value={form.tag} onChange={(e) => setForm((p) => ({ ...p, tag: e.target.value }))} />
+              <input className="w-full rounded-xl border px-3 py-2" dir="ltr" placeholder="رابط التوجيه (اختياري)" value={form.actionUrl} onChange={(e) => setForm((p) => ({ ...p, actionUrl: e.target.value }))} />
               <input className="w-full rounded-xl border px-3 py-2" type="number" placeholder="الأولوية" value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: Number(e.target.value) }))} />
               <label className="block text-xs font-bold text-slate-500">الصورة</label>
               <input type="file" accept="image/*" onChange={uploadImage} />
