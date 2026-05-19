@@ -70,13 +70,13 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     MarkNotificationAsReadRequested event,
     Emitter<NotificationsState> emit,
   ) async {
+    final currentState = state;
     final result = await repository.markAsRead(event.id);
     result.fold(
-      (failure) => null, // Silently fail or log
+      (failure) => null,
       (_) {
-        if (state is NotificationsLoaded) {
-          final currentNotifications = (state as NotificationsLoaded).notifications;
-          final updatedNotifications = currentNotifications.map((n) {
+        if (currentState is NotificationsLoaded) {
+          final updatedNotifications = currentState.notifications.map((n) {
             if (n.id == event.id) {
               return NotificationEntity(
                 id: n.id,
@@ -101,13 +101,13 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     MarkAllAsReadRequested event,
     Emitter<NotificationsState> emit,
   ) async {
+    final currentState = state;
     final result = await repository.markAllAsRead();
     result.fold(
       (failure) => null,
       (_) {
-        if (state is NotificationsLoaded) {
-          final currentNotifications = (state as NotificationsLoaded).notifications;
-          final updatedNotifications = currentNotifications.map((n) {
+        if (currentState is NotificationsLoaded) {
+          final updatedNotifications = currentState.notifications.map((n) {
             return NotificationEntity(
               id: n.id,
               title: n.title,

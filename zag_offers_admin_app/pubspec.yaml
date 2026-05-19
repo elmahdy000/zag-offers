@@ -64,6 +64,7 @@ flutter:
   uses-material-design: true
   assets:
     - assets/images/
+    - assets/notification_icon.png
 
 flutter_launcher_icons:
   android: true
@@ -71,6 +72,9 @@ flutter_launcher_icons:
   image_path: "assets/app_icon.png"
   adaptive_icon_background: "#1E293B"
   adaptive_icon_foreground: "assets/app_icon.png"
+  notification_icon:
+    android: true
+    image_path: "assets/notification_icon.png"
 
   # To add assets to your application, add an assets section, like this:
   # assets:

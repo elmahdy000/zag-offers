@@ -1,3 +1,4 @@
+import 'dart:convert';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
@@ -17,16 +18,24 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       final response = await apiClient.get('/notifications');
       final List<dynamic> data = response.data;
       
-      final notifications = data.map((json) => NotificationEntity(
-        id: json['id'],
-        title: json['title'],
-        body: json['body'],
-        imageUrl: json['imageUrl'],
-        type: json['type'],
-        data: json['data'],
-        isRead: json['isRead'] ?? false,
-        createdAt: DateTime.parse(json['createdAt']),
-      )).toList();
+      final notifications = data.map((json) {
+        Map<String, dynamic>? extraData;
+        if (json['data'] != null && json['data'] is String) {
+          try {
+            extraData = jsonDecode(json['data']);
+          } catch (_) {}
+        }
+        return NotificationEntity(
+          id: json['id'],
+          title: json['title'],
+          body: json['body'],
+          imageUrl: json['imageUrl'],
+          type: json['type'],
+          data: extraData,
+          isRead: json['isRead'] ?? false,
+          createdAt: DateTime.parse(json['createdAt']),
+        );
+      }).toList();
       
       return Right(notifications);
     } on DioException catch (e) {
