@@ -20,6 +20,15 @@ class MarkNotificationAsReadRequested extends NotificationsEvent {
 
 class MarkAllAsReadRequested extends NotificationsEvent {}
 
+class DeleteNotificationRequested extends NotificationsEvent {
+  final String id;
+  DeleteNotificationRequested(this.id);
+  @override
+  List<Object?> get props => [id];
+}
+
+class DeleteAllNotificationsRequested extends NotificationsEvent {}
+
 // --- States ---
 abstract class NotificationsState extends Equatable {
   @override
@@ -52,6 +61,8 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     on<GetNotificationsRequested>(_onGetNotificationsRequested);
     on<MarkNotificationAsReadRequested>(_onMarkNotificationAsReadRequested);
     on<MarkAllAsReadRequested>(_onMarkAllAsReadRequested);
+    on<DeleteNotificationRequested>(_onDeleteNotificationRequested);
+    on<DeleteAllNotificationsRequested>(_onDeleteAllNotificationsRequested);
   }
 
   Future<void> _onGetNotificationsRequested(
@@ -92,6 +103,41 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
             return n;
           }).toList();
           emit(NotificationsLoaded(updatedNotifications));
+        }
+      },
+    );
+  }
+
+  Future<void> _onDeleteNotificationRequested(
+    DeleteNotificationRequested event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    final currentState = state;
+    final result = await repository.deleteNotification(event.id);
+    result.fold(
+      (failure) => null,
+      (_) {
+        if (currentState is NotificationsLoaded) {
+          final updatedNotifications = currentState.notifications
+              .where((n) => n.id != event.id)
+              .toList();
+          emit(NotificationsLoaded(updatedNotifications));
+        }
+      },
+    );
+  }
+
+  Future<void> _onDeleteAllNotificationsRequested(
+    DeleteAllNotificationsRequested event,
+    Emitter<NotificationsState> emit,
+  ) async {
+    final currentState = state;
+    final result = await repository.deleteAllNotifications();
+    result.fold(
+      (failure) => null,
+      (_) {
+        if (currentState is NotificationsLoaded) {
+          emit(NotificationsLoaded([]));
         }
       },
     );

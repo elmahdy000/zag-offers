@@ -140,7 +140,7 @@ export class StoresService {
       topOffers,
     ] = await Promise.all([
       this.prisma.offer.count({
-        where: { storeId, status: 'APPROVED' },
+        where: { storeId, status: 'ACTIVE' },
       }),
       this.prisma.coupon.count({
         where: {

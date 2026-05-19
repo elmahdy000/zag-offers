@@ -36,10 +36,40 @@ class _NotificationsPageState extends State<NotificationsPage> {
           BlocBuilder<NotificationsBloc, NotificationsState>(
             builder: (context, state) {
               if (state is NotificationsLoaded && state.notifications.isNotEmpty) {
-                return IconButton(
-                  icon: const Icon(Icons.done_all_rounded, color: AppColors.primary),
-                  tooltip: 'تحديد الكل كمقروء',
-                  onPressed: () => context.read<NotificationsBloc>().add(MarkAllAsReadRequested()),
+                return Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(Icons.done_all_rounded, color: AppColors.primary),
+                      tooltip: 'تحديد الكل كمقروء',
+                      onPressed: () => context.read<NotificationsBloc>().add(MarkAllAsReadRequested()),
+                    ),
+                    IconButton(
+                      icon: const Icon(Icons.delete_sweep_rounded, color: AppColors.error),
+                      tooltip: 'حذف الكل',
+                      onPressed: () {
+                        showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text('حذف الإشعارات', style: GoogleFonts.cairo()),
+                            content: Text('هل أنت متأكد من حذف جميع الإشعارات؟', style: GoogleFonts.cairo()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx),
+                                child: Text('إلغاء', style: GoogleFonts.cairo()),
+                              ),
+                              TextButton(
+                                onPressed: () {
+                                  Navigator.pop(ctx);
+                                  context.read<NotificationsBloc>().add(DeleteAllNotificationsRequested());
+                                },
+                                child: Text('حذف الكل', style: GoogleFonts.cairo(color: AppColors.error)),
+                              ),
+                            ],
+                          ),
+                        );
+                      },
+                    ),
+                  ],
                 );
               }
               return const SizedBox.shrink();
@@ -78,7 +108,44 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 padding: const EdgeInsets.symmetric(vertical: 12),
                 itemCount: state.notifications.length,
                 itemBuilder: (context, index) {
-                  return _buildNotificationCard(state.notifications[index]);
+                  final notification = state.notifications[index];
+                  return Dismissible(
+                    key: ValueKey(notification.id),
+                    direction: DismissDirection.endToStart,
+                    confirmDismiss: (direction) async {
+                      return await showDialog(
+                        context: context,
+                        builder: (ctx) => AlertDialog(
+                          title: Text('حذف الإشعار', style: GoogleFonts.cairo()),
+                          content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: GoogleFonts.cairo()),
+                          actions: [
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, false),
+                              child: Text('إلغاء', style: GoogleFonts.cairo()),
+                            ),
+                            TextButton(
+                              onPressed: () => Navigator.pop(ctx, true),
+                              child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
+                            ),
+                          ],
+                        ),
+                      );
+                    },
+                    onDismissed: (_) {
+                      context.read<NotificationsBloc>().add(DeleteNotificationRequested(notification.id));
+                    },
+                    background: Container(
+                      margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 8),
+                      decoration: BoxDecoration(
+                        color: AppColors.error,
+                        borderRadius: BorderRadius.circular(20),
+                      ),
+                      alignment: Alignment.centerRight,
+                      padding: const EdgeInsets.only(right: 24),
+                      child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+                    ),
+                    child: _buildNotificationCard(notification),
+                  );
                 },
               ),
             );
