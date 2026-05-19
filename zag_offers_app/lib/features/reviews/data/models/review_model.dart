@@ -6,6 +6,9 @@ class ReviewModel extends ReviewEntity {
     required super.rating,
     super.comment,
     required super.customerName,
+    super.customerAvatar,
+    super.merchantReply,
+    super.replyCreatedAt,
     required super.createdAt,
   });
 
@@ -15,6 +18,11 @@ class ReviewModel extends ReviewEntity {
       rating: json['rating'] ?? 0,
       comment: json['comment'],
       customerName: json['customer'] != null ? json['customer']['name'] ?? 'مستخدم' : 'مستخدم',
+      customerAvatar: json['customer'] != null ? json['customer']['avatar'] : null,
+      merchantReply: json['merchantReply'],
+      replyCreatedAt: json['replyCreatedAt'] != null
+          ? DateTime.tryParse(json['replyCreatedAt'])
+          : null,
       createdAt: DateTime.tryParse(json['createdAt']?.toString() ?? '') ?? DateTime.now(),
     );
   }

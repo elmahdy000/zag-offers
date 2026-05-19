@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -9,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/services/socket_service.dart';
 import '../../../../injection_container.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../../../coupons/presentation/bloc/coupons_bloc.dart';
@@ -37,6 +39,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   late final TextEditingController _commentController;
   int _selectedImageIndex = 0;
   late final PageController _pageController;
+  StreamSubscription<Map<String, dynamic>>? _reviewReplySubscription;
 
   List<String> get _allImages {
     final images = widget.offer.images ?? [];
@@ -54,12 +57,26 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     _commentController = TextEditingController();
     _canGenerateCouponFuture = _canGenerateCoupon();
     _pageController = PageController(initialPage: _selectedImageIndex);
+    _reviewReplySubscription = sl<SocketService>().onReviewReply.listen((data) {
+      final reviewId = data['reviewId']?.toString();
+      final merchantReply = data['merchantReply']?.toString();
+      final replyCreatedAtStr = data['replyCreatedAt']?.toString();
+      if (reviewId != null && merchantReply != null && replyCreatedAtStr != null) {
+        final replyCreatedAt = DateTime.tryParse(replyCreatedAtStr) ?? DateTime.now();
+        _reviewsBloc.add(ReviewReplyReceived(
+          reviewId: reviewId,
+          merchantReply: merchantReply,
+          replyCreatedAt: replyCreatedAt,
+        ));
+      }
+    });
   }
 
   @override
   void dispose() {
     _pageController.dispose();
     _commentController.dispose();
+    _reviewReplySubscription?.cancel();
     super.dispose();
   }
 
@@ -862,8 +879,43 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                             style: textTheme.bodySmall?.copyWith(height: 1.5),
                           ),
                         ],
-                      ],
-                    ),
+                        if (review.merchantReply != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.store_rounded, size: 14, color: AppColors.primary),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'رد المتجر',
+                                      style: textTheme.labelSmall?.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  review.merchantReply!,
+                                  style: textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                   );
                 },
               );

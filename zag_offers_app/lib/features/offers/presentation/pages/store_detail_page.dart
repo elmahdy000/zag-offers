@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -6,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
+import '../../../../core/services/socket_service.dart';
 import '../../../../injection_container.dart';
 import '../../../reviews/presentation/bloc/reviews_bloc.dart';
 import '../../domain/entities/offer_entity.dart';
@@ -27,16 +29,31 @@ class StoreDetailPage extends StatefulWidget {
 class _StoreDetailPageState extends State<StoreDetailPage> {
   late final OffersBloc _offersBloc;
   late final ReviewsBloc _reviewsBloc;
+  StreamSubscription<Map<String, dynamic>>? _reviewReplySubscription;
 
   @override
   void initState() {
     super.initState();
     _offersBloc = sl<OffersBloc>()..add(FetchStoreOffers(widget.store.id));
     _reviewsBloc = sl<ReviewsBloc>()..add(FetchStoreReviews(widget.store.id));
+    _reviewReplySubscription = sl<SocketService>().onReviewReply.listen((data) {
+      final reviewId = data['reviewId']?.toString();
+      final merchantReply = data['merchantReply']?.toString();
+      final replyCreatedAtStr = data['replyCreatedAt']?.toString();
+      if (reviewId != null && merchantReply != null && replyCreatedAtStr != null) {
+        final replyCreatedAt = DateTime.tryParse(replyCreatedAtStr) ?? DateTime.now();
+        _reviewsBloc.add(ReviewReplyReceived(
+          reviewId: reviewId,
+          merchantReply: merchantReply,
+          replyCreatedAt: replyCreatedAt,
+        ));
+      }
+    });
   }
 
   @override
   void dispose() {
+    _reviewReplySubscription?.cancel();
     super.dispose();
   }
 
@@ -531,9 +548,43 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                             ),
                           ),
                         ],
-                      ],
-                    ),
-                  );
+                        if (review.merchantReply != null) ...[
+                          const SizedBox(height: 12),
+                          Container(
+                            padding: const EdgeInsets.all(12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.05),
+                              borderRadius: BorderRadius.circular(12),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                            ),
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Row(
+                                  children: [
+                                    Icon(Icons.store_rounded, size: 14, color: AppColors.primary),
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      'رد المتجر',
+                                      style: theme.textTheme.labelSmall?.copyWith(
+                                        color: AppColors.primary,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                                const SizedBox(height: 6),
+                                Text(
+                                  review.merchantReply!,
+                                  style: theme.textTheme.bodySmall?.copyWith(
+                                    color: AppColors.textSecondary,
+                                    height: 1.4,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
                 },
                 childCount: state.reviews.length,
               ),

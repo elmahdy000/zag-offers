@@ -1,6 +1,7 @@
 import { BadRequestException, Injectable, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Prisma } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
+import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Logger } from '@nestjs/common';
 
@@ -9,6 +10,7 @@ export class ReviewsService {
   constructor(
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
+    private notificationsService: NotificationsService,
   ) {}
 
   private getConnectedId(
@@ -142,7 +144,7 @@ export class ReviewsService {
   async addMerchantReply(reviewId: string, merchantId: string, reply: string) {
     const review = await this.prisma.review.findUnique({
       where: { id: reviewId },
-      include: { store: true },
+      include: { store: { include: { owner: { select: { name: true } } } }, customer: true },
     });
 
     if (!review) {
@@ -161,12 +163,36 @@ export class ReviewsService {
       throw new ForbiddenException('غير مصرح لك بالرد على تقييمات هذا المتجر');
     }
 
-    return this.prisma.review.update({
+    const updated = await this.prisma.review.update({
       where: { id: reviewId },
       data: {
         merchantReply: reply,
         replyCreatedAt: new Date(),
       },
     });
+
+    const storeName = review.store?.name || 'المتجر';
+
+    this.eventsGateway.notifyUser(review.customerId, 'review_reply', {
+      type: 'REVIEW_REPLY',
+      reviewId,
+      storeId: review.storeId,
+      storeName,
+      merchantReply: reply,
+      replyCreatedAt: new Date().toISOString(),
+    });
+
+    void this.notificationsService.sendToUserId(review.customerId, {
+      title: 'رد على تقييمك',
+      body: `قام "${storeName}" بالرد على تقييمك`,
+      data: {
+        type: 'REVIEW_REPLY',
+        reviewId,
+        storeId: review.storeId,
+        storeName,
+      },
+    });
+
+    return updated;
   }
 }

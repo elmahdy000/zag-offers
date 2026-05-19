@@ -212,7 +212,11 @@ class NotificationService {
 
     if (type == 'COUPON_REDEEMED') {
       MainLayout.of(context)?.setIndex(0); // Dashboard
-    } else if (type == 'NEW_OFFER') {
+    } else if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED') {
+      MainLayout.of(context)?.setIndex(1); // Offers
+    } else if (type == 'STORE_APPROVED') {
+      MainLayout.of(context)?.setIndex(0); // Dashboard
+    } else if (type == 'OFFER_REJECTED') {
       MainLayout.of(context)?.setIndex(1); // Offers
     } else {
       Navigator.of(context).push(

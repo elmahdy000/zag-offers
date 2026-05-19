@@ -270,21 +270,20 @@ class NotificationService {
     if ((type == 'NEW_OFFER' || type == 'OFFER_APPROVED') && id != null) {
       debugPrint('🚀 Navigating to Offer: $id');
       navigateToOffer(id);
-    } else if (type == 'COUPON_REDEEMED' || type == 'NEW_COUPON' || type == 'COUPON_GENERATED') {
+    } else if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED') {
       debugPrint('🚀 Navigating to Coupons Tab');
-      _navigateNamed('/'); // Go to MainScreen first
-      _navigateTab(2); // Index 2 is Coupons
-    } else if (type == 'DIGEST_NEW_OFFERS') {
-      debugPrint('🚀 Navigating to All Offers Tab');
       _navigateNamed('/');
-      _navigateTab(1); // Index 1 is All Offers
-    } else if (type == 'ANNOUNCEMENT' || type == 'GENERAL') {
+      _navigateTab(2);
+    } else if (type == 'ANNOUNCEMENT') {
       debugPrint('🚀 Navigating to Notifications Page');
       _navigateNamed('/notifications');
     } else if (type == 'STORE_APPROVED') {
        debugPrint('🚀 Navigating to Home (Store Approved)');
        _navigateNamed('/');
        _navigateTab(0);
+    } else if (type == 'REVIEW_REPLY') {
+       debugPrint('🚀 Navigating to Store (Review Reply)');
+       _navigateNamed('/');
     } else {
        debugPrint('⚠️ Unknown notification type or missing ID. Defaulting to Home.');
        _navigateNamed('/');

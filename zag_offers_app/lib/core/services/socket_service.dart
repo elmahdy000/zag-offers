@@ -16,6 +16,7 @@ class SocketService {
   late final StreamController<Map<String, dynamic>> _socialProofController;
   late final StreamController<Map<String, dynamic>> _categoriesUpdatedController;
   late final StreamController<Map<String, dynamic>> _bannersUpdatedController;
+  late final StreamController<Map<String, dynamic>> _reviewReplyController;
 
   /// Emitted when the admin approves a new offer and it goes live.
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
@@ -31,6 +32,9 @@ class SocketService {
   Stream<Map<String, dynamic>> get onBannersUpdated =>
       _bannersUpdatedController.stream;
 
+  /// Emitted when a merchant replies to the current user's review.
+  Stream<Map<String, dynamic>> get onReviewReply => _reviewReplyController.stream;
+
   SocketService() {
     _initControllers();
   }
@@ -41,6 +45,7 @@ class SocketService {
     _socialProofController = StreamController<Map<String, dynamic>>.broadcast();
     _categoriesUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
     _bannersUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
+    _reviewReplyController = StreamController<Map<String, dynamic>>.broadcast();
   }
 
   /// Connects to the WebSocket server and joins the user's private room.
@@ -95,6 +100,12 @@ class SocketService {
       if (!_bannersUpdatedController.isClosed) _bannersUpdatedController.add(_toMap(data));
     });
 
+    _socket!.on('review_reply', (data) {
+      log('[Socket] review_reply: $data');
+      final map = _toMap(data);
+      if (!_reviewReplyController.isClosed) _reviewReplyController.add(map);
+    });
+
     _socket!.onConnectError((error) => log('[Socket] connect_error: $error'));
     _socket!.onDisconnect((_) => log('[Socket] Disconnected'));
 
@@ -111,6 +122,7 @@ class SocketService {
     _socialProofController.close();
     _categoriesUpdatedController.close();
     _bannersUpdatedController.close();
+    _reviewReplyController.close();
     _isInitialized = false;
   }
 

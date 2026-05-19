@@ -142,9 +142,9 @@ class NotificationService {
     final context = NavigationService.navigatorKey.currentContext;
     if (context == null) return;
 
-    if (type == 'NEW_STORE_REQUEST' || type == 'STORE_PENDING') {
+    if (type == 'NEW_PENDING_STORE') {
       MainShell.of(context)?.setSelectedIndex(1); // Merchants tab
-    } else if (type == 'NEW_OFFER_REQUEST' || type == 'OFFER_PENDING') {
+    } else if (type == 'NEW_PENDING_OFFER') {
       MainShell.of(context)?.setSelectedIndex(2); // Offers tab
     } else {
       // Navigate to Notifications Page

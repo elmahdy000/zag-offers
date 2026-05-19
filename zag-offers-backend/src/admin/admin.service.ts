@@ -423,14 +423,8 @@ export class AdminService {
     this.eventsGateway.notifyMerchant(store.ownerId, {
       type: 'STORE_APPROVED',
       title: 'تم اعتماد المتجر',
-      body: `تمت الموافقة على طلب انضمام متجرك "${store.name}".`,
-      payload: { storeId: store.id, storeName: store.name },
-    });
-
-    void this.notificationsService.sendToUserId(store.ownerId, {
-      title: 'تمت الموافقة على طلب المتجر',
       body: `تمت الموافقة على "${store.name}". يمكنك الآن البدء في إضافة عروضك.`,
-      data: { storeId: store.id, type: 'STORE_APPROVED' },
+      payload: { storeId: store.id, storeName: store.name },
     });
 
     await this.auditLogService.log({
