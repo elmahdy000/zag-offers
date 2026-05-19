@@ -19,7 +19,7 @@ echo "🔧 Building Backend..."
 cd zag-offers-backend
 npm install
 npx prisma generate
-npx prisma db push
+npx prisma db push --accept-data-loss
 npm run build
 NODE_ENV=production npx prisma db seed
 pm2 restart zag-backend
