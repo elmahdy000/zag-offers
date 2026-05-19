@@ -7,6 +7,7 @@ import {
   Delete,
   UseGuards,
   Request,
+  Patch,
 } from '@nestjs/common';
 import { ReviewsService } from './reviews.service';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
@@ -66,9 +67,9 @@ export class ReviewsController {
   @Delete(':id')
   @UseGuards(JwtAuthGuard)
   @ApiBearerAuth()
-  @ApiOperation({ summary: 'حذف التقييم الخاص بي' })
-  remove(@Param('id') id: string, @Request() req: { user: { id: string } }) {
-    return this.reviewsService.remove(id, req.user.id);
+  @ApiOperation({ summary: 'حذف التقييم (صاحب التقييم أو الأدمن)' })
+  remove(@Param('id') id: string, @Request() req: { user: { id: string; role?: string } }) {
+    return this.reviewsService.remove(id, req.user.id, req.user.role);
   }
 
   @Post(':id/reply')

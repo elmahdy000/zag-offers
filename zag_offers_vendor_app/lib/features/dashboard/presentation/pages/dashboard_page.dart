@@ -12,6 +12,7 @@ import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/main
 import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/store_setup_page.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/store_setup_bloc.dart';
+import 'package:zag_offers_vendor_app/features/reviews/presentation/pages/reviews_page.dart';
 import 'package:zag_offers_vendor_app/injection_container.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -245,7 +246,18 @@ class DashboardPage extends StatelessWidget {
                               Icons.star_rounded,
                               'التقييمات',
                               Colors.amber,
-                              () => SnackBarUtils.showInfo(context, 'ميزة التقييمات ستتوفر قريباً'),
+                              () {
+                                if (state is DashboardLoaded && state.storeId != null) {
+                                  Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (_) => ReviewsPage(storeId: state.storeId!),
+                                    ),
+                                  );
+                                } else {
+                                  SnackBarUtils.showError(context, 'لم يتم العثور على المتجر');
+                                }
+                              },
                             ),
                             _buildCompactAction(
                               Icons.settings_rounded,

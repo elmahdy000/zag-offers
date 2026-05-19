@@ -635,6 +635,13 @@ export class AdminService {
           take: 20,
         },
         _count: { select: { coupons: { where: { status: 'USED' } }, favorites: true, reviews: true } },
+        reviews: {
+          include: {
+            customer: { select: { id: true, name: true, phone: true, avatar: true } },
+          },
+          orderBy: { createdAt: 'desc' },
+          take: 50,
+        },
       },
     });
 

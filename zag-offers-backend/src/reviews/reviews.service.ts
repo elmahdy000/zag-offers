@@ -2,6 +2,7 @@ import { BadRequestException, Injectable, ForbiddenException, NotFoundException 
 import { Prisma } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { PrismaService } from '../prisma/prisma.service';
+import { Logger } from '@nestjs/common';
 
 @Injectable()
 export class ReviewsService {
@@ -48,6 +49,8 @@ export class ReviewsService {
         customer: true,
       },
     });
+
+    await this.recalculateStoreRating(review.storeId);
 
     if (review.store?.ownerId) {
       this.eventsGateway.notifyMerchant(review.store.ownerId, {
@@ -101,16 +104,39 @@ export class ReviewsService {
     }));
   }
 
-  async remove(id: string, customerId: string) {
+  async remove(id: string, userId: string, userRole?: string) {
     const review = await this.prisma.review.findUnique({ where: { id } });
     if (!review) {
       throw new BadRequestException('Review not found');
     }
-    if (review.customerId !== customerId) {
+    const isOwner = review.customerId === userId;
+    const isAdmin = userRole === 'ADMIN';
+    if (!isOwner && !isAdmin) {
       throw new BadRequestException('Unauthorized');
     }
 
-    return this.prisma.review.delete({ where: { id } });
+    const deleted = await this.prisma.review.delete({ where: { id } });
+    await this.recalculateStoreRating(deleted.storeId);
+    return deleted;
+  }
+
+  private async recalculateStoreRating(storeId: string) {
+    try {
+      const agg = await this.prisma.review.aggregate({
+        where: { storeId },
+        _avg: { rating: true },
+        _count: { rating: true },
+      });
+      await this.prisma.store.update({
+        where: { id: storeId },
+        data: {
+          ratingAvg: agg._avg.rating || 0,
+          ratingCount: agg._count.rating,
+        },
+      });
+    } catch (e) {
+      Logger.warn(`Failed to recalculate rating for store ${storeId}: ${e}`);
+    }
   }
 
   async addMerchantReply(reviewId: string, merchantId: string, reply: string) {

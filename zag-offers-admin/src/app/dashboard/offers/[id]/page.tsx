@@ -32,6 +32,16 @@ import Link from 'next/link';
 // Shared Components
 import { PageHeader } from '@/components/shared/PageHeader';
 
+interface ReviewItem {
+  id: string;
+  rating: number;
+  comment?: string | null;
+  createdAt: string;
+  merchantReply?: string | null;
+  replyCreatedAt?: string | null;
+  customer: { id: string; name: string; phone?: string; avatar?: string | null };
+}
+
 interface OfferDetails {
   id: string;
   title: string;
@@ -46,6 +56,7 @@ interface OfferDetails {
   endDate: string;
   store: { id: string; name: string; logo?: string | null; category: { name: string } };
   _count: { coupons: number; favorites: number; reviews: number };
+  reviews?: ReviewItem[];
 }
 
 export default function OfferDetailPage() {
@@ -229,9 +240,61 @@ export default function OfferDetailPage() {
                      <CheckCircle2 size={16} className="text-emerald-500 mt-0.5 shrink-0" />
                      <span>يجب إظهار تطبيق ZAG للمتجر للاستفادة من الخصم.</span>
                   </li>
-               </ul>
-            </div>
-         </div>
+                </ul>
+             </div>
+
+             {/* Reviews Section */}
+             <div className="rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+                <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2 mb-6">
+                   <Star size={18} className="text-slate-400" /> التقييمات والتعليقات ({offer._count?.reviews || 0})
+                </h3>
+                {offer.reviews && offer.reviews.length > 0 ? (
+                  <div className="space-y-4">
+                    {offer.reviews.map((review) => (
+                      <div key={review.id} className="rounded-xl border border-slate-100 bg-slate-50/50 p-4">
+                        <div className="flex items-center justify-between mb-2">
+                          <div className="flex items-center gap-2">
+                            <div className="h-8 w-8 rounded-full bg-orange-100 flex items-center justify-center text-orange-600 text-xs font-bold">
+                              {review.customer.name?.charAt(0) || '?'}
+                            </div>
+                            <div>
+                              <p className="text-xs font-bold text-slate-900">{review.customer.name}</p>
+                              {review.customer.phone && (
+                                <p className="text-[10px] text-slate-400">{review.customer.phone}</p>
+                              )}
+                            </div>
+                          </div>
+                          <div className="flex items-center gap-0.5">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star
+                                key={star}
+                                size={14}
+                                className={star <= review.rating ? 'fill-amber-400 text-amber-400' : 'text-slate-200'}
+                              />
+                            ))}
+                          </div>
+                        </div>
+                        {review.comment && (
+                          <p className="text-xs font-medium text-slate-600 leading-relaxed mr-10">{review.comment}</p>
+                        )}
+                        <p className="text-[10px] text-slate-400 mt-2 mr-10">{new Date(review.createdAt).toLocaleDateString('ar-EG')}</p>
+                        {review.merchantReply && (
+                          <div className="mt-3 mr-8 rounded-lg bg-orange-50 border border-orange-100 p-3">
+                            <p className="text-[10px] font-bold text-orange-700 mb-1">رد التاجر:</p>
+                            <p className="text-xs text-orange-800">{review.merchantReply}</p>
+                          </div>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center py-8 text-slate-300">
+                    <Star size={32} className="mb-2" />
+                    <p className="text-sm font-medium">لا توجد تقييمات على هذا العرض بعد</p>
+                  </div>
+                )}
+             </div>
+          </div>
 
          {/* Sidebar Area */}
          <div className="space-y-8">
