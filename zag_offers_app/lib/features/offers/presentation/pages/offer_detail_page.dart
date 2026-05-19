@@ -916,6 +916,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                             ),
                           ),
                         ],
+                      ],
+                    ),
                   );
                 },
               );

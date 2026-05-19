@@ -585,6 +585,9 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                             ),
                           ),
                         ],
+                      ],
+                    ),
+                  );
                 },
                 childCount: state.reviews.length,
               ),
