@@ -33,7 +33,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
 
       // Vendor mobile app must use merchant accounts only.
       // Most vendor endpoints are protected with MERCHANT role on backend.
-      if (user.role != 'MERCHANT') {
+      if (user.role != 'MERCHANT' && user.role != 'ADMIN') {
         throw Exception('هذا التطبيق مخصص لحسابات التجار فقط.');
       }
 

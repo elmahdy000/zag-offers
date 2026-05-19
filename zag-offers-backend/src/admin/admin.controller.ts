@@ -26,6 +26,13 @@ import { AdminService } from './admin.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
+import { CreateStoreDto } from './dto/create-store.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
+import { CreateBannerDto } from './dto/create-banner.dto';
+import { UpdateBannerDto } from './dto/update-banner.dto';
+import { CreateCategoryDto } from './dto/create-category.dto';
+import { UpdateCategoryDto } from './dto/update-category.dto';
+import { BroadcastDto } from './dto/broadcast.dto';
 
 @ApiTags('admin')
 @Controller('admin')
@@ -110,7 +117,7 @@ export class AdminController {
 
   @Post('stores')
   @ApiOperation({ summary: 'Create a new store as admin' })
-  createStore(@Body() body: any) {
+  createStore(@Body() body: CreateStoreDto) {
     return this.adminService.createStore(body);
   }
 
@@ -124,19 +131,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Update store details as admin' })
   updateStore(
     @Param('id') id: string,
-    @Body()
-    body: {
-      name?: string;
-      address?: string;
-      area?: string;
-      phone?: string;
-      whatsapp?: string;
-      logo?: string;
-      coverImage?: string;
-      images?: string[];
-      categoryId?: string;
-      status?: StoreStatus;
-    },
+    @Body() body: UpdateStoreDto,
   ) {
     return this.adminService.updateStore(id, body);
   }
@@ -329,12 +324,10 @@ export class AdminController {
     },
   })
   createCategory(
-    @Body('name') name: string,
-    @Body('image') image: string,
-    @Body('priority') priority: number,
+    @Body() body: CreateCategoryDto,
     @Request() req: { user: { id: string } },
   ) {
-    return this.adminService.createCategory(name, image, priority, req.user.id);
+    return this.adminService.createCategory(body.name, body.image, body.priority, req.user.id);
   }
 
   @Patch('categories/:id')
@@ -350,12 +343,10 @@ export class AdminController {
   })
   updateCategory(
     @Param('id') id: string,
-    @Body('name') name: string,
-    @Body('image') image: string,
-    @Body('priority') priority: number,
+    @Body() body: UpdateCategoryDto,
     @Request() req: { user: { id: string } },
   ) {
-    return this.adminService.updateCategory(id, name, image, priority, req.user.id);
+    return this.adminService.updateCategory(id, body.name!, body.image, body.priority, req.user.id);
   }
 
   @Delete('categories/:id')
@@ -376,16 +367,7 @@ export class AdminController {
   @Post('banners')
   @ApiOperation({ summary: 'Create banner' })
   createBanner(
-    @Body()
-    body: {
-      title: string;
-      subtitle?: string;
-      tag?: string;
-      image?: string;
-      actionUrl?: string;
-      isActive?: boolean;
-      priority?: number;
-    },
+    @Body() body: CreateBannerDto,
     @Request() req: { user: { id: string } },
   ) {
     return this.adminService.createBanner(body, req.user.id);
@@ -395,16 +377,7 @@ export class AdminController {
   @ApiOperation({ summary: 'Update banner' })
   updateBanner(
     @Param('id') id: string,
-    @Body()
-    body: {
-      title?: string;
-      subtitle?: string;
-      tag?: string;
-      image?: string;
-      actionUrl?: string;
-      isActive?: boolean;
-      priority?: number;
-    },
+    @Body() body: UpdateBannerDto,
     @Request() req: { user: { id: string } },
   ) {
     return this.adminService.updateBanner(id, body, req.user.id);
@@ -466,17 +439,14 @@ export class AdminController {
     },
   })
   broadcastAnnouncement(
-    @Body('title') title: string,
-    @Body('body') body: string,
-    @Body('area') area: string,
-    @Body('imageUrl') imageUrl: string,
+    @Body() body: BroadcastDto,
     @Request() req: { user: { id: string } },
   ) {
     return this.adminService.broadcastAnnouncement({
-      title,
-      body,
-      area,
-      imageUrl,
+      title: body.title,
+      body: body.body,
+      area: body.area,
+      imageUrl: body.imageUrl,
       adminId: req.user.id,
     });
   }

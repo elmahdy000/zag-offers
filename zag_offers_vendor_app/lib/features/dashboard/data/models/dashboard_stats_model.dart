@@ -56,7 +56,7 @@ class TopOfferModel extends TopOfferEntity {
       title: json['title'] ?? '',
       discount: json['discount'] ?? '',
       views: (json['views'] as int?) ?? 0,
-      claims: (json['_count']?['coupons'] as int?) ?? 0,
+      claims: (json['couponsCount'] as int?) ?? 0,
     );
   }
 }

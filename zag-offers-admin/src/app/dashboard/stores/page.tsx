@@ -148,7 +148,7 @@ function StoresContent() {
         params: {
           search: debouncedSearch || undefined,
           status: statusFilter || undefined,
-          category: categoryFilter || undefined,
+          categoryId: categoryFilter || undefined,
           page,
           limit: 20,
         },
@@ -760,7 +760,14 @@ function StoresContent() {
               </div>
 
               <form 
-                onSubmit={(e) => { e.preventDefault(); if (validateForm()) upsertMutation.mutate(formData); }} 
+                onSubmit={(e) => {
+                  e.preventDefault();
+                  if (!formData.ownerId.trim()) {
+                    showToast('يرجى اختيار مالك المتجر', 'error');
+                    return;
+                  }
+                  if (validateForm()) upsertMutation.mutate(formData);
+                }} 
                 className="space-y-6"
               >
                 {/* Image Uploads */}

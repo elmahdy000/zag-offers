@@ -1,8 +1,8 @@
 import { BASE_URL } from './constants';
 
 /** تحويل المسار النسبي لصورة إلى رابط كامل */
-export function resolveImageUrl(path: string | null | undefined): string {
-  if (!path) return '';
+export function resolveImageUrl(path: string | null | undefined): string | undefined {
+  if (!path) return undefined;
   if (path.startsWith('http')) return path;
 
   let cleanPath = path;

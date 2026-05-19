@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
-import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
+import { ErrorDisplay } from '@/components/error-display';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { Category } from '@/lib/types';
@@ -20,10 +20,23 @@ export default function CategoriesPage() {
   const { socket, isConnected } = usePublicSocket();
 
   const fetchCats = useCallback(async (force = false) => {
-    const cached = safeJsonParse<Category[]>(localStorage.getItem('cache_categories_full_v2'), []);
-    if (!force && cached.length > 0 && categories.length === 0) {
-      setCategories(cached);
-      setLoading(false);
+    const cachedRaw = localStorage.getItem('cache_categories_full_v2');
+    if (cachedRaw && !force && categories.length === 0) {
+      const parsed = JSON.parse(cachedRaw);
+      if (Array.isArray(parsed)) {
+        const cacheTs = parseInt(localStorage.getItem('cache_categories_full_v2_ts') || '0', 10);
+        const age = Date.now() - cacheTs;
+        if (age > 5 * 60 * 1000) {
+          localStorage.removeItem('cache_categories_full_v2');
+          localStorage.removeItem('cache_categories_full_v2_ts');
+        } else {
+          setCategories(parsed);
+          setLoading(false);
+        }
+      } else {
+        setCategories(parsed.data || []);
+        setLoading(false);
+      }
     }
 
     try {
@@ -36,10 +49,11 @@ export default function CategoriesPage() {
       const data = normalizeCategories(dataRaw);
       setCategories(data);
       localStorage.setItem('cache_categories_full_v2', JSON.stringify(data));
+      localStorage.setItem('cache_categories_full_v2_ts', String(Date.now()));
       setError(null);
     } catch (e) {
       console.error('Offline or error:', e);
-      if (!cached.length) {
+      if (!cachedRaw) {
         setError('فشل تحميل الأقسام. يرجى التأكد من اتصالك بالإنترنت.');
       }
     } finally {
@@ -77,6 +91,7 @@ export default function CategoriesPage() {
   // Polling fallback when socket is not connected
   useEffect(() => {
     if (isConnected) return;
+    if (!navigator.onLine) return;
 
     const interval = setInterval(() => {
       fetchCatsRef.current(true);
@@ -118,11 +133,12 @@ export default function CategoriesPage() {
                 transition={{ delay: i * 0.05 }}
                 className="group relative aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-[#FF6B00]/50 transition-all duration-500 cursor-pointer shadow-2xl"
               >
-                <div className="absolute inset-0 bg-[#252525]">
+                  <div className="absolute inset-0 bg-[#252525]">
                   <img 
                     src={cat.image ? resolveImageUrl(cat.image) : (CAT_ASSETS[cat.name] || CAT_ASSETS.default)} 
                     alt={cat.name} 
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110" 
+                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />

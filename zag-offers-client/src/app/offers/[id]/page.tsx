@@ -104,9 +104,17 @@ export default function OfferDetailsPage() {
       // Try cache first
       const cacheKey = `cache_offer_detail_${id}`;
       const cached = localStorage.getItem(cacheKey);
-      if (cached && !offer) {
-        setOffer(JSON.parse(cached));
-        setLoading(false);
+      const cacheTsKey = `${cacheKey}_ts`;
+      const cacheTs = parseInt(localStorage.getItem(cacheTsKey) || '0', 10);
+      if (cached) {
+        const age = Date.now() - cacheTs;
+        if (age > 5 * 60 * 1000) {
+          localStorage.removeItem(cacheKey);
+          localStorage.removeItem(cacheTsKey);
+        } else if (!offer) {
+          setOffer(JSON.parse(cached));
+          setLoading(false);
+        }
       }
 
       try {
@@ -115,6 +123,7 @@ export default function OfferDetailsPage() {
           const data = await res.json();
           setOffer(data);
           localStorage.setItem(cacheKey, JSON.stringify(data));
+          localStorage.setItem(cacheTsKey, String(Date.now()));
           
           // Check favorite status from API if logged in
           const token = localStorage.getItem('token');
@@ -314,16 +323,17 @@ export default function OfferDetailsPage() {
           <div className="bg-[#1A1A1A] border border-white/5 rounded-[32px] overflow-hidden">
             <div className="relative aspect-video sm:aspect-square lg:aspect-video bg-zinc-900 overflow-hidden group">
                <AnimatePresence mode="wait">
-                 <motion.img
-                   key={activeImg}
-                   src={resolveImageUrl(offer.images?.[activeImg]) || '/placeholder-offer.jpg'}
-                   initial={{ opacity: 0, scale: 1.1 }}
-                   animate={{ opacity: 1, scale: 1 }}
-                   exit={{ opacity: 0, scale: 0.95 }}
-                   transition={{ duration: 0.5 }}
-                   className="w-full h-full object-cover"
-                   alt=""
-                 />
+                  <motion.img
+                    key={activeImg}
+                    src={resolveImageUrl(offer.images?.[activeImg]) || '/placeholder-offer.jpg'}
+                    initial={{ opacity: 0, scale: 1.1 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    transition={{ duration: 0.5 }}
+                    className="w-full h-full object-cover"
+                    alt=""
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                  />
                </AnimatePresence>
                
                <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
@@ -375,6 +385,7 @@ export default function OfferDetailsPage() {
                       src={resolveImageUrl(img)} 
                       className="w-full h-full object-cover" 
                       alt=""
+                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                     />
                   </button>
                 ))}

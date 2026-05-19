@@ -211,8 +211,13 @@ export default function OffersManagementPage() {
     try {
       const uploadedUrls: string[] = [];
       for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.size > 5 * 1024 * 1024) {
+          showToast('حجم الصورة يجب أن لا يتجاوز 5 ميجابايت', 'error');
+          continue;
+        }
         const formData = new FormData();
-        formData.append('file', files[i]);
+        formData.append('file', file);
         const res = await adminApi().post('/upload', formData, {
           headers: { 'Content-Type': 'multipart/form-data' }
         });
@@ -382,6 +387,10 @@ export default function OffersManagementPage() {
                       e.preventDefault(); 
                       const fd = new FormData(e.currentTarget); 
                       const formData = Object.fromEntries(fd.entries());
+                      if (new Date(formData.endDate as string) <= new Date(formData.startDate as string)) {
+                        showToast('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية', 'error');
+                        return;
+                      }
                       const data = {
                         ...formData,
                         originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
@@ -532,8 +541,13 @@ export default function OffersManagementPage() {
                   showToast('يرجى اختيار المتجر', 'error');
                   return;
                 }
+                if (new Date(formData.endDate as string) <= new Date(formData.startDate as string)) {
+                  showToast('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية', 'error');
+                  return;
+                }
+                const { status: _, ...payloadWithoutStatus } = formData;
                 const data = {
-                  ...formData,
+                  ...payloadWithoutStatus,
                   discount: discountVal,
                   originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
                   newPrice: formData.newPrice ? Number(formData.newPrice) : null,

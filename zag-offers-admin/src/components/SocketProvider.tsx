@@ -3,6 +3,7 @@
 import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
 import { io, Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
+import { useToast } from '@/components/shared/Toast';
 
 const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online/api').replace(/\/api$/, '');
 
@@ -24,6 +25,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const queryClient = useQueryClient();
   const queryClientRef = useRef(queryClient);
   queryClientRef.current = queryClient;
+  const { showToast } = useToast();
 
   useEffect(() => {
     if (typeof window === 'undefined') return;
@@ -52,9 +54,18 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     newSocket.on('disconnect', () => setIsConnected(false));
 
+    newSocket.on('admin_notification', (notification: { type: string; body?: string }) => {
+      if (notification.type === 'ANNOUNCEMENT' && notification.body) {
+        showToast(notification.body, 'info');
+      }
+      queryClientRef.current.invalidateQueries({ queryKey: ['admin-stores'] });
+      queryClientRef.current.invalidateQueries({ queryKey: ['all-offers'] });
+    });
+
     setSocket(newSocket);
 
     return () => {
+      newSocket.off('admin_notification');
       newSocket.disconnect();
     };
   }, [authData?.token, authData?.userId]);

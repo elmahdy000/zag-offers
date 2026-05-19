@@ -20,7 +20,7 @@ interface Store {
   name: string;
   logo?: string;
   area: string;
-  phone: string;
+  phone?: string;
   whatsapp?: string;
   category?: Category;
 }
@@ -121,7 +121,7 @@ export default function StoreDetailsPage() {
             <h1 className="text-4xl font-black">{store.name}</h1>
             <div className="flex flex-wrap justify-center md:justify-start gap-4 text-white/50 text-sm font-bold">
               <div className="flex items-center gap-1.5"><MapPin size={16} className="text-[#FF6B00]" /> {store.area}</div>
-              <div className="flex items-center gap-1.5"><Phone size={16} className="text-[#FF6B00]" /> {store.phone}</div>
+              <div className="flex items-center gap-1.5"><Phone size={16} className="text-[#FF6B00]" /> {store.phone || '-'}</div>
             </div>
           </div>
 

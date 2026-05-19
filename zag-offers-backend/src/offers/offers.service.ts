@@ -45,8 +45,7 @@ export class OffersService {
   }
 
   async getBanners() {
-    const prismaAny = this.prisma as any;
-    return prismaAny.banner.findMany({
+    return this.prisma.banner.findMany({
       where: { isActive: true },
       orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
@@ -86,6 +85,11 @@ export class OffersService {
       );
     }
 
+    const startDate = data.startDate instanceof Date ? data.startDate : new Date(data.startDate);
+    if (endDate <= startDate) {
+      throw new BadRequestException('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ بدايته');
+    }
+
     const offer = await this.prisma.offer.create({
       data,
       include: { store: true },
@@ -116,7 +120,7 @@ export class OffersService {
           },
         });
       })
-      .catch(() => undefined);
+      .catch((err) => console.error('Failed to notify admins about new offer:', err));
 
     await this.clearCache();
     return offer;

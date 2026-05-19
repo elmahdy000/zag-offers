@@ -90,7 +90,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   ) async {
     HapticFeedback.mediumImpact();
     await Clipboard.setData(ClipboardData(text: code));
-    if (!mounted) return;
+    if (!context.mounted) return;
     SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
   }
 

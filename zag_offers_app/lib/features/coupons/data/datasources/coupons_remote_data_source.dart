@@ -1,4 +1,5 @@
 import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/coupon_model.dart';
@@ -40,9 +41,9 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
     try {
       final response = await apiClient.dio.get('/coupons/my');
       final raw = response.data;
-      print('=== COUPONS RAW ===');
-      print(raw);
-      print('===================');
+      debugPrint('=== COUPONS RAW ===');
+      debugPrint(raw?.toString());
+      debugPrint('===================');
       if (raw is List) {
         final results = <CouponModel>[];
         for (final item in raw) {
@@ -51,7 +52,7 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
               results.add(CouponModel.fromJson(Map<String, dynamic>.from(item)));
             }
           } catch (e, st) {
-            print('Coupon parsing error: $e\n$st');
+            debugPrint('Coupon parsing error: $e\n$st');
           }
         }
         return results;
@@ -64,7 +65,7 @@ class CouponsRemoteDataSourceImpl implements CouponsRemoteDataSource {
               results.add(CouponModel.fromJson(Map<String, dynamic>.from(item)));
             }
           } catch (e, st) {
-            print('Coupon parsing error: $e\n$st');
+            debugPrint('Coupon parsing error: $e\n$st');
           }
         }
         return results;

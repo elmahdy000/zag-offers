@@ -119,7 +119,9 @@ class NotificationService {
       _fcmToken = null;
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('fcm_token');
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('Failed to remove FCM token: $e');
+    }
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {

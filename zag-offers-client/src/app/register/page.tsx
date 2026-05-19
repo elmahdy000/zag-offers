@@ -58,7 +58,7 @@ export default function RegisterPage() {
       });
       
       localStorage.setItem('token', res.data.access_token);
-      localStorage.setItem('user', JSON.stringify(res.data));
+      localStorage.setItem('user', JSON.stringify(res.data.user));
       window.dispatchEvent(new Event('auth-change'));
       router.replace('/');
     } catch (err: any) {

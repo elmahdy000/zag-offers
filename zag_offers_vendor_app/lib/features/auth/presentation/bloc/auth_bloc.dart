@@ -82,8 +82,6 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         return;
       }
       
-      // Register FCM token with backend now that the user is authenticated
-      await NotificationService.sendTokenToBackend();
       emit(AuthAuthenticated(user));
     } on DioException catch (e) {
       emit(AuthError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تسجيل الدخول')));
@@ -96,11 +94,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CheckAuthStatus event,
     Emitter<AuthState> emit,
   ) async {
-    final results = await Future.wait([
-      Future.delayed(const Duration(milliseconds: 1500)),
-      authRepository.checkAuthStatus(),
-    ]);
-    final user = results[1] as UserEntity?;
+    final user = await authRepository.checkAuthStatus();
     if (user != null) {
       emit(AuthAuthenticated(user));
     } else {

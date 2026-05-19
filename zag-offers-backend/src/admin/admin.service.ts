@@ -1211,8 +1211,7 @@ export class AdminService {
   }
 
   async getAllBanners() {
-    const prismaAny = this.prisma as any;
-    return prismaAny.banner.findMany({
+    return this.prisma.banner.findMany({
       orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
   }
@@ -1232,8 +1231,7 @@ export class AdminService {
     const title = data.title?.trim();
     if (!title) throw new BadRequestException('Banner title is required');
 
-    const prismaAny = this.prisma as any;
-    const created = await prismaAny.banner.create({
+    const created = await this.prisma.banner.create({
       data: {
         title,
         subtitle: data.subtitle?.trim() || null,
@@ -1276,8 +1274,7 @@ export class AdminService {
     },
     adminId?: string,
   ) {
-    const prismaAny = this.prisma as any;
-    const existing = await prismaAny.banner.findUnique({ where: { id } });
+    const existing = await this.prisma.banner.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Banner not found');
 
     const title = data.title?.trim();
@@ -1285,7 +1282,7 @@ export class AdminService {
       throw new BadRequestException('Banner title cannot be empty');
     }
 
-    const updated = await prismaAny.banner.update({
+    const updated = await this.prisma.banner.update({
       where: { id },
       data: {
         ...(title !== undefined ? { title } : {}),
@@ -1325,11 +1322,10 @@ export class AdminService {
   }
 
   async deleteBanner(id: string, adminId?: string) {
-    const prismaAny = this.prisma as any;
-    const existing = await prismaAny.banner.findUnique({ where: { id } });
+    const existing = await this.prisma.banner.findUnique({ where: { id } });
     if (!existing) throw new NotFoundException('Banner not found');
 
-    const deleted = await prismaAny.banner.delete({ where: { id } });
+    const deleted = await this.prisma.banner.delete({ where: { id } });
 
     if (adminId) {
       await this.auditLogService.log({
@@ -1481,7 +1477,7 @@ export class AdminService {
       );
     }
 
-    this.eventsGateway.broadcastNewOffer({
+    this.eventsGateway.broadcastAnnouncement({
       type: 'ANNOUNCEMENT',
       title,
       body,

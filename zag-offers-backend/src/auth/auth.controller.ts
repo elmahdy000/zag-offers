@@ -174,6 +174,7 @@ export class AuthController {
   }
 
   @Post('forgot-password')
+  @Throttle({ strict: { limit: 5, ttl: 60000 } })
   @ApiOperation({ summary: 'إرسال كود استعادة كلمة المرور عبر البريد' })
   @ApiBody({
     schema: {
@@ -187,6 +188,7 @@ export class AuthController {
   }
 
   @Post('reset-password')
+  @Throttle({ strict: { limit: 10, ttl: 60000 } })
   @ApiOperation({ summary: 'إعادة تعيين كلمة المرور باستخدام الكود' })
   @ApiBody({
     schema: {

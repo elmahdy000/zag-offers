@@ -72,16 +72,12 @@ _axiosInstance.interceptors.request.use((config) => {
 _axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
-    console.error('API Error Message:', error.message);
-    if (error.response) {
-      console.error('API Error Status:', error.response.status);
-      if (error.response.status === 401 && typeof window !== 'undefined') {
-        deleteCookie('admin_token');
+    if (error.response?.status === 401) {
+      document.cookie = 'admin_token=; path=/; max-age=0';
+      localStorage.removeItem('admin_user');
+      if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';
       }
-    }
-    if (error.config) {
-      console.error('API Error Path:', error.config.url);
     }
     return Promise.reject(error);
   }

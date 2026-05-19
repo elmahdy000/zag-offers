@@ -23,11 +23,11 @@ export default function Providers({ children }: { children: React.ReactNode }) {
 
   return (
     <QueryClientProvider client={queryClient}>
-      <SocketProvider>
-        <ToastProvider>
+      <ToastProvider>
+        <SocketProvider>
           {children}
-        </ToastProvider>
-      </SocketProvider>
+        </SocketProvider>
+      </ToastProvider>
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}

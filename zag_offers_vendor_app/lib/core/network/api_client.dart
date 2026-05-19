@@ -2,7 +2,11 @@ import 'package:dio/dio.dart';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
 
+typedef UnauthorizedCallback = void Function();
+
 class ApiClient {
+  static UnauthorizedCallback? onUnauthorized;
+
   late final Dio dio;
   final FlutterSecureStorage secureStorage;
 
@@ -32,6 +36,7 @@ class ApiClient {
           if (e.response?.statusCode == 401) {
             await secureStorage.delete(key: 'auth_token');
             await secureStorage.delete(key: 'user_data');
+            ApiClient.onUnauthorized?.call();
           }
           return handler.next(e);
         },

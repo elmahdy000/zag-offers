@@ -72,14 +72,19 @@ function HomePageContent() {
   const fetchData = useCallback(async (force = false) => {
     // Try to load from cache first
     const cachedData = localStorage.getItem(CACHE_KEY);
-    if (cachedData && offers.length === 0) {
+    if (cachedData) {
       const parsed = JSON.parse(cachedData);
-      setOffers(parsed.offers || []);
-      setCategories(parsed.categories || []);
-      setStores(parsed.stores || []);
-      setRecommended(parsed.recommended || []);
-      setBanners(parsed.banners || []);
-      setLoading(false);
+      const age = Date.now() - (parsed.timestamp || 0);
+      if (age > CACHE_DURATION) {
+        localStorage.removeItem(CACHE_KEY);
+      } else if (offers.length === 0) {
+        setOffers(parsed.offers || []);
+        setCategories(parsed.categories || []);
+        setStores(parsed.stores || []);
+        setRecommended(parsed.recommended || []);
+        setBanners(parsed.banners || []);
+        setLoading(false);
+      }
     }
 
     try {
@@ -161,6 +166,7 @@ function HomePageContent() {
   // Polling fallback when socket is not connected
   useEffect(() => {
     if (isConnected) return;
+    if (!navigator.onLine) return;
 
     const interval = setInterval(() => {
       fetchDataRef.current(true);
@@ -310,13 +316,11 @@ function HomePageContent() {
                 className="group relative flex-shrink-0 w-[85vw] sm:w-[500px] h-[160px] sm:h-[200px] rounded-[2rem] overflow-hidden border border-white/5 bg-[#252525] transition-all duration-500 hover:border-[#FF6B00]/30"
               >
                 {banner.image ? (
-                  <Image
+                  <img
                     src={resolveImageUrl(banner.image)}
                     alt={banner.title}
-                    fill
-                    className="object-cover transition-all duration-700 group-hover:scale-105"
-                    sizes="(max-width: 640px) 85vw, 500px"
-                    quality={80}
+                    className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
+                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B00]/20 to-[#D95A00]/10" />
@@ -388,7 +392,7 @@ function HomePageContent() {
                   >
                     <div className="absolute inset-0 bg-[#151515]">
                       <Image 
-                        src={c.image ? resolveImageUrl(c.image) : (c.icon ? resolveImageUrl(c.icon) : (CAT_ASSETS[c.name] || CAT_ASSETS.default))} 
+                        src={c.image ? resolveImageUrl(c.image)! : (c.icon ? resolveImageUrl(c.icon)! : (CAT_ASSETS[c.name] || CAT_ASSETS.default))} 
                         alt={c.name} 
                         fill
                         className={`object-cover transition-all duration-700 ${activeCat === c.id ? 'scale-110 blur-[1px]' : 'group-hover:scale-110'}`} 
@@ -479,7 +483,7 @@ function HomePageContent() {
                   <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
                     {store.logo ? (
                       <Image 
-                        src={resolveImageUrl(store.logo)} 
+                        src={resolveImageUrl(store.logo)!} 
                         alt={store.name} 
                         width={56}
                         height={56}

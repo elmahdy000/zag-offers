@@ -233,7 +233,7 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
                     {review.customer.avatar ? (
-                      <img src={resolveImageUrl(review.customer.avatar)} className="h-full w-full object-cover rounded-2xl" />
+                      <img src={resolveImageUrl(review.customer.avatar)} className="h-full w-full object-cover rounded-2xl" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <User className="text-white/20" size={20} />
                     )}
@@ -272,7 +272,7 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide pr-2">
                   {review.images.map((img, i) => (
                     <div key={i} className="w-24 h-24 rounded-2xl overflow-hidden border border-white/5 shrink-0 bg-white/5">
-                      <img src={resolveImageUrl(img)} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-zoom-in" />
+                      <img src={resolveImageUrl(img)} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-zoom-in" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     </div>
                   ))}
                 </div>

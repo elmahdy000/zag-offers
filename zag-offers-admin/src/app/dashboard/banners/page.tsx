@@ -122,6 +122,11 @@ export default function BannersPage() {
     const file = e.target.files?.[0];
     if (!file) return;
 
+    if (file.size > 5 * 1024 * 1024) {
+      showToast('حجم الصورة يجب أن لا يتجاوز 5 ميجابايت', 'error');
+      return;
+    }
+
     setIsUploading(true);
     try {
       const fd = new FormData();

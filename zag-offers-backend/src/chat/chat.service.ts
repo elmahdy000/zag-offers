@@ -10,11 +10,11 @@ export class ChatService {
   ) {}
 
   private get conversation() {
-    return (this.prisma as any).conversation;
+    return this.prisma.conversation;
   }
 
   private get message() {
-    return (this.prisma as any).message;
+    return this.prisma.message;
   }
 
   async getConversations(userId: string, role: string) {
@@ -121,7 +121,7 @@ export class ChatService {
 
     if (existing) return existing;
 
-    const admin = await (this.prisma as any).user.findFirst({
+    const admin = await this.prisma.user.findFirst({
       where: { role: 'ADMIN' },
       select: { id: true },
     });

@@ -100,7 +100,6 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
   Future<void> _onCreateOfferRequested(
       CreateOfferRequested event, Emitter<OffersState> emit) async {
-    emit(OffersLoading());
     try {
       await createOfferUseCase(event.offer);
       emit(OfferActionSuccess('تم إضافة العرض بنجاح وبانتظار المراجعة'));
@@ -114,7 +113,6 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
   Future<void> _onUpdateOfferRequested(
       UpdateOfferRequested event, Emitter<OffersState> emit) async {
-    emit(OffersLoading());
     try {
       await updateOfferUseCase(event.offer);
       emit(OfferActionSuccess('تم تحديث العرض بنجاح'));
@@ -128,7 +126,6 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
   Future<void> _onDeleteOfferRequested(
       DeleteOfferRequested event, Emitter<OffersState> emit) async {
-    emit(OffersLoading());
     try {
       await deleteOfferUseCase(event.id);
       emit(OfferActionSuccess('تم حذف العرض بنجاح'));

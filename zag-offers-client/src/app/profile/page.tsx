@@ -5,6 +5,7 @@ import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronLeft, Shield,
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
+import { API_URL } from '@/lib/constants';
 
 interface User {
   name: string;
@@ -32,7 +33,14 @@ export default function ProfilePage() {
     }
   }, [router]);
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    const token = localStorage.getItem('token');
+    try {
+      await fetch(`${API_URL}/auth/logout`, {
+        method: 'POST',
+        headers: { Authorization: `Bearer ${token}` }
+      });
+    } catch { /* silent */ }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
     router.replace('/login');

@@ -231,6 +231,7 @@ model Review {
 
   createdAt DateTime @default(now())
 
+  @@unique([storeId, customerId])
   @@index([storeId])
   @@index([customerId])
   @@index([rating])

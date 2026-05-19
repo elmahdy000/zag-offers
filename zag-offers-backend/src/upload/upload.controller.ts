@@ -15,6 +15,7 @@ import {
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
+import { Throttle } from '@nestjs/throttler';
 
 import { UploadService } from './upload.service';
 
@@ -25,6 +26,7 @@ export class UploadController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
+  @Throttle({ short: { limit: 3, ttl: 10000 }, medium: { limit: 20, ttl: 3600000 } })
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'رفع صورة جديدة ومعالجتها (تغيير حجم وتحويل لـ WebP)',
@@ -54,7 +56,7 @@ export class UploadController {
         }
         cb(null, true);
       },
-      limits: { fileSize: 20 * 1024 * 1024 }, // 20MB limit (raw)
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5MB limit (raw)
     }),
   )
   async uploadFile(@UploadedFile() file: Express.Multer.File) {

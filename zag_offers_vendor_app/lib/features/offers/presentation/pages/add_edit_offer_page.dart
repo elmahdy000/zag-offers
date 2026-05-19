@@ -76,13 +76,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     final oldPrice = double.tryParse(oldPriceText);
     final newPrice = double.tryParse(newPriceText);
 
-    if (oldPrice != null && newPrice != null && oldPrice > 0) {
-      final discount = ((oldPrice - newPrice) / oldPrice) * 100;
-      if (discount > 0) {
-        _discountController.text = '${discount.toStringAsFixed(0)}%';
-      } else {
-        _discountController.text = '0%';
-      }
+    if (oldPrice == null || newPrice == null) return;
+    if (oldPrice <= 0) return;
+    final discount = ((oldPrice - newPrice) / oldPrice) * 100;
+    if (discount > 0) {
+      _discountController.text = '${discount.toStringAsFixed(0)}%';
+    } else {
+      _discountController.text = '0%';
     }
   }
 
@@ -176,6 +176,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   void _onPreview() {
     HapticFeedback.mediumImpact();
     if (_formKey.currentState!.validate()) {
+      if (_endDate.isBefore(_startDate) || _endDate.isAtSameMomentAs(_startDate)) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية')),
+        );
+        return;
+      }
+
       if (_imageUrls.isEmpty) {
         SnackBarUtils.showError(context, 'الرجاء إضافة صورة واحدة على الأقل للعرض');
         return;

@@ -105,6 +105,7 @@ class SocketService {
     _socket?.dispose();
     _socket = null;
     _isConnected = false;
+    _eventHandlers.clear();
   }
 
   void updateToken(String token) async {

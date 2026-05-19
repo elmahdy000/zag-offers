@@ -16,6 +16,10 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  final currentCtrl = TextEditingController();
+  final newCtrl = TextEditingController();
+  final confirmCtrl = TextEditingController();
+
   @override
   void initState() {
     super.initState();
@@ -26,10 +30,15 @@ class _ProfilePageState extends State<ProfilePage> {
     }
   }
 
+  @override
+  void dispose() {
+    currentCtrl.dispose();
+    newCtrl.dispose();
+    confirmCtrl.dispose();
+    super.dispose();
+  }
+
   void _showChangePasswordDialog(BuildContext context) {
-    final currentCtrl = TextEditingController();
-    final newCtrl = TextEditingController();
-    final confirmCtrl = TextEditingController();
     final formKey = GlobalKey<FormState>();
     bool obscureCurrent = true;
     bool obscureNew = true;

@@ -2,9 +2,9 @@ import { describe, it, expect } from 'vitest';
 import { resolveImageUrl, formatDiscount, calculateDaysLeft } from './utils';
 
 describe('resolveImageUrl', () => {
-  it('should return empty string for null/undefined path', () => {
-    expect(resolveImageUrl(null)).toBe('');
-    expect(resolveImageUrl(undefined)).toBe('');
+  it('should return undefined for null/undefined path', () => {
+    expect(resolveImageUrl(null)).toBeUndefined();
+    expect(resolveImageUrl(undefined)).toBeUndefined();
   });
 
   it('should return path as-is if it starts with http', () => {
@@ -21,7 +21,7 @@ describe('resolveImageUrl', () => {
 
   it('should not double-add /uploads/ if already present', () => {
     const path = '/uploads/image.jpg';
-    const result = resolveImageUrl(path);
+    const result = resolveImageUrl(path)!;
     expect(result.split('/uploads/').length).toBe(2);
   });
 });

@@ -6,7 +6,7 @@ import { Store as StoreIcon, MapPin, Tag, ArrowLeft, Search } from 'lucide-react
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
-import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
+import { ErrorDisplay } from '@/components/error-display';
 
 import { API_URL, BASE_URL } from '@/lib/constants';
 
@@ -19,11 +19,20 @@ export default function StoresListPage() {
   const [search, setSearch] = useState('');
 
   const fetchStores = useCallback(async () => {
-    const cached = safeJsonParse<Store[]>(localStorage.getItem('cache_stores_list'), []);
+    const cachedRaw = localStorage.getItem('cache_stores_list');
     
-    if (cached.length > 0 && stores.length === 0) {
-      setStores(cached);
-      setLoading(false);
+    if (cachedRaw && stores.length === 0) {
+      const parsed = JSON.parse(cachedRaw);
+      const cacheTs = parseInt(localStorage.getItem('cache_stores_list_ts') || '0', 10);
+      const age = Date.now() - cacheTs;
+      if (age > 5 * 60 * 1000) {
+        localStorage.removeItem('cache_stores_list');
+        localStorage.removeItem('cache_stores_list_ts');
+      } else {
+        const data = Array.isArray(parsed) ? parsed : (parsed.data || []);
+        setStores(data);
+        setLoading(false);
+      }
     }
 
     try {
@@ -34,11 +43,12 @@ export default function StoresListPage() {
         const validStores = storesData.filter((s: Store) => s && s.id && s.name);
         setStores(validStores);
         localStorage.setItem('cache_stores_list', JSON.stringify(validStores));
+        localStorage.setItem('cache_stores_list_ts', String(Date.now()));
       }
       setError(null);
     } catch (e) { 
       console.error('Failed to fetch stores (offline?):', e); 
-      if (!cached.length) {
+      if (!cachedRaw) {
         setError('فشل تحميل المتاجر. يرجى التأكد من اتصالك بالإنترنت.');
       }
     } finally { 

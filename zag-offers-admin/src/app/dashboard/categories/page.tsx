@@ -264,7 +264,7 @@ export default function CategoriesPage() {
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
-                  upsertMutation.mutate(formData);
+                  upsertMutation.mutate({ ...formData, image: formData.image || null });
                 }}
                 className="space-y-6"
               >

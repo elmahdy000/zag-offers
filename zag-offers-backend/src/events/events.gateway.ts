@@ -321,6 +321,10 @@ export class EventsGateway
     client.emit('pong', { timestamp: new Date().toISOString() });
   }
 
+  broadcastAnnouncement(data: { type: string; title: string; body: string; area?: string }) {
+    this.server.emit('announcement', data);
+  }
+
   broadcastNewOffer(offer: WsNewOffer | Record<string, unknown>) {
     const offerTitle =
       'title' in offer && typeof offer.title === 'string' ? offer.title : 'N/A';

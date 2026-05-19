@@ -13,7 +13,6 @@ import {
 } from 'react-icons/ri';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import Image from 'next/image';
 import { BASE_URL, API_URL } from '@/lib/constants';
 import { resolveImageUrl, calculateDaysLeft, formatDiscount } from '@/lib/utils';
 
@@ -23,9 +22,9 @@ interface Offer {
   discount: string;
   endDate: string;
   images: string[];
-  featured?: boolean;
+  isFeatured?: boolean;
   originalPrice?: number;
-  newPrice?: number;
+  discountedPrice?: number;
   store: {
     id: string;
     name: string;
@@ -193,20 +192,17 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
       <div className={`relative h-[116px] bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
 
         {offerImage && (
-          <Image
+          <img
             src={offerImage}
             alt={offer.title}
-            fill
-            className="object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
-            sizes="(max-width: 768px) 50vw, (max-width: 1200px) 33vw, 20vw"
-            quality={75}
-            priority={priority}
+            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         )}
 
         <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/5" />
 
-        {offer.featured && (
+        {offer.isFeatured && (
           <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
                           text-[#1a1a1a] text-[7px] font-semibold rounded-md shadow-lg">
             ⭐ مميز
@@ -235,15 +231,11 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
                         bg-[#1E1E1E] overflow-hidden shadow-lg
                         flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
           {logoUrl
-            ? <Image
+            ? <img
                 src={logoUrl}
                 alt={offer.store?.name || 'Store Logo'}
-                width={32}
-                height={32}
                 className="w-full h-full object-cover"
-                loading="lazy"
-                sizes="32px"
-                quality={80}
+                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
             : <div className="text-white/20 scale-75">{catIcon}</div>
           }
@@ -264,10 +256,10 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
           {offer.title}
         </h3>
 
-        {offer.newPrice ? (
+        {offer.discountedPrice ? (
           <div className="flex items-baseline gap-1.5 mt-0.5">
             <span className="text-[13px] font-bold text-[#FF6B00]">
-              {offer.newPrice} ج.م
+              {offer.discountedPrice} ج.م
             </span>
             {offer.originalPrice && (
               <span className="text-[8px] text-[#9A9A9A] line-through font-semibold">
