@@ -27,6 +27,7 @@ class AllOffersPage extends StatefulWidget {
 
 class _AllOffersPageState extends State<AllOffersPage> {
   late String _selectedCategory;
+  final ScrollController _categoryScrollController = ScrollController();
 
   String _currentArea = 'الكل';
   double _minDiscount = 0;
@@ -46,7 +47,25 @@ class _AllOffersPageState extends State<AllOffersPage> {
 
   @override
   void dispose() {
+    _categoryScrollController.dispose();
     super.dispose();
+  }
+
+  void _scrollToSelectedCategory(List<CategoryEntity> categories) {
+    if (_selectedCategory == 'الكل') return;
+    final index = categories.indexWhere((c) => c.name == _selectedCategory);
+    if (index == -1) return;
+    final targetIndex = index + 1;
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      if (_categoryScrollController.hasClients) {
+        _categoryScrollController.animateTo(
+          targetIndex * 76.0,
+          duration: const Duration(milliseconds: 300),
+          curve: Curves.easeOut,
+        );
+      }
+    });
   }
 
 
@@ -104,7 +123,12 @@ class _AllOffersPageState extends State<AllOffersPage> {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     return Scaffold(
-      body: BlocBuilder<OffersBloc, OffersState>(
+      body: BlocListener<OffersBloc, OffersState>(
+        listenWhen: (_, current) => current is OffersLoaded && current.categories.isNotEmpty,
+        listener: (_, state) {
+          if (state is OffersLoaded) _scrollToSelectedCategory(state.categories);
+        },
+        child: BlocBuilder<OffersBloc, OffersState>(
         builder: (context, state) {
           final dynamicCategories = state is OffersLoaded ? state.categories : const <CategoryEntity>[];
           final hasBackendCategories = dynamicCategories.isNotEmpty;
@@ -171,6 +195,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                       SizedBox(
                         height: 90,
                         child: ListView.builder(
+                          controller: _categoryScrollController,
                           scrollDirection: Axis.horizontal,
                           physics: const BouncingScrollPhysics(),
                           itemCount: categoryCount,
@@ -188,6 +213,13 @@ class _AllOffersPageState extends State<AllOffersPage> {
                                 onTap: () {
                                   HapticFeedback.lightImpact();
                                   setState(() => _selectedCategory = categoryBackendName);
+                                  if (!isAll && _categoryScrollController.hasClients) {
+                                    _categoryScrollController.animateTo(
+                                      index * 76.0,
+                                      duration: const Duration(milliseconds: 300),
+                                      curve: Curves.easeOut,
+                                    );
+                                  }
                                   context.read<OffersBloc>().add(FetchAllOffers(
                                     categoryId: categoryBackendName == 'الكل' ? null : categoryBackendName,
                                   ));
@@ -252,6 +284,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
             ],
           );
         },
+      ),
       ),
     );
   }
