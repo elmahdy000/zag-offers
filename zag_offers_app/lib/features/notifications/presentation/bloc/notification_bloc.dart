@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'dart:convert';
+import 'dart:developer';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import '../../domain/repositories/notifications_repository.dart';
@@ -42,7 +43,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
           final items = decoded.map((e) => NotificationItemEntity.fromJson(e)).toList();
           emit(NotificationFeedState(items: items));
         }
-      } catch (_) {}
+      } catch (e) {
+        log('⚠️ Failed to load notifications from local storage: $e');
+      }
     }
 
     // 2. Load from server if requested
@@ -171,6 +174,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       final prefs = await SharedPreferences.getInstance();
       final String encoded = json.encode(items.map((e) => e.toJson()).toList());
       await prefs.setString(_storageKey, encoded);
-    } catch (_) {}
+    } catch (e) {
+      log('❌ Error saving notifications to local storage: $e');
+    }
   }
 }

@@ -124,7 +124,9 @@ class NotificationService {
         '/notifications/fcm-token',
         data: {'fcmToken': token},
       );
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('❌ Error sending FCM token to server: $e');
+    }
   }
 
   static Future<void> removeTokenFromBackend() async {
@@ -138,7 +140,9 @@ class NotificationService {
       final prefs = await SharedPreferences.getInstance();
       await prefs.remove('fcm_token');
       await prefs.remove('last_area_topic');
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('❌ Error removing FCM token: $e');
+    }
   }
 
   static Future<void> subscribeToArea(String? area) async {
@@ -166,7 +170,9 @@ class NotificationService {
     try {
       final topic = _formatTopic(area);
       await _messaging.unsubscribeFromTopic(topic);
-    } catch (_) {}
+    } catch (e) {
+      debugPrint('❌ Error unsubscribing from topic $area: $e');
+    }
   }
 
   static String _formatTopic(String name) {
@@ -246,7 +252,7 @@ class NotificationService {
         NotificationDetails(android: androidPlatformChannelSpecifics);
     
     await _localNotifications.show(
-      DateTime.now().millisecond,
+      DateTime.now().microsecondsSinceEpoch,
       title,
       body,
       platformChannelSpecifics,

@@ -388,8 +388,11 @@ export class AdminService {
         ...(payload.whatsapp !== undefined
           ? { whatsapp: payload.whatsapp }
           : {}),
-        ...(payload.logo !== undefined ? { logo: payload.logo } : {}),
-        ...(payload.coverImage !== undefined
+        // Only update logo/coverImage if a non-empty value is provided (prevents wiping images on form save)
+        ...(payload.logo !== undefined && payload.logo !== ''
+          ? { logo: payload.logo }
+          : {}),
+        ...(payload.coverImage !== undefined && payload.coverImage !== ''
           ? { coverImage: payload.coverImage }
           : {}),
         ...(payload.images !== undefined ? { images: payload.images } : {}),
@@ -1481,34 +1484,48 @@ export class AdminService {
     adminId: string;
   }) {
     const { title, body, area, imageUrl, adminId } = params;
-    if (!area) {
-      throw new BadRequestException('area is required for broadcast');
-    }
-    await this.notificationsService.sendToArea(
-      area,
-      title,
-      body,
-      {
-        type: 'ANNOUNCEMENT',
-      },
-      imageUrl,
-    );
 
-    this.eventsGateway.broadcastAnnouncement({
-      type: 'ANNOUNCEMENT',
-      title,
-      body,
-      area,
-    });
+    if (area) {
+      // Send to a specific area
+      await this.notificationsService.sendToArea(
+        area,
+        title,
+        body,
+        { type: 'ANNOUNCEMENT' },
+        imageUrl,
+      );
+      this.eventsGateway.broadcastAnnouncement({
+        type: 'ANNOUNCEMENT',
+        title,
+        body,
+        area,
+      });
+    } else {
+      // No area specified → send to ALL users
+      await this.notificationsService.sendToAll(
+        title,
+        body,
+        { type: 'ANNOUNCEMENT' },
+        imageUrl,
+      );
+      this.eventsGateway.broadcastAnnouncement({
+        type: 'ANNOUNCEMENT',
+        title,
+        body,
+        area: 'all',
+      });
+    }
 
     await this.auditLogService.log({
       action: 'SEND_BROADCAST',
       adminId,
-      details: `Title: ${title}, Area: ${area}}`,
+      details: `Title: ${title}, Area: ${area || 'all'}`,
     });
     return {
       success: true,
-      message: `Announcement sent to area ${area}`,
+      message: area
+        ? `Announcement sent to area ${area}`
+        : 'Announcement sent to all users',
     };
   }
 

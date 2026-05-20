@@ -54,6 +54,7 @@ class _SplashPageState extends State<SplashPage>
     if (token != null && token.isNotEmpty) {
       // Sync FCM token even for returning users to ensure server has it
       NotificationService.sendTokenToBackend();
+      NotificationService.checkPendingNotification();
       
       Navigator.pushReplacement(
         context,
