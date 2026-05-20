@@ -640,13 +640,9 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   icon: const Icon(Icons.gps_fixed_rounded, color: Colors.white, size: 20),
                   onPressed: () {
                     HapticFeedback.lightImpact();
-                    if (_mapController != null) {
-                      final double userLat = LocationService.userLatitude ?? _zagazigLat;
-                      final double userLng = LocationService.userLongitude ?? _zagazigLng;
-                      _mapController!.animateCamera(
-                        CameraUpdate.newLatLngZoom(LatLng(userLat, userLng), 15.0),
-                      );
-                    }
+                    final double userLat = LocationService.userLatitude ?? _zagazigLat;
+                    final double userLng = LocationService.userLongitude ?? _zagazigLng;
+                    _mapController.move(ll.LatLng(userLat, userLng), 15.0);
                   },
                 ),
               ),
