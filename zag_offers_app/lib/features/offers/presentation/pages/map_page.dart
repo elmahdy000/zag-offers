@@ -74,7 +74,21 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   void _prepareStores() {
-    _validStores = widget.stores.isNotEmpty ? widget.stores : [];
+    final Map<String, StoreEntity> uniqueStoresMap = {};
+    
+    // Add stores from featured stores list
+    for (var store in widget.stores) {
+      uniqueStoresMap[store.id] = store;
+    }
+    
+    // Dynamically extract stores from the offers list (very useful if featuredStores is empty)
+    for (var offer in widget.offers) {
+      if (offer.store != null) {
+        uniqueStoresMap[offer.store.id] = offer.store;
+      }
+    }
+    
+    _validStores = uniqueStoresMap.values.toList();
     _filteredStores = List.from(_validStores);
     _prepareRadarNodes();
   }
