@@ -559,24 +559,56 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
       final storeColor = _getCategoryColor(node.store.category);
 
-      final nodeChild = ClipOval(
-        child: node.store.logo != null && node.store.logo!.isNotEmpty
-            ? Image.network(
-                node.store.logo!,
-                width: double.infinity,
-                height: double.infinity,
-                fit: BoxFit.cover,
-                errorBuilder: (_, __, ___) => Icon(
+      final nodeChild = Stack(
+        clipBehavior: Clip.none,
+        children: [
+          Positioned.fill(
+            child: ClipOval(
+              child: node.store.logo != null && node.store.logo!.isNotEmpty
+                  ? Image.network(
+                      node.store.logo!,
+                      width: double.infinity,
+                      height: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Icon(
+                        _getCategoryIcon(node.store.category),
+                        color: Colors.white,
+                        size: 14,
+                      ),
+                    )
+                  : Icon(
+                      _getCategoryIcon(node.store.category),
+                      color: Colors.white,
+                      size: 14,
+                    ),
+            ),
+          ),
+          if (node.store.logo != null && node.store.logo!.isNotEmpty)
+            Positioned(
+              right: -3,
+              bottom: -3,
+              child: Container(
+                padding: const EdgeInsets.all(2.5),
+                decoration: BoxDecoration(
+                  color: storeColor,
+                  shape: BoxShape.circle,
+                  border: Border.all(color: const Color(0xFF0F172A), width: 1.5),
+                  boxShadow: [
+                    BoxShadow(
+                      color: storeColor.withOpacity(0.4),
+                      blurRadius: 3,
+                      spreadRadius: 0.5,
+                    ),
+                  ],
+                ),
+                child: Icon(
                   _getCategoryIcon(node.store.category),
                   color: Colors.white,
-                  size: 15,
+                  size: 8,
                 ),
-              )
-            : Icon(
-                _getCategoryIcon(node.store.category),
-                color: Colors.white,
-                size: 15,
               ),
+            ),
+        ],
       );
 
       return Positioned(
