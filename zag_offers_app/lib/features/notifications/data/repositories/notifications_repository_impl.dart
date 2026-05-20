@@ -80,4 +80,16 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       return Left(ServerFailure(e.toString()));
     }
   }
+
+  @override
+  Future<Either<Failure, void>> deleteNotification(String notificationId) async {
+    try {
+      await apiClient.dio.delete('/notifications/$notificationId');
+      return const Right(null);
+    } on DioException catch (e) {
+      return Left(ServerFailure(e.message ?? 'فشل حذف الإشعار'));
+    } catch (e) {
+      return Left(ServerFailure(e.toString()));
+    }
+  }
 }

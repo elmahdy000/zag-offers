@@ -283,7 +283,11 @@ class NotificationService {
        _navigateTab(0);
     } else if (type == 'REVIEW_REPLY') {
        debugPrint('🚀 Navigating to Store (Review Reply)');
-       _navigateNamed('/');
+       if (id != null) {
+         navigateToOffer(id);
+       } else {
+         _navigateNamed('/');
+       }
     } else {
        debugPrint('⚠️ Unknown notification type or missing ID. Defaulting to Home.');
        _navigateNamed('/');

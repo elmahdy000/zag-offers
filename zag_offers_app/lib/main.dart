@@ -53,9 +53,14 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       }
       
       final newItem = {
+        'id': message.messageId ?? DateTime.now().microsecondsSinceEpoch.toString(),
         'title': title,
         'message': body,
         'createdAt': DateTime.now().toIso8601String(),
+        'isRead': false,
+        'type': message.data['type'],
+        'data': message.data.isNotEmpty ? message.data : null,
+        'imageUrl': message.notification?.android?.imageUrl,
       };
       
       items.insert(0, newItem);

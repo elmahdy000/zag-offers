@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
@@ -45,17 +46,56 @@ class NotificationsPage extends StatelessWidget {
                   separatorBuilder: (context, index) => const SizedBox(height: 12),
                   itemBuilder: (context, index) {
                     final item = feedState.items[index];
-                    return _NotificationCard(
-                      item: item,
-                      onTap: () {
-                        if (!item.isRead) {
-                          context.read<NotificationBloc>().add(MarkAsRead(item.id));
-                        }
-                        if (item.data != null) {
-                          NotificationService.checkPendingNotification();
-                          NotificationService.handleNotificationTapFromData(item.data!);
-                        }
+                    return Dismissible(
+                      key: ValueKey(item.id),
+                      direction: DismissDirection.endToStart,
+                      confirmDismiss: (direction) async {
+                        return await showDialog(
+                          context: context,
+                          builder: (ctx) => AlertDialog(
+                            title: Text('حذف الإشعار', style: GoogleFonts.cairo()),
+                            content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: GoogleFonts.cairo()),
+                            actions: [
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, false),
+                                child: Text('إلغاء', style: GoogleFonts.cairo()),
+                              ),
+                              TextButton(
+                                onPressed: () => Navigator.pop(ctx, true),
+                                child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
+                              ),
+                            ],
+                          ),
+                        );
                       },
+                      onDismissed: (_) {
+                        context.read<NotificationBloc>().add(DeleteNotification(item.id));
+                      },
+                      background: Container(
+                        decoration: BoxDecoration(
+                          color: AppColors.error,
+                          borderRadius: BorderRadius.circular(20),
+                        ),
+                        alignment: Alignment.centerRight,
+                        padding: const EdgeInsets.only(right: 24),
+                        child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+                      ),
+                      child: _NotificationCard(
+                        item: item,
+                        onTap: () {
+                          if (!item.isRead) {
+                            context.read<NotificationBloc>().add(MarkAsRead(item.id));
+                          }
+                          if (item.data != null) {
+                            NotificationService.handleNotificationTapFromData(item.data!);
+                          } else {
+                            NotificationService.handleNotificationTapFromData({
+                              'type': item.type,
+                              if (item.id.isNotEmpty) 'id': item.id,
+                            });
+                          }
+                        },
+                      ),
                     );
                   },
                 )
@@ -220,10 +260,18 @@ class _NotificationCard extends StatelessWidget {
     final type = item.type;
     final area = item.data?['area'];
     
-    if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED' || type == 'DIGEST_NEW_OFFERS') {
+    if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED') {
       return _CategoryInfo(
         label: area ?? 'عرض جديد',
         icon: Icons.local_offer_outlined,
+        color: AppColors.textSecondary,
+      );
+    }
+
+    if (type == 'DIGEST_NEW_OFFERS') {
+      return _CategoryInfo(
+        label: 'ملخص العروض',
+        icon: Icons.dashboard_customize_outlined,
         color: AppColors.textSecondary,
       );
     }
@@ -240,6 +288,22 @@ class _NotificationCard extends StatelessWidget {
       return _CategoryInfo(
         label: 'المتجر',
         icon: Icons.storefront_outlined,
+        color: AppColors.textSecondary,
+      );
+    }
+
+    if (type == 'REVIEW_REPLY') {
+      return _CategoryInfo(
+        label: 'رد التاجر',
+        icon: Icons.reply_outlined,
+        color: AppColors.textSecondary,
+      );
+    }
+
+    if (type == 'ANNOUNCEMENT') {
+      return _CategoryInfo(
+        label: 'إعلان',
+        icon: Icons.campaign_outlined,
         color: AppColors.textSecondary,
       );
     }

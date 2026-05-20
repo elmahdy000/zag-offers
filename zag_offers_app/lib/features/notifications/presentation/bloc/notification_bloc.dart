@@ -22,6 +22,7 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
     on<GeneralNotificationReceived>(_onGeneralNotificationReceived);
     on<ClearAllNotifications>(_onClearAllNotifications);
     on<MarkAsRead>(_onMarkAsRead);
+    on<DeleteNotification>(_onDeleteNotification);
     
     // Initial load
     add(LoadNotifications(fromServer: true));
@@ -143,6 +144,19 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
 
     if (!event.notificationId.startsWith('local_')) {
       await repository.markAsRead(event.notificationId);
+    }
+  }
+
+  Future<void> _onDeleteNotification(
+    DeleteNotification event,
+    Emitter<NotificationState> emit,
+  ) async {
+    final currentState = _getCurrentState();
+    final newItems = currentState.items.where((item) => item.id != event.notificationId).toList();
+    emit(currentState.copyWith(items: newItems));
+    await _saveToStorage(newItems);
+    if (!event.notificationId.startsWith('local_')) {
+      await repository.deleteNotification(event.notificationId);
     }
   }
 
