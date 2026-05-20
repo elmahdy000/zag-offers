@@ -117,7 +117,6 @@ class NotificationsPage extends StatelessWidget {
                       Text(
                         'لا توجد إشعارات',
                         style: theme.textTheme.titleMedium?.copyWith(
-                          color: AppColors.textSecondary,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -177,9 +176,7 @@ class _NotificationCard extends StatelessWidget {
                           if (categoryInfo != null)
                             Text(
                               categoryInfo.label,
-                              style: const TextStyle(
-                                color: AppColors.textSecondary,
-                                fontSize: 10,
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 fontWeight: FontWeight.bold,
                                 letterSpacing: 0.5,
                               ),
@@ -187,7 +184,6 @@ class _NotificationCard extends StatelessWidget {
                           Text(
                             _formatTime(item.createdAt),
                             style: theme.textTheme.labelSmall?.copyWith(
-                              color: AppColors.textSecondary.withValues(alpha: 0.5),
                               fontSize: 10,
                             ),
                           ),
@@ -196,10 +192,9 @@ class _NotificationCard extends StatelessWidget {
                       const SizedBox(height: 8),
                       Text(
                         item.title,
-                        style: TextStyle(
+                        style: (item.isRead ? theme.textTheme.bodySmall : theme.textTheme.titleMedium)?.copyWith(
                           fontWeight: item.isRead ? FontWeight.bold : FontWeight.w900,
                           fontSize: 15,
-                          color: item.isRead ? AppColors.textSecondary : AppColors.textPrimary,
                         ),
                       ),
                       const SizedBox(height: 4),
@@ -208,7 +203,6 @@ class _NotificationCard extends StatelessWidget {
                         maxLines: 2,
                         overflow: TextOverflow.ellipsis,
                         style: theme.textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
                           fontSize: 13,
                           height: 1.4,
                         ),
@@ -238,6 +232,7 @@ class _NotificationCard extends StatelessWidget {
   }
 
   Widget _buildLeading(BuildContext context, _CategoryInfo? info) {
+    final t = Theme.of(context);
     return Container(
       width: 48,
       height: 48,
@@ -247,7 +242,7 @@ class _NotificationCard extends StatelessWidget {
       ),
       child: Icon(
         info?.icon ?? Icons.notifications_none_outlined,
-        color: info?.color ?? AppColors.textSecondary,
+        color: info?.color ?? t.textTheme.bodySmall?.color ?? AppColors.textSecondary,
         size: 22,
       ),
     );
