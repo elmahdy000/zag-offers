@@ -2,7 +2,8 @@
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
-import { Image as ImageIcon, Loader2, Pencil, Plus, Trash2 } from 'lucide-react';
+import { Image as ImageIcon, Loader2, Pencil, Plus, Trash2, Tag, Store, ExternalLink } from 'lucide-react';
+import Link from 'next/link';
 
 import { useSocketContext } from '@/components/SocketProvider';
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -18,6 +19,8 @@ type BannerItem = {
   actionUrl?: string | null;
   isActive: boolean;
   priority: number;
+  offer?: { id: string; title: string } | null;
+  store?: { id: string; name: string } | null;
 };
 
 const initialForm = {
@@ -232,10 +235,43 @@ export default function BannersPage() {
                     <div className="flex h-full items-center justify-center text-slate-400">No image</div>
                   )}
                 </div>
-                <div className="mt-3">
+                <div className="mt-3 space-y-1">
                   <div className="text-sm font-bold text-slate-900">{banner.title}</div>
                   <div className="text-xs text-slate-500">{banner.subtitle || '-'}</div>
-                  <div className="mt-2 text-xs text-slate-400">Priority: {banner.priority} | {banner.isActive ? 'Active' : 'Inactive'}{banner.actionUrl ? ' | Has link' : ''}</div>
+                  <div className="text-xs text-slate-400">Priority: {banner.priority} | {banner.isActive ? 'Active' : 'Inactive'}</div>
+                  
+                  {/* وجهة التوجيه */}
+                  <div className="mt-2 text-xs pt-1.5 border-t border-slate-50">
+                    {banner.offer ? (
+                      <Link 
+                        href={`/dashboard/offers/${banner.offer.id}`}
+                        className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:underline"
+                      >
+                        <Tag size={12} />
+                        <span>عرض: {banner.offer.title}</span>
+                      </Link>
+                    ) : banner.store ? (
+                      <Link 
+                        href={`/dashboard/merchants/${banner.store.id}`}
+                        className="inline-flex items-center gap-1 font-bold text-emerald-600 hover:underline"
+                      >
+                        <Store size={12} />
+                        <span>متجر: {banner.store.name}</span>
+                      </Link>
+                    ) : banner.actionUrl ? (
+                      <a 
+                        href={banner.actionUrl}
+                        target="_blank"
+                        rel="noreferrer"
+                        className="inline-flex items-center gap-1 font-bold text-blue-600 hover:underline"
+                      >
+                        <ExternalLink size={12} />
+                        <span>رابط خارجي</span>
+                      </a>
+                    ) : (
+                      <span className="text-slate-400">بدون توجيه</span>
+                    )}
+                  </div>
                 </div>
                 <div className="mt-3 flex gap-2">
                   <button onClick={() => openEdit(banner)} className="flex-1 rounded-xl bg-slate-100 py-2 text-xs font-bold text-slate-700">

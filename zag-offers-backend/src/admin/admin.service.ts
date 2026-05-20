@@ -1205,9 +1205,40 @@ export class AdminService {
   }
 
   async getAllBanners() {
-    return this.prisma.banner.findMany({
+    const banners = await this.prisma.banner.findMany({
       orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
+
+    return Promise.all(
+      banners.map(async (banner) => {
+        let offer = null;
+        let store = null;
+
+        if (banner.actionUrl) {
+          if (banner.actionUrl.startsWith('offer:')) {
+            const offerId = banner.actionUrl.substring(6);
+            const found = await this.prisma.offer.findUnique({
+              where: { id: offerId },
+              select: { id: true, title: true },
+            });
+            if (found) offer = found;
+          } else if (banner.actionUrl.startsWith('store:')) {
+            const storeId = banner.actionUrl.substring(6);
+            const found = await this.prisma.store.findUnique({
+              where: { id: storeId },
+              select: { id: true, name: true },
+            });
+            if (found) store = found;
+          }
+        }
+
+        return {
+          ...banner,
+          offer,
+          store,
+        };
+      }),
+    );
   }
 
   async createBanner(
