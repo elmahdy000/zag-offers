@@ -270,7 +270,11 @@ class NotificationService {
     if ((type == 'NEW_OFFER' || type == 'OFFER_APPROVED') && id != null) {
       debugPrint('🚀 Navigating to Offer: $id');
       navigateToOffer(id);
-    } else if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED') {
+    } else if (type == 'DIGEST_NEW_OFFERS') {
+      debugPrint('🚀 Navigating to Offers Tab');
+      _navigateNamed('/');
+      _navigateTab(1);
+    } else if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED' || type == 'COUPON_SHARED') {
       debugPrint('🚀 Navigating to Coupons Tab');
       _navigateNamed('/');
       _navigateTab(2);

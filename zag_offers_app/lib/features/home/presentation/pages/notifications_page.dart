@@ -276,7 +276,7 @@ class _NotificationCard extends StatelessWidget {
       );
     }
     
-    if (type == 'COUPON_REDEEMED' || type == 'NEW_COUPON' || type == 'COUPON_GENERATED') {
+    if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED' || type == 'COUPON_SHARED') {
       return _CategoryInfo(
         label: 'كوبونات',
         icon: Icons.confirmation_number_outlined,

@@ -207,7 +207,7 @@ class NotificationService {
   static void handleNotificationTapFromData(Map<String, dynamic> data) {
     final type = data['type']?.toString();
     
-    if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED') {
+    if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED' || type == 'COUPON_SHARED') {
       di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
     }
 
@@ -220,8 +220,12 @@ class NotificationService {
       MainLayout.of(context)?.setIndex(1); // Offers
     } else if (type == 'STORE_APPROVED') {
       MainLayout.of(context)?.setIndex(0); // Dashboard
-    } else if (type == 'OFFER_REJECTED') {
+    } else if (type == 'OFFER_REJECTED' || type == 'STORE_REJECTED' || type == 'STORE_SUSPENDED') {
       MainLayout.of(context)?.setIndex(1); // Offers
+    } else if (type == 'OFFER_UPDATED' || type == 'NEW_REVIEW') {
+      MainLayout.of(context)?.setIndex(1); // Offers
+    } else if (type == 'COUPON_SHARED') {
+      MainLayout.of(context)?.setIndex(0); // Dashboard
     } else {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const NotificationsPage()),
