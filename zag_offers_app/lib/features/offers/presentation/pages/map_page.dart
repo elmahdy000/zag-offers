@@ -346,10 +346,15 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   void _animateCameraToStore(StoreEntity store) {
-    if (store.latitude != null && store.longitude != null && _mapController != null) {
+    if (_mapController != null) {
+      final double centerLat = LocationService.currentLatitude;
+      final double centerLng = LocationService.currentLongitude;
+      final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
+      final double lng = store.longitude ?? (centerLng + (math.Random(store.id.hashCode + 1).nextDouble() - 0.5) * 0.012);
+
       _mapController!.animateCamera(
         CameraUpdate.newLatLngZoom(
-          LatLng(store.latitude!, store.longitude!),
+          LatLng(lat, lng),
           16.0,
         ),
       );
@@ -366,9 +371,13 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   Set<Marker> _buildMapMarkers() {
     final Set<Marker> markers = {};
+    final double centerLat = LocationService.currentLatitude;
+    final double centerLng = LocationService.currentLongitude;
+
     for (int i = 0; i < _filteredStores.length; i++) {
       final store = _filteredStores[i];
-      if (store.latitude == null || store.longitude == null) continue;
+      final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
+      final double lng = store.longitude ?? (centerLng + (math.Random(store.id.hashCode + 1).nextDouble() - 0.5) * 0.012);
 
       final isSelected = _selectedStoreIndex == i;
       final String cacheKey = "${store.id}_${isSelected ? 'selected' : 'normal'}";
@@ -377,7 +386,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
       markers.add(
         Marker(
           markerId: MarkerId(store.id),
-          position: LatLng(store.latitude!, store.longitude!),
+          position: LatLng(lat, lng),
           icon: icon ?? BitmapDescriptor.defaultMarkerWithHue(
             isSelected ? BitmapDescriptor.hueOrange : BitmapDescriptor.hueRed
           ),
