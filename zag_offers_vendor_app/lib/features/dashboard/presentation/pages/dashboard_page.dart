@@ -16,6 +16,24 @@ import 'package:zag_offers_vendor_app/features/reviews/presentation/pages/review
 import 'package:zag_offers_vendor_app/injection_container.dart';
 
 class DashboardPage extends StatelessWidget {
+  static final _overviewLabel = GoogleFonts.cairo(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5);
+  static final _userName = GoogleFonts.cairo(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900);
+  static final _pendingBanner = GoogleFonts.cairo(color: Colors.amber.shade800, fontSize: 13, fontWeight: FontWeight.bold);
+  static final _rejectedBanner = GoogleFonts.cairo(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.bold);
+  static final _viewAllBtn = GoogleFonts.cairo(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold);
+  static final _headerStatValue = GoogleFonts.cairo(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, height: 1);
+  static final _headerStatLabel = GoogleFonts.cairo(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500);
+  static final _sectionHeader = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: 0.5);
+  static final _compactActionLabel = GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
+  static final _activityTitle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary);
+  static final _activityCustomer = GoogleFonts.cairo(color: AppColors.textSecondary, fontSize: 10);
+  static final _activityStatusBase = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 9);
+  static final _activityTime = GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 9);
+  static final _emptyStateText = GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 14);
+  static final _noStoreTitle = GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary);
+  static final _noStoreDesc = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary, height: 1.5);
+  static final _noStoreBtn = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold);
+
   const DashboardPage({super.key});
 
   @override
@@ -35,6 +53,7 @@ class DashboardPage extends StatelessWidget {
           context.read<DashboardBloc>().add(GetDashboardStatsRequested());
         },
         child: BlocBuilder<DashboardBloc, DashboardState>(
+          buildWhen: (prev, next) => next is DashboardLoading || next is DashboardLoaded || next is DashboardError || next is DashboardNoStore,
           builder: (context, state) {
             if (state is DashboardNoStore) {
               return _buildNoStoreState(context);
@@ -84,20 +103,11 @@ class DashboardPage extends StatelessWidget {
                                       children: [
                                         Text(
                                           'نظرة عامة',
-                                          style: GoogleFonts.cairo(
-                                            color: Colors.white70,
-                                            fontSize: 12,
-                                            fontWeight: FontWeight.w600,
-                                            letterSpacing: 0.5,
-                                          ),
+                                          style: _overviewLabel,
                                         ),
                                         Text(
                                           user?.name ?? 'تاجرنا المميز',
-                                          style: GoogleFonts.cairo(
-                                            color: Colors.white,
-                                            fontSize: 20,
-                                            fontWeight: FontWeight.w900,
-                                          ),
+                                          style: _userName,
                                         ),
                                       ],
                                     ),
@@ -177,11 +187,7 @@ class DashboardPage extends StatelessWidget {
                           Expanded(
                             child: Text(
                               'متجرك قيد المراجعة. يمكنك إضافة عروضك وسيتم تفعيلها فور اعتماد المتجر.',
-                              style: GoogleFonts.cairo(
-                                color: Colors.amber.shade800,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: _pendingBanner,
                             ),
                           ),
                         ],
@@ -206,11 +212,7 @@ class DashboardPage extends StatelessWidget {
                           Expanded(
                             child: Text(
                               'نعتذر، لقد تم رفض طلب تسجيل متجرك. يرجى التواصل مع الإدارة للتفاصيل.',
-                              style: GoogleFonts.cairo(
-                                color: AppColors.error,
-                                fontSize: 13,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: _rejectedBanner,
                             ),
                           ),
                         ],
@@ -286,11 +288,7 @@ class DashboardPage extends StatelessWidget {
                           onPressed: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
                           child: Text(
                             'عرض الكل',
-                            style: GoogleFonts.cairo(
-                              fontSize: 12,
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                            ),
+                            style: _viewAllBtn,
                           ),
                         ),
                       ],
@@ -342,20 +340,11 @@ class DashboardPage extends StatelessWidget {
         const SizedBox(height: 8),
         Text(
           value,
-          style: GoogleFonts.cairo(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w900,
-            height: 1,
-          ),
+          style: _headerStatValue,
         ),
         Text(
           label,
-          style: GoogleFonts.cairo(
-            color: Colors.white70,
-            fontSize: 10,
-            fontWeight: FontWeight.w500,
-          ),
+          style: _headerStatLabel,
         ),
       ],
     );
@@ -372,12 +361,7 @@ class DashboardPage extends StatelessWidget {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: GoogleFonts.cairo(
-        fontSize: 15,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textPrimary,
-        letterSpacing: 0.5,
-      ),
+      style: _sectionHeader,
     );
   }
 
@@ -400,11 +384,7 @@ class DashboardPage extends StatelessWidget {
           const SizedBox(height: 8),
           Text(
             label,
-            style: GoogleFonts.cairo(
-              fontSize: 11,
-              fontWeight: FontWeight.bold,
-              color: AppColors.textSecondary,
-            ),
+            style: _compactActionLabel,
           ),
         ],
       ),
@@ -443,20 +423,13 @@ class DashboardPage extends StatelessWidget {
                 children: [
                   Text(
                     coupon.offerTitle,
-                    style: GoogleFonts.cairo(
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
-                      color: AppColors.textPrimary,
-                    ),
+                    style: _activityTitle,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
                   Text(
                     'العميل: ${coupon.customerName}',
-                    style: GoogleFonts.cairo(
-                      color: AppColors.textSecondary,
-                      fontSize: 10,
-                    ),
+                    style: _activityCustomer,
                   ),
                 ],
               ),
@@ -466,18 +439,11 @@ class DashboardPage extends StatelessWidget {
               children: [
                 Text(
                   isUsed ? 'تم المسح' : 'طلب جديد',
-                  style: GoogleFonts.cairo(
-                    color: isUsed ? AppColors.success : AppColors.primary,
-                    fontWeight: FontWeight.w900,
-                    fontSize: 9,
-                  ),
+                  style: _activityStatusBase.copyWith(color: isUsed ? AppColors.success : AppColors.primary),
                 ),
                 Text(
                   TimeUtils.getRelativeTime(isUsed ? (coupon.redeemedAt ?? coupon.createdAt) : coupon.createdAt),
-                  style: GoogleFonts.cairo(
-                    color: AppColors.textTertiary,
-                    fontSize: 9,
-                  ),
+                  style: _activityTime,
                 ),
               ],
             ),
@@ -498,7 +464,7 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 16),
             Text(
               'لا توجد نشاطات حالياً',
-              style: GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 14),
+              style: _emptyStateText,
             ),
           ],
         ),
@@ -524,21 +490,13 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 32),
             Text(
               'أهلاً بك في زاج أوفرز!',
-              style: GoogleFonts.cairo(
-                fontSize: 24,
-                fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
-              ),
+              style: _noStoreTitle,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 12),
             Text(
               'لم نجد متجراً مرتبطاً بحسابك بعد. ابدأ بإعداد متجرك الآن لتتمكن من إضافة العروض.',
-              style: GoogleFonts.cairo(
-                fontSize: 14,
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
+              style: _noStoreDesc,
               textAlign: TextAlign.center,
             ),
             const SizedBox(height: 48),
@@ -565,7 +523,7 @@ class DashboardPage extends StatelessWidget {
                 ),
                 child: Text(
                   'إعداد المتجر الآن',
-                  style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+                  style: _noStoreBtn,
                 ),
               ),
             ),

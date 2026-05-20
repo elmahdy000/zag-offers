@@ -68,8 +68,7 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
         body: Center(
           child: AnimatedBuilder(
             animation: _controller,
-            builder: (context, _) {
-              // How many letters to show (0 to _text.length)
+            builder: (context, child) {
               final letterProgress = (_controller.value * 1.4).clamp(0.0, 1.0);
               final visibleCount = (letterProgress * _text.length).floor();
               final showCursor = _controller.value < 0.95;
@@ -77,13 +76,11 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  // Letter-by-letter text
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [
                       for (int i = 0; i < _text.length; i++)
                         _buildLetter(i, visibleCount),
-                      // Typing cursor
                       if (showCursor)
                         Opacity(
                           opacity: _controller.value > 0.75
@@ -98,26 +95,24 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
                         ),
                     ],
                   ),
-
                   const SizedBox(height: 14),
-
-                  // Tagline appears after typing
                   Opacity(
                     opacity: _controller.value > 0.65 ? 1.0 : 0.0,
-                    child: const Text(
-                      'وفّر أكتر مع كل خروجة',
-                      textDirection: TextDirection.rtl,
-                      style: TextStyle(
-                        color: Colors.white,
-                        fontSize: 18,
-                        fontWeight: FontWeight.w700,
-                        letterSpacing: 0.5,
-                      ),
-                    ),
+                    child: child,
                   ),
                 ],
               );
             },
+            child: const Text(
+              'وفّر أكتر مع كل خروجة',
+              textDirection: TextDirection.rtl,
+              style: TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700,
+                letterSpacing: 0.5,
+              ),
+            ),
           ),
         ),
       ),

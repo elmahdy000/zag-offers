@@ -60,6 +60,7 @@ class CategoriesPage extends StatelessWidget {
             ),
           ),
           BlocBuilder<OffersBloc, OffersState>(
+            buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading || next is OffersError,
             builder: (context, state) {
               if (state is OffersLoading) {
                 return const Center(child: CircularProgressIndicator());

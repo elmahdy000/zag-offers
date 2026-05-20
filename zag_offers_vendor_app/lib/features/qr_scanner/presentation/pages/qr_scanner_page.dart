@@ -18,6 +18,13 @@ class _QRScannerPageState extends State<QRScannerPage> {
   bool _isScanned = false;
   final MobileScannerController _controller = MobileScannerController();
 
+  static final _dialogTitleStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold);
+  static final _dialogBodyStyle = GoogleFonts.cairo(fontSize: 14);
+  static final _dialogBtnStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white);
+  static final _resultTitleStyle = GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold);
+  static final _resultDescStyle = GoogleFonts.cairo(fontSize: 16, color: AppColors.textSecondary);
+  static final _resultBtnStyle = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white);
+
   @override
   void dispose() {
     _controller.dispose();
@@ -27,10 +34,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<QRScannerBloc, QRScannerState>(
+      listenWhen: (_, next) => next is QRScannerSuccess || next is QRScannerError,
       listener: (context, state) {
         if (state is QRScannerSuccess) {
           _showResultDialog(context, true, state.message);
-          // تحديث لوحة التحكم بعد التفعيل الناجح
           context.read<DashboardBloc>().add(GetDashboardStatsRequested());
         } else if (state is QRScannerError) {
           _showResultDialog(context, false, state.message);
@@ -40,7 +47,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
         backgroundColor: Colors.black,
         body: Stack(
           children: [
-            // Scanner View
             MobileScanner(
               controller: _controller,
               onDetect: (capture) {
@@ -56,10 +62,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
               },
             ),
 
-            // Custom Overlay
-            _buildOverlay(context),
+            const _ScannerOverlay(),
 
-            // Back Button
             Positioned(
               top: 48,
               left: 24,
@@ -69,7 +73,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
             ),
 
-            // Torch Button
             Positioned(
               bottom: 48,
               left: 48,
@@ -79,7 +82,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
               ),
             ),
 
-            // Manual Input Button
             Positioned(
               bottom: 48,
               right: 48,
@@ -100,7 +102,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('إدخال الكود يدوياً', style: GoogleFonts.cairo(fontWeight: FontWeight.bold), textAlign: TextAlign.center),
+        title: Text('إدخال الكود يدوياً', style: _dialogTitleStyle, textAlign: TextAlign.center),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -108,7 +110,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               controller: controller,
               decoration: InputDecoration(
                 hintText: 'أدخل كود الكوبون هنا',
-                hintStyle: GoogleFonts.cairo(fontSize: 14),
+                hintStyle: _dialogBodyStyle,
                 filled: true,
                 fillColor: AppColors.surface,
                 border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
@@ -133,7 +135,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   padding: const EdgeInsets.symmetric(vertical: 14),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
                 ),
-                child: Text('تفعيل الكوبون', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white)),
+                child: Text('تفعيل الكوبون', style: _dialogBtnStyle),
               ),
             ),
           ],
@@ -142,7 +144,70 @@ class _QRScannerPageState extends State<QRScannerPage> {
     );
   }
 
-  Widget _buildOverlay(BuildContext context) {
+  void _showResultDialog(BuildContext context, bool success, String message) {
+    showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (context) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
+        content: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const SizedBox(height: 16),
+            Icon(
+              success ? Icons.check_circle_outline : Icons.error_outline,
+              color: success ? AppColors.success : AppColors.error,
+              size: 80,
+            ),
+            const SizedBox(height: 24),
+            Text(
+              success ? 'تم التفعيل!' : 'خطأ في التفعيل',
+              style: _resultTitleStyle,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              textAlign: TextAlign.center,
+              style: _resultDescStyle,
+            ),
+            const SizedBox(height: 32),
+            SizedBox(
+              width: double.infinity,
+              child: ElevatedButton(
+                onPressed: () {
+                  Navigator.pop(context);
+                  if (success) {
+                    Navigator.pop(context);
+                  } else {
+                    setState(() => _isScanned = false);
+                    context.read<QRScannerBloc>().add(ResetScanner());
+                  }
+                },
+                style: ElevatedButton.styleFrom(
+                  backgroundColor: success ? AppColors.success : AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 16),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                ),
+                child: Text(
+                  success ? 'حسناً' : 'إعادة المحاولة',
+                  style: _resultBtnStyle,
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _ScannerOverlay extends StatelessWidget {
+  const _ScannerOverlay();
+
+  static final _overlayTitleStyle = GoogleFonts.cairo(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold);
+
+  @override
+  Widget build(BuildContext context) {
     return Stack(
       children: [
         ColorFiltered(
@@ -186,82 +251,12 @@ class _QRScannerPageState extends State<QRScannerPage> {
               const SizedBox(height: 32),
               Text(
                 'ضع كود الكوبون داخل المربع',
-                style: GoogleFonts.cairo(
-                  color: Colors.white,
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                ),
+                style: _overlayTitleStyle,
               ),
             ],
           ),
         ),
       ],
-    );
-  }
-
-  void _showResultDialog(BuildContext context, bool success, String message) {
-    showDialog(
-      context: context,
-      barrierDismissible: false,
-      builder: (context) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        content: Column(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const SizedBox(height: 16),
-            Icon(
-              success ? Icons.check_circle_outline : Icons.error_outline,
-              color: success ? AppColors.success : AppColors.error,
-              size: 80,
-            ),
-            const SizedBox(height: 24),
-            Text(
-              success ? 'تم التفعيل!' : 'خطأ في التفعيل',
-              style: GoogleFonts.cairo(
-                fontSize: 22,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
-            const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.cairo(
-                fontSize: 16,
-                color: AppColors.textSecondary,
-              ),
-            ),
-            const SizedBox(height: 32),
-            SizedBox(
-              width: double.infinity,
-              child: ElevatedButton(
-                onPressed: () {
-                  Navigator.pop(context);
-                  if (success) {
-                    Navigator.pop(context); // العودة للداشبورد
-                  } else {
-                    setState(() => _isScanned = false); // إعادة المحاولة
-                    context.read<QRScannerBloc>().add(ResetScanner());
-                  }
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: success ? AppColors.success : AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                ),
-                child: Text(
-                  success ? 'حسناً' : 'إعادة المحاولة',
-                  style: GoogleFonts.cairo(
-                    fontSize: 16,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                ),
-              ),
-            ),
-          ],
-        ),
-      ),
     );
   }
 }

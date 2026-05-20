@@ -113,6 +113,7 @@ class _AdsSliderState extends State<AdsSlider> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       children: [
         SizedBox(
@@ -188,7 +189,7 @@ class _AdsSliderState extends State<AdsSlider> {
                               ),
                               child: Text(
                                 ad['tag'] ?? '',
-                                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                                style: textTheme.labelSmall?.copyWith(
                                       color: Colors.white,
                                       fontWeight: FontWeight.bold,
                                     ),
@@ -197,7 +198,7 @@ class _AdsSliderState extends State<AdsSlider> {
                             const SizedBox(height: 8),
                             Text(
                               ad['title'] ?? '',
-                              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                              style: textTheme.headlineSmall?.copyWith(
                                     color: Colors.white,
                                     fontWeight: FontWeight.w900,
                                     fontSize: 20,
@@ -205,7 +206,7 @@ class _AdsSliderState extends State<AdsSlider> {
                             ),
                             Text(
                               ad['subtitle'] ?? '',
-                              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                              style: textTheme.bodySmall?.copyWith(
                                     color: Colors.white.withValues(alpha: 0.8),
                                     fontWeight: FontWeight.w500,
                                   ),

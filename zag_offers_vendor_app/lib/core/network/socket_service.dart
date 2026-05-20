@@ -3,6 +3,9 @@ import 'dart:developer';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
+import 'notification_service.dart';
+import '../../injection_container.dart' as di;
+import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
 class SocketService {
   io.Socket? _socket;
@@ -80,7 +83,31 @@ class SocketService {
 
     _socket?.on('merchant_notification', (data) {
       log('WebSocket: Merchant notification received: $data');
-      // Handle real-time notifications (React app compatibility)
+      try {
+        final Map<String, dynamic> notificationData;
+        if (data is String) {
+          notificationData = jsonDecode(data) as Map<String, dynamic>;
+        } else if (data is Map) {
+          notificationData = Map<String, dynamic>.from(data);
+        } else {
+          notificationData = {};
+        }
+
+        final title = notificationData['title']?.toString() ?? 'تنبيه جديد';
+        final body = notificationData['body']?.toString() ?? '';
+        final type = notificationData['type']?.toString();
+
+        log('WebSocket: Processing notification - type: $type, title: $title');
+
+        NotificationService.showLocalNotification(title, body, data: notificationData);
+        NotificationService.saveToHistory(title, body, notificationData);
+
+        if (type == 'COUPON_REDEEMED') {
+          di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
+        }
+      } catch (e) {
+        log('WebSocket: Failed to process merchant notification: $e');
+      }
     });
 
     _socket?.on('new_message', (data) {

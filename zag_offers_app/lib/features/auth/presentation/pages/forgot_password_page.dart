@@ -37,6 +37,8 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
         title: const Text('استعادة كلمة السر'),
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (_, current) => current is AuthError || current is ForgotPasswordSent || current is ResetPasswordSuccess,
+        buildWhen: (prev, next) => (prev is AuthLoading) != (next is AuthLoading),
         listener: (context, state) {
           if (state is AuthError) {
             SnackBarUtils.showError(context, state.message);

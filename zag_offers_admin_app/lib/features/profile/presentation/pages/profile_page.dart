@@ -21,6 +21,7 @@ class ProfilePage extends StatelessWidget {
         title: const Text('إعدادات الحساب'),
       ),
       body: BlocBuilder<AuthBloc, AuthState>(
+        buildWhen: (prev, next) => next is AuthAuthenticated || next is AuthLoading || next is AuthError,
         builder: (context, state) {
           if (state is AuthAuthenticated) {
             final user = state.user;

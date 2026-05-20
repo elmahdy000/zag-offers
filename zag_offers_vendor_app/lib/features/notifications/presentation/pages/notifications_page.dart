@@ -14,6 +14,15 @@ class NotificationsPage extends StatefulWidget {
 }
 
 class _NotificationsPageState extends State<NotificationsPage> {
+  static final _cairoBold = GoogleFonts.cairo(fontWeight: FontWeight.bold);
+  static final _cairoDefault = GoogleFonts.cairo();
+  static final _cairoError = GoogleFonts.cairo(color: AppColors.error);
+  static final _cairoBold18 = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _cairoTextSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _cairo13TextSecondary = GoogleFonts.cairo(fontSize: 13, height: 1.4, color: AppColors.textSecondary);
+  static final _notifBodyStyle = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w500);
+  static final _notifDateStyle = GoogleFonts.cairo(fontSize: 10);
+
   @override
   void initState() {
     super.initState();
@@ -26,13 +35,14 @@ class _NotificationsPageState extends State<NotificationsPage> {
       backgroundColor: AppColors.background,
       appBar: AppBar(
         title: BlocBuilder<NotificationsBloc, NotificationsState>(
+          buildWhen: (prev, next) => next is NotificationsLoaded,
           builder: (context, state) {
             final count = state is NotificationsLoaded
                 ? state.notifications.where((n) => !n.isRead).length
                 : 0;
             return Text(
               count > 0 ? 'الإشعارات ($count)' : 'الإشعارات',
-              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+              style: _cairoBold,
             );
           },
         ),
@@ -41,6 +51,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         elevation: 0,
         actions: [
           BlocBuilder<NotificationsBloc, NotificationsState>(
+            buildWhen: (prev, next) => next is NotificationsLoaded,
             builder: (context, state) {
               if (state is NotificationsLoaded && state.notifications.isNotEmpty) {
                 return Row(
@@ -57,19 +68,19 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         showDialog(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: Text('حذف الإشعارات', style: GoogleFonts.cairo()),
-                            content: Text('هل أنت متأكد من حذف جميع الإشعارات؟', style: GoogleFonts.cairo()),
+                            title: Text('حذف الإشعارات', style: _cairoDefault),
+                            content: Text('هل أنت متأكد من حذف جميع الإشعارات؟', style: _cairoDefault),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx),
-                                child: Text('إلغاء', style: GoogleFonts.cairo()),
+                                child: Text('إلغاء', style: _cairoDefault),
                               ),
                               TextButton(
                                 onPressed: () {
                                   Navigator.pop(ctx);
                                   context.read<NotificationsBloc>().add(DeleteAllNotificationsRequested());
                                 },
-                                child: Text('حذف الكل', style: GoogleFonts.cairo(color: AppColors.error)),
+                                child: Text('حذف الكل', style: _cairoError),
                               ),
                             ],
                           ),
@@ -85,6 +96,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ],
       ),
       body: BlocBuilder<NotificationsBloc, NotificationsState>(
+        buildWhen: (prev, next) => next is NotificationsLoading || next is NotificationsLoaded || next is NotificationsError,
         builder: (context, state) {
           if (state is NotificationsLoading) {
             return const Center(child: CircularProgressIndicator(color: AppColors.primary));
@@ -93,11 +105,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Text(state.message, style: GoogleFonts.cairo(color: AppColors.error)),
+                  Text(state.message, style: _cairoError),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: () => context.read<NotificationsBloc>().add(GetNotificationsRequested()),
-                    child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                    child: Text('إعادة المحاولة', style: _cairoDefault),
                   ),
                 ],
               ),
@@ -123,16 +135,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       return await showDialog(
                         context: context,
                         builder: (ctx) => AlertDialog(
-                          title: Text('حذف الإشعار', style: GoogleFonts.cairo()),
-                          content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: GoogleFonts.cairo()),
+                          title: Text('حذف الإشعار', style: _cairoDefault),
+                          content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: _cairoDefault),
                           actions: [
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, false),
-                              child: Text('إلغاء', style: GoogleFonts.cairo()),
+                              child: Text('إلغاء', style: _cairoDefault),
                             ),
                             TextButton(
                               onPressed: () => Navigator.pop(ctx, true),
-                              child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
+                              child: Text('حذف', style: _cairoError),
                             ),
                           ],
                         ),
@@ -185,18 +197,12 @@ class _NotificationsPageState extends State<NotificationsPage> {
               const SizedBox(height: 24),
               Text(
                 'لا توجد إشعارات حالياً',
-                style: GoogleFonts.cairo(
-                  fontSize: 18,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
+                style: _cairoBold18,
               ),
               const SizedBox(height: 8),
               Text(
                 'سنقوم بتنبيهك عند حدوث أي نشاط جديد',
-                style: GoogleFonts.cairo(
-                  color: AppColors.textSecondary,
-                ),
+                style: _cairoTextSecondary,
               ),
             ],
           ),
@@ -241,9 +247,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
         ),
         title: Text(
           notification.title,
-          style: GoogleFonts.cairo(
+          style: _notifBodyStyle.copyWith(
             fontWeight: notification.isRead ? FontWeight.bold : FontWeight.w900,
-            fontSize: 15,
             color: notification.isRead ? AppColors.textSecondary : AppColors.textPrimary,
           ),
         ),
@@ -253,11 +258,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
             const SizedBox(height: 6),
             Text(
               notification.body,
-              style: GoogleFonts.cairo(
-                fontSize: 13,
-                height: 1.4,
-                color: AppColors.textSecondary,
-              ),
+              style: _cairo13TextSecondary,
             ),
             const SizedBox(height: 8),
             Row(
@@ -266,8 +267,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
                 const SizedBox(width: 4),
                 Text(
                   DateFormat('yyyy/MM/dd - hh:mm a', 'ar').format(notification.createdAt.toLocal()),
-                  style: GoogleFonts.cairo(
-                    fontSize: 10,
+                  style: _notifDateStyle.copyWith(
                     color: AppColors.textSecondary.withValues(alpha: 0.5),
                     fontWeight: FontWeight.w600,
                   ),

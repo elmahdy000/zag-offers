@@ -39,7 +39,6 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _onSearchChanged(String query, BuildContext context) {
-    setState(() {});
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 400), () {
       final trimmed = query.trim();
@@ -170,6 +169,7 @@ class _SearchPageState extends State<SearchPage> {
         ],
       ),
       body: BlocBuilder<OffersBloc, OffersState>(
+        buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading || next is OffersError,
         builder: (context, state) {
           if (state is OffersLoading) {
             return const Center(child: CircularProgressIndicator());
@@ -467,6 +467,7 @@ class _SearchPageState extends State<SearchPage> {
     required String title,
     required String subtitle,
   }) {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -489,7 +490,7 @@ class _SearchPageState extends State<SearchPage> {
             Text(
               title,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
               ),
@@ -498,7 +499,7 @@ class _SearchPageState extends State<SearchPage> {
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: theme.textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
                 height: 1.5,
               ),

@@ -18,13 +18,14 @@ class OfferCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     
     return Container(
       width: isWide ? null : 260,
       margin: const EdgeInsets.symmetric(vertical: 4, horizontal: 2),
       decoration: BoxDecoration(
-        color: Theme.of(context).cardColor,
+        color: theme.cardColor,
         borderRadius: BorderRadius.circular(18),
         border: Border.all(
           color: isDark ? AppColors.borderDark : Colors.black.withValues(alpha: 0.05),
@@ -47,19 +48,12 @@ class OfferCard extends StatelessWidget {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                // 1. TOP: Image Section (Fixed Aspect Ratio)
                 _buildImageSection(context),
-                
-                // 2. MIDDLE: Info Section
                 Expanded(
-                  child: _buildInfoSection(context),
+                  child: _buildInfoSection(context, isDark),
                 ),
-                
-                // 3. SEPARATOR: Coupon Cut-out Line
-                _buildCouponSeparator(context),
-                
-                // 4. BOTTOM: Price & Action Section
-                _buildActionSection(context),
+                _buildCouponSeparator(isDark),
+                _buildActionSection(context, isDark),
               ],
             ),
           ),
@@ -119,8 +113,7 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildInfoSection(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildInfoSection(BuildContext context, bool isDark) {
     
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 8, 10, 4),
@@ -168,67 +161,28 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCouponSeparator(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final cutoutColor = isDark ? AppColors.darkBackground : const Color(0xFFF8F9FA);
-
+  Widget _buildCouponSeparator(bool isDark) {
     return SizedBox(
-      height: 16,
-      child: Stack(
-        alignment: Alignment.center,
-        children: [
-          // Dashed Line
-          Row(
-            children: List.generate(
-              20,
-              (index) => Expanded(
+      height: 12,
+      child: CustomPaint(
+        painter: _DashedLinePainter(isDark: isDark),
+        child: Center(
+          child: Row(
+            children: [
+              Expanded(
                 child: Container(
                   height: 1,
-                  margin: const EdgeInsets.symmetric(horizontal: 2),
                   color: isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05),
                 ),
               ),
-            ),
+            ],
           ),
-          // Left Cutout
-          Positioned(
-            left: -8,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: cutoutColor,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? AppColors.borderDark : Colors.black.withValues(alpha: 0.05),
-                  width: 0.8,
-                ),
-              ),
-            ),
-          ),
-          // Right Cutout
-          Positioned(
-            right: -8,
-            child: Container(
-              width: 16,
-              height: 16,
-              decoration: BoxDecoration(
-                color: cutoutColor,
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: isDark ? AppColors.borderDark : Colors.black.withValues(alpha: 0.05),
-                  width: 0.8,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
-  Widget _buildActionSection(BuildContext context) {
-    final isDark = Theme.of(context).brightness == Brightness.dark;
+  Widget _buildActionSection(BuildContext context, bool isDark) {
     final hasPrice = offer.newPrice != null;
 
     return Padding(
@@ -285,4 +239,26 @@ class OfferCard extends StatelessWidget {
       ),
     );
   }
+}
+
+class _DashedLinePainter extends CustomPainter {
+  final bool isDark;
+  _DashedLinePainter({required this.isDark});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = isDark ? Colors.white10 : Colors.black.withValues(alpha: 0.05)
+      ..strokeWidth = 1;
+    const dashWidth = 5.0;
+    const dashSpace = 4.0;
+    double startX = 0;
+    while (startX < size.width) {
+      canvas.drawLine(Offset(startX, 0), Offset(startX + dashWidth, 0), paint);
+      startX += dashWidth + dashSpace;
+    }
+  }
+
+  @override
+  bool shouldRepaint(_DashedLinePainter old) => old.isDark != isDark;
 }

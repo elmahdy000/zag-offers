@@ -22,6 +22,20 @@ class OffersPage extends StatefulWidget {
 }
 
 class _OffersPageState extends State<OffersPage> {
+  static const _cairoFamily = 'Cairo';
+  static final _c11Secondary = GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary);
+  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
+  static final _c12w700 = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
+  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
+  static final _c13w700Primary = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary);
+  static final _c14w700Primary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c14w700Secondary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
+  static final _c16w700Primary = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary);
+  static final _c18w700 = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold);
+  static final _c18w700Primary = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c20w700Error = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error);
+  static final _c22w700Primary = GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
   String? _selectedStatus;
   String? _selectedMerchantId;
   String? _selectedMerchantName;
@@ -107,7 +121,7 @@ class _OffersPageState extends State<OffersPage> {
                   const SizedBox(width: 8),
                   Text(
                     'تصفية حسب: $_selectedMerchantName',
-                    style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    style: _c13w700Primary,
                   ),
                   const Spacer(),
                   GestureDetector(
@@ -155,9 +169,9 @@ class _OffersPageState extends State<OffersPage> {
                               child: Icon(Icons.local_offer_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
                             ),
                             const SizedBox(height: 24),
-                            Text('لا توجد عروض مطابقة', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                            Text('لا توجد عروض مطابقة', style: _c18w700Primary),
                             const SizedBox(height: 8),
-                            Text('جرب تغيير الفلاتر أو كلمة البحث', style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+                            Text('جرب تغيير الفلاتر أو كلمة البحث', style: _cSecondary),
                           ],
                         ),
                       ),
@@ -215,7 +229,7 @@ class _OffersPageState extends State<OffersPage> {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text('تصفية حسب المتجر', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold)),
+                          Text('تصفية حسب المتجر', style: _c18w700),
                           const SizedBox(height: 16),
                           TextField(
                             controller: searchController,
@@ -233,6 +247,7 @@ class _OffersPageState extends State<OffersPage> {
                     ),
                     Expanded(
                       child: BlocBuilder<MerchantsBloc, MerchantsState>(
+                        buildWhen: (prev, next) => next is MerchantsLoading || next is MerchantsLoaded || next is MerchantsError,
                         builder: (context, state) {
                           if (state is MerchantsLoading) {
                             return const Center(child: CircularProgressIndicator());
@@ -240,7 +255,7 @@ class _OffersPageState extends State<OffersPage> {
                             final filteredMerchants = state.merchants.where((m) => m.storeName.toLowerCase().contains(query)).toList();
 
                             if (filteredMerchants.isEmpty) {
-                              return Center(child: Text('لا يوجد متاجر مطابقة', style: GoogleFonts.cairo(color: AppColors.textSecondary)));
+                              return Center(child: Text('لا يوجد متاجر مطابقة', style: _cSecondary));
                             }
 
                             return ListView.builder(
@@ -260,7 +275,7 @@ class _OffersPageState extends State<OffersPage> {
                                       child: Text(merchant.storeName[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
                                     ),
                                   ),
-                                  title: Text(merchant.storeName, style: GoogleFonts.cairo(fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, color: isSelected ? AppColors.primary : AppColors.textPrimary)),
+                                  title: Text(merchant.storeName, style: isSelected ? _c14w700Primary : GoogleFonts.cairo(color: AppColors.textPrimary)),
                                   trailing: isSelected ? const Icon(IconlyBold.tickSquare, color: AppColors.primary, size: 20) : null,
                                   onTap: () {
                                     setState(() {
@@ -302,7 +317,7 @@ class _OffersPageState extends State<OffersPage> {
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontFamily: GoogleFonts.cairo().fontFamily,
+        fontFamily: _cairoFamily,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
     );
@@ -323,7 +338,7 @@ class _OffersPageState extends State<OffersPage> {
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontFamily: GoogleFonts.cairo().fontFamily,
+        fontFamily: _cairoFamily,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
       showCheckmark: false,
@@ -352,14 +367,14 @@ class _OffersPageState extends State<OffersPage> {
                   Expanded(
                     child: Text(
                       offer.title,
-                      style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                      style: _c22w700Primary,
                     ),
                   ),
                   _buildStatusBadge(offer.status),
                 ],
               ),
               const SizedBox(height: 8),
-              Text(offer.storeName, style: GoogleFonts.cairo(fontSize: 16, color: AppColors.primary, fontWeight: FontWeight.bold)),
+              Text(offer.storeName, style: _c16w700Primary),
               const SizedBox(height: 24),
               _buildDetailSection('تفاصيل العرض', [
                 _buildInfoItem(Icons.description_outlined, 'الوصف', offer.description),
@@ -467,7 +482,7 @@ class _OffersPageState extends State<OffersPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(title, style: _c14w700Secondary),
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(20),
@@ -489,10 +504,10 @@ class _OffersPageState extends State<OffersPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary)),
+                Text(label, style: _c11Secondary),
                 Text(
                   value,
-                  style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: _c14w700Primary,
                   maxLines: 2,
                   overflow: TextOverflow.ellipsis,
                 ),
@@ -511,7 +526,7 @@ class _OffersPageState extends State<OffersPage> {
       decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
       child: Text(
         _statusLabel(status),
-        style: GoogleFonts.cairo(fontSize: 12, color: color, fontWeight: FontWeight.bold),
+        style: _c12w700.copyWith(color: color),
       ),
     );
   }
@@ -553,9 +568,9 @@ class _OffersPageState extends State<OffersPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('رفض العرض', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error)),
+              Text('رفض العرض', style: _c20w700Error),
               const SizedBox(height: 8),
-              Text('يرجى توضيح سبب رفض العرض " ${offer.title} " ليصل إشعار للتاجر بالسبب.', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary)),
+              Text('يرجى توضيح سبب رفض العرض " ${offer.title} " ليصل إشعار للتاجر بالسبب.', style: _c13Secondary),
               const SizedBox(height: 24),
               TextField(
                 controller: reasonController,

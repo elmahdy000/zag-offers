@@ -17,6 +17,18 @@ class AuditLogsPage extends StatefulWidget {
 }
 
 class _AuditLogsPageState extends State<AuditLogsPage> {
+  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary, height: 1.4);
+  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
+  static final _c13w700Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
+  static final _c14Secondary = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary);
+  static final _c14w700Primary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c18w700Primary = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _i10w700 = GoogleFonts.inter(fontSize: 10, fontWeight: FontWeight.bold);
+  static final _i11Secondary = GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary);
+  static final _i13Primary = GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary, height: 1.5);
+  static final _i14w700Primary = GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary);
+
   @override
   void initState() {
     super.initState();
@@ -31,6 +43,7 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
         title: const Text('سجل عمليات المنصة'),
       ),
       body: BlocBuilder<AuditLogsBloc, AuditLogsState>(
+        buildWhen: (prev, next) => next is AuditLogsLoading || next is AuditLogsLoaded || next is AuditLogsError,
         builder: (context, state) {
           if (state is AuditLogsLoading) {
             return const ListSkeleton(itemCount: 5);
@@ -46,7 +59,7 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                       child: Icon(IconlyBold.document, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
                     ),
                     const SizedBox(height: 24),
-                    Text('لا توجد سجلات بعد', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                    Text('لا توجد سجلات بعد', style: _c18w700Primary),
                   ],
                 ),
               );
@@ -73,7 +86,7 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                   children: [
                     const Icon(Icons.error_outline_rounded, size: 64, color: AppColors.error),
                     const SizedBox(height: 16),
-                    Text(state.message, style: GoogleFonts.cairo(color: AppColors.textSecondary), textAlign: TextAlign.center),
+                    Text(state.message, style: _cSecondary, textAlign: TextAlign.center),
                     const SizedBox(height: 24),
                     ElevatedButton.icon(
                       onPressed: () => context.read<AuditLogsBloc>().add(LoadAuditLogsEvent()),
@@ -118,10 +131,10 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                     decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
                     child: Text(
                       log.action.replaceAll('_', ' '),
-                      style: GoogleFonts.inter(color: actionColor, fontSize: 10, fontWeight: FontWeight.bold),
+                      style: _i10w700.copyWith(color: actionColor),
                     ),
                   ),
-                  Text(DateFormat('HH:mm · dd/MM', 'ar').format(log.createdAt), style: GoogleFonts.inter(fontSize: 11, color: AppColors.textSecondary)),
+                  Text(DateFormat('HH:mm · dd/MM', 'ar').format(log.createdAt), style: _i11Secondary),
                 ],
               ),
               const SizedBox(height: 16),
@@ -130,14 +143,14 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                 children: [
                   Container(width: 4, height: 24, decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.5), borderRadius: BorderRadius.circular(2))),
                   const SizedBox(width: 12),
-                  Expanded(child: Text(description, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                  Expanded(child: Text(description, style: _c14w700Primary)),
                 ],
               ),
               if (log.details != null) ...[
                 const SizedBox(height: 8),
                 Padding(
                   padding: const EdgeInsets.only(right: 16),
-                  child: Text(log.details!, style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary, height: 1.4)),
+                  child: Text(log.details!, style: _c12Secondary),
                 ),
               ],
             ],
@@ -165,7 +178,7 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
                 children: [
                   Container(padding: const EdgeInsets.all(12), decoration: BoxDecoration(color: actionColor.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)), child: Icon(IconlyBold.activity, color: actionColor, size: 28)),
                   const SizedBox(width: 16),
-                  Expanded(child: Text(description, style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+                  Expanded(child: Text(description, style: _c18w700Primary)),
                 ],
               ),
               const SizedBox(height: 32),
@@ -175,13 +188,13 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
               _buildDetailRow(IconlyBold.timeCircle, 'تاريخ العملية', DateFormat('yyyy/MM/dd hh:mm a', 'ar').format(log.createdAt)),
               if (log.details != null && log.details!.isNotEmpty) ...[
                 const SizedBox(height: 12),
-                Text('تفاصيل إضافية:', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                Text('تفاصيل إضافية:', style: _c13w700Secondary),
                 const SizedBox(height: 8),
                 Container(
                   width: double.infinity,
                   padding: const EdgeInsets.all(16),
                   decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(16), border: Border.all(color: Colors.grey.shade100)),
-                  child: Text(log.details!, style: GoogleFonts.inter(fontSize: 13, color: AppColors.textPrimary, height: 1.5)),
+                  child: Text(log.details!, style: _i13Primary),
                 ),
               ],
               const SizedBox(height: 40),
@@ -206,13 +219,13 @@ class _AuditLogsPageState extends State<AuditLogsPage> {
         children: [
           Icon(icon, size: 18, color: AppColors.textSecondary.withValues(alpha: 0.5)),
           const SizedBox(width: 12),
-          Text(label, style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary)),
+          Text(label, style: _c14Secondary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+              style: _i14w700Primary,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

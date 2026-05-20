@@ -32,11 +32,18 @@ class ClearAllNotifications extends NotificationEvent {}
 class GeneralNotificationReceived extends NotificationEvent {
   final String title;
   final String body;
+  final String? type;
+  final Map<String, dynamic>? data;
 
-  GeneralNotificationReceived({required this.title, required this.body});
+  GeneralNotificationReceived({
+    required this.title,
+    required this.body,
+    this.type,
+    this.data,
+  });
 
   @override
-  List<Object?> get props => [title, body];
+  List<Object?> get props => [title, body, type, data];
 }
 
 class MarkAsRead extends NotificationEvent {

@@ -131,14 +131,14 @@ class NotificationService {
     final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
     
     showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
-    _saveToHistory(title, body, message.data);
+    saveToHistory(title, body, message.data);
 
     if (message.data['type'] == 'COUPON_REDEEMED') {
       di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
     }
   }
 
-  static Future<void> _saveToHistory(String title, String body, Map<String, dynamic> data) async {
+  static Future<void> saveToHistory(String title, String body, Map<String, dynamic> data) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? existingData = prefs.getString('notifications_history');

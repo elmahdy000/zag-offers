@@ -6,7 +6,6 @@ abstract class BroadcastRemoteDataSource {
     required String body,
     String? imageUrl,
     String? area,
-    String? target,
   });
 }
 
@@ -21,7 +20,6 @@ class BroadcastRemoteDataSourceImpl implements BroadcastRemoteDataSource {
     required String body,
     String? imageUrl,
     String? area,
-    String? target,
   }) async {
     await client.post(
       '/admin/broadcast',
@@ -30,7 +28,6 @@ class BroadcastRemoteDataSourceImpl implements BroadcastRemoteDataSource {
         'body': body,
         'imageUrl': imageUrl,
         'area': area,
-        'target': target,
       },
     );
   }

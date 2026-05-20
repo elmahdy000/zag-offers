@@ -18,6 +18,16 @@ class CategoriesPage extends StatefulWidget {
 }
 
 class _CategoriesPageState extends State<CategoriesPage> {
+  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
+  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
+  static final _c16w700Primary = GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 16);
+  static final _c18w700Primary = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c20w700 = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold);
+  static final _c20w700Accent = GoogleFonts.cairo(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 20);
+  static final _c20w700Primary = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c32w700Primary = GoogleFonts.cairo(color: AppColors.primary, fontSize: 32, fontWeight: FontWeight.bold);
+  static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+
   final _nameController = TextEditingController();
 
   @override
@@ -87,10 +97,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                       child: Icon(Icons.category_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
                     ),
                     const SizedBox(height: 24),
-                    Text(
-                      'لا توجد أقسام بعد',
-                      style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
-                    ),
+                    Text('لا توجد أقسام بعد', style: _c18w700Primary),
                   ],
                 ),
               );
@@ -135,28 +142,15 @@ class _CategoriesPageState extends State<CategoriesPage> {
                           borderRadius: BorderRadius.circular(16),
                         ),
                         child: Center(
-                          child: Text(
-                            category.name[0],
-                            style: GoogleFonts.cairo(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 20,
-                            ),
-                          ),
+                          child: Text(category.name[0], style: _c20w700Accent),
                         ),
                       ),
-                      title: Text(
-                        category.name,
-                        style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary, fontSize: 16),
-                      ),
+                      title: Text(category.name, style: _c16w700Primary),
                       subtitle: Row(
                         children: [
                           Icon(IconlyLight.discount, size: 14, color: AppColors.textSecondary),
                           const SizedBox(width: 4),
-                          Text(
-                            '${category.offersCount} عرض متاح حالياً',
-                            style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary),
-                          ),
+                          Text('${category.offersCount} عرض متاح حالياً', style: _c12Secondary),
                         ],
                       ),
                       onTap: () => _showCategoryDetails(context, category),
@@ -179,7 +173,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
                 children: [
                   const Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
                   const SizedBox(height: 12),
-                  Text(state.message, style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+                  Text(state.message, style: _cSecondary),
                   const SizedBox(height: 24),
                   ElevatedButton(
                     onPressed: () => context.read<CategoriesBloc>().add(LoadCategoriesEvent()),
@@ -227,9 +221,9 @@ class _CategoriesPageState extends State<CategoriesPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('إضافة قسم جديد', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('إضافة قسم جديد', style: _c20w700),
               const SizedBox(height: 8),
-              Text('أدخل اسماً معبراً للقسم الجديد ليظهر للتجار والعملاء', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary)),
+              Text('أدخل اسماً معبراً للقسم الجديد ليظهر للتجار والعملاء', style: _c13Secondary),
               const SizedBox(height: 24),
               TextField(
                 controller: _nameController,
@@ -277,13 +271,13 @@ class _CategoriesPageState extends State<CategoriesPage> {
               height: 80,
               decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
               child: Center(
-                child: Text(category.name[0], style: GoogleFonts.cairo(color: AppColors.primary, fontSize: 32, fontWeight: FontWeight.bold)),
+                child: Text(category.name[0], style: _c32w700Primary),
               ),
             ),
             const SizedBox(height: 16),
-            Text(category.name, style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+            Text(category.name, style: _c20w700Primary),
             const SizedBox(height: 8),
-            Text('${category.offersCount} عرض متاح', style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+            Text('${category.offersCount} عرض متاح', style: _cSecondary),
             const SizedBox(height: 32),
             Row(
               children: [
@@ -334,7 +328,7 @@ class _CategoriesPageState extends State<CategoriesPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('تعديل القسم', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold)),
+              Text('تعديل القسم', style: _c20w700),
               const SizedBox(height: 24),
               TextField(
                 controller: _nameController,

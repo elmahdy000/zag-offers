@@ -28,26 +28,12 @@ class HomePage extends StatefulWidget {
   State<HomePage> createState() => _HomePageState();
 }
 
-class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin {
-  late AnimationController _pulseController;
+class _HomePageState extends State<HomePage> {
   String _currentArea = 'الكل';
   double _minDiscount = 0;
   String _sortBy = 'newest';
 
-  @override
-  void initState() {
-    super.initState();
-    _pulseController = AnimationController(
-      vsync: this,
-      duration: const Duration(seconds: 2),
-    )..repeat(reverse: true);
-  }
 
-  @override
-  void dispose() {
-    _pulseController.dispose();
-    super.dispose();
-  }
 
   void _showFilterSheet(BuildContext context, OffersLoaded state) async {
     final availableAreas = OfferFilterUtils.extractAreas([
@@ -80,7 +66,8 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      body: BlocBuilder<OffersBloc, OffersState>(
+        body: BlocBuilder<OffersBloc, OffersState>(
+        buildWhen: (previous, current) => current is OffersLoading || current is OffersError || current is OffersLoaded,
         builder: (context, state) {
           if (state is OffersLoading) {
             return const OffersSkeleton();
@@ -145,16 +132,20 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                               sortBy: _sortBy,
                             ),
                           ),
-                          _buildCategoryFilteredSection(
-                            context,
-                            state,
+                          _CategorySection(
+                            state: state,
+                            currentArea: _currentArea,
+                            minDiscount: _minDiscount,
+                            sortBy: _sortBy,
                             category: 'دلع كرشك',
                             title: 'ركن الأكل',
                             subtitle: 'أفضل العروض القريبة لتجربة سريعة',
                           ),
-                          _buildCategoryFilteredSection(
-                            context,
-                            state,
+                          _CategorySection(
+                            state: state,
+                            currentArea: _currentArea,
+                            minDiscount: _minDiscount,
+                            sortBy: _sortBy,
                             category: 'شياكة',
                             title: 'اختيارات الموضة',
                             subtitle: 'عروض مختارة على الملابس والإطلالات',
@@ -241,6 +232,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Widget _buildHeader(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.fromLTRB(20, 0, 20, 0),
       child: Column(
@@ -251,7 +243,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
               Flexible(
                 child: Text(
                   'عروض النهاردة في الزقازيق',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                         letterSpacing: -0.5,
                       ),
@@ -270,7 +262,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
           const SizedBox(height: 4),
           Text(
             'وفر أكتر مع كل خروجة',
-            style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+            style: textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,
                   fontWeight: FontWeight.w500,
                 ),
@@ -281,54 +273,44 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
   }
 
   Widget _buildLiveStats(BuildContext context, OffersLoaded state) {
+    final textTheme = Theme.of(context).textTheme;
     final offersCount = state.trendingOffers.length;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: AnimatedBuilder(
-        animation: _pulseController,
-        builder: (context, child) {
-          return Container(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            decoration: BoxDecoration(
-              color: Colors.green.withValues(alpha: 0.05 + (_pulseController.value * 0.05)),
-              borderRadius: BorderRadius.circular(30),
-              border: Border.all(color: Colors.green.withValues(alpha: 0.1 + (_pulseController.value * 0.1))),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        decoration: BoxDecoration(
+          color: Colors.green.withValues(alpha: 0.05),
+          borderRadius: BorderRadius.circular(30),
+          border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 8,
+              height: 8,
+              decoration: const BoxDecoration(
+                color: Colors.green,
+                shape: BoxShape.circle,
+              ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 8,
-                  height: 8,
-                  decoration: BoxDecoration(
+            const SizedBox(width: 10),
+            Text(
+              'مباشر: $offersCount عرض متاح الآن',
+              style: textTheme.labelSmall?.copyWith(
                     color: Colors.green,
-                    shape: BoxShape.circle,
-                    boxShadow: [
-                      BoxShadow(
-                        color: Colors.green.withValues(alpha: 0.4 * _pulseController.value),
-                        blurRadius: 8 * _pulseController.value,
-                        spreadRadius: 2 * _pulseController.value,
-                      ),
-                    ],
+                    fontWeight: FontWeight.bold,
                   ),
-                ),
-                const SizedBox(width: 10),
-                Text(
-                  'مباشر: $offersCount عرض متاح الآن',
-                  style: Theme.of(context).textTheme.labelSmall?.copyWith(
-                        color: Colors.green,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-              ],
             ),
-          );
-        },
+          ],
+        ),
       ),
     );
   }
 
   Widget _buildNoticeBanner(BuildContext context, String message) {
+    final textTheme = Theme.of(context).textTheme;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -350,7 +332,7 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
             Expanded(
               child: Text(
                 message,
-                style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                style: textTheme.labelSmall?.copyWith(
                   color: Colors.orange[900],
                   fontWeight: FontWeight.w700,
                   height: 1.4,
@@ -370,61 +352,116 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
     required String subtitle,
     required List offers,
   }) {
-    if (offers.isEmpty) return const SizedBox.shrink();
+    return _buildOffersSectionWidget(context, title: title, subtitle: subtitle, offers: offers);
+  }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
-          child: Text(
-            title,
-            style: Theme.of(context).textTheme.titleLarge?.copyWith(
-              fontWeight: FontWeight.w900,
-              fontSize: 22,
-              letterSpacing: -0.5,
+}
+
+class _CategorySection extends StatelessWidget {
+  final OffersLoaded state;
+  final String currentArea;
+  final double minDiscount;
+  final String sortBy;
+  final String category;
+  final String title;
+  final String subtitle;
+
+  const _CategorySection({
+    required this.state,
+    required this.currentArea,
+    required this.minDiscount,
+    required this.sortBy,
+    required this.category,
+    required this.title,
+    required this.subtitle,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final backendCategory = getBackendCategoryName(category);
+    final filtered = OfferFilterUtils.apply(
+      offers: state.trendingOffers.where((offer) {
+        final cat = offer.store.category?.trim();
+        return cat == category.trim() || cat == backendCategory.trim();
+      }).toList(),
+      area: currentArea,
+      minDiscount: minDiscount,
+      sortBy: sortBy,
+    );
+    if (filtered.isEmpty) return const SizedBox.shrink();
+
+    return _buildOffersSectionWidget(
+      context,
+      title: title,
+      subtitle: subtitle,
+      offers: filtered,
+    );
+  }
+}
+
+Widget _buildOffersSectionWidget(
+  BuildContext context, {
+  required String title,
+  required String subtitle,
+  required List offers,
+}) {
+  final textTheme = Theme.of(context).textTheme;
+  if (offers.isEmpty) return const SizedBox.shrink();
+
+  return Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Padding(
+        padding: const EdgeInsets.fromLTRB(16, 8, 16, 0),
+        child: Text(
+          title,
+          style: textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            fontSize: 22,
+            letterSpacing: -0.5,
+          ),
+        ),
+      ),
+      Padding(
+        padding: const EdgeInsets.fromLTRB(20, 4, 10, 4),
+        child: Row(
+          children: [
+            Expanded(
+              child: Text(
+                subtitle,
+                style: textTheme.bodySmall?.copyWith(
+                      color: AppColors.textSecondary,
+                      fontWeight: FontWeight.w500,
+                    ),
+              ),
             ),
-          ),
-        ),
-        Padding(
-          padding: const EdgeInsets.fromLTRB(20, 4, 10, 4),
-          child: Row(
-            children: [
-              Expanded(
-                child: Text(
-                  subtitle,
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                        color: AppColors.textSecondary,
-                        fontWeight: FontWeight.w500,
-                      ),
-                ),
+            TextButton.icon(
+              onPressed: () => MainScreen.of(context)?.setSelectedIndex(1),
+              label: const Icon(Icons.arrow_forward_rounded, size: 16),
+              icon: Text(
+                'عرض الكل',
+                style: textTheme.labelLarge?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.bold,
+                    ),
               ),
-              TextButton.icon(
-                onPressed: () => MainScreen.of(context)?.setSelectedIndex(1),
-                label: const Icon(Icons.arrow_forward_rounded, size: 16),
-                icon: Text(
-                  'عرض الكل',
-                  style: Theme.of(context).textTheme.labelLarge?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.bold,
-                      ),
-                ),
-                style: TextButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(horizontal: 12),
-                ),
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 12),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
-        SizedBox(
-          height: 245,
-          child: ListView.builder(
-            scrollDirection: Axis.horizontal,
-            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-            itemCount: offers.length,
-            itemBuilder: (context, index) {
-              final offer = offers[index];
-              return Padding(
+      ),
+      SizedBox(
+        height: 245,
+        child: ListView.builder(
+          scrollDirection: Axis.horizontal,
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+          itemCount: offers.length,
+          itemBuilder: (context, index) {
+            final offer = offers[index];
+            return RepaintBoundary(
+              child: Padding(
                 padding: const EdgeInsets.only(right: 12),
                 child: SizedBox(
                   width: 165,
@@ -439,40 +476,14 @@ class _HomePageState extends State<HomePage> with SingleTickerProviderStateMixin
                     ),
                   ),
                 ),
-              );
-            },
-          ),
+              ),
+            );
+          },
         ),
-        const SizedBox(height: 8),
-      ],
-    );
-  }
-
-  Widget _buildCategoryFilteredSection(
-    BuildContext context,
-    OffersLoaded state, {
-    required String category,
-    required String title,
-    required String subtitle,
-  }) {
-    final backendCategory = getBackendCategoryName(category);
-    final filtered = OfferFilterUtils.apply(
-      offers: state.trendingOffers.where((offer) {
-        final cat = offer.store.category?.trim();
-        return cat == category.trim() || cat == backendCategory.trim();
-      }).toList(),
-      area: _currentArea,
-      minDiscount: _minDiscount,
-      sortBy: _sortBy,
-    );
-
-    return _buildOffersSection(
-      context,
-      title: title,
-      subtitle: subtitle,
-      offers: filtered,
-    );
-  }
+      ),
+      const SizedBox(height: 8),
+    ],
+  );
 }
 
 class _HomeErrorState extends StatelessWidget {
@@ -486,6 +497,7 @@ class _HomeErrorState extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     final isConnectionError = message.toLowerCase().contains('connection') || 
                              message.toLowerCase().contains('network') ||
                              message.toLowerCase().contains('socket');
@@ -511,7 +523,7 @@ class _HomeErrorState extends StatelessWidget {
             const SizedBox(height: 24),
             Text(
               isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل المحتوى',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
                 color: AppColors.textPrimary,
               ),
@@ -522,7 +534,7 @@ class _HomeErrorState extends StatelessWidget {
                   ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
                   : message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+              style: textTheme.bodyMedium?.copyWith(
                 color: AppColors.textSecondary,
                 height: 1.5,
               ),

@@ -109,6 +109,8 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
       message: event.body,
       createdAt: DateTime.now(),
       isRead: false,
+      type: event.type,
+      data: event.data,
     );
 
     final newItems = [item, ...currentState.items];

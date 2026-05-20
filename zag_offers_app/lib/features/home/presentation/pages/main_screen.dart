@@ -172,6 +172,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (_, current) => current is AuthInitial,
       listener: (context, state) {
         if (state is AuthInitial) {
           Navigator.of(context).pushAndRemoveUntil(

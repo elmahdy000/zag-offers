@@ -119,6 +119,7 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return BlocListener<DashboardBloc, DashboardState>(
+      listenWhen: (_, next) => next is DashboardNoStore,
       listener: (context, state) {
         if (state is DashboardLoaded) {
           setState(() {

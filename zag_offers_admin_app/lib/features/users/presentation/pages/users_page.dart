@@ -19,6 +19,12 @@ class UsersPage extends StatefulWidget {
 }
 
 class _UsersPageState extends State<UsersPage> {
+  static final _c10w700Secondary = GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
+  static final _c15w700 = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 15);
+  static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _i12Secondary = GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary);
+  static final _i20w700Primary = GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+
   final _searchController = TextEditingController();
   Timer? _debounce;
 
@@ -51,6 +57,7 @@ class _UsersPageState extends State<UsersPage> {
       ),
       body: BlocConsumer<UsersBloc, UsersState>(
         listenWhen: (_, state) => state is UserDeleted || state is UsersError,
+        buildWhen: (_, state) => state is UsersLoading || state is UsersLoaded || state is UsersError,
         listener: (context, state) {
           if (state is UserDeleted) {
             SnackBarUtils.showSuccess(context, 'تم حذف المستخدم بنجاح');
@@ -129,8 +136,8 @@ class _UsersPageState extends State<UsersPage> {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(height: 8),
-          Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          Text(label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+          Text(value, style: _i20w700Primary),
+          Text(label, style: _c10w700Secondary),
         ],
       ),
     );
@@ -190,7 +197,7 @@ class _UsersPageState extends State<UsersPage> {
             child: Center(child: Text(user.name.isNotEmpty ? user.name[0] : '?', style: const TextStyle(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 22))),
           ),
         ),
-        title: Text(user.name, style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 15)),
+        title: Text(user.name, style: _c15w700),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
@@ -199,14 +206,14 @@ class _UsersPageState extends State<UsersPage> {
               children: [
                 const Icon(IconlyLight.call, size: 12, color: AppColors.textSecondary),
                 const SizedBox(width: 4),
-                Text(user.phone, style: GoogleFonts.inter(fontSize: 12, color: AppColors.textSecondary)),
+                Text(user.phone, style: _i12Secondary),
               ],
             ),
             const SizedBox(height: 4),
             Container(
               padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
               decoration: BoxDecoration(color: Colors.amber.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(6)),
-              child: Text('${user.points} نقطة', style: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold, color: Colors.amber.shade900)),
+              child: Text('${user.points} نقطة', style: _c10w700Secondary.copyWith(color: Colors.amber.shade900)),
             ),
           ],
         ),
@@ -220,7 +227,7 @@ class _UsersPageState extends State<UsersPage> {
   }
 
   Widget _buildEmptyState() {
-    return Center(child: Text('لا يوجد مستخدمين حالياً', style: GoogleFonts.cairo(color: AppColors.textSecondary)));
+    return Center(child: Text('لا يوجد مستخدمين حالياً', style: _cSecondary));
   }
 
   Widget _buildErrorState(String msg) {
@@ -230,7 +237,7 @@ class _UsersPageState extends State<UsersPage> {
         children: [
           const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 40),
           const SizedBox(height: 16),
-          Text(msg, style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+          Text(msg, style: _cSecondary),
           TextButton(onPressed: () => context.read<UsersBloc>().add(LoadUsersEvent()), child: const Text('إعادة المحاولة')),
         ],
       ),

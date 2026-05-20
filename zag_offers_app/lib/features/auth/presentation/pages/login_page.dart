@@ -56,6 +56,7 @@ class _LoginPageState extends State<LoginPage> {
     return BlocProvider(
       create: (_) => sl<AuthBloc>(),
       child: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (_, current) => current is AuthError || current is AuthSuccess,
         listener: (context, state) {
           if (state is AuthError) {
             SnackBarUtils.showError(context, state.message);
@@ -160,6 +161,7 @@ class _LoginPageState extends State<LoginPage> {
                     ),
                     const SizedBox(height: 16),
                     BlocBuilder<AuthBloc, AuthState>(
+                      buildWhen: (prev, next) => (prev is AuthLoading) != (next is AuthLoading),
                       builder: (context, state) {
                         return ElevatedButton(
                           onPressed: state is AuthLoading

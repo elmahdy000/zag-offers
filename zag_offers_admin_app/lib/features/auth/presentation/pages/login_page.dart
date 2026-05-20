@@ -28,6 +28,7 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocListener<AuthBloc, AuthState>(
+        listenWhen: (_, state) => state is AuthError,
         listener: (context, state) {
           if (state is AuthError) {
             SnackBarUtils.showError(context, state.message);
@@ -127,6 +128,7 @@ class _LoginPageState extends State<LoginPage> {
                   
                   // Login Button
                   BlocBuilder<AuthBloc, AuthState>(
+                    buildWhen: (prev, next) => next is AuthLoading || next is AuthAuthenticated || next is AuthError || next is AuthUnauthenticated,
                     builder: (context, state) {
                       return ElevatedButton(
                         onPressed: state is AuthLoading

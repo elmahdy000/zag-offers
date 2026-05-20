@@ -182,7 +182,12 @@ class NotificationService {
     showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
 
     di.sl<NotificationBloc>().add(
-      GeneralNotificationReceived(title: title, body: body),
+      GeneralNotificationReceived(
+        title: title,
+        body: body,
+        type: message.data['type'],
+        data: message.data,
+      ),
     );
   }
 

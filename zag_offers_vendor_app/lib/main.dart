@@ -178,6 +178,7 @@ class AuthWrapper extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocListener<AuthBloc, AuthState>(
+      listenWhen: (_, next) => next is AuthAuthenticated,
       listener: (context, state) {
         if (state is AuthAuthenticated) {
           context.read<DashboardBloc>().add(GetDashboardStatsRequested());
@@ -185,6 +186,7 @@ class AuthWrapper extends StatelessWidget {
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
+        buildWhen: (prev, next) => next is AuthAuthenticated || next is AuthInitial || next is AuthLoading,
         builder: (context, state) {
           if (state is AuthAuthenticated) {
             return const MainLayout();

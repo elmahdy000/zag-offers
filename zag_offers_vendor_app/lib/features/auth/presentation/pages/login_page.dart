@@ -13,6 +13,10 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
+  static final _loginTitle = GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _loginSubtitle = GoogleFonts.cairo(fontSize: 16, color: AppColors.textSecondary);
+  static final _loginBtn = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold);
+
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _obscurePassword = true;
@@ -44,6 +48,8 @@ class _LoginPageState extends State<LoginPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocConsumer<AuthBloc, AuthState>(
+        listenWhen: (_, next) => next is AuthError || next is AuthAuthenticated,
+        buildWhen: (_, next) => next is AuthLoading || next is AuthError,
         listener: (context, state) {
           if (state is AuthError) {
             SnackBarUtils.showError(context, state.message);
@@ -69,20 +75,13 @@ class _LoginPageState extends State<LoginPage> {
                     Text(
                       'بوابة التُجار',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.cairo(
-                        fontSize: 32,
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.textPrimary,
-                      ),
+                      style: _loginTitle,
                     ),
                     const SizedBox(height: 8),
                     Text(
                       'سجل دخولك لإدارة العروض والكوبونات',
                       textAlign: TextAlign.center,
-                      style: GoogleFonts.cairo(
-                        fontSize: 16,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: _loginSubtitle,
                     ),
                     const SizedBox(height: 48),
                     Container(
@@ -180,10 +179,7 @@ class _LoginPageState extends State<LoginPage> {
                             )
                           : Text(
                               'تسجيل الدخول',
-                              style: GoogleFonts.cairo(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: _loginBtn,
                             ),
                     ),
                   ],

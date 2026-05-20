@@ -14,7 +14,6 @@ class BroadcastRepositoryImpl implements BroadcastRepository {
     required String body,
     String? imageUrl,
     String? area,
-    String? target,
   }) async {
     try {
       await remoteDataSource.sendBroadcast(
@@ -22,7 +21,6 @@ class BroadcastRepositoryImpl implements BroadcastRepository {
         body: body,
         imageUrl: imageUrl,
         area: area,
-        target: target,
       );
       return const Right(null);
     } catch (e) {

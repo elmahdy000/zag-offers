@@ -41,9 +41,13 @@ class _AddOfferPageState extends State<AddOfferPage> {
   bool _isUploading = false;
   final List<String> _imageUrls = [];
 
+  void _onPriceChanged() => setState(() {});
+
   @override
   void initState() {
     super.initState();
+    _originalPriceController.addListener(_onPriceChanged);
+    _discountController.addListener(_onPriceChanged);
     if (widget.initialOffer != null) {
       final offer = widget.initialOffer!;
       _titleController.text = offer.title;
@@ -245,6 +249,7 @@ class _AddOfferPageState extends State<AddOfferPage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<OffersBloc, OffersState>(
+      listenWhen: (_, state) => state is OfferCreated || state is OfferUpdated || state is OffersError,
       listener: (context, state) {
         if (state is OfferCreated || state is OfferUpdated) {
           _showSuccessDialog();
@@ -300,7 +305,6 @@ class _AddOfferPageState extends State<AddOfferPage> {
                         hint: '0.0',
                         icon: IconlyLight.wallet,
                         keyboardType: TextInputType.number,
-                        onChanged: (_) => setState(() {}),
                       ),
                     ),
                     const SizedBox(width: 16),
@@ -311,7 +315,6 @@ class _AddOfferPageState extends State<AddOfferPage> {
                         hint: 'مثال: 50% أو 100 ج.م',
                         icon: IconlyLight.discount,
                         validator: (v) => v!.isEmpty ? 'مطلوب' : null,
-                        onChanged: (_) => setState(() {}),
                       ),
                     ),
                   ],
@@ -364,6 +367,7 @@ class _AddOfferPageState extends State<AddOfferPage> {
                 ),
                 const SizedBox(height: 40),
                 BlocBuilder<OffersBloc, OffersState>(
+                  buildWhen: (_, state) => state is OfferActionLoading,
                   builder: (context, state) {
                     final isLoading = state is OfferActionLoading;
                     return SizedBox(
@@ -472,6 +476,7 @@ class _AddOfferPageState extends State<AddOfferPage> {
                     ),
                     Expanded(
                       child: BlocBuilder<MerchantsBloc, MerchantsState>(
+                        buildWhen: (_, state) => state is MerchantsLoaded || state is MerchantsError,
                         builder: (context, state) {
                           if (state is MerchantsLoaded) {
                             final filtered = state.merchants.where((m) => m.storeName.toLowerCase().contains(query)).toList();

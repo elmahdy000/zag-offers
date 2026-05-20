@@ -9,9 +9,13 @@ import '../../../../core/services/notification_service.dart';
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
 
+  static final _cairoDefault = GoogleFonts.cairo();
+  static final _cairoError = GoogleFonts.cairo(color: AppColors.error);
+
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<NotificationBloc, NotificationState>(
+      buildWhen: (prev, next) => next is NotificationFeedState,
       builder: (context, state) {
         final feedState = state is NotificationFeedState
             ? state
@@ -55,16 +59,16 @@ class NotificationsPage extends StatelessWidget {
                         return await showDialog(
                           context: context,
                           builder: (ctx) => AlertDialog(
-                            title: Text('حذف الإشعار', style: GoogleFonts.cairo()),
-                            content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: GoogleFonts.cairo()),
+                            title: Text('حذف الإشعار', style: _cairoDefault),
+                            content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: _cairoDefault),
                             actions: [
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, false),
-                                child: Text('إلغاء', style: GoogleFonts.cairo()),
+                                child: Text('إلغاء', style: _cairoDefault),
                               ),
                               TextButton(
                                 onPressed: () => Navigator.pop(ctx, true),
-                                child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
+                                child: Text('حذف', style: _cairoError),
                               ),
                             ],
                           ),

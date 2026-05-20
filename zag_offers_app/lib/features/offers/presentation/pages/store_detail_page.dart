@@ -100,6 +100,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
 
   @override
   Widget build(BuildContext context) {
+    final textTheme = Theme.of(context).textTheme;
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _offersBloc),
@@ -123,7 +124,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                       const SizedBox(height: 32),
                       Text(
                         'معرض الصور',
-                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                        style: textTheme.titleLarge?.copyWith(
                               fontWeight: FontWeight.bold,
                             ),
                       ),
@@ -166,7 +167,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                     const SizedBox(height: 40),
                     Text(
                       'العروض المتاحة',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: textTheme.headlineSmall?.copyWith(
                             fontWeight: FontWeight.bold,
                           ),
                     ),
@@ -182,7 +183,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                 padding: const EdgeInsets.symmetric(horizontal: 24),
                 child: Text(
                   'آراء العملاء',
-                  style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                  style: textTheme.headlineSmall?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -394,6 +395,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
 
   Widget _buildOffersList(BuildContext context) {
     return BlocBuilder<OffersBloc, OffersState>(
+      buildWhen: (prev, next) => next is StoreOffersLoaded || next is StoreOffersLoading,
       builder: (context, state) {
         if (state is StoreOffersLoading) {
           return const SliverToBoxAdapter(
@@ -478,6 +480,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   Widget _buildReviewsList(BuildContext context) {
     final theme = Theme.of(context);
     return BlocBuilder<ReviewsBloc, ReviewsState>(
+      buildWhen: (prev, next) => next is ReviewsLoaded || next is ReviewsLoading,
       builder: (context, state) {
         if (state is ReviewsLoading) {
           return const SliverToBoxAdapter(

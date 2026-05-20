@@ -1450,26 +1450,18 @@ export class AdminService {
     adminId: string;
   }) {
     const { title, body, area, imageUrl, adminId } = params;
-    if (area) {
-      await this.notificationsService.sendToArea(
-        area,
-        title,
-        body,
-        {
-          type: 'ANNOUNCEMENT',
-        },
-        imageUrl,
-      );
-    } else {
-      await this.notificationsService.sendToAll(
-        title,
-        body,
-        {
-          type: 'ANNOUNCEMENT',
-        },
-        imageUrl,
-      );
+    if (!area) {
+      throw new BadRequestException('area is required for broadcast');
     }
+    await this.notificationsService.sendToArea(
+      area,
+      title,
+      body,
+      {
+        type: 'ANNOUNCEMENT',
+      },
+      imageUrl,
+    );
 
     this.eventsGateway.broadcastAnnouncement({
       type: 'ANNOUNCEMENT',
@@ -1481,13 +1473,11 @@ export class AdminService {
     await this.auditLogService.log({
       action: 'SEND_BROADCAST',
       adminId,
-      details: `Title: ${title}, Area: ${area || 'All Users'}`,
+      details: `Title: ${title}, Area: ${area}}`,
     });
     return {
       success: true,
-      message: area
-        ? `Announcement sent to area ${area}`
-        : 'Announcement sent to all users',
+      message: `Announcement sent to area ${area}`,
     };
   }
 

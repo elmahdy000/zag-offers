@@ -128,9 +128,10 @@ class _PressableScaleState extends State<_PressableScale>
         builder: (context, child) {
           return Transform.scale(
             scale: _scaleAnimation.value,
-            child: widget.child,
+            child: child,
           );
         },
+        child: widget.child,
       ),
     );
   }
@@ -187,59 +188,62 @@ class _SleekButtonState extends State<SleekButton>
   Widget build(BuildContext context) {
     final primaryColor = widget.backgroundColor ?? Theme.of(context).primaryColor;
 
+    final buttonContent = Container(
+      decoration: BoxDecoration(
+        gradient: LinearGradient(
+          begin: Alignment.topLeft,
+          end: Alignment.bottomRight,
+          colors: [
+            primaryColor,
+            primaryColor.withValues(alpha: 0.85),
+          ],
+        ),
+        borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
+        boxShadow: [
+          BoxShadow(
+            color: primaryColor.withValues(alpha: 0.3),
+            blurRadius: 12,
+            spreadRadius: 1,
+            offset: const Offset(0, 4),
+          ),
+        ],
+      ),
+      child: Material(
+        color: Colors.transparent,
+        child: InkWell(
+          onTap: () {
+            HapticFeedback.lightImpact();
+            widget.onPressed();
+          },
+          onTapDown: (_) => _controller.forward(),
+          onTapUp: (_) => _controller.reverse(),
+          onTapCancel: () => _controller.reverse(),
+          borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
+          child: Container(
+            padding: widget.padding ?? 
+              const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
+            child: DefaultTextStyle(
+              style: TextStyle(
+                color: widget.foregroundColor ?? Colors.white,
+                fontWeight: FontWeight.w600,
+                fontSize: 15,
+              ),
+              child: widget.child,
+            ),
+          ),
+        ),
+      ),
+    );
+
     Widget button = AnimatedBuilder(
       animation: _scaleAnimation,
       builder: (context, child) {
         return Transform.scale(
           scale: _scaleAnimation.value,
-          child: Container(
-            decoration: BoxDecoration(
-              gradient: LinearGradient(
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
-                colors: [
-                  primaryColor,
-                  primaryColor.withValues(alpha: 0.85),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
-              boxShadow: [
-                BoxShadow(
-                  color: primaryColor.withValues(alpha: 0.3),
-                  blurRadius: 12,
-                  spreadRadius: 1,
-                  offset: const Offset(0, 4),
-                ),
-              ],
-            ),
-            child: Material(
-              color: Colors.transparent,
-              child: InkWell(
-                onTap: () {
-                  HapticFeedback.lightImpact();
-                  widget.onPressed();
-                },
-                onTapDown: (_) => _controller.forward(),
-                onTapUp: (_) => _controller.reverse(),
-                onTapCancel: () => _controller.reverse(),
-                borderRadius: BorderRadius.circular(widget.borderRadius ?? 12),
-                child: Container(
-                  padding: widget.padding ?? 
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 14),
-                  child: DefaultTextStyle(
-                    style: TextStyle(
-                      color: widget.foregroundColor ?? Colors.white,
-                      fontWeight: FontWeight.w600,
-                      fontSize: 15,
-                    ),
-                    child: widget.child,
-                  ),
-                ),
-              ),
-            ),
-          ),
+          child: child,
         );
       },
+      child: buttonContent,
     );
 
     if (widget.isFullWidth) {

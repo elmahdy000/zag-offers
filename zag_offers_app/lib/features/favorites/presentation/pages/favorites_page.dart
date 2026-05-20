@@ -16,6 +16,9 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
+  static final _loginDescStyle = GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.5);
+  static final _loginBtnStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16);
+
   bool _isLoggedIn = false;
 
   @override
@@ -50,7 +53,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
         centerTitle: true,
       ),
       body: !_isLoggedIn ? _buildLoginRequired() : BlocBuilder<FavoritesBloc, FavoritesState>(
+        buildWhen: (prev, next) => next is FavoritesLoaded || next is FavoritesLoading || next is FavoritesError,
         builder: (context, state) {
+          final theme = Theme.of(context);
           if (state is FavoritesLoading) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -90,7 +95,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                       const SizedBox(height: 32),
                       Text(
                         'قائمة المفضلة فارغة',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -175,7 +180,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     const SizedBox(height: 24),
                     Text(
                       isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل المفضلة',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -185,7 +190,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                           ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
                           : state.message,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         height: 1.5,
                       ),
@@ -230,6 +235,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 
   Widget _buildLoginRequired() {
+    final theme = Theme.of(context);
     return Center(
       child: Padding(
         padding: const EdgeInsets.all(40),
@@ -251,7 +257,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             const SizedBox(height: 24),
             Text(
               'سجل دخولك أولاً',
-              style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+              style: theme.textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
               ),
             ),
@@ -259,10 +265,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             Text(
               'يجب تسجيل الدخول لتتمكن من إضافة العروض للمفضلة والوصول إليها في أي وقت.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.cairo(
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
+              style: _loginDescStyle,
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -283,7 +286,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
                 ),
                 child: Text(
                   'تسجيل الدخول',
-                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: _loginBtnStyle,
                 ),
               ),
             ),

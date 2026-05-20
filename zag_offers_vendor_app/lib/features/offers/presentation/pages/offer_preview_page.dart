@@ -23,6 +23,19 @@ class OfferPreviewPage extends StatefulWidget {
 }
 
 class _OfferPreviewPageState extends State<OfferPreviewPage> {
+  static final _pagingIndicator = GoogleFonts.cairo(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold);
+  static final _previewBadge = GoogleFonts.cairo(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900);
+  static final _offerTitle = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textPrimary, height: 1.2);
+  static final _offerDesc = GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.6, fontSize: 13);
+  static final _termsText = GoogleFonts.cairo(color: AppColors.textTertiary, height: 1.6, fontSize: 12);
+  static final _discountBadge = GoogleFonts.cairo(color: AppColors.accent, fontWeight: FontWeight.w900, fontSize: 11);
+  static final _newPrice = GoogleFonts.cairo(fontSize: 22, color: AppColors.primary, fontWeight: FontWeight.w900);
+  static final _oldPrice = GoogleFonts.cairo(fontSize: 13, color: AppColors.textTertiary, decoration: TextDecoration.lineThrough);
+  static final _sectionHeader = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: 0.5);
+  static final _infoLabel = GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.bold);
+  static final _infoValue = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.textPrimary);
+  static final _actionBtnText = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900);
+
   int _selectedImageIndex = 0;
 
   @override
@@ -30,6 +43,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocListener<OffersBloc, OffersState>(
+        listenWhen: (_, next) => next is OfferActionSuccess || next is OffersError,
         listener: (context, state) {
           if (state is OfferActionSuccess) {
             SnackBarUtils.showSuccess(context, state.message);
@@ -111,7 +125,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                   ),
                   child: Text(
                     '${_selectedImageIndex + 1} / ${images.length}',
-                    style: GoogleFonts.cairo(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold),
+                    style: _pagingIndicator,
                   ),
                 ),
               ),
@@ -145,11 +159,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                     const SizedBox(width: 8),
                     Text(
                       'وضع المعاينة المباشرة',
-                      style: GoogleFonts.cairo(
-                        fontSize: 11,
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
-                      ),
+                      style: _previewBadge,
                     ),
                   ],
                 ),
@@ -171,12 +181,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                     children: [
                       Text(
                         widget.offer.title,
-                        style: GoogleFonts.cairo(
-                          fontSize: 20,
-                          fontWeight: FontWeight.w900,
-                          color: AppColors.textPrimary,
-                          height: 1.2,
-                        ),
+                        style: _offerTitle,
                       ),
                       const SizedBox(height: 8),
                       _buildDiscountBadge(),
@@ -192,11 +197,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
             const SizedBox(height: 8),
             Text(
               widget.offer.description,
-              style: GoogleFonts.cairo(
-                color: AppColors.textSecondary,
-                height: 1.6,
-                fontSize: 13,
-              ),
+              style: _offerDesc,
             ),
 
             const SizedBox(height: 32),
@@ -215,11 +216,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                 ),
                 child: Text(
                   widget.offer.terms!,
-                  style: GoogleFonts.cairo(
-                    color: AppColors.textTertiary,
-                    height: 1.6,
-                    fontSize: 12,
-                  ),
+                  style: _termsText,
                 ),
               ),
             ],
@@ -238,11 +235,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
       ),
       child: Text(
         'خصم ${widget.offer.discount}',
-        style: GoogleFonts.cairo(
-          color: AppColors.accent,
-          fontWeight: FontWeight.w900,
-          fontSize: 11,
-        ),
+        style: _discountBadge,
       ),
     );
   }
@@ -254,20 +247,12 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
         if (widget.offer.newPrice != null)
           Text(
             '${widget.offer.newPrice} ج.م',
-            style: GoogleFonts.cairo(
-              fontSize: 22,
-              color: AppColors.primary,
-              fontWeight: FontWeight.w900,
-            ),
+            style: _newPrice,
           ),
         if (widget.offer.oldPrice != null)
           Text(
             '${widget.offer.oldPrice} ج.م',
-            style: GoogleFonts.cairo(
-              fontSize: 13,
-              color: AppColors.textTertiary,
-              decoration: TextDecoration.lineThrough,
-            ),
+            style: _oldPrice,
           ),
       ],
     );
@@ -276,12 +261,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
   Widget _buildSectionHeader(String title) {
     return Text(
       title,
-      style: GoogleFonts.cairo(
-        fontSize: 14,
-        fontWeight: FontWeight.w900,
-        color: AppColors.textPrimary,
-        letterSpacing: 0.5,
-      ),
+      style: _sectionHeader,
     );
   }
 
@@ -322,15 +302,11 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
           const SizedBox(height: 8),
           Text(
             label,
-            style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.bold),
+            style: _infoLabel,
           ),
           Text(
             value,
-            style: GoogleFonts.cairo(
-              fontSize: 13,
-              fontWeight: FontWeight.w900,
-              color: AppColors.textPrimary,
-            ),
+            style: _infoValue,
           ),
         ],
       ),
@@ -378,6 +354,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
       left: 20,
       right: 20,
       child: BlocBuilder<OffersBloc, OffersState>(
+        buildWhen: (prev, next) => next is OffersLoading || next is OffersError || next is OfferActionSuccess,
         builder: (context, state) {
           final isLoading = state is OffersLoading;
           return Container(
@@ -409,7 +386,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                         const SizedBox(width: 12),
                         Text(
                           widget.isEdit ? 'حفظ التعديلات النهائية' : 'نشر العرض للعالم الآن',
-                          style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900),
+                          style: _actionBtnText,
                         ),
                       ],
                     ),

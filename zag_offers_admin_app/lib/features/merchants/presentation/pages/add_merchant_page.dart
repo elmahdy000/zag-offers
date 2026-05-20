@@ -54,6 +54,7 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
         title: const Text('إضافة تاجر جديد'),
       ),
       body: BlocListener<MerchantsBloc, MerchantsState>(
+        listenWhen: (_, state) => state is MerchantCreated || state is MerchantsError,
         listener: (context, state) {
           if (state is MerchantCreated) {
             SnackBarUtils.showSuccess(context, 'تم إنشاء التاجر والمتجر بنجاح');
@@ -127,6 +128,7 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                 
                 const SizedBox(height: 40),
                 BlocBuilder<MerchantsBloc, MerchantsState>(
+                  buildWhen: (prev, next) => next is MerchantActionLoading || next is MerchantCreated || next is MerchantsError,
                   builder: (context, state) {
                     final isLoading = state is MerchantActionLoading;
                     return SizedBox(
@@ -201,6 +203,7 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
 
   Widget _buildCategoryDropdown() {
     return BlocBuilder<CategoriesBloc, CategoriesState>(
+      buildWhen: (prev, next) => next is CategoriesLoaded || next is CategoriesLoading || next is CategoriesError,
       builder: (context, state) {
         List<Category> categories = [];
         if (state is CategoriesLoaded) {

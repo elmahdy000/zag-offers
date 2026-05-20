@@ -16,6 +16,21 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
+  static final _dialogTitle = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary);
+  static final _cancelBtn = GoogleFonts.cairo(color: AppColors.textTertiary);
+  static final _updateBtn = GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white);
+  static final _fieldInput = GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary);
+  static final _fieldLabel = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
+  static final _logoutContent = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _logoutBtn = GoogleFonts.cairo(color: AppColors.error, fontWeight: FontWeight.bold);
+  static final _userNameHeader = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textPrimary);
+  static final _userRole = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textTertiary);
+  static final _sectionTitleInfo = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary);
+  static final _infoLabel = GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary);
+  static final _infoValue = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _actionBtnBase = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold);
+  static final _errorMsg = GoogleFonts.cairo(color: AppColors.textPrimary);
+
   final currentCtrl = TextEditingController();
   final newCtrl = TextEditingController();
   final confirmCtrl = TextEditingController();
@@ -49,6 +64,8 @@ class _ProfilePageState extends State<ProfilePage> {
       barrierDismissible: false,
       builder: (dialogCtx) {
         return BlocConsumer<ProfileBloc, ProfileState>(
+          listenWhen: (_, next) => next is PasswordChanged || next is PasswordChangeError,
+          buildWhen: (prev, next) => next is PasswordChanging || next is PasswordChanged || next is PasswordChangeError,
           listener: (listenerCtx, state) {
             if (state is PasswordChanged) {
               Navigator.of(dialogCtx).pop();
@@ -64,10 +81,10 @@ class _ProfilePageState extends State<ProfilePage> {
                 return AlertDialog(
                   backgroundColor: AppColors.card,
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                  title: Text(
-                    'تغيير كلمة المرور',
-                    style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary),
-                  ),
+                    title: Text(
+                      'تغيير كلمة المرور',
+                      style: _dialogTitle,
+                    ),
                   content: Form(
                     key: formKey,
                     child: Column(
@@ -104,7 +121,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   actions: [
                     TextButton(
                       onPressed: isChanging ? null : () => Navigator.of(dialogCtx).pop(),
-                      child: Text('إلغاء', style: GoogleFonts.cairo(color: AppColors.textTertiary)),
+                      child: Text('إلغاء', style: _cancelBtn),
                     ),
                     ElevatedButton(
                       onPressed: isChanging
@@ -125,7 +142,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       child: isChanging
                           ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-                          : Text('تحديث', style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white)),
+                          : Text('تحديث', style: _updateBtn),
                     ),
                   ],
                 );
@@ -149,10 +166,10 @@ class _ProfilePageState extends State<ProfilePage> {
       controller: controller,
       obscureText: obscure,
       enabled: enabled,
-      style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary),
+      style: _fieldInput,
       decoration: InputDecoration(
         labelText: label,
-        labelStyle: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary),
+        labelStyle: _fieldLabel,
         filled: true,
         fillColor: AppColors.surface,
         border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
@@ -171,16 +188,16 @@ class _ProfilePageState extends State<ProfilePage> {
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-        title: Text('تسجيل الخروج', style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary)),
-        content: Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟', style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+        title: Text('تسجيل الخروج', style: _dialogTitle),
+        content: Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟', style: _logoutContent),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: GoogleFonts.cairo(color: AppColors.textTertiary))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: _cancelBtn)),
           TextButton(
             onPressed: () {
               context.read<AuthBloc>().add(LogoutRequested());
               Navigator.pop(context);
             },
-            child: Text('تسجيل الخروج', style: GoogleFonts.cairo(color: AppColors.error, fontWeight: FontWeight.bold)),
+            child: Text('تسجيل الخروج', style: _logoutBtn),
           ),
         ],
       ),
@@ -192,6 +209,7 @@ class _ProfilePageState extends State<ProfilePage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocBuilder<ProfileBloc, ProfileState>(
+        buildWhen: (prev, next) => next is ProfileLoading || next is ProfileLoaded || next is ProfileError,
         builder: (context, state) {
           if (state is ProfileLoading) return const Center(child: CardSkeleton());
           if (state is ProfileError) return _buildErrorState(state.message);
@@ -245,11 +263,11 @@ class _ProfilePageState extends State<ProfilePage> {
                         const SizedBox(height: 12),
                         Text(
                           user.name,
-                          style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textPrimary),
+                          style: _userNameHeader,
                         ),
                         Text(
                           user.role == 'MERCHANT' ? 'تاجر معتمد' : 'مدير النظام',
-                          style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textTertiary),
+                          style: _userRole,
                         ),
                       ],
                     ),
@@ -272,6 +290,7 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(height: 20),
                       BlocBuilder<DashboardBloc, DashboardState>(
+                        buildWhen: (prev, next) => next is DashboardLoaded,
                         builder: (context, dashState) {
                           final storeName = dashState is DashboardLoaded ? (dashState.stats.storeName ?? '...') : '...';
                           return _buildInfoSection(
@@ -310,7 +329,7 @@ class _ProfilePageState extends State<ProfilePage> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(title, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary)),
+          Text(title, style: _sectionTitleInfo),
           const SizedBox(height: 16),
           ...children,
         ],
@@ -329,8 +348,8 @@ class _ProfilePageState extends State<ProfilePage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary)),
-                Text(value, style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+                Text(label, style: _infoLabel),
+                Text(value, style: _infoValue),
               ],
             ),
           ),
@@ -355,7 +374,7 @@ class _ProfilePageState extends State<ProfilePage> {
           children: [
             Icon(icon, size: 20, color: color),
             const SizedBox(width: 10),
-            Text(label, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: color)),
+            Text(label, style: _actionBtnBase.copyWith(color: color)),
           ],
         ),
       ),
@@ -369,7 +388,7 @@ class _ProfilePageState extends State<ProfilePage> {
         children: [
           Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
-          Text(message, style: GoogleFonts.cairo(color: AppColors.textPrimary)),
+          Text(message, style: _errorMsg),
           TextButton(onPressed: () => context.read<ProfileBloc>().add(GetProfileRequested()), child: const Text('إعادة المحاولة')),
         ],
       ),

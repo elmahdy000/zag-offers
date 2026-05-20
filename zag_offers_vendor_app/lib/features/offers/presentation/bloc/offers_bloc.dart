@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../domain/usecases/offer_usecases.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:zag_offers_vendor_app/injection_container.dart';
 
 // --- Events ---
 abstract class OffersEvent extends Equatable {
@@ -104,6 +106,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       await createOfferUseCase(event.offer);
       emit(OfferActionSuccess('تم إضافة العرض بنجاح وبانتظار المراجعة'));
       add(GetMyOffersRequested());
+      sl<DashboardBloc>().add(GetDashboardStatsRequested());
     } on DioException catch (e) {
       emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل إضافة العرض')));
     } catch (e) {
@@ -117,6 +120,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       await updateOfferUseCase(event.offer);
       emit(OfferActionSuccess('تم تحديث العرض بنجاح'));
       add(GetMyOffersRequested());
+      sl<DashboardBloc>().add(GetDashboardStatsRequested());
     } on DioException catch (e) {
       emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تحديث العرض')));
     } catch (e) {
@@ -130,6 +134,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       await deleteOfferUseCase(event.id);
       emit(OfferActionSuccess('تم حذف العرض بنجاح'));
       add(GetMyOffersRequested());
+      sl<DashboardBloc>().add(GetDashboardStatsRequested());
     } on DioException catch (e) {
       emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل حذف العرض')));
     } catch (e) {

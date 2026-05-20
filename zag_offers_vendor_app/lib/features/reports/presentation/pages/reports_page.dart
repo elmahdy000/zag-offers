@@ -9,6 +9,9 @@ import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
 class ReportsPage extends StatelessWidget {
+  static final _couponCode = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 12, color: AppColors.primary);
+  static final _errorMsg = GoogleFonts.cairo(color: AppColors.text);
+
   const ReportsPage({super.key});
 
   @override
@@ -34,6 +37,7 @@ class ReportsPage extends StatelessWidget {
         ],
       ),
       body: BlocBuilder<DashboardBloc, DashboardState>(
+        buildWhen: (prev, next) => next is DashboardLoading || next is DashboardLoaded || next is DashboardError || next is DashboardNoStore,
         builder: (context, state) {
           if (state is DashboardLoading) {
             return const Padding(
@@ -151,12 +155,19 @@ class ReportsPage extends StatelessWidget {
                     ),
                     const SizedBox(height: 14),
                     Container(
-                      height: 200,
                       width: double.infinity,
-                      padding: const EdgeInsets.all(18),
+                      padding: const EdgeInsets.symmetric(vertical: 40, horizontal: 18),
                       decoration: AppTheme.glassCard,
-                      child: CustomPaint(
-                        painter: SimpleChartPainter(AppColors.primary),
+                      child: Column(
+                        children: [
+                          Icon(Icons.bar_chart_rounded, size: 48, color: AppColors.textDimmer),
+                          const SizedBox(height: 12),
+                          Text(
+                            'قريباً... ستظهر هنا إحصائيات النشاط الأسبوعي',
+                            textAlign: TextAlign.center,
+                            style: AppTheme.body.copyWith(color: AppColors.textSecondary),
+                          ),
+                        ],
                       ),
                     ),
                     const SizedBox(height: 28),
@@ -192,6 +203,10 @@ class ReportsPage extends StatelessWidget {
                 ),
               ),
             );
+          }
+
+          if (state is DashboardNoStore) {
+            return _buildNoStoreState(context);
           }
 
           return const SizedBox();
@@ -251,6 +266,7 @@ class ReportsPage extends StatelessWidget {
   }
 
   Widget _buildHistoryItem(dynamic coupon) {
+    final bool isUsed = coupon.status == 'USED';
     return Container(
       margin: const EdgeInsets.only(bottom: 8),
       padding: const EdgeInsets.all(12),
@@ -263,10 +279,14 @@ class ReportsPage extends StatelessWidget {
             width: 36,
             height: 36,
             decoration: BoxDecoration(
-              color: AppColors.success.withValues(alpha: 0.1),
+              color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
               borderRadius: BorderRadius.circular(10),
             ),
-            child: const Icon(Icons.check_rounded, color: AppColors.success, size: 18),
+            child: Icon(
+              isUsed ? Icons.check_rounded : Icons.access_time_rounded,
+              color: isUsed ? AppColors.success : AppColors.primary,
+              size: 18,
+            ),
           ),
           const SizedBox(width: 12),
           Expanded(
@@ -298,19 +318,48 @@ class ReportsPage extends StatelessWidget {
             children: [
               Text(
                 '#${coupon.code}',
-                style: GoogleFonts.cairo(
-                  fontWeight: FontWeight.w900,
-                  fontSize: 12,
-                  color: AppColors.primary,
-                ),
+                style: _couponCode,
               ),
               Text(
-                TimeUtils.getRelativeTime(coupon.redeemedAt),
+                TimeUtils.getRelativeTime(coupon.redeemedAt ?? coupon.createdAt),
                 style: AppTheme.small.copyWith(color: AppColors.textDimmer),
               ),
             ],
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildNoStoreState(BuildContext context) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.all(32.0),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            Icon(Icons.store_mall_directory_rounded, size: 64, color: AppColors.textDimmer),
+            const SizedBox(height: 16),
+            Text(
+              'ليس لديك متجر بعد',
+              style: AppTheme.body.copyWith(color: AppColors.textSecondary),
+            ),
+            const SizedBox(height: 8),
+            Text(
+              'أنشئ متجرك للبدء في عرض الإحصائيات والتقارير',
+              style: AppTheme.small.copyWith(color: AppColors.textDim),
+              textAlign: TextAlign.center,
+            ),
+            const SizedBox(height: 24),
+            ElevatedButton.icon(
+              onPressed: () {
+                // Navigate to store creation page
+              },
+              icon: const Icon(Icons.add_business_rounded, size: 18),
+              label: const Text('إنشاء متجر'),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -342,7 +391,7 @@ class ReportsPage extends StatelessWidget {
           children: [
             const Icon(Icons.error_outline, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
-            Text(message, textAlign: TextAlign.center, style: GoogleFonts.cairo(color: AppColors.text)),
+            Text(message, textAlign: TextAlign.center, style: _errorMsg),
             const SizedBox(height: 24),
             ElevatedButton(
               onPressed: () => context.read<DashboardBloc>().add(GetDashboardStatsRequested()),
@@ -355,63 +404,4 @@ class ReportsPage extends StatelessWidget {
   }
 }
 
-class SimpleChartPainter extends CustomPainter {
-  final Color color;
-  SimpleChartPainter(this.color);
 
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..shader = LinearGradient(
-        begin: Alignment.topCenter,
-        end: Alignment.bottomCenter,
-        colors: [color.withValues(alpha: 0.3), color.withValues(alpha: 0.01)],
-      ).createShader(Rect.fromLTWH(0, 0, size.width, size.height))
-      ..style = PaintingStyle.fill;
-
-    final linePaint = Paint()
-      ..color = color
-      ..strokeWidth = 3.5
-      ..style = PaintingStyle.stroke
-      ..strokeCap = StrokeCap.round
-      ..strokeJoin = StrokeJoin.round;
-
-    final path = Path();
-    final points = [
-      Offset(0, size.height * 0.85),
-      Offset(size.width * 0.15, size.height * 0.7),
-      Offset(size.width * 0.35, size.height * 0.78),
-      Offset(size.width * 0.55, size.height * 0.45),
-      Offset(size.width * 0.8, size.height * 0.52),
-      Offset(size.width, size.height * 0.25),
-    ];
-
-    path.moveTo(points[0].dx, points[0].dy);
-    
-    // Using quadratic curves for smooth "Stock Chart" look
-    for (var i = 0; i < points.length - 1; i++) {
-      final xCenter = (points[i].dx + points[i + 1].dx) / 2;
-      final yCenter = (points[i].dy + points[i + 1].dy) / 2;
-      path.quadraticBezierTo(points[i].dx, points[i].dy, xCenter, yCenter);
-    }
-    path.lineTo(points.last.dx, points.last.dy);
-
-    canvas.drawPath(path, linePaint);
-
-    final fillPath = Path.from(path)
-      ..lineTo(size.width, size.height)
-      ..lineTo(0, size.height)
-      ..close();
-    canvas.drawPath(fillPath, paint);
-    
-    // Draw data points
-    final pointPaint = Paint()..color = color..style = PaintingStyle.fill;
-    for (var point in points) {
-      canvas.drawCircle(point, 4, pointPaint);
-      canvas.drawCircle(point, 6, Paint()..color = Colors.white.withValues(alpha: 0.5)..style = PaintingStyle.stroke..strokeWidth = 1);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

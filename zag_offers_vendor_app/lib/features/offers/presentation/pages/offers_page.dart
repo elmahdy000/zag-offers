@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'package:zag_offers_vendor_app/core/constants/app_constants.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
@@ -22,6 +21,25 @@ class OffersPage extends StatefulWidget {
 }
 
 class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateMixin {
+  static final _cairoW900Size18 = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18);
+  static final _cairoW900Size12 = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 12);
+  static final _cairoBold12 = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 12);
+  static final _cairoW900WhiteSize12 = GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.w900, fontSize: 12);
+  static final _cairoW900Size15 = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textPrimary, height: 1.2);
+  static final _cairoRegularSize11 = GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary);
+  static final _cairoW900PrimarySize18 = GoogleFonts.cairo(color: AppColors.primary, fontWeight: FontWeight.w900, fontSize: 18);
+  static final _cairoLineThroughSize12 = GoogleFonts.cairo(color: AppColors.textTertiary, decoration: TextDecoration.lineThrough, decorationThickness: 2, fontSize: 12);
+  static final _cairoRegularSize11Tertiary = GoogleFonts.cairo(fontSize: 11, color: AppColors.textTertiary);
+  static final _cairoBoldSize11Accent = GoogleFonts.cairo(fontSize: 11, color: AppColors.accent, fontWeight: FontWeight.bold);
+  static final _cairoW600Size10 = GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.w600);
+  static final _cairoW900Size16 = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textPrimary);
+  static final _cairoBoldTextPrimary = GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _cairoRegularSize14 = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary);
+  static final _cairoTextTertiary = GoogleFonts.cairo(color: AppColors.textTertiary);
+  static final _cairoError = GoogleFonts.cairo(color: AppColors.error);
+  static final _optionTileBase = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 14);
+  static final _statusBadgeBase = GoogleFonts.cairo(fontSize: 9, fontWeight: FontWeight.w900);
+
   late TabController _tabController;
 
   @override
@@ -51,7 +69,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       appBar: AppBar(
         title: Text(
           'إدارة العروض',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18),
+          style: _cairoW900Size18,
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
@@ -68,8 +86,8 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                 indicatorWeight: 3,
                 labelColor: AppColors.primary,
                 unselectedLabelColor: AppColors.textTertiary,
-                labelStyle: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 12),
-                unselectedLabelStyle: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 12),
+                labelStyle: _cairoW900Size12,
+                unselectedLabelStyle: _cairoBold12,
                 tabs: const [
                   Tab(text: 'الكل'),
                   Tab(text: 'نشط'),
@@ -97,6 +115,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
         child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
       ),
       body: BlocConsumer<OffersBloc, OffersState>(
+        listenWhen: (_, next) => next is OfferActionSuccess || next is OffersError,
         listener: (context, state) {
           if (state is OfferActionSuccess) {
             SnackBarUtils.showSuccess(context, state.message);
@@ -144,16 +163,17 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       child: ListView.builder(
         padding: const EdgeInsets.fromLTRB(20, 16, 20, 100),
         itemCount: filtered.length,
-        itemBuilder: (context, index) => _buildOfferCard(context, filtered[index]),
+        itemBuilder: (context, index) => _buildOfferCard(context, filtered[index], key: ValueKey(filtered[index].id)),
       ),
     );
   }
 
-  Widget _buildOfferCard(BuildContext context, OfferEntity offer) {
+  Widget _buildOfferCard(BuildContext context, OfferEntity offer, {Key? key}) {
     final hasImage = offer.images.isNotEmpty;
     final firstImage = hasImage ? _resolveImageUrl(offer.images.first) : null;
 
     return InkWell(
+      key: key,
       onTap: () {
         HapticFeedback.lightImpact();
         Navigator.push(
@@ -202,11 +222,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                       ),
                       child: Text(
                         offer.discount,
-                        style: GoogleFonts.cairo(
-                          color: Colors.white,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 12,
-                        ),
+                        style: _cairoW900WhiteSize12,
                       ),
                     ),
                   ),
@@ -234,22 +250,14 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                   children: [
                     Text(
                       offer.title,
-                      style: GoogleFonts.cairo(
-                        fontSize: 15,
-                        fontWeight: FontWeight.w900,
-                        color: AppColors.textPrimary,
-                        height: 1.2,
-                      ),
+                      style: _cairoW900Size15,
                     ),
                     const SizedBox(height: 2),
                     Text(
                       offer.description,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.cairo(
-                        fontSize: 11,
-                        color: AppColors.textSecondary,
-                      ),
+                      style: _cairoRegularSize11,
                     ),
                     const SizedBox(height: 12),
                     if (offer.newPrice != null)
@@ -265,23 +273,14 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                               ),
                               child: Text(
                                 '${offer.newPrice} ج.م',
-                                style: GoogleFonts.cairo(
-                                  color: AppColors.primary,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 18,
-                                ),
+                                style: _cairoW900PrimarySize18,
                               ),
                             ),
                             const SizedBox(width: 10),
                             if (offer.oldPrice != null)
                               Text(
                                 '${offer.oldPrice} ج.م',
-                                style: GoogleFonts.cairo(
-                                  color: AppColors.textTertiary,
-                                  decoration: TextDecoration.lineThrough,
-                                  decorationThickness: 2,
-                                  fontSize: 12,
-                                ),
+                                style: _cairoLineThroughSize12,
                               ),
                           ],
                         ),
@@ -295,28 +294,20 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                             const SizedBox(width: 4),
                             Text(
                               '${offer.viewCount}',
-                              style: GoogleFonts.cairo(fontSize: 11, color: AppColors.textTertiary),
+                              style: _cairoRegularSize11Tertiary,
                             ),
                             const SizedBox(width: 12),
                             Icon(Icons.confirmation_num_rounded, size: 14, color: AppColors.accent),
                             const SizedBox(width: 4),
                             Text(
                               '${offer.couponsCount}',
-                              style: GoogleFonts.cairo(
-                                fontSize: 11,
-                                color: AppColors.accent,
-                                fontWeight: FontWeight.bold,
-                              ),
+                              style: _cairoBoldSize11Accent,
                             ),
                           ],
                         ),
                         Text(
                           'ينتهي ${TimeUtils.getRelativeTime(offer.endDate)}',
-                          style: GoogleFonts.cairo(
-                            fontSize: 10,
-                            color: AppColors.textTertiary,
-                            fontWeight: FontWeight.w600,
-                          ),
+                          style: _cairoW600Size10,
                         ),
                       ],
                     ),
@@ -381,7 +372,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
   Widget _buildOptionTile(IconData icon, String label, Color color, {required VoidCallback onTap}) {
     return ListTile(
       leading: Icon(icon, color: color, size: 22),
-      title: Text(label, style: GoogleFonts.cairo(color: color, fontWeight: FontWeight.bold, fontSize: 14)),
+      title: Text(label, style: _optionTileBase.copyWith(color: color)),
       onTap: onTap,
     );
   }
@@ -420,11 +411,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       ),
       child: Text(
         text,
-        style: GoogleFonts.cairo(
-          color: color,
-          fontSize: 9,
-          fontWeight: FontWeight.w900,
-        ),
+        style: _statusBadgeBase.copyWith(color: color),
       ),
     );
   }
@@ -451,11 +438,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
             const SizedBox(height: 20),
             Text(
               'لا توجد عروض',
-              style: GoogleFonts.cairo(
-                fontWeight: FontWeight.w900,
-                fontSize: 16,
-                color: AppColors.textPrimary,
-              ),
+              style: _cairoW900Size16,
             ),
           ],
         ),
@@ -472,7 +455,7 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
           const SizedBox(height: 16),
           Text(
             'حدث خطأ في التحميل',
-            style: GoogleFonts.cairo(fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+            style: _cairoBoldTextPrimary,
           ),
           const SizedBox(height: 24),
           TextButton(
@@ -490,16 +473,16 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
       builder: (context) => AlertDialog(
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        title: Text('حذف العرض', style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 16, color: AppColors.textPrimary)),
-        content: Text('هل أنت متأكد من رغبتك في حذف هذا العرض؟', style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary)),
+        title: Text('حذف العرض', style: _cairoW900Size16),
+        content: Text('هل أنت متأكد من رغبتك في حذف هذا العرض؟', style: _cairoRegularSize14),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: GoogleFonts.cairo(color: AppColors.textTertiary))),
+          TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: _cairoTextTertiary)),
           TextButton(
             onPressed: () {
               context.read<OffersBloc>().add(DeleteOfferRequested(id));
               Navigator.pop(context);
             },
-            child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
+            child: Text('حذف', style: _cairoError),
           ),
         ],
       ),

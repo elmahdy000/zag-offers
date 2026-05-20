@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_animate/flutter_animate.dart';
@@ -18,8 +19,23 @@ class CouponsPage extends StatefulWidget {
 }
 
 class _CouponsPageState extends State<CouponsPage> {
+  static const _cairoFamily = 'Cairo';
+  static final _c11 = GoogleFonts.cairo(fontSize: 11);
+  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
+  static final _c13w700 = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold);
+  static final _c14Secondary = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary);
+  static final _c16w700Primary = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c18w700 = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold);
+  static final _c18w700Primary = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c9w700Secondary = GoogleFonts.cairo(fontSize: 9, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
+  static final _i10Secondary = GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary);
+  static final _i13w700Letter12 = GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.2);
+  static final _i14w700Primary = GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary);
+  static final _i16w700 = GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold);
+
   String? _selectedStatus;
   final _searchController = TextEditingController();
+  Timer? _debounce;
 
   @override
   void initState() {
@@ -29,8 +45,17 @@ class _CouponsPageState extends State<CouponsPage> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _searchController.dispose();
     super.dispose();
+  }
+
+  void _onSearchChanged(String value) {
+    setState(() {});
+    if (_debounce?.isActive ?? false) _debounce!.cancel();
+    _debounce = Timer(const Duration(milliseconds: 300), () {
+      context.read<CouponsBloc>().add(LoadCouponsEvent(search: value, status: _selectedStatus));
+    });
   }
 
   @override
@@ -45,6 +70,8 @@ class _CouponsPageState extends State<CouponsPage> {
           _buildSearchAndFilter(),
           Expanded(
             child: BlocConsumer<CouponsBloc, CouponsState>(
+              listenWhen: (_, state) => state is CouponsError,
+              buildWhen: (_, state) => state is CouponsLoading || state is CouponsLoaded,
               listener: (context, state) {
                 if (state is CouponsError) {
                   SnackBarUtils.showError(context, state.message);
@@ -111,16 +138,12 @@ class _CouponsPageState extends State<CouponsPage> {
                       icon: const Icon(Icons.clear_rounded),
                       onPressed: () {
                         _searchController.clear();
-                        setState(() {});
                         context.read<CouponsBloc>().add(LoadCouponsEvent(status: _selectedStatus));
                       },
                     )
                   : null,
             ),
-            onChanged: (value) {
-              setState(() {});
-              context.read<CouponsBloc>().add(LoadCouponsEvent(search: value, status: _selectedStatus));
-            },
+            onChanged: _onSearchChanged,
           ),
           const SizedBox(height: 12),
           SingleChildScrollView(
@@ -175,8 +198,8 @@ class _CouponsPageState extends State<CouponsPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(storeName, style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-                      Text('${coupons.length} كوبون إجمالي', style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary)),
+                      Text(storeName, style: _c16w700Primary),
+                      Text('${coupons.length} كوبون إجمالي', style: _c12Secondary),
                     ],
                   ),
                 ),
@@ -198,7 +221,7 @@ class _CouponsPageState extends State<CouponsPage> {
                 if (index == 3) {
                   return TextButton(
                     onPressed: () => _showAllStoreCoupons(storeName, coupons),
-                    child: Text('عرض الكل (${coupons.length})', style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold)),
+                    child: Text('عرض الكل (${coupons.length})', style: _c13w700),
                   );
                 }
                 final coupon = coupons[index];
@@ -221,11 +244,11 @@ class _CouponsPageState extends State<CouponsPage> {
         decoration: BoxDecoration(color: statusColor.withValues(alpha: 0.1), shape: BoxShape.circle),
         child: Icon(_getStatusIcon(coupon.status), color: statusColor, size: 14),
       ),
-      title: Text(coupon.code, style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 13, letterSpacing: 1.2)),
-      subtitle: Text(coupon.customerName, style: GoogleFonts.cairo(fontSize: 11)),
+      title: Text(coupon.code, style: _i13w700Letter12),
+      subtitle: Text(coupon.customerName, style: _c11),
       trailing: Text(
         DateFormat('dd/MM HH:mm', 'ar').format(coupon.createdAt),
-        style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary),
+        style: _i10Secondary,
       ),
     );
   }
@@ -233,8 +256,8 @@ class _CouponsPageState extends State<CouponsPage> {
   Widget _buildStatBadge(String label, String value, Color color) {
     return Column(
       children: [
-        Text(value, style: GoogleFonts.inter(fontSize: 16, fontWeight: FontWeight.bold, color: color)),
-        Text(label, style: GoogleFonts.cairo(fontSize: 9, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+        Text(value, style: _i16w700.copyWith(color: color)),
+        Text(label, style: _c9w700Secondary),
       ],
     );
   }
@@ -251,7 +274,7 @@ class _CouponsPageState extends State<CouponsPage> {
           padding: const EdgeInsets.all(24),
           child: Column(
             children: [
-              Text('كوبونات $storeName', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold)),
+              Text('كوبونات $storeName', style: _c18w700),
               const SizedBox(height: 16),
               Expanded(
                 child: ListView.separated(
@@ -282,7 +305,7 @@ class _CouponsPageState extends State<CouponsPage> {
             child: Icon(IconlyBold.ticket, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
           ),
           const SizedBox(height: 24),
-          Text('لا توجد كوبونات', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+          Text('لا توجد كوبونات', style: _c18w700Primary),
         ],
       ),
     );
@@ -303,7 +326,7 @@ class _CouponsPageState extends State<CouponsPage> {
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
-        fontFamily: GoogleFonts.cairo().fontFamily,
+        fontFamily: _cairoFamily,
       ),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
       showCheckmark: false,
@@ -337,7 +360,7 @@ class _CouponsPageState extends State<CouponsPage> {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Text('تفاصيل الكوبون', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('تفاصيل الكوبون', style: _c18w700),
             const SizedBox(height: 24),
             const SizedBox(height: 24),
             _buildDetailRow(IconlyBold.ticket, 'الكود', coupon.code),
@@ -372,13 +395,13 @@ class _CouponsPageState extends State<CouponsPage> {
         children: [
           Icon(icon, size: 18, color: AppColors.primary),
           const SizedBox(width: 12),
-          Text(label, style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary)),
+          Text(label, style: _c14Secondary),
           const SizedBox(width: 8),
           Expanded(
             child: Text(
               value,
               textAlign: TextAlign.end,
-              style: GoogleFonts.inter(fontWeight: FontWeight.bold, fontSize: 14, color: AppColors.textPrimary),
+              style: _i14w700Primary,
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
             ),

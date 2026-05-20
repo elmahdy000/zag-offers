@@ -18,6 +18,13 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
+  static final _appBarTitleStyle = GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18);
+  static final _carouselCategoryStyle = GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold, color: AppColors.primary);
+  static final _carouselNameStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 13);
+  static final _carouselDistStyle = GoogleFonts.cairo(fontSize: 10, color: Colors.grey);
+  static final _emptyTitleStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 18);
+  static final _emptySubStyle = GoogleFonts.cairo(fontSize: 14, color: Colors.grey);
+
   late AnimationController _sweepController;
   late PageController _pageController;
   int _selectedStoreIndex = 0;
@@ -148,11 +155,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
         ),
         title: Text(
           'رادار الخصومات المحيطة',
-          style: GoogleFonts.cairo(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-            fontSize: 18,
-          ),
+          style: _appBarTitleStyle,
         ),
         centerTitle: true,
       ),
@@ -176,14 +179,13 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           Positioned.fill(
                             child: AnimatedBuilder(
                               animation: _sweepController,
-                              builder: (context, child) {
-                                return CustomPaint(
-                                  painter: _RadarPainter(
-                                    angle: _sweepController.value * 2 * math.pi,
-                                    primaryColor: AppColors.primary,
-                                  ),
-                                );
-                              },
+                              builder: (context, child) => child!,
+                              child: CustomPaint(
+                                painter: _RadarPainter(
+                                  sweepController: _sweepController,
+                                  primaryColor: AppColors.primary,
+                                ),
+                              ),
                             ),
                           ),
                           ..._buildRadarNodes(center, radius),
@@ -230,6 +232,27 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
       final y = center.dy + nodeRadius * math.sin(node.angle);
 
       final storeColor = _getCategoryColor(node.store.category);
+
+      final nodeChild = ClipOval(
+        child: node.store.logo != null &&
+                node.store.logo!.isNotEmpty
+            ? Image.network(
+                node.store.logo!,
+                width: double.infinity,
+                height: double.infinity,
+                fit: BoxFit.cover,
+                errorBuilder: (_, __, ___) => Icon(
+                  _getCategoryIcon(node.store.category),
+                  color: Colors.white,
+                  size: 16,
+                ),
+              )
+            : Icon(
+                _getCategoryIcon(node.store.category),
+                color: Colors.white,
+                size: 16,
+              ),
+      );
 
       return Positioned(
         left: x - 24,
@@ -285,26 +308,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           ),
                         ],
                       ),
-                      child: ClipOval(
-                        child: node.store.logo != null &&
-                                node.store.logo!.isNotEmpty
-                            ? Image.network(
-                                node.store.logo!,
-                                width: double.infinity,
-                                height: double.infinity,
-                                fit: BoxFit.cover,
-                                errorBuilder: (_, __, ___) => Icon(
-                                  _getCategoryIcon(node.store.category),
-                                  color: Colors.white,
-                                  size: 16,
-                                ),
-                              )
-                            : Icon(
-                                _getCategoryIcon(node.store.category),
-                                color: Colors.white,
-                                size: 16,
-                              ),
-                      ),
+                      child: child,
                     ),
                     if (isSelected)
                       Positioned.fill(
@@ -315,6 +319,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               ),
             );
           },
+          child: nodeChild,
         ),
       );
     }).toList();
@@ -440,21 +445,13 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                     ),
                                     child: Text(
                                       store.category ?? 'عام',
-                                      style: GoogleFonts.cairo(
-                                        color: categoryColor,
-                                        fontSize: 10,
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                      style: _carouselCategoryStyle.copyWith(color: categoryColor),
                                     ),
                                   ),
                                   const SizedBox(height: 6),
                                   Text(
                                     store.name,
-                                    style: GoogleFonts.cairo(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.bold,
-                                      fontSize: 16,
-                                    ),
+                                  style: _carouselNameStyle.copyWith(color: Colors.white, fontSize: 16),
                                     maxLines: 1,
                                     overflow: TextOverflow.ellipsis,
                                   ),
@@ -466,10 +463,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                       Expanded(
                                         child: Text(
                                           '${store.area} (${distance.toStringAsFixed(0)}م)',
-                                          style: GoogleFonts.cairo(
-                                            color: Colors.white70,
-                                            fontSize: 12,
-                                          ),
+                                          style: _carouselDistStyle.copyWith(color: Colors.white70, fontSize: 12),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -539,20 +533,13 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             const SizedBox(height: 16),
             Text(
               'لا توجد متاجر قريبة حاليًا',
-              style: GoogleFonts.cairo(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
-              ),
+              style: _emptyTitleStyle.copyWith(color: Colors.white),
             ),
             const SizedBox(height: 8),
             Text(
               'انتظر انتهاء تحميل المتاجر وسيتم عرض العروض التفاعلية فوراً على الرادار.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.cairo(
-                color: Colors.white60,
-                fontSize: 14,
-              ),
+              style: _emptySubStyle.copyWith(color: Colors.white60),
             ),
           ],
         ),
@@ -577,13 +564,14 @@ class _RadarNode {
 }
 
 class _RadarPainter extends CustomPainter {
-  final double angle;
+  final AnimationController sweepController;
   final Color primaryColor;
 
-  _RadarPainter({required this.angle, required this.primaryColor});
+  _RadarPainter({required this.sweepController, required this.primaryColor});
 
   @override
   void paint(Canvas canvas, Size size) {
+    final angle = sweepController.value * 2 * math.pi;
     final center = Offset(size.width / 2, size.height / 2);
     final maxRadius = math.min(size.width, size.height) * 0.45;
 
@@ -623,7 +611,7 @@ class _RadarPainter extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant _RadarPainter oldDelegate) {
-    return oldDelegate.angle != angle;
+    return oldDelegate.sweepController.value != sweepController.value;
   }
 }
 
@@ -668,9 +656,11 @@ class _PulsingRingState extends State<_PulsingRing> with SingleTickerProviderSta
                 width: 2.0,
               ),
             ),
+            child: child,
           ),
         );
       },
+      child: const SizedBox.shrink(),
     );
   }
 }

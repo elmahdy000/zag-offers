@@ -129,6 +129,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
           if (state is OffersLoaded) _scrollToSelectedCategory(state.categories);
         },
         child: BlocBuilder<OffersBloc, OffersState>(
+        buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading || next is OffersError,
         builder: (context, state) {
           final dynamicCategories = state is OffersLoaded ? state.categories : const <CategoryEntity>[];
           final hasBackendCategories = dynamicCategories.isNotEmpty;
@@ -290,6 +291,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
   }
 
   Widget _buildErrorState(BuildContext context, String message) {
+    final theme = Theme.of(context);
     final isConnectionError = message.toLowerCase().contains('connection') || 
                              message.toLowerCase().contains('network') ||
                              message.toLowerCase().contains('socket');
@@ -317,7 +319,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
               const SizedBox(height: 24),
               Text(
                 isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
-                style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                style: theme.textTheme.headlineSmall?.copyWith(
                   fontWeight: FontWeight.w900,
                 ),
               ),
@@ -327,7 +329,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                     ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
                     : message,
                 textAlign: TextAlign.center,
-                style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                style: theme.textTheme.bodyMedium?.copyWith(
                   color: AppColors.textSecondary,
                   height: 1.5,
                 ),
@@ -367,6 +369,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
   }
 
   Widget _buildOffersGrid(BuildContext context, OffersLoaded state) {
+    final theme = Theme.of(context);
     final filtered = OfferFilterUtils.apply(
       offers: _getSourceOffers(state),
       category: _selectedCategory,
@@ -400,7 +403,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 Text(
                   'لا توجد عروض',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                  style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
                   ),
                 ),
@@ -408,7 +411,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 Text(
                   'لا توجد نتائج تطابق الفلاتر المختارة حالياً. جرّب تغيير التصنيف أو إعادة ضبط الفلاتر.',
                   textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                  style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
                     height: 1.5,
                   ),

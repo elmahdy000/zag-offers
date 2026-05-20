@@ -30,6 +30,25 @@ class AddEditOfferPage extends StatefulWidget {
 }
 
 class _AddEditOfferPageState extends State<AddEditOfferPage> {
+  static final _appBarStyle = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18);
+  static final _buttonStyle = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5);
+  static final _sectionTitleStyle = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary);
+  static final _textBtnStyle = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
+  static final _hintStyle = GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 12);
+  static final _fieldLabelStyle = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
+  static final _fieldValueStyle = GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.bold);
+  static final _fieldHintStyle = GoogleFonts.cairo(fontSize: 13, color: AppColors.textTertiary);
+  static final _dateLabelStyle = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
+  static final _dateValueStyle = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+
+  final _darkTheme = ThemeData.dark().copyWith(
+    colorScheme: const ColorScheme.dark(
+      primary: AppColors.primary,
+      onPrimary: Colors.white,
+      surface: AppColors.card,
+    ),
+  );
+
   final _formKey = GlobalKey<FormState>();
   late TextEditingController _titleController;
   late TextEditingController _descController;
@@ -150,14 +169,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
       builder: (context, child) {
         return Theme(
-          data: Theme.of(context).copyWith(
-            colorScheme: const ColorScheme.dark(
-              primary: AppColors.primary,
-              onPrimary: Colors.white,
-              surface: AppColors.card,
-              onSurface: AppColors.textPrimary,
-            ),
-          ),
+          data: _darkTheme,
           child: child!,
         );
       },
@@ -233,7 +245,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
       appBar: AppBar(
         title: Text(
           isEdit ? 'تعديل عرض' : 'إضافة عرض جديد',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18),
+          style: _appBarStyle,
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
@@ -402,11 +414,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       const SizedBox(width: 12),
                       Text(
                         'معاينة العرض',
-                        style: GoogleFonts.cairo(
-                          fontSize: 16,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 0.5,
-                        ),
+                        style: _buttonStyle,
                       ),
                     ],
                   ),
@@ -423,7 +431,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary),
+      style: _sectionTitleStyle,
     );
   }
 
@@ -439,7 +447,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
               TextButton.icon(
                 onPressed: _isUploading ? null : _pickImage,
                 icon: const Icon(Icons.add_photo_alternate_rounded, size: 18),
-                label: Text('إضافة', style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold)),
+                label: Text('إضافة', style: _textBtnStyle),
               ),
           ],
         ),
@@ -466,7 +474,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                 children: [
                   Icon(Icons.add_photo_alternate_rounded, size: 40, color: AppColors.primary.withValues(alpha: 0.5)),
                   const SizedBox(height: 8),
-                  Text('اضغط لإضافة صور العرض', style: GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 12)),
+                  Text('اضغط لإضافة صور العرض', style: _hintStyle),
                 ],
               ),
             ),
@@ -536,7 +544,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(label, style: _fieldLabelStyle),
         const SizedBox(height: 6),
         TextFormField(
           controller: controller,
@@ -546,10 +554,10 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
           onChanged: onChanged,
           readOnly: readOnly,
           keyboardType: keyboardType,
-          style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.bold),
+          style: _fieldValueStyle,
           decoration: InputDecoration(
             hintText: hint,
-            hintStyle: GoogleFonts.cairo(fontSize: 13, color: AppColors.textTertiary),
+            hintStyle: _fieldHintStyle,
             prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
             filled: true,
             fillColor: AppColors.card,
@@ -572,7 +580,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(label, style: _dateLabelStyle),
         const SizedBox(height: 6),
         InkWell(
           onTap: onTap,
@@ -586,7 +594,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                 const SizedBox(width: 10),
                 Text(
                   DateFormat('yyyy/MM/dd').format(date),
-                  style: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  style: _dateValueStyle,
                 ),
               ],
             ),

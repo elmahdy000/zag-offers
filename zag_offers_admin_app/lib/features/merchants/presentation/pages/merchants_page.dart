@@ -22,6 +22,16 @@ class MerchantsPage extends StatefulWidget {
 }
 
 class _MerchantsPageState extends State<MerchantsPage> {
+  static const _cairoFamily = 'Cairo';
+  static final _c10w700Secondary = GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
+  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
+  static final _c12w700 = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
+  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
+  static final _c15w700Primary = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c20w700Error = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error);
+  static final _c22w700Primary = GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _i20w700Primary = GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
   String? _selectedStatus;
   String _searchQuery = '';
   final _searchController = TextEditingController();
@@ -55,6 +65,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
       ),
       body: BlocConsumer<MerchantsBloc, MerchantsState>(
         listenWhen: (_, state) => state is MerchantStatusUpdated || state is MerchantDeleted || state is MerchantsError,
+        buildWhen: (_, state) => state is MerchantsLoading || state is MerchantsLoaded || state is MerchantsError,
         listener: (context, state) {
           if (state is MerchantStatusUpdated) {
             SnackBarUtils.showSuccess(context, 'تم تحديث حالة التاجر بنجاح');
@@ -120,8 +131,8 @@ class _MerchantsPageState extends State<MerchantsPage> {
         children: [
           Icon(icon, size: 18, color: color),
           const SizedBox(height: 8),
-          Text(value, style: GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
-          Text(label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+          Text(value, style: _i20w700Primary),
+          Text(label, style: _c10w700Secondary),
         ],
       ),
     );
@@ -192,7 +203,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
   }
 
   Widget _buildEmptyState() {
-    return Center(child: Text('لا يوجد تجار حالياً', style: GoogleFonts.cairo(color: AppColors.textSecondary)));
+    return Center(child: Text('لا يوجد تجار حالياً', style: _cSecondary));
   }
 
   Widget _buildErrorState(String msg) {
@@ -202,7 +213,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
         children: [
           const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 40),
           const SizedBox(height: 16),
-          Text(msg, style: GoogleFonts.cairo(color: AppColors.textSecondary)),
+          Text(msg, style: _cSecondary),
           TextButton(onPressed: () => context.read<MerchantsBloc>().add(const LoadMerchantsEvent()), child: const Text('إعادة المحاولة')),
         ],
       ),
@@ -238,7 +249,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
                 ),
               ),
               const SizedBox(height: 16),
-              Center(child: Text(merchant.storeName, style: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary))),
+              Center(child: Text(merchant.storeName, style: _c22w700Primary)),
               Center(child: _buildStatusBadge(merchant.status)),
               const SizedBox(height: 32),
               _buildDetailItem('اسم المالك', merchant.ownerName, IconlyLight.profile),
@@ -313,7 +324,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
       decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-      child: Text(label, style: GoogleFonts.cairo(fontSize: 12, color: color, fontWeight: FontWeight.bold)),
+      child: Text(label, style: _c12w700.copyWith(color: color)),
     );
   }
 
@@ -328,8 +339,8 @@ class _MerchantsPageState extends State<MerchantsPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                Text(label, style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary)),
-                Text(value, style: GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary), maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(label, style: _c12Secondary),
+                Text(value, style: _c15w700Primary, maxLines: 1, overflow: TextOverflow.ellipsis),
               ],
             ),
           ),
@@ -350,7 +361,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
         }
       },
       selectedColor: AppColors.primary.withValues(alpha: 0.15),
-      labelStyle: TextStyle(color: isSelected ? AppColors.primary : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontFamily: GoogleFonts.cairo().fontFamily),
+      labelStyle: TextStyle(color: isSelected ? AppColors.primary : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontFamily: _cairoFamily),
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
       showCheckmark: false,
     );
@@ -373,9 +384,9 @@ class _MerchantsPageState extends State<MerchantsPage> {
             mainAxisSize: MainAxisSize.min,
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text('رفض طلب التاجر', style: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error)),
+              Text('رفض طلب التاجر', style: _c20w700Error),
               const SizedBox(height: 8),
-              Text('يرجى توضيح سبب رفض طلب التاجر " ${merchant.storeName} " ليصل إشعار لصاحب الطلب بالسبب.', style: GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary)),
+              Text('يرجى توضيح سبب رفض طلب التاجر " ${merchant.storeName} " ليصل إشعار لصاحب الطلب بالسبب.', style: _c13Secondary),
               const SizedBox(height: 24),
               TextField(
                 controller: reasonController,

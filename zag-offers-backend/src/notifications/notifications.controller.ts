@@ -141,15 +141,9 @@ export class NotificationsController {
   @ApiOperation({ summary: 'إرسال إشعار للجميع لاختبار النظام' })
   @ApiBody({ type: SendNotificationDto })
   async sendTestPublic(@Body() body: SendNotificationDto) {
-    await this.notificationsService.sendToAll(
-      body.title,
-      body.body,
-      body.data,
-      body.imageUrl,
-    );
     return {
       success: true,
-      message: 'Public test broadcast triggered',
+      message: 'Public broadcast disabled — use area-targeted broadcast instead',
     };
   }
 

@@ -32,7 +32,6 @@ class OfferDetailPage extends StatefulWidget {
 }
 
 class _OfferDetailPageState extends State<OfferDetailPage> {
-  TextTheme get textTheme => Theme.of(context).textTheme;
   late final Future<bool> _canGenerateCouponFuture;
   late final ReviewsBloc _reviewsBloc;
   late final CouponsBloc _couponsBloc;
@@ -122,8 +121,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       ],
       child: MultiBlocListener(
         listeners: [
-          BlocListener<CouponsBloc, CouponsState>(listener: _onCouponStateChange),
+          BlocListener<CouponsBloc, CouponsState>(
+            listenWhen: (_, current) => current is CouponsError || current is CouponGeneratedSuccess,
+            listener: _onCouponStateChange,
+          ),
           BlocListener<ReviewsBloc, ReviewsState>(
+            listenWhen: (_, current) => current is ReviewActionSuccess || current is ReviewsError,
             listener: (context, state) {
               if (state is ReviewActionSuccess) {
                 _reviewsBloc.add(FetchStoreReviews(widget.offer.store.id));
@@ -135,6 +138,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             },
           ),
           BlocListener<FavoritesBloc, FavoritesState>(
+            listenWhen: (_, current) => current is FavoritesError,
             listener: (context, state) {
               if (state is FavoritesError) {
                 SnackBarUtils.showError(context, state.message);
@@ -337,6 +341,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildStatsRow(String usageCount) {
+    final textTheme = Theme.of(context).textTheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -378,6 +383,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildTitleSection() {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -456,13 +462,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 children: [
                   Text(
                     widget.offer.store.name,
-                    style: textTheme.titleMedium?.copyWith(
+                    style: theme.textTheme.titleMedium?.copyWith(
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   Text(
                     widget.offer.store.area,
-                    style: textTheme.bodySmall,
+                    style: theme.textTheme.bodySmall,
                   ),
                 ],
               ),
@@ -479,6 +485,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildDescriptionSection() {
+    final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -497,6 +504,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildExpirySection() {
+    final textTheme = Theme.of(context).textTheme;
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -523,6 +531,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildStickyActionArea(String usageCount) {
+    final textTheme = Theme.of(context).textTheme;
     return Positioned(
       bottom: 20,
       left: 20,
@@ -532,6 +541,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         builder: (context, snapshot) {
           final canGenerate = snapshot.data ?? false;
           return BlocBuilder<CouponsBloc, CouponsState>(
+            buildWhen: (prev, next) => next is CouponsLoading || next is CouponGeneratedSuccess || next is CouponsError,
             builder: (context, state) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
@@ -796,13 +806,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           children: [
             Text(
               'آراء العملاء',
-              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: _showAddReviewBottomSheet,
               child: Text(
                 'أضف تقييمك',
-                style: textTheme.labelLarge?.copyWith(
+                style: theme.textTheme.labelLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
                 ),
@@ -812,6 +822,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         ),
         const SizedBox(height: 12),
         BlocBuilder<ReviewsBloc, ReviewsState>(
+          buildWhen: (prev, next) => next is ReviewsLoaded || next is ReviewsLoading,
           builder: (context, state) {
             if (state is ReviewsLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -823,7 +834,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     padding: const EdgeInsets.symmetric(vertical: 20),
                     child: Text(
                       'لا توجد تقييمات بعد. كن أول من يقيّم',
-                      style: textTheme.bodyMedium,
+                      style: theme.textTheme.bodyMedium,
                     ),
                   ),
                 );
@@ -852,7 +863,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                             Expanded(
                               child: Text(
                                 review.customerName,
-                                style: textTheme.titleSmall?.copyWith(
+                                style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
                                 ),
                               ),
@@ -876,7 +887,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                           const SizedBox(height: 10),
                           Text(
                             review.comment!,
-                            style: textTheme.bodySmall?.copyWith(height: 1.5),
+                            style: theme.textTheme.bodySmall?.copyWith(height: 1.5),
                           ),
                         ],
                         if (review.merchantReply != null) ...[
@@ -897,7 +908,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                     const SizedBox(width: 6),
                                     Text(
                                       'رد المتجر',
-                                      style: textTheme.labelSmall?.copyWith(
+                                      style: theme.textTheme.labelSmall?.copyWith(
                                         color: AppColors.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -907,7 +918,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                 const SizedBox(height: 6),
                                 Text(
                                   review.merchantReply!,
-                                  style: textTheme.bodySmall?.copyWith(
+                                  style: theme.textTheme.bodySmall?.copyWith(
                                     color: AppColors.textSecondary,
                                     height: 1.4,
                                   ),
@@ -927,7 +938,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               child: Center(
                 child: Text(
                   'تعذر تحميل التقييمات',
-                  style: textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                  style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
                 ),
               ),
             );

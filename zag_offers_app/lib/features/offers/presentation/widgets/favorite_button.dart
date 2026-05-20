@@ -19,6 +19,7 @@ class FavoriteButton extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return BlocBuilder<FavoritesBloc, FavoritesState>(
+      buildWhen: (_, next) => next is FavoritesLoaded,
       builder: (context, state) {
         bool isFavorited = false;
         if (state is FavoritesLoaded) {

@@ -9,17 +9,13 @@ import 'package:flutter_animate/flutter_animate.dart';
 import 'package:intl/intl.dart';
 import 'package:zag_offers_admin_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/bloc/merchants_bloc.dart';
-import 'package:zag_offers_admin_app/features/merchants/presentation/pages/merchants_page.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/pages/add_merchant_page.dart';
 import 'package:zag_offers_admin_app/features/users/presentation/pages/users_page.dart';
 import 'package:zag_offers_admin_app/features/offers/presentation/bloc/offers_bloc.dart';
-import 'package:zag_offers_admin_app/features/offers/presentation/pages/offers_page.dart';
-import 'package:zag_offers_admin_app/features/broadcast/presentation/pages/broadcast_page.dart';
 import 'package:zag_offers_admin_app/features/audit_logs/presentation/bloc/audit_logs_bloc.dart';
 import 'package:zag_offers_admin_app/features/audit_logs/presentation/pages/audit_logs_page.dart';
 import 'package:zag_offers_admin_app/features/audit_logs/domain/entities/audit_log.dart';
 import 'package:zag_offers_admin_app/features/categories/presentation/pages/categories_page.dart';
-import 'package:zag_offers_admin_app/features/coupons/presentation/pages/coupons_page.dart';
 import 'package:zag_offers_admin_app/features/profile/presentation/pages/profile_page.dart';
 import 'package:zag_offers_admin_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:zag_offers_admin_app/features/dashboard/domain/entities/stats.dart';
@@ -42,6 +38,24 @@ class DashboardPage extends StatefulWidget {
 }
 
 class _DashboardPageState extends State<DashboardPage> with SingleTickerProviderStateMixin {
+  static final _c10w600Primary = GoogleFonts.cairo(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600);
+  static final _c10w700Secondary = GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
+  static final _c11w700Primary = GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
+  static final _c12w500Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500);
+  static final _c12w700Primary = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary);
+  static final _c14Secondary = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary);
+  static final _c14White70 = GoogleFonts.cairo(color: Colors.white70, fontSize: 14);
+  static final _c14w700Primary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c16w700Primary = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c18w700 = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold);
+  static final _c18w700Primary = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c22w700White = GoogleFonts.cairo(color: Colors.white, fontSize: 22, fontWeight: FontWeight.bold);
+  static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _i10Secondary = GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary);
+  static final _i14Secondary = GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary);
+  static final _i22w700Primary = GoogleFonts.inter(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+
   late AnimationController _pulseController;
 
   @override
@@ -114,6 +128,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocBuilder<DashboardBloc, DashboardState>(
+        buildWhen: (prev, next) => next is DashboardInitial || next is DashboardLoading || next is DashboardLoaded || next is DashboardError,
         builder: (context, state) {
           return RefreshIndicator(
             onRefresh: () async {
@@ -163,7 +178,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
                           _buildLiveSectionTitle('بث مباشر للعمليات'),
                           TextButton(
                             onPressed: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AuditLogsPage())),
-                            child: Text('عرض السجلات', style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary)),
+                            child: Text('عرض السجلات', style: _c12w700Primary),
                           ),
                         ],
                       ),
@@ -236,21 +251,8 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
               Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'لوحة القيادة المركزية',
-                    style: GoogleFonts.cairo(
-                      color: Colors.white70,
-                      fontSize: 14,
-                    ),
-                  ),
-                  Text(
-                    'مرحباً، المدير العام',
-                    style: GoogleFonts.cairo(
-                      color: Colors.white,
-                      fontSize: 22,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
+                  Text('لوحة القيادة المركزية', style: _c14White70),
+                  Text('مرحباً، المدير العام', style: _c22w700White),
                 ],
               ),
               Row(
@@ -296,14 +298,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: GoogleFonts.cairo(
-        fontSize: 18,
-        fontWeight: FontWeight.bold,
-        color: AppColors.textPrimary,
-      ),
-    );
+    return Text(title, style: _c18w700Primary);
   }
 
   Widget _buildLiveSectionTitle(String title) {
@@ -314,13 +309,14 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
           child: Container(width: 8, height: 8, decoration: const BoxDecoration(color: Colors.red, shape: BoxShape.circle)),
         ),
         const SizedBox(width: 8),
-        Text(title, style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        Text(title, style: _c16w700Primary),
       ],
     );
   }
 
   Widget _buildLiveActivityStream() {
     return BlocBuilder<AuditLogsBloc, AuditLogsState>(
+      buildWhen: (prev, next) => next is AuditLogsLoading || next is AuditLogsLoaded || next is AuditLogsError || next is AuditLogsInitial,
       builder: (context, state) {
         if (state is AuditLogsLoading) {
           return const ListSkeleton(itemCount: 3);
@@ -331,7 +327,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
             return Container(
               padding: const EdgeInsets.all(20),
               decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(20)),
-              child: Center(child: Text('لا يوجد نشاطات مسجلة حالياً', style: GoogleFonts.cairo(color: AppColors.textSecondary))),
+              child: Center(child: Text('لا يوجد نشاطات مسجلة حالياً', style: _cSecondary)),
             );
           }
           return Container(
@@ -421,22 +417,22 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
           decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
           child: Icon(icon, color: color, size: 22),
         ),
-        title: Text(actionText, style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary)),
+        title: Text(actionText, style: _c14w700Primary),
         subtitle: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             if (cleanDetails.isNotEmpty)
               Padding(
                 padding: const EdgeInsets.only(bottom: 4),
-                child: Text(cleanDetails, style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary)),
+                child: Text(cleanDetails, style: _c12Secondary),
               ),
             Row(
               children: [
-                Text(DateFormat('hh:mm a', 'ar').format(log.createdAt), style: GoogleFonts.inter(fontSize: 10, color: AppColors.textSecondary)),
+                Text(DateFormat('hh:mm a', 'ar').format(log.createdAt), style: _i10Secondary),
                 const SizedBox(width: 8),
                 Container(width: 3, height: 3, decoration: const BoxDecoration(color: Colors.grey, shape: BoxShape.circle)),
                 const SizedBox(width: 8),
-                Text(log.adminName, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.primary, fontWeight: FontWeight.w600)),
+                Text(log.adminName, style: _c10w600Primary),
               ],
             ),
           ],
@@ -491,22 +487,8 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
           Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                value,
-                style: GoogleFonts.inter(
-                  fontSize: 22,
-                  fontWeight: FontWeight.bold,
-                  color: AppColors.textPrimary,
-                ),
-              ),
-              Text(
-                title,
-                style: GoogleFonts.cairo(
-                  fontSize: 12,
-                  color: AppColors.textSecondary,
-                  fontWeight: FontWeight.w500,
-                ),
-              ),
+              Text(value, style: _i22w700Primary),
+              Text(title, style: _c12w500Secondary),
             ],
           ),
         ],
@@ -561,7 +543,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
         const SizedBox(height: 8),
         Text(
           label,
-          style: GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+          style: _c11w700Primary,
           textAlign: TextAlign.center,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
@@ -616,7 +598,7 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
                   if (idx < 0 || idx >= bars.length) return const SizedBox();
                   return Padding(
                     padding: const EdgeInsets.only(top: 8),
-                    child: Text(bars[idx].label, style: GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold)),
+                    child: Text(bars[idx].label, style: _c10w700Secondary),
                   );
                 },
               ),
@@ -651,9 +633,9 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
           children: [
             const Icon(IconlyBold.shieldFail, size: 64, color: AppColors.error),
             const SizedBox(height: 16),
-            Text('خطأ في جلب البيانات', style: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold)),
+            Text('خطأ في جلب البيانات', style: _c18w700),
             const SizedBox(height: 8),
-            Text(state.message, textAlign: TextAlign.center, style: GoogleFonts.inter(fontSize: 14, color: AppColors.textSecondary)),
+            Text(state.message, textAlign: TextAlign.center, style: _i14Secondary),
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () => context.read<DashboardBloc>().add(LoadDashboardStatsEvent()),

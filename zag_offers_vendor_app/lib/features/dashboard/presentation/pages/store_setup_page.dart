@@ -20,6 +20,18 @@ class StoreSetupPage extends StatefulWidget {
 }
 
 class _StoreSetupPageState extends State<StoreSetupPage> {
+  static final _appBarTitle = GoogleFonts.cairo(fontWeight: FontWeight.bold);
+  static final _loadingOverlay = GoogleFonts.cairo(fontWeight: FontWeight.bold);
+  static final _sectionTitle = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary);
+  static final _fieldInput = GoogleFonts.cairo(fontSize: 14);
+  static final _loadingCategories = GoogleFonts.cairo(fontSize: 14, color: AppColors.textTertiary);
+  static final _dropdownHint = GoogleFonts.cairo(fontSize: 14);
+  static final _dropdownValue = GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary);
+  static final _dropdownItem = GoogleFonts.cairo(fontSize: 14);
+  static final _imagePickerLabel = GoogleFonts.cairo(fontSize: 12, color: AppColors.textTertiary);
+  static final _galleryTitle = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold);
+  static final _submitBtn = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold);
+
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
   final _addressController = TextEditingController();
@@ -149,12 +161,14 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text('إعداد المتجر', style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+        title: Text('إعداد المتجر', style: _appBarTitle),
         backgroundColor: AppColors.background,
         elevation: 0,
         centerTitle: true,
       ),
       body: BlocConsumer<StoreSetupBloc, StoreSetupState>(
+        listenWhen: (_, next) => next is StoreCreatedSuccess || next is StoreSetupError,
+        buildWhen: (_, next) => next is StoreSetupLoading || next is StoreSetupError || next is CategoriesLoaded,
         listener: (context, state) {
           if (state is StoreCreatedSuccess) {
             setState(() => _isUploading = false);
@@ -275,8 +289,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                               _uploadStatus.isNotEmpty
                                   ? _uploadStatus
                                   : 'جاري الحفظ...',
-                              style: GoogleFonts.cairo(
-                                  fontWeight: FontWeight.bold),
+                              style: _loadingOverlay,
                               textAlign: TextAlign.center,
                             ),
                           ],
@@ -295,11 +308,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.cairo(
-        fontSize: 16,
-        fontWeight: FontWeight.w900,
-        color: AppColors.primary,
-      ),
+      style: _sectionTitle,
     );
   }
 
@@ -317,7 +326,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
       maxLines: maxLines,
       keyboardType: keyboardType,
       validator: validator,
-      style: GoogleFonts.cairo(fontSize: 14),
+      style: _fieldInput,
       decoration: InputDecoration(
         labelText: label,
         hintText: hint,
@@ -359,7 +368,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
               child: CircularProgressIndicator(strokeWidth: 2),
             ),
             const SizedBox(width: 12),
-            Text('جاري تحميل الأقسام...', style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textTertiary)),
+            Text('جاري تحميل الأقسام...', style: _loadingCategories),
           ],
         ),
       );
@@ -367,13 +376,13 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
 
     return DropdownButtonFormField<String>(
       value: hasValidSelection ? _selectedCategoryId : null,
-      hint: Text('اختر القسم', style: GoogleFonts.cairo(fontSize: 14)),
-      style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary),
+      hint: Text('اختر القسم', style: _dropdownHint),
+      style: _dropdownValue,
       isExpanded: true,
       items: categories.map((c) {
         return DropdownMenuItem<String>(
           value: c.id,
-          child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
+          child: Text(c.name, style: _dropdownItem),
         );
       }).toList(),
       onChanged: (v) => setState(() => _selectedCategoryId = v),
@@ -444,8 +453,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                   Icon(Icons.add_a_photo_rounded, color: AppColors.textTertiary),
                   const SizedBox(height: 8),
                   Text(label,
-                      style: GoogleFonts.cairo(
-                          fontSize: 12, color: AppColors.textTertiary)),
+                      style: _imagePickerLabel),
                 ],
               ),
       ),
@@ -457,8 +465,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text('معرض الصور (اختياري)',
-            style: GoogleFonts.cairo(
-                fontSize: 14, fontWeight: FontWeight.bold)),
+            style: _galleryTitle),
         const SizedBox(height: 12),
         SizedBox(
           height: 80,
@@ -527,7 +534,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         ),
         child: Text(
           'تأكيد وإرسال للمراجعة',
-          style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold),
+          style: _submitBtn,
         ),
       ),
     );

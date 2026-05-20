@@ -19,7 +19,16 @@ class _BroadcastPageState extends State<BroadcastPage> {
   final _bodyController = TextEditingController();
   final _imageUrlController = TextEditingController();
   String? _selectedArea;
-  String _target = 'ALL'; // ALL, USERS, MERCHANTS
+
+  void _onFieldChanged() => setState(() {});
+
+  @override
+  void initState() {
+    super.initState();
+    _titleController.addListener(_onFieldChanged);
+    _bodyController.addListener(_onFieldChanged);
+    _imageUrlController.addListener(_onFieldChanged);
+  }
 
   @override
   void dispose() {
@@ -37,6 +46,7 @@ class _BroadcastPageState extends State<BroadcastPage> {
         title: const Text('مركز البث والاشعارات'),
       ),
       body: BlocListener<BroadcastBloc, BroadcastState>(
+        listenWhen: (_, state) => state is BroadcastSuccess || state is BroadcastError,
         listener: (context, state) {
           if (state is BroadcastSuccess) {
             SnackBarUtils.showSuccess(context, '🚀 تم إرسال التنبيه الجماعي بنجاح!');
@@ -45,7 +55,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
             _imageUrlController.clear();
             setState(() {
               _selectedArea = null;
-              _target = 'ALL';
             });
           } else if (state is BroadcastError) {
             SnackBarUtils.showError(context, state.message);
@@ -74,12 +83,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
               _buildLivePreview().animate().fadeIn(delay: 200.ms).slideY(begin: 0.1),
               const SizedBox(height: 24),
 
-              // --- Target Selection ---
-              _buildSectionTitle('الجمهور المستهدف', IconlyBold.user3),
-              const SizedBox(height: 12),
-              _buildTargetSelector().animate().fadeIn(delay: 300.ms).slideY(begin: 0.1),
-              const SizedBox(height: 24),
-
               // --- Form ---
               _buildFormSection(
                 'محتوى الرسالة',
@@ -87,7 +90,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
                 [
                   TextField(
                     controller: _titleController,
-                    onChanged: (v) => setState(() {}),
                     decoration: const InputDecoration(
                       hintText: 'عنوان الإشعار...',
                       prefixIcon: Icon(IconlyBold.edit, color: AppColors.primary),
@@ -96,7 +98,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _bodyController,
-                    onChanged: (v) => setState(() {}),
                     maxLines: 3,
                     decoration: const InputDecoration(
                       hintText: 'اكتب نص الرسالة هنا...',
@@ -106,7 +107,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
                   const SizedBox(height: 16),
                   TextField(
                     controller: _imageUrlController,
-                    onChanged: (v) => setState(() {}),
                     decoration: const InputDecoration(
                       hintText: 'رابط الصورة (اختياري)...',
                       prefixIcon: Icon(IconlyBold.image, color: AppColors.primary),
@@ -135,6 +135,7 @@ class _BroadcastPageState extends State<BroadcastPage> {
 
               // --- Action Button ---
               BlocBuilder<BroadcastBloc, BroadcastState>(
+                buildWhen: (prev, next) => next is BroadcastLoading || next is BroadcastSuccess || next is BroadcastError || next is BroadcastInitial,
                 builder: (context, state) {
                   return Container(
                     decoration: BoxDecoration(
@@ -156,7 +157,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
                                       body: _bodyController.text,
                                       imageUrl: _imageUrlController.text.isEmpty ? null : _imageUrlController.text,
                                       area: _selectedArea,
-                                      target: _target,
                                     ),
                                   );
                             },
@@ -260,42 +260,6 @@ class _BroadcastPageState extends State<BroadcastPage> {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  Widget _buildTargetSelector() {
-    return Row(
-      children: [
-        _buildTargetChip('ALL', 'الجميع', Icons.public_rounded),
-        const SizedBox(width: 8),
-        _buildTargetChip('USERS', 'المستخدمين', Icons.person_rounded),
-        const SizedBox(width: 8),
-        _buildTargetChip('MERCHANTS', 'التجار', Icons.store_rounded),
-      ],
-    );
-  }
-
-  Widget _buildTargetChip(String value, String label, IconData icon) {
-    final isSelected = _target == value;
-    return Expanded(
-      child: GestureDetector(
-        onTap: () => setState(() => _target = value),
-        child: Container(
-          padding: const EdgeInsets.symmetric(vertical: 12),
-          decoration: BoxDecoration(
-            color: isSelected ? AppColors.primary : AppColors.white,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: isSelected ? AppColors.primary : Colors.grey.shade200),
-          ),
-          child: Column(
-            children: [
-              Icon(icon, size: 20, color: isSelected ? Colors.white : AppColors.textSecondary),
-              const SizedBox(height: 4),
-              Text(label, style: GoogleFonts.cairo(fontSize: 11, color: isSelected ? Colors.white : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal)),
-            ],
-          ),
-        ),
       ),
     );
   }

@@ -16,6 +16,19 @@ class ReviewsPage extends StatefulWidget {
 }
 
 class _ReviewsPageState extends State<ReviewsPage> {
+  static final _cairoBold = GoogleFonts.cairo(fontWeight: FontWeight.bold);
+  static final _cairoDefault = GoogleFonts.cairo();
+  static final _cairoWhiteBold = GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold);
+  static final _cairoWhite = GoogleFonts.cairo(color: Colors.white);
+  static final _cairoTextSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
+  static final _cairoBold14White = GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 14);
+  static final _cairoTextDimmerSize11 = GoogleFonts.cairo(color: AppColors.textDimmer, fontSize: 11);
+  static final _cairoTextSecondarySize13 = GoogleFonts.cairo(color: AppColors.textSecondary, fontSize: 13);
+  static final _cairoPrimaryBoldSize12 = GoogleFonts.cairo(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 12);
+  static final _cairoWhite70Size13 = GoogleFonts.cairo(color: Colors.white70, fontSize: 13);
+  static final _cairoPrimaryBoldSize16 = GoogleFonts.cairo(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16);
+  static final _cairoTextSecondarySize16 = GoogleFonts.cairo(color: AppColors.textSecondary, fontSize: 16);
+
   final ReviewsRepository _repository = sl<ReviewsRepository>();
   late Future<List<ReviewModel>> _reviewsFuture;
 
@@ -39,10 +52,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
         backgroundColor: AppColors.surface,
         title: Text(
           'إضافة رد',
-          style: GoogleFonts.cairo(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: _cairoWhiteBold,
         ),
         content: TextField(
           controller: controller,
@@ -57,17 +67,17 @@ class _ReviewsPageState extends State<ReviewsPage> {
               borderSide: BorderSide.none,
             ),
           ),
-          style: GoogleFonts.cairo(color: Colors.white),
+          style: _cairoWhite,
         ),
         actions: [
           TextButton(
             onPressed: () => Navigator.pop(ctx),
-            child: Text('إلغاء', style: GoogleFonts.cairo()),
+            child: Text('إلغاء', style: _cairoDefault),
           ),
           ElevatedButton(
             style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
             onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: Text('إرسال', style: GoogleFonts.cairo(color: Colors.white)),
+            child: Text('إرسال', style: _cairoWhite),
           ),
         ],
       ),
@@ -95,10 +105,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
       appBar: AppBar(
         title: Text(
           'التقييمات',
-          style: GoogleFonts.cairo(
-            color: Colors.white,
-            fontWeight: FontWeight.bold,
-          ),
+          style: _cairoWhiteBold,
         ),
         backgroundColor: AppColors.background,
         elevation: 0,
@@ -120,12 +127,12 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   const SizedBox(height: 16),
                   Text(
                     'حدث خطأ أثناء تحميل التقييمات',
-                    style: GoogleFonts.cairo(color: AppColors.textSecondary),
+                    style: _cairoTextSecondary,
                   ),
                   const SizedBox(height: 16),
                   ElevatedButton(
                     onPressed: _refresh,
-                    child: Text('إعادة المحاولة', style: GoogleFonts.cairo()),
+                    child: Text('إعادة المحاولة', style: _cairoDefault),
                   ),
                 ],
               ),
@@ -143,10 +150,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   const SizedBox(height: 16),
                   Text(
                     'لا توجد تقييمات بعد',
-                    style: GoogleFonts.cairo(
-                      color: AppColors.textSecondary,
-                      fontSize: 16,
-                    ),
+                    style: _cairoTextSecondarySize16,
                   ),
                 ],
               ),
@@ -193,11 +197,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                   children: [
                     Text(
                       review.customerName,
-                      style: GoogleFonts.cairo(
-                        color: Colors.white,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 14,
-                      ),
+                      style: _cairoBold14White,
                     ),
                     const SizedBox(height: 4),
                     Row(
@@ -214,10 +214,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                         const SizedBox(width: 8),
                         Text(
                           date,
-                          style: GoogleFonts.cairo(
-                            color: AppColors.textDimmer,
-                            fontSize: 11,
-                          ),
+                          style: _cairoTextDimmerSize11,
                         ),
                       ],
                     ),
@@ -230,10 +227,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
             const SizedBox(height: 12),
             Text(
               review.comment!,
-              style: GoogleFonts.cairo(
-                color: AppColors.textSecondary,
-                fontSize: 13,
-              ),
+              style: _cairoTextSecondarySize13,
             ),
           ],
           if (review.merchantReply != null && review.merchantReply!.isNotEmpty) ...[
@@ -253,19 +247,12 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 children: [
                   Text(
                     'رد التاجر:',
-                    style: GoogleFonts.cairo(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 12,
-                    ),
+                    style: _cairoPrimaryBoldSize12,
                   ),
                   const SizedBox(height: 4),
                   Text(
                     review.merchantReply!,
-                    style: GoogleFonts.cairo(
-                      color: Colors.white70,
-                      fontSize: 13,
-                    ),
+                    style: _cairoWhite70Size13,
                   ),
                 ],
               ),
@@ -279,7 +266,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 icon: const Icon(Icons.reply_rounded, size: 18),
                 label: Text(
                   'رد',
-                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                  style: _cairoBold,
                 ),
                 style: TextButton.styleFrom(
                   foregroundColor: AppColors.primary,
@@ -304,11 +291,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
       backgroundColor: AppColors.primary.withValues(alpha: 0.2),
       child: Text(
         name.isNotEmpty ? name[0].toUpperCase() : '?',
-        style: GoogleFonts.cairo(
-          color: AppColors.primary,
-          fontWeight: FontWeight.bold,
-          fontSize: 16,
-        ),
+        style: _cairoPrimaryBoldSize16,
       ),
     );
   }

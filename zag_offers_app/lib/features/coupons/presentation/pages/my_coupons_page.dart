@@ -25,6 +25,9 @@ class MyCouponsPage extends StatefulWidget {
 }
 
 class _MyCouponsPageState extends State<MyCouponsPage> {
+  static final _loginDescStyle = GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.5);
+  static final _loginBtnStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16);
+
   StreamSubscription<Map<String, dynamic>>? _couponSub;
   bool _isLoggedIn = false;
 
@@ -211,7 +214,9 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         centerTitle: true,
       ),
       body: !_isLoggedIn ? _buildLoginRequired() : BlocBuilder<CouponsBloc, CouponsState>(
+        buildWhen: (prev, next) => next is UserCouponsLoaded || next is CouponsLoading || next is CouponsInitial || next is CouponsError || next is CouponGeneratedSuccess,
         builder: (context, state) {
+          final theme = Theme.of(context);
           if (state is CouponsLoading || state is CouponsInitial) {
             return const Center(child: CircularProgressIndicator());
           }
@@ -242,7 +247,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     const SizedBox(height: 24),
                     Text(
                       isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل الكوبونات',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      style: theme.textTheme.headlineSmall?.copyWith(
                         fontWeight: FontWeight.w900,
                       ),
                     ),
@@ -252,7 +257,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
                           : state.message,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                      style: theme.textTheme.bodyMedium?.copyWith(
                         color: AppColors.textSecondary,
                         height: 1.5,
                       ),
@@ -324,7 +329,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       const SizedBox(height: 32),
                       Text(
                         'لا توجد كوبونات حاليًا',
-                        style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                        style: theme.textTheme.headlineSmall?.copyWith(
                           fontWeight: FontWeight.w900,
                         ),
                       ),
@@ -381,7 +386,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           ),
                           title: Text(
                             coupon.offer.store.name,
-                            style: Theme.of(context).textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+                            style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
                           ),
                           subtitle: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -425,7 +430,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                             ),
                             child: Text(
                               _getStatusText(coupon.status),
-                              style: Theme.of(context).textTheme.labelSmall?.copyWith(
+                              style: theme.textTheme.labelSmall?.copyWith(
                                 color: _getStatusColor(coupon.status),
                                 fontWeight: FontWeight.bold,
                               ),
@@ -463,7 +468,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                   const SizedBox(width: 8),
                                   Text(
                                     coupon.code,
-                                    style: Theme.of(context).textTheme.titleMedium?.copyWith(
+                                    style: theme.textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
                                       letterSpacing: 1.5,
                                     ),
@@ -520,10 +525,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             Text(
               'سجل دخولك لتتمكن من رؤية الكوبونات التي قمت بحفظها واستخدامها لدى المتاجر.',
               textAlign: TextAlign.center,
-              style: GoogleFonts.cairo(
-                color: AppColors.textSecondary,
-                height: 1.5,
-              ),
+              style: _loginDescStyle,
             ),
             const SizedBox(height: 32),
             SizedBox(
@@ -544,7 +546,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 ),
                 child: Text(
                   'تسجيل الدخول',
-                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16),
+                  style: _loginBtnStyle,
                 ),
               ),
             ),
