@@ -93,7 +93,6 @@ class NotificationsPage extends StatelessWidget {
                           } else {
                             NotificationService.handleNotificationTapFromData({
                               'type': item.type,
-                              if (item.id.isNotEmpty) 'id': item.id,
                             });
                           }
                         },
