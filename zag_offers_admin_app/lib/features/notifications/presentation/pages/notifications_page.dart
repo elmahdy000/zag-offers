@@ -74,6 +74,26 @@ class _NotificationsPageState extends State<NotificationsPage> {
     }
   }
 
+  Future<void> _deleteNotification(String id) async {
+    try {
+      await _apiClient.delete('/notifications/$id');
+      setState(() {
+        _notifications.removeWhere((n) => n['id'] == id);
+      });
+    } catch (e) {
+      debugPrint('Error deleting notification: $e');
+    }
+  }
+
+  Future<void> _deleteAllNotifications() async {
+    try {
+      await _apiClient.delete('/notifications/clear-all');
+      setState(() => _notifications.clear());
+    } catch (e) {
+      debugPrint('Error deleting all notifications: $e');
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -81,12 +101,39 @@ class _NotificationsPageState extends State<NotificationsPage> {
       appBar: AppBar(
         title: const Text('الإشعارات'),
         actions: [
-          if (_notifications.isNotEmpty)
+          if (_notifications.isNotEmpty) ...[
             IconButton(
               icon: const Icon(Icons.done_all_rounded, color: AppColors.primary),
               tooltip: 'تحديد الكل كمقروء',
               onPressed: _markAllAsRead,
             ),
+            IconButton(
+              icon: const Icon(Icons.delete_sweep_rounded, color: AppColors.error),
+              tooltip: 'حذف الكل',
+              onPressed: () {
+                showDialog(
+                  context: context,
+                  builder: (ctx) => AlertDialog(
+                    title: Text('حذف الإشعارات', style: GoogleFonts.cairo()),
+                    content: Text('هل أنت متأكد من حذف جميع الإشعارات؟', style: GoogleFonts.cairo()),
+                    actions: [
+                      TextButton(
+                        onPressed: () => Navigator.pop(ctx),
+                        child: Text('إلغاء', style: GoogleFonts.cairo()),
+                      ),
+                      TextButton(
+                        onPressed: () {
+                          Navigator.pop(ctx);
+                          _deleteAllNotifications();
+                        },
+                        child: Text('حذف الكل', style: GoogleFonts.cairo(color: AppColors.error)),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ],
         ],
       ),
       body: RefreshIndicator(
@@ -112,7 +159,39 @@ class _NotificationsPageState extends State<NotificationsPage> {
                       final isRead = notification['isRead'] == true;
                       final date = DateTime.tryParse(notification['createdAt'] ?? '');
                       
-                      return Container(
+                      return Dismissible(
+                        key: ValueKey(notification['id']),
+                        direction: DismissDirection.endToStart,
+                        confirmDismiss: (direction) async {
+                          return await showDialog(
+                            context: context,
+                            builder: (ctx) => AlertDialog(
+                              title: Text('حذف الإشعار', style: GoogleFonts.cairo()),
+                              content: Text('هل أنت متأكد من حذف هذا الإشعار؟', style: GoogleFonts.cairo()),
+                              actions: [
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, false),
+                                  child: Text('إلغاء', style: GoogleFonts.cairo()),
+                                ),
+                                TextButton(
+                                  onPressed: () => Navigator.pop(ctx, true),
+                                  child: Text('حذف', style: GoogleFonts.cairo(color: AppColors.error)),
+                                ),
+                              ],
+                            ),
+                          );
+                        },
+                        onDismissed: (_) => _deleteNotification(notification['id']),
+                        background: Container(
+                          decoration: BoxDecoration(
+                            color: AppColors.error,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          alignment: Alignment.centerRight,
+                          padding: const EdgeInsets.only(right: 24),
+                          child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
+                        ),
+                        child: Container(
                         margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
                         decoration: BoxDecoration(
                           color: isRead ? AppColors.white.withValues(alpha: 0.6) : AppColors.white,
@@ -164,7 +243,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                             ],
                           ),
                         ),
-                      );
+                      ),
+                    );
                     },
                   ),
       ),

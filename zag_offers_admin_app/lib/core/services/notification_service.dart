@@ -96,11 +96,22 @@ class NotificationService {
   static void _handleForegroundMessage(RemoteMessage message) {
     final title = message.notification?.title ?? 'تنبيه إداري';
     final body = message.notification?.body ?? '';
-    showLocalNotification(title, body, data: message.data);
+    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
   }
 
-  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data}) async {
-    const AndroidNotificationDetails androidPlatformChannelSpecifics =
+  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data, String? imageUrl}) async {
+    StyleInformation? styleInformation;
+    if (imageUrl != null && imageUrl.isNotEmpty) {
+      styleInformation = BigTextStyleInformation(
+        body,
+        contentTitle: title,
+        htmlFormatContentTitle: true,
+        htmlFormatSummaryText: true,
+      );
+    }
+
+    final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
       'admin_channel',
       'إشعارات الإدارة',
@@ -108,11 +119,12 @@ class NotificationService {
       importance: Importance.max,
       priority: Priority.high,
       icon: 'ic_notification',
+      styleInformation: styleInformation,
       playSound: true,
       sound: RawResourceAndroidNotificationSound('notification_sound'),
     );
     
-    const NotificationDetails platformChannelSpecifics =
+    final NotificationDetails platformChannelSpecifics =
         NotificationDetails(android: androidPlatformChannelSpecifics);
     
     await _localNotifications.show(

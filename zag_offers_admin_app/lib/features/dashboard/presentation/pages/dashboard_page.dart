@@ -53,10 +53,6 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
     context.read<DashboardBloc>().add(LoadDashboardStatsEvent());
     context.read<AuditLogsBloc>().add(LoadAuditLogsEvent());
     
-    NotificationService.initStatic().catchError((e) {
-      debugPrint('NotificationService init error: $e');
-    });
-    
     sl<RealtimeService>().connect(
       onAdminNotification: _handleAdminNotification,
     );

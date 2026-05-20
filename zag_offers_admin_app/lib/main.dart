@@ -18,7 +18,6 @@ import 'features/categories/presentation/bloc/categories_bloc.dart';
 import 'features/coupons/presentation/bloc/coupons_bloc.dart';
 import 'features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'features/auth/presentation/pages/login_page.dart';
-import 'features/dashboard/presentation/pages/dashboard_page.dart';
 import 'features/dashboard/presentation/pages/main_shell.dart';
 import 'firebase_options.dart';
 
@@ -40,7 +39,8 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final body = message.notification?.body ?? message.data['body'] ?? '';
   
   if (title.isNotEmpty || body.isNotEmpty) {
-    await NotificationService.showLocalNotification(title, body, data: message.data);
+    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    await NotificationService.showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
     
     // Save notification to history
     try {
