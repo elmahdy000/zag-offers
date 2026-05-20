@@ -148,9 +148,13 @@ class NotificationService {
       }
       
       final newNotification = {
+        'id': DateTime.now().microsecondsSinceEpoch.toString(),
         'title': title,
         'body': body,
+        'type': data['type'],
         'data': data,
+        'isRead': false,
+        'imageUrl': data['imageUrl'],
         'createdAt': DateTime.now().toIso8601String(),
       };
       
