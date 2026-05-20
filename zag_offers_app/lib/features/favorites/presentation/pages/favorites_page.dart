@@ -1,11 +1,12 @@
 ﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/features/auth/data/datasources/auth_local_data_source.dart';
 import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
+import 'package:zag_offers_app/injection_container.dart' as di;
 import 'package:google_fonts/google_fonts.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -28,9 +29,9 @@ class _FavoritesPageState extends State<FavoritesPage> {
   }
 
   Future<void> _checkAuth() async {
-    final prefs = await SharedPreferences.getInstance();
+    final authLocal = di.sl<AuthLocalDataSource>();
+    final token = await authLocal.getToken();
     if (!mounted) return;
-    final token = prefs.getString('auth_token');
     if (token != null && token.isNotEmpty) {
       setState(() => _isLoggedIn = true);
       final state = context.read<FavoritesBloc>().state;

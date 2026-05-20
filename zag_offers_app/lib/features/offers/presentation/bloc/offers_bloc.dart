@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/offer_model.dart';
 import '../../domain/entities/offer_entity.dart';
@@ -21,6 +22,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
   final SearchOffersUseCase searchOffersUseCase;
   final GetRecommendedOffersUseCase getRecommendedOffersUseCase;
   final GetCategoriesUseCase getCategoriesUseCase;
+  Timer? _searchDebounce;
 
   OffersBloc({
     required this.getAllOffersUseCase,
@@ -37,6 +39,12 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     on<FetchRecommendedOffers>(_onFetchRecommendedOffers);
     on<AddLiveOffer>(_onAddLiveOffer);
     on<FetchStoreOffers>(_onFetchStoreOffers);
+  }
+
+  @override
+  Future<void> close() {
+    _searchDebounce?.cancel();
+    return super.close();
   }
 
   Future<void> _onFetchHomeData(FetchHomeData event, Emitter<OffersState> emit) async {
@@ -133,21 +141,26 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
   Future<void> _onSearchOffers(SearchOffers event, Emitter<OffersState> emit) async {
     if (state is! OffersLoaded) return;
-    final currentState = state as OffersLoaded;
+    _searchDebounce?.cancel();
+    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
+      if (state is! OffersLoaded) return;
+      final currentState = state as OffersLoaded;
 
-    final result = await searchOffersUseCase(event.query);
-    result.fold(
-      (failure) => emit(OffersError(failure.message)),
-      (results) => emit(OffersLoaded(
-        allOffers: currentState.allOffers,
-        trendingOffers: currentState.trendingOffers,
-        featuredStores: currentState.featuredStores,
-        categories: currentState.categories,
-        recommendedOffers: currentState.recommendedOffers,
-        searchResults: results,
-        noticeMessage: currentState.noticeMessage,
-      )),
-    );
+      final result = await searchOffersUseCase(event.query);
+      if (isClosed) return;
+      result.fold(
+        (failure) => emit(OffersError(failure.message)),
+        (results) => emit(OffersLoaded(
+          allOffers: currentState.allOffers,
+          trendingOffers: currentState.trendingOffers,
+          featuredStores: currentState.featuredStores,
+          categories: currentState.categories,
+          recommendedOffers: currentState.recommendedOffers,
+          searchResults: results,
+          noticeMessage: currentState.noticeMessage,
+        )),
+      );
+    });
   }
 
   Future<void> _onFetchRecommendedOffers(FetchRecommendedOffers event, Emitter<OffersState> emit) async {

@@ -6,7 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:flutter_map/flutter_map.dart';
-import 'package:latlong2/latlong2.dart' as ll;
+import 'package:latlong2/latlong.dart' as ll;
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/services/location_service.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
@@ -226,17 +226,16 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
       width: isSelected ? 52.0 : 40.0,
       height: isSelected ? 52.0 : 40.0,
       child: GestureDetector(
-        onTap: () {
-          setState(() {
-            _selectedStoreIndex = index;
-          });
-          _pageController.animateToPage(
-            index,
-            duration: const Duration(milliseconds: 400),
-            curve: Curves.easeInOut,
-          );
-          _animateCameraToStore(store);
-        },
+          onTap: () {
+            setState(() {
+              _selectedStoreIndex = index;
+            });
+            _pageController.animateToPage(
+              index,
+              duration: const Duration(milliseconds: 400),
+              curve: Curves.easeInOut,
+            );
+          },
         child: AnimatedContainer(
           duration: const Duration(milliseconds: 300),
           decoration: BoxDecoration(
@@ -403,10 +402,9 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   alignment: Alignment.center,
                   children: [
                     Positioned.fill(
-                      child: AnimatedBuilder(
+                      child:                     AnimatedBuilder(
                         animation: _sweepController,
-                        builder: (context, child) => child!,
-                        child: CustomPaint(
+                        builder: (context, _) => CustomPaint(
                           painter: _RadarPainter(
                             sweepController: _sweepController,
                             primaryColor: AppColors.primary,

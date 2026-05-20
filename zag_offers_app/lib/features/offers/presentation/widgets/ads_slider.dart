@@ -1,5 +1,6 @@
 import 'dart:async';
 
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter/material.dart';
 import 'package:url_launcher/url_launcher.dart';
@@ -186,7 +187,7 @@ class _AdsSliderState extends State<AdsSlider> {
                       borderRadius: BorderRadius.circular(24),
                       image: image.isNotEmpty
                           ? DecorationImage(
-                              image: NetworkImage(ImageUrlHelper.resolve(image)),
+                              image: CachedNetworkImageProvider(ImageUrlHelper.resolve(image)),
                               fit: BoxFit.cover,
                             )
                           : null,

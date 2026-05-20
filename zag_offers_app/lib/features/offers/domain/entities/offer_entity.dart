@@ -1,14 +1,30 @@
 import 'package:equatable/equatable.dart';
 import 'store_entity.dart';
 
+enum OfferStatus { active, expired, redeemed }
+
+extension OfferStatusX on String {
+  OfferStatus toOfferStatus() {
+    switch (toUpperCase()) {
+      case 'ACTIVE':
+        return OfferStatus.active;
+      case 'EXPIRED':
+        return OfferStatus.expired;
+      case 'REDEEMED':
+        return OfferStatus.redeemed;
+      default:
+        return OfferStatus.active;
+    }
+  }
+}
+
 class OfferEntity extends Equatable {
   final String id;
   final String title;
   final String? description;
   final String? image;
   final List<String>? images;
-  final String discount;           // النص الخام من الباك-إيند ("20%", "BOGO", إلخ)
-  final double discountPercentage; // قيمة رقمية للعرض في الـ UI (مشتقة من discount)
+  final String discount;
   final DateTime expiryDate;
   final StoreEntity store;
   final String? terms;
@@ -16,7 +32,7 @@ class OfferEntity extends Equatable {
   final double? newPrice;
   final int viewCount;
   final bool isFeatured;
-  final String status;
+  final OfferStatus status;
 
   const OfferEntity({
     required this.id,
@@ -25,7 +41,6 @@ class OfferEntity extends Equatable {
     this.image,
     this.images,
     required this.discount,
-    required this.discountPercentage,
     required this.expiryDate,
     required this.store,
     this.terms,
@@ -33,8 +48,53 @@ class OfferEntity extends Equatable {
     this.newPrice,
     this.viewCount = 0,
     this.isFeatured = false,
-    this.status = 'ACTIVE',
+    this.status = OfferStatus.active,
   });
+
+  factory OfferEntity.fromRaw({
+    required String id,
+    required String title,
+    String? description,
+    String? image,
+    List<String>? images,
+    required String discount,
+    required DateTime expiryDate,
+    required StoreEntity store,
+    String? terms,
+    double? oldPrice,
+    double? newPrice,
+    int viewCount = 0,
+    bool isFeatured = false,
+    String status = 'ACTIVE',
+  }) {
+    return OfferEntity(
+      id: id,
+      title: title,
+      description: description,
+      image: image,
+      images: images,
+      discount: discount,
+      expiryDate: expiryDate,
+      store: store,
+      terms: terms,
+      oldPrice: oldPrice,
+      newPrice: newPrice,
+      viewCount: viewCount,
+      isFeatured: isFeatured,
+      status: status.toOfferStatus(),
+    );
+  }
+
+  double get discountPercentage {
+    const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
+    const ascii = '0123456789';
+    String normalized = discount;
+    for (int i = 0; i < arabicIndic.length; i++) {
+      normalized = normalized.replaceAll(arabicIndic[i], ascii[i]);
+    }
+    final match = RegExp(r'\d+').firstMatch(normalized);
+    return match != null ? double.tryParse(match.group(0)!) ?? 0.0 : 0.0;
+  }
 
   @override
   List<Object?> get props => [
@@ -44,7 +104,6 @@ class OfferEntity extends Equatable {
         image,
         images,
         discount,
-        discountPercentage,
         expiryDate,
         store,
         terms,

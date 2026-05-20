@@ -30,9 +30,14 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     final result = await getFavoritesUseCase();
     result.fold(
       (failure) => emit(FavoritesError(failure.message)),
-      (favorites) => emit(FavoritesLoaded(favorites)),
+      (favorites) {
+        _lastFavorites = favorites;
+        emit(FavoritesLoaded(favorites));
+      },
     );
   }
+
+  List<OfferEntity>? _lastFavorites;
 
   Future<void> _onToggleFavorite(
     ToggleFavorite event,
@@ -40,12 +45,27 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
   ) async {
     final toggleResult = await toggleFavoriteUseCase(event.offerId);
     toggleResult.fold(
-      (failure) => emit(FavoritesError(failure.message)),
+      (failure) {
+        if (_lastFavorites != null) {
+          emit(FavoritesLoaded(_lastFavorites!));
+        } else {
+          emit(FavoritesError(failure.message));
+        }
+      },
       (_) async {
         final result = await getFavoritesUseCase();
         result.fold(
-          (failure) => emit(FavoritesError(failure.message)),
-          (favorites) => emit(FavoritesLoaded(favorites)),
+          (failure) {
+            if (_lastFavorites != null) {
+              emit(FavoritesLoaded(_lastFavorites!));
+            } else {
+              emit(FavoritesError(failure.message));
+            }
+          },
+          (favorites) {
+            _lastFavorites = favorites;
+            emit(FavoritesLoaded(favorites));
+          },
         );
       },
     );

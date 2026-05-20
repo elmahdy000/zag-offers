@@ -447,13 +447,15 @@ class _AllOffersPageState extends State<AllOffersPage> {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final offer = filtered[index];
-            return OfferCard(
-              offer: offer,
-              isWide: true,
-              onTap: () => Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (context) => OfferDetailPage(offer: offer),
+            return RepaintBoundary(
+              child: OfferCard(
+                offer: offer,
+                isWide: true,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OfferDetailPage(offer: offer),
+                  ),
                 ),
               ),
             );

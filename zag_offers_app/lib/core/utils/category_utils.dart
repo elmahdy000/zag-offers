@@ -25,14 +25,14 @@ class CategoryUtils {
     }
   }
 
-  static String getDisplayName(String backendName) {
+  static String getDisplayName(String categoryName) {
     try {
       final item = browseCategories.firstWhere(
-        (c) => c.backendName == backendName,
+        (c) => c.name == categoryName || c.backendName == categoryName,
       );
       return item.name;
     } catch (_) {
-      return backendName;
+      return categoryName;
     }
   }
 }

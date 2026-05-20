@@ -44,6 +44,8 @@ class NetworkImageWidget extends StatelessWidget {
         width: width,
         height: height,
         fit: fit,
+        memCacheWidth: width?.toInt(),
+        memCacheHeight: height?.toInt(),
         placeholder: (context, url) => SkeletonLoader(
           width: width ?? double.infinity,
           height: height ?? double.infinity,

@@ -10,7 +10,6 @@ class OfferModel extends OfferEntity {
     super.image,
     super.images,
     required super.discount,
-    required super.discountPercentage,
     required super.expiryDate,
     required super.store,
     super.terms,
@@ -18,7 +17,7 @@ class OfferModel extends OfferEntity {
     super.newPrice,
     super.viewCount = 0,
     super.isFeatured = false,
-    super.status = 'ACTIVE',
+    super.status = OfferStatus.active,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -29,7 +28,6 @@ class OfferModel extends OfferEntity {
         : [];
     final firstImage = imagesList.isNotEmpty ? imagesList[0] : null;
 
-    final pct = _parseDiscountPercentage(rawDiscount);
     final dateStr = json['endDate'] ?? json['expiryDate'];
 
     return OfferModel(
@@ -39,7 +37,6 @@ class OfferModel extends OfferEntity {
       image: firstImage ?? ImageUrlHelper.resolveNullable(json['image']?.toString()),
       images: imagesList.isNotEmpty ? imagesList : (json['image'] != null ? [ImageUrlHelper.resolve(json['image'].toString())] : []),
       discount: rawDiscount,
-      discountPercentage: pct,
       expiryDate: dateStr != null ? DateTime.tryParse(dateStr) ?? DateTime.now() : DateTime.now(),
       store: StoreModel.fromJson(json['store'] ?? {}),
       terms: json['terms']?.toString(),
@@ -47,29 +44,6 @@ class OfferModel extends OfferEntity {
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       viewCount: json['views'] ?? json['viewCount'] ?? 0,
       isFeatured: json['isFeatured'] ?? false,
-      status: json['status'] ?? 'ACTIVE',
+      status: (json['status'] as String? ?? 'ACTIVE').toOfferStatus(),
     );
-  }
-
-  static double _parseDiscountPercentage(String discount) {
-    try {
-      // Convert Arabic-Indic numerals to ASCII digits
-      const arabicIndic = '٠١٢٣٤٥٦٧٨٩';
-      const ascii = '0123456789';
-      String normalized = discount;
-      for (int i = 0; i < arabicIndic.length; i++) {
-        normalized = normalized.replaceAll(arabicIndic[i], ascii[i]);
-      }
-      // Strip common suffixes/prefixes
-      String cleaned = normalized
-          .replaceAll('%', '')
-          .replaceAll('خصم', '')
-          .replaceAll('ج', '')
-          .replaceAll(RegExp(r'[^\d.]'), '')
-          .trim();
-      return double.tryParse(cleaned) ?? 0.0;
-    } catch (_) {
-      return 0.0;
-    }
-  }
-}
+  }}

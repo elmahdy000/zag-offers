@@ -14,6 +14,7 @@ import 'package:zag_offers_app/features/auth/presentation/pages/profile_page.dar
 import 'package:zag_offers_app/features/coupons/presentation/pages/my_coupons_page.dart';
 import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:zag_offers_app/features/favorites/presentation/pages/favorites_page.dart';
+import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/all_offers_page.dart';
@@ -36,6 +37,7 @@ class MainScreenState extends State<MainScreen> {
   String? _userRole;
   StreamSubscription<Map<String, dynamic>>? _newOfferSub;
   StreamSubscription<Map<String, dynamic>>? _categoriesUpdatedSub;
+  StreamSubscription<Map<String, dynamic>>? _socialProofSub;
   final Set<int> _loadedTabs = {0};
 
   @override
@@ -44,7 +46,7 @@ class MainScreenState extends State<MainScreen> {
     _loadUserRole();
     _initSocket();
     // جلب المفضلة مبكراً لضمان ظهور حالة القلوب بشكل صحيح في كل الصفحات
-    context.read<FavoritesBloc>().add(FetchFavorites());
+    _fetchFavoritesIfAuthenticated();
     
     // فحص الإشعارات المعلقة بعد اكتمال بناء الواجهة
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -61,6 +63,14 @@ class MainScreenState extends State<MainScreen> {
         _selectedIndex = 0;
       }
     });
+  }
+
+  Future<void> _fetchFavoritesIfAuthenticated() async {
+    final localDataSource = sl<AuthLocalDataSource>();
+    final token = await localDataSource.getToken();
+    if (token != null && token.isNotEmpty) {
+      context.read<FavoritesBloc>().add(FetchFavorites());
+    }
   }
 
   Future<void> _initSocket() async {
@@ -86,6 +96,14 @@ class MainScreenState extends State<MainScreen> {
         if (!mounted) return;
         context.read<OffersBloc>().add(FetchHomeData());
       });
+
+      _socialProofSub = socketService.onSocialProof.listen((data) {
+        if (!mounted) return;
+        context.read<NotificationBloc>().add(NewSocialProofReceived(
+          storeName: data['storeName'] ?? '',
+          offerTitle: data['offerTitle'] ?? '',
+        ));
+      });
     }
   }
 
@@ -93,6 +111,7 @@ class MainScreenState extends State<MainScreen> {
   void dispose() {
     _newOfferSub?.cancel();
     _categoriesUpdatedSub?.cancel();
+    _socialProofSub?.cancel();
     super.dispose();
   }
 

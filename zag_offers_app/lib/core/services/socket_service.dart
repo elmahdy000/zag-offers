@@ -1,15 +1,19 @@
 import 'dart:async';
 import 'dart:developer';
+import 'dart:math' hide log;
 
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../constants/app_constants.dart';
-import '../../injection_container.dart';
-import '../../features/notifications/presentation/bloc/notification_bloc.dart';
 
 class SocketService {
   io.Socket? _socket;
   bool _isInitialized = false;
+  String? _userId;
+  String? _token;
+  int _reconnectAttempts = 0;
+  static const int _maxReconnectAttempts = 5;
+  Timer? _reconnectTimer;
 
   late final StreamController<Map<String, dynamic>> _newOfferController;
   late final StreamController<Map<String, dynamic>> _couponUpdateController;
@@ -18,21 +22,11 @@ class SocketService {
   late final StreamController<Map<String, dynamic>> _bannersUpdatedController;
   late final StreamController<Map<String, dynamic>> _reviewReplyController;
 
-  /// Emitted when the admin approves a new offer and it goes live.
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
-
-  /// Emitted when the vendor redeems the current user's coupon.
-  Stream<Map<String, dynamic>> get onCouponUpdate =>
-      _couponUpdateController.stream;
-
-  /// Emitted when any customer generates a coupon (social-proof ticker).
+  Stream<Map<String, dynamic>> get onCouponUpdate => _couponUpdateController.stream;
   Stream<Map<String, dynamic>> get onSocialProof => _socialProofController.stream;
-  Stream<Map<String, dynamic>> get onCategoriesUpdated =>
-      _categoriesUpdatedController.stream;
-  Stream<Map<String, dynamic>> get onBannersUpdated =>
-      _bannersUpdatedController.stream;
-
-  /// Emitted when a merchant replies to the current user's review.
+  Stream<Map<String, dynamic>> get onCategoriesUpdated => _categoriesUpdatedController.stream;
+  Stream<Map<String, dynamic>> get onBannersUpdated => _bannersUpdatedController.stream;
   Stream<Map<String, dynamic>> get onReviewReply => _reviewReplyController.stream;
 
   SocketService() {
@@ -48,16 +42,23 @@ class SocketService {
     _reviewReplyController = StreamController<Map<String, dynamic>>.broadcast();
   }
 
-  /// Connects to the WebSocket server and joins the user's private room.
-  /// Safe to call multiple times — subsequent calls are no-ops after first init.
   void initSocket(String userId, String token) {
-    if (_isInitialized) return;
+    _userId = userId;
+    _token = token;
+    _reconnectAttempts = 0;
+    _connect();
+  }
+
+  void _connect() {
+    _socket?.clearListeners();
+    _socket?.disconnect();
+    _socket?.dispose();
 
     _socket = io.io(
       AppConstants.socketUrl,
       io.OptionBuilder()
           .setTransports(['websocket', 'polling'])
-          .setAuth({'token': token})
+          .setAuth({'token': _token ?? ''})
           .enableReconnection()
           .disableAutoConnect()
           .build(),
@@ -67,7 +68,9 @@ class SocketService {
 
     _socket!.onConnect((_) {
       log('[Socket] Connected');
-      _socket!.emit('join_room', {'room': userId, 'token': token});
+      _reconnectAttempts = 0;
+      _reconnectTimer?.cancel();
+      _socket!.emit('join_room', {'room': _userId ?? '', 'token': _token ?? ''});
     });
 
     _socket!.on('new_offer', (data) {
@@ -77,12 +80,7 @@ class SocketService {
 
     _socket!.on('social_proof', (data) {
       log('[Socket] social_proof: $data');
-      final map = _toMap(data);
-      if (!_socialProofController.isClosed) _socialProofController.add(map);
-      sl<NotificationBloc>().add(NewSocialProofReceived(
-        storeName: map['storeName'] ?? '',
-        offerTitle: map['offerTitle'] ?? '',
-      ));
+      if (!_socialProofController.isClosed) _socialProofController.add(_toMap(data));
     });
 
     _socket!.on('coupon_update', (data) {
@@ -106,13 +104,31 @@ class SocketService {
       if (!_reviewReplyController.isClosed) _reviewReplyController.add(map);
     });
 
-    _socket!.onConnectError((error) => log('[Socket] connect_error: $error'));
-    _socket!.onDisconnect((_) => log('[Socket] Disconnected'));
+    _socket!.onConnectError((error) {
+      log('[Socket] connect_error: $error');
+      _scheduleReconnect();
+    });
+    _socket!.onDisconnect((_) {
+      log('[Socket] Disconnected');
+      _scheduleReconnect();
+    });
 
     _isInitialized = true;
   }
 
+  void _scheduleReconnect() {
+    if (!_isInitialized || _reconnectAttempts >= _maxReconnectAttempts) return;
+    _reconnectTimer?.cancel();
+    final delay = Duration(seconds: min(pow(2, _reconnectAttempts).toInt(), 30));
+    _reconnectAttempts++;
+    log('[Socket] Reconnecting in ${delay.inSeconds}s (attempt $_reconnectAttempts)');
+    _reconnectTimer = Timer(delay, () {
+      if (_isInitialized) _connect();
+    });
+  }
+
   void dispose() {
+    _reconnectTimer?.cancel();
     _socket?.clearListeners();
     _socket?.disconnect();
     _socket?.dispose();
@@ -126,15 +142,15 @@ class SocketService {
     _isInitialized = false;
   }
 
-  /// Re-initializes after dispose so the service can be reused after logout/login.
   void reinit() {
-    dispose();
-    _initControllers();
+    _reconnectTimer?.cancel();
+    _socket?.clearListeners();
+    _socket?.disconnect();
+    _socket?.dispose();
+    _socket = null;
+    _isInitialized = false;
+    _reconnectAttempts = 0;
   }
-
-  // ---------------------------------------------------------------------------
-  // Helpers
-  // ---------------------------------------------------------------------------
 
   Map<String, dynamic> _toMap(dynamic data) {
     if (data is Map<String, dynamic>) return data;

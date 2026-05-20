@@ -124,7 +124,7 @@ Future<void> init() async {
   sl.registerLazySingleton<CouponsRemoteDataSource>(() => CouponsRemoteDataSourceImpl(apiClient: sl()));
 
   //! Features - Favorites
-  sl.registerFactory(() => FavoritesBloc(
+  sl.registerLazySingleton(() => FavoritesBloc(
         getFavoritesUseCase: sl(),
         toggleFavoriteUseCase: sl(),
       ));
