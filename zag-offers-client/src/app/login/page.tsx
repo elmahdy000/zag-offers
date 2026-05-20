@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -8,74 +8,13 @@ import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
 
-declare global {
-  interface Window {
-    google: any;
-    fbAsyncInit: any;
-    FB: any;
-  }
-}
-
 export default function LoginPage() {
   const router = useRouter();
   const [phone, setPhone] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [socialLoading, setSocialLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
-
-  const [googleLoaded, setGoogleLoaded] = useState(false);
-
-  useEffect(() => {
-    const script = document.createElement('script');
-    script.src = "https://accounts.google.com/gsi/client";
-    script.async = true;
-    script.defer = true;
-    script.onload = () => {
-      try {
-        if (window.google) {
-          setGoogleLoaded(true);
-          window.google.accounts.id.initialize({
-            client_id: '20027545873-m3eipii9r6o4k8od8diht31pufn3nurk.apps.googleusercontent.com',
-            callback: handleGoogleResponse,
-            auto_select: false,
-            ux_mode: 'popup', 
-          });
-          window.google.accounts.id.renderButton(
-            document.getElementById('google-login-btn'),
-            { theme: 'outline', size: 'large', width: '100%', shape: 'pill', text: 'continue_with', locale: 'ar' }
-          );
-        }
-      } catch (err) {
-        console.error('Google GSI Load Error:', err);
-      }
-    };
-    document.body.appendChild(script);
-    return () => { document.body.removeChild(script); };
-  }, []);
-
-  const handleGoogleResponse = async (response: any) => {
-    if (!navigator.onLine) {
-      setError('هذا الإجراء يحتاج اتصال بالإنترنت');
-      return;
-    }
-    setSocialLoading('google');
-    // ... rest of code
-    if (response.credential) {
-      try {
-        const res = await axios.post(`${API_URL}/auth/google`, { idToken: response.credential });
-        localStorage.setItem('token', res.data.access_token);
-        localStorage.setItem('user', JSON.stringify(res.data.user));
-        window.dispatchEvent(new Event('auth-change'));
-        router.replace('/');
-      } catch (err: any) {
-        console.error('Google Auth Backend Error:', err.response?.data || err.message);
-        setError('تعذر تسجيل الدخول عبر جوجل حالياً: ' + (err.response?.data?.message || 'خطأ في السيرفر'));
-      }
-    }
-    setSocialLoading(null);
-  };
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -118,17 +57,6 @@ export default function LoginPage() {
     }
   };
 
-  const handleGoogleLogin = () => {
-    // Now handled by the rendered button automatically
-    if (window.google) {
-      window.google.accounts.id.prompt(); 
-    }
-  };
-
-  const handleFacebookLogin = () => {
-    setError('تسجيل فيسبوك يتطلب إضافة الـ App ID في الإعدادات');
-  };
-
   return (
     <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
       <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
@@ -147,33 +75,6 @@ export default function LoginPage() {
           </Link>
           <h1 className="text-3xl font-black mb-3 tracking-tight">مرحباً بك مجدداً</h1>
           <p className="text-white/40 text-sm font-bold">سجل دخولك لتتمكن من استخدام كوبوناتك</p>
-        </div>
-
-        {/* Social Login Buttons */}
-        <div className="flex flex-col gap-4 mb-8">
-          <div id="google-login-btn" className="w-full min-h-[44px]"></div>
-          
-          <button 
-            onClick={handleFacebookLogin}
-            className="w-full flex items-center justify-center gap-3 py-3 px-4 bg-white/5 border border-white/10 rounded-2xl hover:bg-white/10 transition-all group"
-          >
-            <svg className="w-5 h-5" fill="#1877F2" viewBox="0 0 24 24">
-              <path d="M24 12.073c0-6.627-5.373-12-12-12s-12 5.373-12 12c0 5.99 4.388 10.954 10.125 11.854v-8.385H7.078v-3.47h3.047V9.43c0-3.007 1.792-4.669 4.533-4.669 1.312 0 2.686.235 2.686.235v2.953H15.83c-1.491 0-1.956.925-1.956 1.874v2.25h3.328l-.532 3.47h-2.796v8.385C19.612 23.027 24 18.062 24 12.073z"/>
-            </svg>
-            <span className="text-xs font-black">فيسبوك</span>
-          </button>
-
-          {/* Optional: Add a subtle hint if Google button fails to show */}
-          {!googleLoaded && (
-             <p className="text-[10px] text-white/20 text-center font-bold">
-               إذا لم يظهر زر جوجل، يرجى الدخول من المتصفح العادي (Safari)
-             </p>
-          )}
-        </div>
-
-        <div className="relative mb-8 text-center">
-          <div className="absolute inset-0 flex items-center"><div className="w-full border-t border-white/5"></div></div>
-          <span className="relative px-4 bg-transparent text-[10px] font-black text-white/20 uppercase tracking-widest">أو عبر الموبايل</span>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
