@@ -5,7 +5,8 @@ import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:google_maps_flutter/google_maps_flutter.dart';
+import 'package:flutter_map/flutter_map.dart';
+import 'package:latlong2/latlong2.dart' as ll;
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/services/location_service.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
@@ -39,7 +40,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   // Controllers
   late AnimationController _sweepController;
   late PageController _pageController;
-  GoogleMapController? _mapController;
+  final MapController _mapController = MapController();
 
   // State Management
   int _selectedStoreIndex = 0;
@@ -56,9 +57,6 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   late List<StoreEntity> _filteredStores;
   late List<_RadarNode> _radarNodes;
 
-  // Caching for custom Google Map Marker Icons
-  final Map<String, BitmapDescriptor> _markerIconCache = {};
-
   @override
   void initState() {
     super.initState();
@@ -70,7 +68,6 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     _pageController = PageController(viewportFraction: 0.88);
 
     _prepareStores();
-    _generateFallbackIcons();
   }
 
   void _prepareStores() {
@@ -129,163 +126,10 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     }
   }
 
-  // Generates clean circular vector markers instantly to provide lag-free initial maps rendering
-  Future<void> _generateFallbackIcons() async {
-    for (var store in _validStores) {
-      for (bool selected in [true, false]) {
-        final String cacheKey = "${store.id}_${selected ? 'selected' : 'normal'}";
-        if (_markerIconCache.containsKey(cacheKey)) continue;
-
-        final descriptor = await _drawFallbackMarker(80, store, selected);
-        _markerIconCache[cacheKey] = descriptor;
-      }
-    }
-    if (mounted) {
-      setState(() {});
-    }
-
-    // Lazily fetch real network store logos to elegantly replace the fallbacks
-    _loadRealLogos();
-  }
-
-  Future<void> _loadRealLogos() async {
-    for (var store in _validStores) {
-      if (store.logo != null && store.logo!.isNotEmpty) {
-        _fetchAndCacheLogo(store, 80);
-      }
-    }
-  }
-
-  Future<void> _fetchAndCacheLogo(StoreEntity store, int size) async {
-    final String cacheKeySelected = "${store.id}_selected";
-    final String cacheKeyNormal = "${store.id}_normal";
-
-    if (_markerIconCache.containsKey(cacheKeySelected) && _markerIconCache.containsKey(cacheKeyNormal)) {
-      // Check if we already have the custom images loaded
-      if (_markerIconCache[cacheKeySelected] != BitmapDescriptor.defaultMarker) {
-        return;
-      }
-    }
-
-    try {
-      final NetworkImage networkImage = NetworkImage(store.logo!);
-      final ImageStream stream = networkImage.resolve(ImageConfiguration.empty);
-      final Completer<ui.Image> completer = Completer<ui.Image>();
-      ImageStreamListener? listener;
-      listener = ImageStreamListener((ImageInfo info, bool _) {
-        completer.complete(info.image);
-        stream.removeListener(listener!);
-      }, onError: (dynamic exception, StackTrace? stackTrace) {
-        completer.completeError(exception);
-        stream.removeListener(listener!);
-      });
-      stream.addListener(listener);
-
-      final ui.Image image = await completer.future;
-
-      for (bool selected in [true, false]) {
-        final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
-        final Canvas canvas = Canvas(pictureRecorder);
-        final Paint paint = Paint()..isAntiAlias = true;
-        final double radius = size / 2;
-
-        if (selected) {
-          paint.color = AppColors.primary; // Orange selected outline
-          canvas.drawCircle(Offset(radius, radius), radius, paint);
-          paint.color = Colors.white;
-          canvas.drawCircle(Offset(radius, radius), radius - 3.0, paint);
-        } else {
-          paint.color = Colors.white.withOpacity(0.85);
-          canvas.drawCircle(Offset(radius, radius), radius, paint);
-        }
-
-        final double innerRadius = selected ? radius - 6.0 : radius - 3.0;
-        final Rect rect = Rect.fromCircle(center: Offset(radius, radius), radius: innerRadius);
-        canvas.save();
-        canvas.clipPath(Path()..addOval(rect));
-
-        paintImage(
-          canvas: canvas,
-          rect: rect,
-          image: image,
-          fit: BoxFit.cover,
-        );
-
-        canvas.restore();
-
-        final ui.Image resultImage = await pictureRecorder.endRecording().toImage(size, size);
-        final ByteData? byteData = await resultImage.toByteData(format: ui.ImageByteFormat.png);
-        if (byteData != null) {
-          final BitmapDescriptor descriptor = BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
-          _markerIconCache[selected ? cacheKeySelected : cacheKeyNormal] = descriptor;
-        }
-      }
-
-      if (mounted) {
-        setState(() {});
-      }
-    } catch (_) {
-      // Gracefully let fallback handle any missing logos or offline errors
-    }
-  }
-
-  Future<BitmapDescriptor> _drawFallbackMarker(int size, StoreEntity store, bool isSelected) async {
-    final ui.PictureRecorder pictureRecorder = ui.PictureRecorder();
-    final Canvas canvas = Canvas(pictureRecorder);
-    final Paint paint = Paint()..isAntiAlias = true;
-    final double radius = size / 2;
-
-    if (isSelected) {
-      paint.color = AppColors.primary;
-      canvas.drawCircle(Offset(radius, radius), radius, paint);
-      paint.color = Colors.white;
-      canvas.drawCircle(Offset(radius, radius), radius - 3.0, paint);
-    } else {
-      paint.color = Colors.white.withOpacity(0.85);
-      canvas.drawCircle(Offset(radius, radius), radius, paint);
-    }
-
-    final double innerRadius = isSelected ? radius - 6.0 : radius - 3.0;
-    final Rect rect = Rect.fromCircle(center: Offset(radius, radius), radius: innerRadius);
-    canvas.save();
-    canvas.clipPath(Path()..addOval(rect));
-
-    paint.color = _getCategoryColor(store.category);
-    canvas.drawRect(rect, paint);
-
-    final String initial = store.name.isNotEmpty ? store.name[0] : 'S';
-    final TextPainter textPainter = TextPainter(
-      textDirection: TextDirection.rtl,
-      textAlign: TextAlign.center,
-    );
-    textPainter.text = TextSpan(
-      text: initial,
-      style: GoogleFonts.cairo(
-        color: Colors.white,
-        fontWeight: FontWeight.bold,
-        fontSize: isSelected ? 22 : 18,
-      ),
-    );
-    textPainter.layout();
-    textPainter.paint(
-      canvas,
-      Offset(radius - textPainter.width / 2, radius - textPainter.height / 2),
-    );
-
-    canvas.restore();
-
-    final ui.Image image = await pictureRecorder.endRecording().toImage(size, size);
-    final ByteData? byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    if (byteData == null) return BitmapDescriptor.defaultMarker;
-
-    return BitmapDescriptor.fromBytes(byteData.buffer.asUint8List());
-  }
-
   @override
   void dispose() {
     _sweepController.dispose();
     _pageController.dispose();
-    _mapController?.dispose();
     super.dispose();
   }
 
@@ -360,63 +204,115 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   void _animateCameraToStore(StoreEntity store) {
-    if (_mapController != null) {
-      final double centerLat = LocationService.currentLatitude;
-      final double centerLng = LocationService.currentLongitude;
-      final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
-      final double lng = store.longitude ?? (centerLng + (math.Random(store.id.hashCode + 1).nextDouble() - 0.5) * 0.012);
-
-      _mapController!.animateCamera(
-        CameraUpdate.newLatLngZoom(
-          LatLng(lat, lng),
-          16.0,
-        ),
-      );
-    }
-  }
-
-  void _onMapCreated(GoogleMapController controller) {
-    _mapController = controller;
-    _mapController!.setMapStyle(_darkMapStyle);
-    if (_filteredStores.isNotEmpty) {
-      _animateCameraToStore(_filteredStores[_selectedStoreIndex]);
-    }
-  }
-
-  Set<Marker> _buildMapMarkers() {
-    final Set<Marker> markers = {};
     final double centerLat = LocationService.currentLatitude;
     final double centerLng = LocationService.currentLongitude;
+    final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
+    final double lng = store.longitude ?? (centerLng + (math.Random(store.id.hashCode + 1).nextDouble() - 0.5) * 0.012);
 
-    for (int i = 0; i < _filteredStores.length; i++) {
-      final store = _filteredStores[i];
-      final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
-      final double lng = store.longitude ?? (centerLng + (math.Random(store.id.hashCode + 1).nextDouble() - 0.5) * 0.012);
+    _mapController.move(ll.LatLng(lat, lng), 16.0);
+  }
 
-      final isSelected = _selectedStoreIndex == i;
-      final String cacheKey = "${store.id}_${isSelected ? 'selected' : 'normal'}";
-      final BitmapDescriptor? icon = _markerIconCache[cacheKey];
+  Marker _buildOSMMarker(int index, StoreEntity store) {
+    final double centerLat = LocationService.currentLatitude;
+    final double centerLng = LocationService.currentLongitude;
+    final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
+    final double lng = store.longitude ?? (centerLng + (math.Random(store.id.hashCode + 1).nextDouble() - 0.5) * 0.012);
 
-      markers.add(
-        Marker(
-          markerId: MarkerId(store.id),
-          position: LatLng(lat, lng),
-          icon: icon ?? BitmapDescriptor.defaultMarkerWithHue(
-            isSelected ? BitmapDescriptor.hueOrange : BitmapDescriptor.hueRed
+    final isSelected = _selectedStoreIndex == index;
+    final Color storeColor = _getCategoryColor(store.category);
+
+    return Marker(
+      point: ll.LatLng(lat, lng),
+      width: isSelected ? 52.0 : 40.0,
+      height: isSelected ? 52.0 : 40.0,
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedStoreIndex = index;
+          });
+          _pageController.animateToPage(
+            index,
+            duration: const Duration(milliseconds: 400),
+            curve: Curves.easeInOut,
+          );
+          _animateCameraToStore(store);
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          decoration: BoxDecoration(
+            shape: BoxShape.circle,
+            color: isSelected
+                ? storeColor.withOpacity(0.25)
+                : const Color(0xFF1E293B).withOpacity(0.85),
+            border: Border.all(
+              color: isSelected ? storeColor : storeColor.withOpacity(0.6),
+              width: isSelected ? 2.5 : 1.5,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: storeColor.withOpacity(isSelected ? 0.6 : 0.2),
+                blurRadius: isSelected ? 12 : 4,
+                spreadRadius: isSelected ? 2 : 0.5,
+              ),
+            ],
           ),
-          onTap: () {
-            setState(() {
-              _selectedStoreIndex = i;
-            });
-            _pageController.animateToPage(
-              i,
-              duration: const Duration(milliseconds: 400),
-              curve: Curves.easeInOut,
-            );
-            _animateCameraToStore(store);
-          },
+          child: Stack(
+            clipBehavior: Clip.none,
+            alignment: Alignment.center,
+            children: [
+              // Main store logo or fallback icon
+              Positioned.fill(
+                child: Padding(
+                  padding: const EdgeInsets.all(2.0),
+                  child: ClipOval(
+                    child: store.logo != null && store.logo!.isNotEmpty
+                        ? Image.network(
+                            store.logo!,
+                            fit: BoxFit.cover,
+                            errorBuilder: (_, __, ___) => Icon(
+                              _getCategoryIcon(store.category),
+                              color: Colors.white,
+                              size: isSelected ? 18 : 14,
+                            ),
+                          )
+                        : Icon(
+                            _getCategoryIcon(store.category),
+                            color: Colors.white,
+                            size: isSelected ? 18 : 14,
+                          ),
+                  ),
+                ),
+              ),
+              // Circular Mini-Badge in the bottom-right corner showing the category icon
+              if (store.logo != null && store.logo!.isNotEmpty)
+                Positioned(
+                  right: -2,
+                  bottom: -2,
+                  child: Container(
+                    padding: const EdgeInsets.all(2.0),
+                    decoration: BoxDecoration(
+                      color: storeColor,
+                      shape: BoxShape.circle,
+                      border: Border.all(color: const Color(0xFF0F172A), width: 1.2),
+                    ),
+                    child: Icon(
+                      _getCategoryIcon(store.category),
+                      color: Colors.white,
+                      size: isSelected ? 9 : 7,
+                    ),
+                  ),
+                ),
+            ],
+          ),
         ),
-      );
+      ),
+    );
+  }
+
+  List<Marker> _buildOSMMarkers() {
+    final List<Marker> markers = [];
+    for (int i = 0; i < _filteredStores.length; i++) {
+      markers.add(_buildOSMMarker(i, _filteredStores[i]));
     }
     return markers;
   }
@@ -430,9 +326,9 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
       backgroundColor: backgroundColor,
       body: Stack(
         children: [
-          // 1. Google Map always stays in the background tree to preserve state and load fast
+          // 1. OSM Map always stays in the background tree to preserve state and load fast
           Positioned.fill(
-            child: _buildGoogleMapWidget(),
+            child: _buildOSMWidget(),
           ),
 
           // 2. Radar view overlays on top with smooth fade transition
@@ -467,22 +363,27 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     );
   }
 
-  Widget _buildGoogleMapWidget() {
-    final double centerLat = LocationService.userLatitude ?? _zagazigLat;
-    final double centerLng = LocationService.userLongitude ?? _zagazigLng;
+  Widget _buildOSMWidget() {
+    final double centerLat = LocationService.currentLatitude;
+    final double centerLng = LocationService.currentLongitude;
 
-    return GoogleMap(
-      initialCameraPosition: CameraPosition(
-        target: LatLng(centerLat, centerLng),
-        zoom: 15.0,
+    return FlutterMap(
+      mapController: _mapController,
+      options: MapOptions(
+        initialCenter: ll.LatLng(centerLat, centerLng),
+        initialZoom: 15.0,
+        maxZoom: 18.0,
+        minZoom: 10.0,
       ),
-      onMapCreated: _onMapCreated,
-      markers: _buildMapMarkers(),
-      myLocationEnabled: true,
-      myLocationButtonEnabled: false,
-      zoomControlsEnabled: false,
-      compassEnabled: false,
-      mapToolbarEnabled: false,
+      children: [
+        TileLayer(
+          urlTemplate: 'https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png',
+          subdomains: const ['a', 'b', 'c', 'd'],
+        ),
+        MarkerLayer(
+          markers: _buildOSMMarkers(),
+        ),
+      ],
     );
   }
 
@@ -1231,107 +1132,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     );
   }
 
-  // Premium Elegant Dark Map Styles JSON configuration
-  static const String _darkMapStyle = '''
-[
-  {
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#1e293b"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#94a3b8"
-      }
-    ]
-  },
-  {
-    "elementType": "labels.text.stroke",
-    "stylers": [
-      {
-        "color": "#0f172a"
-      }
-    ]
-  },
-  {
-    "featureType": "administrative",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#334155"
-      }
-    ]
-  },
-  {
-    "featureType": "landscape",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#0f172a"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#1e293b"
-      }
-    ]
-  },
-  {
-    "featureType": "poi",
-    "elementType": "labels.text.fill",
-    "stylers": [
-      {
-        "color": "#64748b"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#1e293b"
-      }
-    ]
-  },
-  {
-    "featureType": "road",
-    "elementType": "geometry.stroke",
-    "stylers": [
-      {
-        "color": "#334155"
-      }
-    ]
-  },
-  {
-    "featureType": "road.highway",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#334155"
-      }
-    ]
-  },
-  {
-    "featureType": "water",
-    "elementType": "geometry",
-    "stylers": [
-      {
-        "color": "#020617"
-      }
-    ]
-  }
-]
-''';
+
 }
 
 class _RadarNode {
