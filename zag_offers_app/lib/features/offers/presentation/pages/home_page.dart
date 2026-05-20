@@ -215,7 +215,15 @@ class _HomePageState extends State<HomePage> {
           onPressed: () {
             HapticFeedback.lightImpact();
             if (canOpenMap) {
-               Navigator.push(context, MaterialPageRoute(builder: (context) => MapPage(stores: state.featuredStores)));
+               Navigator.push(
+                 context,
+                 MaterialPageRoute(
+                   builder: (context) => MapPage(
+                     stores: state.featuredStores,
+                     offers: state.allOffers,
+                   ),
+                 ),
+               );
             }
           },
         ),
