@@ -13,4 +13,5 @@ abstract class OffersRepository {
   Future<Either<Failure, List<OfferEntity>>> getOffersByStore(String storeId);
   Future<Either<Failure, List<CategoryEntity>>> getCategories();
   Future<Either<Failure, OfferEntity>> getOfferById(String id);
+  Future<Either<Failure, StoreEntity>> getStoreById(String id);
 }

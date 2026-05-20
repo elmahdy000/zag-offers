@@ -14,6 +14,7 @@ abstract class OffersRemoteDataSource {
   Future<List<StoreModel>> getFeaturedStores();
   Future<List<OfferModel>> getOffersByStore(String storeId);
   Future<OfferModel> getOfferById(String id);
+  Future<StoreModel> getStoreById(String id);
   Future<List<CategoryModel>> getCategories();
 }
 
@@ -108,6 +109,19 @@ class OffersRemoteDataSourceImpl implements OffersRemoteDataSource {
         throw ServerException('Invalid response format for offer');
       }
       return OfferModel.fromJson(response.data as Map<String, dynamic>);
+    } on DioException catch (e) {
+      throw ServerException(mapDioErrorToMessage(e));
+    }
+  }
+
+  @override
+  Future<StoreModel> getStoreById(String id) async {
+    try {
+      final response = await apiClient.dio.get('/stores/$id');
+      if (response.data is! Map<String, dynamic>) {
+        throw ServerException('Invalid response format for store');
+      }
+      return StoreModel.fromJson(response.data as Map<String, dynamic>);
     } on DioException catch (e) {
       throw ServerException(mapDioErrorToMessage(e));
     }
