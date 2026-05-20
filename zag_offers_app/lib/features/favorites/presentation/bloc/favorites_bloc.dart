@@ -41,16 +41,12 @@ class FavoritesBloc extends Bloc<FavoritesEvent, FavoritesState> {
     final toggleResult = await toggleFavoriteUseCase(event.offerId);
     toggleResult.fold(
       (failure) => emit(FavoritesError(failure.message)),
-      (_) {
-        final currentList = state is FavoritesLoaded
-            ? (state as FavoritesLoaded).favorites
-            : <OfferEntity>[];
-        final wasFavorited = currentList.any((o) => o.id == event.offerId);
-        emit(FavoritesLoaded(
-          wasFavorited
-              ? currentList.where((o) => o.id != event.offerId).toList()
-              : currentList,
-        ));
+      (_) async {
+        final result = await getFavoritesUseCase();
+        result.fold(
+          (failure) => emit(FavoritesError(failure.message)),
+          (favorites) => emit(FavoritesLoaded(favorites)),
+        );
       },
     );
   }

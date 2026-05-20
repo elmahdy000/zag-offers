@@ -16,6 +16,7 @@ import '../../../../core/utils/snackbar_utils.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 
 class MyCouponsPage extends StatefulWidget {
   const MyCouponsPage({super.key});
@@ -377,6 +378,12 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     child: Column(
                       children: [
                         ListTile(
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (_) => OfferDetailPage(offer: coupon.offer),
+                            ),
+                          ),
                           contentPadding: const EdgeInsets.all(16),
                           leading: NetworkImageWidget(
                             imageUrl: coupon.offer.store.logo,
