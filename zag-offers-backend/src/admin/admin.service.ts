@@ -773,13 +773,6 @@ export class AdminService {
     const imageUrl =
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
-    void this.notificationsService.sendToAll(
-      `${offer.store.name}`,
-      `عرض جديد متاح الآن: "${offer.title}"`,
-      { offerId: offer.id, type: 'NEW_OFFER' },
-      imageUrl,
-    );
-
     void this.notificationsService.sendToUserId(offer.store.ownerId, {
       title: 'تم قبول العرض بنجاح',
       body: `عرضك "${offer.title}" متاح الآن لجميع العملاء.`,
@@ -1598,16 +1591,6 @@ export class AdminService {
     });
 
     this.eventsGateway.broadcastNewOffer(offer);
-
-    const imageUrl =
-      offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
-
-    void this.notificationsService.sendToAll(
-      `${store.name}`,
-      `تمت إضافة عرض جديد: ${offer.title}`,
-      { offerId: offer.id, type: 'NEW_OFFER' },
-      imageUrl,
-    );
 
     await this.auditLogService.log({
       action: 'CREATE_OFFER',
