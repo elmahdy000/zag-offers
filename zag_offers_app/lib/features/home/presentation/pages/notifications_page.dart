@@ -21,9 +21,11 @@ class NotificationsPage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
-            title: const Text(
-              'الإشعارات',
-              style: TextStyle(fontWeight: FontWeight.w900),
+            title: Text(
+              feedState.items.where((n) => !n.isRead).isEmpty
+                  ? 'الإشعارات'
+                  : 'الإشعارات (${feedState.items.where((n) => !n.isRead).length})',
+              style: const TextStyle(fontWeight: FontWeight.w900),
             ),
             actions: [
               if (feedState.items.isNotEmpty)

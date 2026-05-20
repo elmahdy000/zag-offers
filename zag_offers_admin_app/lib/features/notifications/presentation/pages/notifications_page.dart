@@ -99,7 +99,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: const Text('الإشعارات'),
+        title: Text(
+          _notifications.isEmpty
+              ? 'الإشعارات'
+              : 'الإشعارات (${_notifications.where((n) => n['isRead'] != true).length})',
+        ),
         actions: [
           if (_notifications.isNotEmpty) ...[
             IconButton(

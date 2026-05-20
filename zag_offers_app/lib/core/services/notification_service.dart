@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -185,20 +186,38 @@ class NotificationService {
     );
   }
 
+  static Future<String?> _downloadImage(String imageUrl) async {
+    try {
+      final uri = Uri.parse(imageUrl);
+      final client = HttpClient();
+      final request = await client.getUrl(uri);
+      final response = await request.close();
+      final bytes = await response.fold<List<int>>(<int>[], (prev, chunk) => prev..addAll(chunk));
+      client.close();
+      final tempDir = Directory.systemTemp;
+      final filePath = '${tempDir.path}/notif_${DateTime.now().millisecondsSinceEpoch}.png';
+      await File(filePath).writeAsBytes(bytes);
+      return filePath;
+    } catch (e) {
+      debugPrint('❌ Error downloading notification image: $e');
+      return null;
+    }
+  }
+
   static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data, String? imageUrl}) async {
-    // If we have an image, let's use BigPictureStyle for a premium look
     StyleInformation? styleInformation;
     if (imageUrl != null && imageUrl.isNotEmpty) {
       try {
-        // We'll try to show the image if it's a valid URL
-        // In a real production app, you might use a helper to download the image to a file first
-        // But for now, we'll set up the style
-        styleInformation = BigTextStyleInformation(
-          body,
-          contentTitle: title,
-          htmlFormatContentTitle: true,
-          htmlFormatSummaryText: true,
-        );
+        final filePath = await _downloadImage(imageUrl);
+        if (filePath != null) {
+          styleInformation = BigPictureStyleInformation(
+            FilePathAndroidBitmap(filePath),
+            contentTitle: title,
+            htmlFormatContentTitle: true,
+            summaryText: body,
+            htmlFormatSummaryText: true,
+          );
+        }
       } catch (e) {
         debugPrint('❌ Error setting BigPictureStyle: $e');
       }

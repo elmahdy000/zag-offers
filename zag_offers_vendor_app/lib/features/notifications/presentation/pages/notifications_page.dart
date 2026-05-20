@@ -25,9 +25,16 @@ class _NotificationsPageState extends State<NotificationsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'الإشعارات',
-          style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+        title: BlocBuilder<NotificationsBloc, NotificationsState>(
+          builder: (context, state) {
+            final count = state is NotificationsLoaded
+                ? state.notifications.where((n) => !n.isRead).length
+                : 0;
+            return Text(
+              count > 0 ? 'الإشعارات ($count)' : 'الإشعارات',
+              style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+            );
+          },
         ),
         centerTitle: true,
         backgroundColor: AppColors.background,
