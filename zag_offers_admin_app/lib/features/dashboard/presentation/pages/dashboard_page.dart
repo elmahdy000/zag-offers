@@ -1,5 +1,7 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:fl_chart/fl_chart.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
@@ -83,6 +85,28 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
           ? notification.title
           : '${notification.title}\n${notification.body}',
     );
+
+    _saveSocketNotification(notification);
+  }
+
+  void _saveSocketNotification(AdminRealtimeNotification notification) async {
+    try {
+      final prefs = await SharedPreferences.getInstance();
+      const storageKey = 'notifications_history';
+      final String? existing = prefs.getString(storageKey);
+      List<dynamic> items = existing != null ? List<dynamic>.from(json.decode(existing)) : [];
+      items.insert(0, {
+        'id': 'socket_${DateTime.now().microsecondsSinceEpoch}',
+        'title': notification.title,
+        'message': notification.body,
+        'type': notification.type,
+        'data': notification.payload,
+        'isRead': false,
+        'createdAt': DateTime.now().toIso8601String(),
+      });
+      if (items.length > 50) items = items.sublist(0, 50);
+      await prefs.setString(storageKey, json.encode(items));
+    } catch (_) {}
   }
 
   @override

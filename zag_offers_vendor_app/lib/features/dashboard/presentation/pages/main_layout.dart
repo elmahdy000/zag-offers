@@ -1,6 +1,8 @@
+import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_vendor_app/features/offers/presentation/pages/offers_page.dart';
@@ -66,14 +68,34 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   }
 
   void _setupSocketListeners() {
-    _socketService.on('merchant_notification', (data) {
+    _socketService.on('merchant_notification', (data) async {
       if (!mounted) return;
+      final map = data is Map ? Map<String, dynamic>.from(data) : {};
       
       SnackBarUtils.showInfo(
         context,
-        '${data['title'] ?? 'تنبيه'}: ${data['body'] ?? ''}',
+        '${map['title'] ?? 'تنبيه'}: ${map['body'] ?? ''}',
       );
 
+      try {
+        final prefs = await SharedPreferences.getInstance();
+        const storageKey = 'notifications_history';
+        final String? existing = prefs.getString(storageKey);
+        List<dynamic> items = existing != null ? List<dynamic>.from(json.decode(existing)) : [];
+        items.insert(0, {
+          'id': 'socket_${DateTime.now().microsecondsSinceEpoch}',
+          'title': map['title'] ?? 'تنبيه',
+          'body': map['body'] ?? '',
+          'type': map['type'],
+          'data': map,
+          'isRead': false,
+          'createdAt': DateTime.now().toIso8601String(),
+        });
+        if (items.length > 50) items = items.sublist(0, 50);
+        await prefs.setString(storageKey, json.encode(items));
+      } catch (_) {}
+
+      if (!mounted) return;
       context.read<DashboardBloc>().add(GetDashboardStatsRequested());
       context.read<OffersBloc>().add(GetMyOffersRequested());
     });
