@@ -1,4 +1,4 @@
-﻿'use client';
+'use client';
 
 import { useEffect, useState } from 'react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -40,6 +40,31 @@ export default function BannersPage() {
   const [isUploading, setIsUploading] = useState(false);
   const [form, setForm] = useState(initialForm);
 
+  // حقول ربط البانر بعرض أو متجر أو رابط خارجي
+  const [linkType, setLinkType] = useState<'none' | 'offer' | 'store' | 'url'>('none');
+  const [selectedOfferId, setSelectedOfferId] = useState('');
+  const [selectedStoreId, setSelectedStoreId] = useState('');
+  const [externalUrl, setExternalUrl] = useState('');
+
+  // جلب العروض والشركات لربط البانر
+  const { data: offersData = [] } = useQuery({
+    queryKey: ['all-offers-list'],
+    queryFn: async () => {
+      const res = await adminApi().get('/admin/offers', { params: { limit: 100 } });
+      return Array.isArray(res.data.items) ? res.data.items : [];
+    },
+    enabled: isOpen,
+  });
+
+  const { data: storesData = [] } = useQuery({
+    queryKey: ['all-stores-list'],
+    queryFn: async () => {
+      const res = await adminApi().get('/admin/stores', { params: { limit: 100 } });
+      return Array.isArray(res.data.items) ? res.data.items : [];
+    },
+    enabled: isOpen,
+  });
+
   useEffect(() => {
     if (!socket) return;
     const onUpdated = () => {
@@ -61,12 +86,21 @@ export default function BannersPage() {
 
   const upsertMutation = useMutation({
     mutationFn: async () => {
+      let finalActionUrl = null;
+      if (linkType === 'offer' && selectedOfferId) {
+        finalActionUrl = `offer:${selectedOfferId}`;
+      } else if (linkType === 'store' && selectedStoreId) {
+        finalActionUrl = `store:${selectedStoreId}`;
+      } else if (linkType === 'url' && externalUrl) {
+        finalActionUrl = externalUrl;
+      }
+
       const payload = {
         title: form.title,
         subtitle: form.subtitle || undefined,
         tag: form.tag || undefined,
         image: form.image || undefined,
-        actionUrl: form.actionUrl || undefined,
+        actionUrl: finalActionUrl,
         priority: Number(form.priority || 0),
         isActive: form.isActive,
       };
@@ -100,12 +134,41 @@ export default function BannersPage() {
 
   const openCreate = () => {
     setEditing(null);
+    setLinkType('none');
+    setSelectedOfferId('');
+    setSelectedStoreId('');
+    setExternalUrl('');
     setForm(initialForm);
     setIsOpen(true);
   };
 
   const openEdit = (banner: BannerItem) => {
     setEditing(banner);
+    
+    // فك تشفير رابط التوجيه عند التعديل
+    const actionUrl = banner.actionUrl || '';
+    if (actionUrl.startsWith('offer:')) {
+      setLinkType('offer');
+      setSelectedOfferId(actionUrl.substring(6));
+      setSelectedStoreId('');
+      setExternalUrl('');
+    } else if (actionUrl.startsWith('store:')) {
+      setLinkType('store');
+      setSelectedStoreId(actionUrl.substring(6));
+      setSelectedOfferId('');
+      setExternalUrl('');
+    } else if (actionUrl.startsWith('http://') || actionUrl.startsWith('https://')) {
+      setLinkType('url');
+      setExternalUrl(actionUrl);
+      setSelectedOfferId('');
+      setSelectedStoreId('');
+    } else {
+      setLinkType('none');
+      setSelectedOfferId('');
+      setSelectedStoreId('');
+      setExternalUrl('');
+    }
+
     setForm({
       title: banner.title,
       subtitle: banner.subtitle || '',
@@ -191,13 +254,76 @@ export default function BannersPage() {
 
       {isOpen && (
         <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/50 p-4">
-          <div className="w-full max-w-xl rounded-3xl bg-white p-6">
+          <div className="w-full max-w-xl rounded-3xl bg-white p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="mb-4 text-lg font-bold">{editing ? 'تعديل بانر' : 'إضافة بانر'}</h3>
             <div className="space-y-3">
               <input className="w-full rounded-xl border px-3 py-2" placeholder="العنوان" value={form.title} onChange={(e) => setForm((p) => ({ ...p, title: e.target.value }))} />
               <input className="w-full rounded-xl border px-3 py-2" placeholder="الوصف" value={form.subtitle} onChange={(e) => setForm((p) => ({ ...p, subtitle: e.target.value }))} />
               <input className="w-full rounded-xl border px-3 py-2" placeholder="التاج" value={form.tag} onChange={(e) => setForm((p) => ({ ...p, tag: e.target.value }))} />
-              <input className="w-full rounded-xl border px-3 py-2" dir="ltr" placeholder="رابط التوجيه (اختياري)" value={form.actionUrl} onChange={(e) => setForm((p) => ({ ...p, actionUrl: e.target.value }))} />
+              
+              <div className="space-y-1">
+                <label className="text-xs font-bold text-slate-500">نوع رابط التوجيه</label>
+                <select 
+                  className="w-full rounded-xl border px-3 py-2" 
+                  value={linkType} 
+                  onChange={(e) => setLinkType(e.target.value as any)}
+                >
+                  <option value="none">لا يوجد رابط</option>
+                  <option value="offer">ربط بعرض (شاشة تفاصيل العرض)</option>
+                  <option value="store">ربط بمتجر (شاشة المتجر)</option>
+                  <option value="url">رابط خارجي (موقع ويب)</option>
+                </select>
+              </div>
+
+              {linkType === 'offer' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">اختر العرض</label>
+                  <select 
+                    className="w-full rounded-xl border px-3 py-2 text-sm" 
+                    value={selectedOfferId} 
+                    onChange={(e) => setSelectedOfferId(e.target.value)}
+                  >
+                    <option value="">اختر عرض...</option>
+                    {offersData.map((off: any) => (
+                      <option key={off.id} value={off.id}>
+                        {off.title} {off.store?.name ? `(${off.store.name})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {linkType === 'store' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">اختر المتجر</label>
+                  <select 
+                    className="w-full rounded-xl border px-3 py-2 text-sm" 
+                    value={selectedStoreId} 
+                    onChange={(e) => setSelectedStoreId(e.target.value)}
+                  >
+                    <option value="">اختر متجر...</option>
+                    {storesData.map((st: any) => (
+                      <option key={st.id} value={st.id}>
+                        {st.name} {st.area ? `(${st.area})` : ''}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {linkType === 'url' && (
+                <div className="space-y-1">
+                  <label className="text-xs font-bold text-slate-500">الرابط الخارجي</label>
+                  <input 
+                    className="w-full rounded-xl border px-3 py-2" 
+                    dir="ltr" 
+                    placeholder="https://example.com" 
+                    value={externalUrl} 
+                    onChange={(e) => setExternalUrl(e.target.value)} 
+                  />
+                </div>
+              )}
+
               <input className="w-full rounded-xl border px-3 py-2" type="number" placeholder="الأولوية" value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: Number(e.target.value) }))} />
               <label className="block text-xs font-bold text-slate-500">الصورة</label>
               <input type="file" accept="image/*" onChange={uploadImage} />
