@@ -90,9 +90,27 @@ class AppTheme {
           elevation: 0,
         ),
       ),
+      cardTheme: CardThemeData(
+        color: AppColors.white,
+        elevation: 0,
+        margin: EdgeInsets.zero,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(24),
+          side: BorderSide(color: Colors.grey.shade200),
+        ),
+      ),
       chipTheme: base.chipTheme.copyWith(
+        backgroundColor: AppColors.white,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
-        side: BorderSide.none,
+        side: BorderSide(color: Colors.grey.shade200),
+        labelStyle: GoogleFonts.cairo(color: AppColors.textPrimary),
+      ),
+      bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+        backgroundColor: AppColors.white,
+        selectedItemColor: AppColors.primary,
+        unselectedItemColor: AppColors.textSecondary,
+        type: BottomNavigationBarType.fixed,
+        elevation: 0,
       ),
     );
   }

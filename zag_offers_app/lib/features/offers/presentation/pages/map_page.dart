@@ -239,7 +239,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             shape: BoxShape.circle,
             color: isSelected
                 ? storeColor.withOpacity(0.25)
-                : const Color(0xFF1E293B).withOpacity(0.85),
+                : (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.85),
             border: Border.all(
               color: isSelected ? storeColor : storeColor.withOpacity(0.6),
               width: isSelected ? 2.5 : 1.5,
@@ -291,7 +291,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                     decoration: BoxDecoration(
                       color: storeColor,
                       shape: BoxShape.circle,
-                      border: Border.all(color: const Color(0xFF0F172A), width: 1.2),
+                      border: Border.all(color: isDark ? const Color(0xFF0F172A) : Colors.white, width: 1.2),
                     ),
                     child: Icon(
                       _getCategoryIcon(store.category),
@@ -318,7 +318,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   @override
   Widget build(BuildContext context) {
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    final backgroundColor = isDark ? AppColors.darkBackground : const Color(0xFF0F172A);
+    final backgroundColor = isDark ? AppColors.darkBackground : AppColors.background;
 
     return Scaffold(
       backgroundColor: backgroundColor,
@@ -387,7 +387,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
 
   Widget _buildRadarWidget() {
     return Container(
-      color: const Color(0xFF0F172A),
+      color: isDark ? const Color(0xFF0F172A) : AppColors.background,
       child: Column(
         children: [
           const SizedBox(height: 160),
@@ -492,7 +492,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 decoration: BoxDecoration(
                   color: storeColor,
                   shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF0F172A), width: 1.5),
+                  border: Border.all(color: isDark ? const Color(0xFF0F172A) : Colors.white, width: 1.5),
                   boxShadow: [
                     BoxShadow(
                       color: storeColor.withOpacity(0.4),
@@ -545,7 +545,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                         shape: BoxShape.circle,
                         color: isSelected
                             ? storeColor.withOpacity(0.25)
-                            : const Color(0xFF1E293B).withOpacity(0.85),
+                            : (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.85),
                         border: Border.all(
                           color: isSelected
                               ? storeColor
@@ -578,6 +578,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   Widget _buildTopPanel(BuildContext context) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -588,12 +589,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               // Back Button
               Container(
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.9),
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white10),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.arrow_back_ios_new_rounded, color: Colors.white, size: 18),
+                  icon: Icon(Icons.arrow_back_ios_new_rounded, color: isDark ? Colors.white : AppColors.textPrimary, size: 18),
                   onPressed: () => Navigator.pop(context),
                 ),
               ),
@@ -604,20 +605,20 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: const Color(0xFF1E293B).withOpacity(0.9),
+                    color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
                     borderRadius: BorderRadius.circular(24),
-                    border: Border.all(color: Colors.white10),
+                    border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                   ),
                   child: TextField(
                     onChanged: (val) {
                       _searchQuery = val;
                       _applyFilters();
                     },
-                    style: GoogleFonts.cairo(color: Colors.white, fontSize: 13),
+                    style: GoogleFonts.cairo(color: isDark ? Colors.white : AppColors.textPrimary, fontSize: 13),
                     decoration: InputDecoration(
                       hintText: "دور على مطعم، كافيه، جيم…",
-                      hintStyle: GoogleFonts.cairo(color: Colors.white38, fontSize: 13),
-                      prefixIcon: const Icon(IconlyLight.search, color: Colors.white38, size: 20),
+                      hintStyle: GoogleFonts.cairo(color: isDark ? Colors.white38 : AppColors.textSecondary, fontSize: 13),
+                      prefixIcon: Icon(IconlyLight.search, color: isDark ? Colors.white38 : AppColors.textSecondary, size: 20),
                       border: InputBorder.none,
                       contentPadding: const EdgeInsets.symmetric(vertical: 8),
                     ),
@@ -631,12 +632,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.9),
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
                   shape: BoxShape.circle,
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                 ),
                 child: IconButton(
-                  icon: const Icon(Icons.gps_fixed_rounded, color: Colors.white, size: 20),
+                  icon: Icon(Icons.gps_fixed_rounded, color: isDark ? Colors.white : AppColors.textPrimary, size: 20),
                   onPressed: () {
                     HapticFeedback.lightImpact();
                     final double userLat = LocationService.userLatitude ?? _zagazigLat;
@@ -668,18 +669,18 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           label: Text(
                             cat,
                             style: GoogleFonts.cairo(
-                              color: isSelected ? Colors.white : Colors.white70,
+                              color: isSelected ? Colors.white : (isDark ? Colors.white70 : AppColors.textSecondary),
                               fontWeight: FontWeight.bold,
                               fontSize: 11,
                             ),
                           ),
                           selected: isSelected,
                           selectedColor: AppColors.primary,
-                          backgroundColor: const Color(0xFF1E293B).withOpacity(0.9),
+                          backgroundColor: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
                           checkmarkColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
-                            side: const BorderSide(color: Colors.white10),
+                            side: BorderSide(color: isDark ? Colors.white10 : Colors.grey.shade200),
                           ),
                           onSelected: (selected) {
                             if (selected) {
@@ -699,9 +700,9 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               Container(
                 height: 38,
                 decoration: BoxDecoration(
-                  color: const Color(0xFF1E293B).withOpacity(0.9),
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
                   borderRadius: BorderRadius.circular(19),
-                  border: Border.all(color: Colors.white10),
+                  border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                 ),
                 child: Row(
                   children: [
@@ -720,7 +721,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           child: Text(
                             'خريطة',
                             style: GoogleFonts.cairo(
-                              color: Colors.white,
+                              color: !_showRadarView ? Colors.white : (isDark ? Colors.white70 : AppColors.textSecondary),
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             ),
@@ -743,7 +744,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           child: Text(
                             'رادار',
                             style: GoogleFonts.cairo(
-                              color: Colors.white,
+                              color: _showRadarView ? Colors.white : (isDark ? Colors.white70 : AppColors.textSecondary),
                               fontSize: 11,
                               fontWeight: FontWeight.bold,
                             ),
@@ -762,6 +763,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   Widget _buildBottomCarousel() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 250,
       margin: const EdgeInsets.only(bottom: 24),
@@ -804,15 +806,15 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: const Color(0xFF1E293B).withOpacity(0.95),
+                color: isDark ? const Color(0xFF1E293B).withOpacity(0.95) : Colors.white.withOpacity(0.95),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
-                  color: _selectedStoreIndex == index ? AppColors.primary : Colors.white.withOpacity(0.08),
+                  color: _selectedStoreIndex == index ? AppColors.primary : (isDark ? Colors.white10 : Colors.grey.shade200),
                   width: _selectedStoreIndex == index ? 2 : 1,
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(0.4),
+                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   ),
@@ -849,8 +851,8 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                 height: 54,
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
-                                  border: Border.all(color: Colors.white12),
-                                  color: const Color(0xFF0F172A),
+                                  border: Border.all(color: isDark ? Colors.white12 : Colors.grey.shade200),
+                                  color: isDark ? const Color(0xFF0F172A) : Colors.grey.shade100,
                                 ),
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(15),
@@ -884,7 +886,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                       children: [
                                         Text(
                                           store.name,
-                                          style: _carouselNameStyle.copyWith(color: Colors.white),
+                                          style: _carouselNameStyle.copyWith(color: isDark ? Colors.white : AppColors.textPrimary),
                                           maxLines: 1,
                                           overflow: TextOverflow.ellipsis,
                                         ),
@@ -905,12 +907,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        const Icon(IconlyLight.location, color: Colors.white54, size: 13),
+                                        Icon(IconlyLight.location, color: isDark ? Colors.white54 : AppColors.textSecondary.withOpacity(0.6), size: 13),
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
                                             '${store.area} (يبعد ${distance.toStringAsFixed(0)}م)',
-                                            style: _carouselDistStyle.copyWith(color: Colors.white70),
+                                            style: _carouselDistStyle.copyWith(color: isDark ? Colors.white70 : AppColors.textSecondary),
                                             maxLines: 1,
                                             overflow: TextOverflow.ellipsis,
                                           ),
@@ -923,7 +925,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                             Text(
                                               store.rating.toStringAsFixed(1),
                                               style: GoogleFonts.inter(
-                                                color: Colors.white,
+                                                color: isDark ? Colors.white : AppColors.textPrimary,
                                                 fontWeight: FontWeight.bold,
                                                 fontSize: 11,
                                               ),
@@ -949,7 +951,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                     Text(
                                       offerTitle,
                                       style: GoogleFonts.cairo(
-                                        color: Colors.white,
+                                        color: isDark ? Colors.white : AppColors.textPrimary,
                                         fontWeight: FontWeight.w600,
                                         fontSize: 13,
                                       ),
@@ -960,7 +962,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                     Text(
                                       "عرض العضوية الحصري",
                                       style: GoogleFonts.cairo(
-                                        color: Colors.white38,
+                                        color: isDark ? Colors.white38 : AppColors.textSecondary,
                                         fontSize: 10,
                                       ),
                                     ),
@@ -1037,8 +1039,8 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                   height: 40,
                                   child: OutlinedButton(
                                     style: OutlinedButton.styleFrom(
-                                      foregroundColor: Colors.white,
-                                      side: const BorderSide(color: Colors.white24),
+                                      foregroundColor: isDark ? Colors.white : AppColors.textPrimary,
+                                      side: BorderSide(color: isDark ? Colors.white24 : Colors.grey.shade300),
                                       shape: RoundedRectangleBorder(
                                         borderRadius: BorderRadius.circular(12),
                                       ),
@@ -1085,6 +1087,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   Widget _buildEmptyState() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       height: 250,
       margin: const EdgeInsets.only(bottom: 24),
@@ -1093,12 +1096,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: const Color(0xFF1E293B).withOpacity(0.95),
+            color: isDark ? const Color(0xFF1E293B).withOpacity(0.95) : Colors.white.withOpacity(0.95),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: Colors.white.withOpacity(0.08)),
+            border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.4),
+                color: Colors.black.withOpacity(isDark ? 0.4 : 0.05),
                 blurRadius: 16,
               ),
             ],
@@ -1109,18 +1112,18 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               Icon(
                 Icons.radar_rounded,
                 size: 48,
-                color: Colors.white.withOpacity(0.15),
+                color: (isDark ? Colors.white : AppColors.textSecondary).withOpacity(0.15),
               ),
               const SizedBox(height: 12),
               Text(
                 'مفيش عروض قريبة منك دلوقتي',
-                style: _emptyTitleStyle.copyWith(color: Colors.white, fontSize: 15),
+                style: _emptyTitleStyle.copyWith(color: isDark ? Colors.white : AppColors.textPrimary, fontSize: 15),
               ),
               const SizedBox(height: 6),
               Text(
                 'جرب تغير التصنيف أو تبحث عن كلمات تانية لتكتشف عروض الزقازيق المميزة.',
                 textAlign: TextAlign.center,
-                style: _emptySubStyle.copyWith(color: Colors.white60, fontSize: 11),
+                style: _emptySubStyle.copyWith(color: isDark ? Colors.white60 : AppColors.textSecondary, fontSize: 11),
               ),
             ],
           ),

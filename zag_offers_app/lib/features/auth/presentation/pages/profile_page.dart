@@ -17,6 +17,7 @@ import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import 'login_page.dart';
+import '../../../../core/theme/theme_cubit.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -529,6 +530,19 @@ class _ProfilePageState extends State<ProfilePage> {
   Widget _buildPremiumMenu(BuildContext context) {
     return Column(
       children: [
+        BlocBuilder<ThemeCubit, ThemeMode>(
+          builder: (context, themeMode) {
+            final isDark = themeMode == ThemeMode.dark;
+            return _buildMenuOption(
+              icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
+              label: isDark ? 'الوضع الداكن' : 'الوضع الفاتح',
+              color: Colors.amber,
+              onTap: () {
+                context.read<ThemeCubit>().toggleTheme();
+              },
+            );
+          },
+        ),
         _buildMenuOption(
           icon: Icons.favorite_rounded,
           label: 'المفضلات',

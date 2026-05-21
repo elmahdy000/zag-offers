@@ -7,6 +7,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:zag_offers_app/core/theme/app_theme.dart';
+import 'package:zag_offers_app/core/theme/theme_cubit.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/animated_splash_page.dart';
 import 'package:zag_offers_app/core/services/notification_service.dart';
 import 'package:zag_offers_app/core/services/location_service.dart';
@@ -121,15 +122,18 @@ class ZagOffersApp extends StatelessWidget {
         BlocProvider(create: (_) => di.sl<OffersBloc>()..add(FetchHomeData())),
         BlocProvider(create: (_) => di.sl<CouponsBloc>()),
         BlocProvider(create: (_) => di.sl<FavoritesBloc>()),
+        BlocProvider(create: (_) => ThemeCubit()),
       ],
-      child: MaterialApp(
-        navigatorKey: NavigationService.navigatorKey,
-        title: 'Zag Offers',
-        debugShowCheckedModeBanner: false,
-        theme: AppTheme.lightTheme,
-        darkTheme: AppTheme.darkTheme,
-        themeMode: ThemeMode.dark,
-        home: const AnimatedSplashPage(),
+      child: BlocBuilder<ThemeCubit, ThemeMode>(
+        builder: (context, themeMode) {
+          return MaterialApp(
+            navigatorKey: NavigationService.navigatorKey,
+            title: 'Zag Offers',
+            debugShowCheckedModeBanner: false,
+            theme: AppTheme.lightTheme,
+            darkTheme: AppTheme.darkTheme,
+            themeMode: themeMode,
+            home: const AnimatedSplashPage(),
         routes: {
           '/home': (context) => const MainScreen(),
           '/onboarding': (context) => const OnboardingPage(),
@@ -151,7 +155,9 @@ class ZagOffersApp extends StatelessWidget {
             ),
           );
         },
-      ),
-    );
+      );
+    },
+  ),
+);
   }
 }
