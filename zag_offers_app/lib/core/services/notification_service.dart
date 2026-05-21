@@ -4,6 +4,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../injection_container.dart' as di;
 import '../network/api_client.dart';
 import '../../features/notifications/presentation/bloc/notification_bloc.dart';
@@ -308,6 +309,21 @@ class NotificationService {
       debugPrint('🚀 Navigating to Coupons Tab');
       _navigateNamed('/');
       _navigateTab(2);
+    } else if (type == 'OPEN_OFFER') {
+      final actionValue = data['actionValue']?.toString();
+      if (actionValue != null && actionValue.isNotEmpty) {
+        debugPrint('🚀 Navigating to Specific Offer from Action: $actionValue');
+        navigateToOffer(actionValue);
+      } else {
+        _navigateNamed('/');
+      }
+    } else if (type == 'OPEN_LINK') {
+      final actionValue = data['actionValue']?.toString();
+      if (actionValue != null && actionValue.isNotEmpty) {
+        debugPrint('🚀 Opening external link: $actionValue');
+        _launchExternalUrl(actionValue);
+      }
+      _navigateNamed('/notifications');
     } else if (type == 'ANNOUNCEMENT') {
       debugPrint('🚀 Navigating to Notifications Page');
       _navigateNamed('/notifications');
@@ -371,6 +387,19 @@ class NotificationService {
       final data = _pendingNotificationData!;
       _pendingNotificationData = null;
       handleNotificationTapFromData(data);
+    }
+  }
+
+  static Future<void> _launchExternalUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        debugPrint('❌ Could not launch URL: $url');
+      }
+    } catch (e) {
+      debugPrint('❌ Error launching URL: $e');
     }
   }
 }
