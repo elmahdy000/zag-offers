@@ -63,6 +63,21 @@ async function seedProduction() {
   }
   console.log(`✅ [PROD] ${PRODUCTION_CATEGORIES.length} categories ensured.`);
 
+  // Ensure default Admin user is present in production with default password
+  console.log('🌱 [PROD] Ensuring default Admin account...');
+  const password = await bcrypt.hash('password123', 10);
+  await prisma.user.upsert({
+    where: { phone: '01000000000' },
+    update: { password }, // Always reset password to password123 during seed so the owner can login
+    create: {
+      phone: '01000000000',
+      password,
+      name: 'مدير النظام',
+      role: Role.ADMIN,
+    },
+  });
+  console.log('✅ [PROD] Default Admin account ensured.');
+
   console.log('✅ [PROD] Production seed complete.');
 }
 
