@@ -12,6 +12,7 @@ import {
   Smartphone,
   Eye,
   CheckCircle2,
+  Link as LinkIcon,
 } from 'lucide-react';
 import { useMutation } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -30,9 +31,11 @@ export default function BroadcastPage() {
   const [imageUrl, setImageUrl] = useState('');
   const [isUploading, setIsUploading] = useState(false);
   const [confirmOpen, setConfirmOpen] = useState(false);
+  const [actionType, setActionType] = useState('ANNOUNCEMENT');
+  const [actionValue, setActionValue] = useState('');
 
   const broadcastMutation = useMutation({
-    mutationFn: (payload: { title: string; body: string; area?: string; imageUrl?: string }) =>
+    mutationFn: (payload: { title: string; body: string; area?: string; imageUrl?: string; actionType?: string; actionValue?: string }) =>
       adminApi().post('/admin/broadcast', payload),
     onSuccess: () => {
       showToast('تم إرسال الإشعار الجماعي لجميع المستخدمين بنجاح', 'success');
@@ -40,6 +43,8 @@ export default function BroadcastPage() {
       setBody('');
       setArea('');
       setImageUrl('');
+      setActionType('ANNOUNCEMENT');
+      setActionValue('');
     },
     onError: (err: any) => {
       showToast(err.response?.data?.message || 'فشل إرسال الإشعار الجماعي', 'error');
@@ -93,7 +98,14 @@ export default function BroadcastPage() {
   const handleConfirmedSend = () => {
     setConfirmOpen(false);
     const resolvedImage = imageUrl ? (imageUrl.startsWith('http') ? imageUrl : resolveImageUrl(imageUrl)) : undefined;
-    broadcastMutation.mutate({ title, body, area: area || undefined, imageUrl: resolvedImage });
+    broadcastMutation.mutate({ 
+      title, 
+      body, 
+      area: area || undefined, 
+      imageUrl: resolvedImage,
+      actionType,
+      actionValue: actionValue || undefined,
+    });
   };
 
   return (
@@ -156,6 +168,38 @@ export default function BroadcastPage() {
                 placeholder="اتركه فارغاً للإرسال لجميع المستخدمين"
                 className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-5 text-sm font-bold focus:border-orange-500 focus:bg-white focus:outline-none transition-all shadow-sm"
               />
+            </div>
+
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
+                  <CheckCircle2 size={12} className="text-orange-500" /> الإجراء عند الضغط
+                </label>
+                <select
+                  value={actionType}
+                  onChange={(e) => setActionType(e.target.value)}
+                  className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-5 text-sm font-bold focus:border-orange-500 focus:bg-white focus:outline-none transition-all shadow-sm"
+                >
+                  <option value="ANNOUNCEMENT">بدون أكشن (إعلان عام)</option>
+                  <option value="OPEN_LINK">فتح رابط خارجي</option>
+                  <option value="OPEN_OFFER">فتح عرض معين</option>
+                </select>
+              </div>
+
+              {actionType !== 'ANNOUNCEMENT' && (
+                <div className="space-y-2">
+                  <label className="flex items-center gap-2 text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">
+                    <LinkIcon size={12} className="text-orange-500" /> القيمة (رابط / ID العرض)
+                  </label>
+                  <input
+                    value={actionValue}
+                    onChange={(e) => setActionValue(e.target.value)}
+                    placeholder={actionType === 'OPEN_LINK' ? "https://..." : "معرف العرض (ID)"}
+                    className="h-14 w-full rounded-2xl border border-slate-200 bg-slate-50/50 px-5 text-sm font-bold focus:border-orange-500 focus:bg-white focus:outline-none transition-all shadow-sm"
+                    required
+                  />
+                </div>
+              )}
             </div>
 
             <div className="space-y-4">
