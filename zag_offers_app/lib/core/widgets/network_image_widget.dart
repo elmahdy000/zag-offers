@@ -1,5 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
+import '../utils/image_url_helper.dart';
 import 'skeleton_loader.dart';
 
 class NetworkImageWidget extends StatelessWidget {
@@ -37,10 +38,11 @@ class NetworkImageWidget extends StatelessWidget {
       );
     }
 
+    final resolvedUrl = ImageUrlHelper.resolve(imageUrl!);
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.zero,
       child: CachedNetworkImage(
-        imageUrl: imageUrl!,
+        imageUrl: resolvedUrl,
         width: width,
         height: height,
         fit: fit,

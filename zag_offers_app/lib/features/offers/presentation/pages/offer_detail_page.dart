@@ -22,6 +22,7 @@ import '../widgets/favorite_button.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:zag_offers_app/core/constants/app_strings.dart';
 import 'store_detail_page.dart';
+import '../../data/datasources/offers_remote_data_source.dart';
 
 class OfferDetailPage extends StatefulWidget {
   final OfferEntity offer;
@@ -70,6 +71,18 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         ));
       }
     });
+
+    // Fire and forget: Fetch the offer details from backend to increment the view counter
+    // and log the analytics event.
+    _recordView();
+  }
+
+  void _recordView() {
+    try {
+      sl<OffersRemoteDataSource>().getOfferById(widget.offer.id);
+    } catch (_) {
+      // Ignore errors, we just want to trigger the backend view increment
+    }
   }
 
   @override
