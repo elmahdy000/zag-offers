@@ -341,12 +341,13 @@ export class StoresService {
     storeId: string,
     merchantId: string,
     data: Prisma.StoreUpdateInput,
+    isAdmin = false,
   ): Promise<Store> {
     const store = await this.prisma.store.findUnique({
       where: { id: storeId },
     });
     if (!store) throw new NotFoundException('المحل غير موجود');
-    if (store.ownerId !== merchantId) {
+    if (!isAdmin && store.ownerId !== merchantId) {
       throw new ForbiddenException('غير مصرح لك بتعديل هذا المحل');
     }
     return this.prisma.store.update({ where: { id: storeId }, data });

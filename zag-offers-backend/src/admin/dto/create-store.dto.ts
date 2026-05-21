@@ -34,6 +34,11 @@ export class CreateStoreDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  coverImage?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsArray()
   @IsString({ each: true })
   images?: string[];

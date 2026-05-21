@@ -48,6 +48,7 @@ interface OfferRow {
   originalPrice?: number;
   newPrice?: number;
   _count: { coupons: number };
+  views?: number;
 }
 
 interface OfferDetails extends OfferRow {

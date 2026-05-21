@@ -142,9 +142,10 @@ export class StoresController {
   updateStore(
     @Param('id') id: string,
     @Body() data: Prisma.StoreUpdateInput,
-    @Request() req: { user: { id: string } },
+    @Request() req: { user: { id: string; role: Role } },
   ) {
-    return this.storesService.updateStoreDetails(id, req.user.id, data);
+    const isAdmin = req.user.role === Role.ADMIN;
+    return this.storesService.updateStoreDetails(id, req.user.id, data, isAdmin);
   }
 
   @Patch(':id/status')

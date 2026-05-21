@@ -5,6 +5,7 @@ import 'dart:math' hide log;
 import 'package:socket_io_client/socket_io_client.dart' as io;
 
 import '../constants/app_constants.dart';
+import '../utils/connectivity_util.dart';
 
 class SocketService {
   io.Socket? _socket;
@@ -14,6 +15,7 @@ class SocketService {
   int _reconnectAttempts = 0;
   static const int _maxReconnectAttempts = 5;
   Timer? _reconnectTimer;
+  StreamSubscription<bool>? _connectivitySub;
 
   late final StreamController<Map<String, dynamic>> _newOfferController;
   late final StreamController<Map<String, dynamic>> _couponUpdateController;
@@ -43,6 +45,7 @@ class SocketService {
   }
 
   void initSocket(String userId, String token) {
+    if (_isInitialized) reinit();
     _userId = userId;
     _token = token;
     _reconnectAttempts = 0;
@@ -50,6 +53,7 @@ class SocketService {
   }
 
   void _connect() {
+    if (_newOfferController.isClosed) _initControllers();
     _socket?.clearListeners();
     _socket?.disconnect();
     _socket?.dispose();
@@ -114,6 +118,15 @@ class SocketService {
     });
 
     _isInitialized = true;
+
+    _connectivitySub?.cancel();
+    _connectivitySub = ConnectivityUtil().connectionStream.listen((isOnline) {
+      if (isOnline && (_socket == null || !_socket!.connected)) {
+        log('[Socket] Network restored — reconnecting immediately');
+        _reconnectAttempts = 0;
+        _connect();
+      }
+    });
   }
 
   void _scheduleReconnect() {
@@ -129,6 +142,7 @@ class SocketService {
 
   void dispose() {
     _reconnectTimer?.cancel();
+    _connectivitySub?.cancel();
     _socket?.clearListeners();
     _socket?.disconnect();
     _socket?.dispose();
@@ -144,12 +158,14 @@ class SocketService {
 
   void reinit() {
     _reconnectTimer?.cancel();
+    _connectivitySub?.cancel();
     _socket?.clearListeners();
     _socket?.disconnect();
     _socket?.dispose();
     _socket = null;
     _isInitialized = false;
     _reconnectAttempts = 0;
+    _initControllers();
   }
 
   Map<String, dynamic> _toMap(dynamic data) {

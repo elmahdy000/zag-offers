@@ -145,16 +145,42 @@ class OfferCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
-          Text(
-            '${offer.store.area} • ${offer.store.category ?? ""}',
-            style: TextStyle(
-              fontSize: 9,
-              fontWeight: FontWeight.w500,
-              color: isDark ? Colors.white38 : AppColors.textSecondary,
-              fontFamily: 'Tajawal',
-            ),
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
+          Row(
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Expanded(
+                child: Text(
+                  '${offer.store.area} • ${offer.store.category ?? ""}',
+                  style: TextStyle(
+                    fontSize: 9,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.white38 : AppColors.textSecondary,
+                    fontFamily: 'Tajawal',
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+              ),
+              Row(
+                children: [
+                  Icon(
+                    Icons.remove_red_eye_rounded,
+                    size: 10,
+                    color: isDark ? Colors.white38 : AppColors.textSecondary,
+                  ),
+                  const SizedBox(width: 4),
+                  Text(
+                    '${offer.viewCount}',
+                    style: TextStyle(
+                      fontSize: 9,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.white38 : AppColors.textSecondary,
+                      fontFamily: 'Tajawal',
+                    ),
+                  ),
+                ],
+              ),
+            ],
           ),
         ],
       ),

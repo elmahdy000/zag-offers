@@ -360,7 +360,17 @@ export class AdminService {
       throw new NotFoundException('Store not found');
     }
 
-    return store;
+    const couponCount = await this.prisma.coupon.count({
+      where: { offer: { storeId: id } },
+    });
+
+    return {
+      ...store,
+      _count: {
+        ...store._count,
+        coupons: couponCount,
+      },
+    };
   }
 
   async updateStore(id: string, payload: StoreUpdatePayload) {
@@ -428,6 +438,12 @@ export class AdminService {
       title: 'تم اعتماد المتجر',
       body: `تمت الموافقة على "${store.name}". يمكنك الآن البدء في إضافة عروضك.`,
       payload: { storeId: store.id, storeName: store.name },
+    });
+
+    void this.notificationsService.sendToUserId(store.ownerId, {
+      title: 'تم قبول متجرك! 🎉',
+      body: `مبروك! تمت الموافقة على "${store.name}". يمكنك الآن البدء في إضافة عروضك.`,
+      data: { storeId: store.id, type: 'STORE_APPROVED' },
     });
 
     await this.auditLogService.log({
@@ -767,7 +783,7 @@ export class AdminService {
 
     const updated = await this.prisma.offer.update({
       where: { id },
-      data: { status: OfferStatus.ACTIVE },
+      data: { status: OfferStatus.ACTIVE, isNotified: true },
       include: { store: true },
     });
 
@@ -776,12 +792,31 @@ export class AdminService {
     const imageUrl =
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
+    // Notify the merchant
     void this.notificationsService.sendToUserId(offer.store.ownerId, {
       title: 'تم قبول العرض بنجاح',
       body: `عرضك "${offer.title}" متاح الآن لجميع العملاء.`,
       data: { offerId: offer.id, type: 'OFFER_APPROVED' },
       imageUrl,
     });
+
+    // Notify customers in the area about the new offer
+    if (offer.store?.area) {
+      void this.notificationsService.notifyNewOfferInArea(
+        offer.store.area,
+        offer.store.name,
+        offer.title,
+        offer.id,
+        imageUrl,
+      );
+    } else {
+      void this.notificationsService.sendToAll(
+        `عرض جديد 🎉`,
+        `${offer.store.name}: "${offer.title}" - متاح الآن لفترة محدودة.`,
+        { offerId: offer.id, type: 'NEW_OFFER' },
+        imageUrl,
+      );
+    }
 
     await this.auditLogService.log({
       action: 'APPROVE_OFFER',
@@ -1581,6 +1616,23 @@ export class AdminService {
     });
 
     await this.clearCache();
+    
+    // Notify the merchant that an admin created a store for them
+    this.eventsGateway.notifyMerchant(payload.ownerId, {
+      type: 'STORE_APPROVED',
+      title: 'تم إنشاء متجرك',
+      body: `تم إنشاء المتجر "${createdStore.name}" من قبل الإدارة. يمكنك الآن إدارته.`,
+      payload: { storeId: createdStore.id, storeName: createdStore.name },
+    });
+
+    // Notify other admins that a new store was created
+    this.eventsGateway.notifyAdmin({
+      type: 'SYSTEM',
+      title: 'متجر جديد (عبر الإدارة)',
+      body: `تم إضافة متجر "${createdStore.name}" مباشرة من الإدارة.`,
+      payload: { storeId: createdStore.id },
+    });
+
     return createdStore;
   }
 

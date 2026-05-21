@@ -11,6 +11,7 @@ interface OfferRow {
   status: string;
   store: { name: string };
   _count: { coupons: number };
+  views?: number;
   createdAt: string;
 }
 
@@ -75,6 +76,12 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
              <Zap size={12} className="text-amber-500" />
              <span className="text-[11px] font-bold text-slate-900">{offer._count?.coupons ?? 0}</span>
              <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">كوبون</span>
+          </div>
+          <div className="w-px h-3 bg-slate-100" />
+          <div className="flex items-center gap-1.5 text-slate-400">
+             <Eye size={11} />
+             <span className="text-[11px] font-bold text-slate-900">{offer.views ?? 0}</span>
+             <span className="text-[9px] font-bold text-slate-400 uppercase tracking-tighter">مشاهدة</span>
           </div>
           <div className="w-px h-3 bg-slate-100" />
           <div className="flex items-center gap-1.5 text-slate-400">

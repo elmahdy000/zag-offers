@@ -399,6 +399,18 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
                               Text(coupon.offer.title, maxLines: 1),
+                              const SizedBox(height: 2),
+                              Row(
+                                children: [
+                                  const Icon(Icons.remove_red_eye_rounded, size: 12, color: Colors.grey),
+                                  const SizedBox(width: 4),
+                                  Text(
+                                    '${coupon.offer.viewCount} مشاهدة',
+                                    style: const TextStyle(fontSize: 10, color: Colors.grey, fontFamily: 'Tajawal'),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 2),
                               if (coupon.offer.newPrice != null)
                                 Row(
                                   children: [

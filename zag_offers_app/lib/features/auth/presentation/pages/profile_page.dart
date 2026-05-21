@@ -1,6 +1,8 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
+import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -10,6 +12,7 @@ import '../../../favorites/presentation/bloc/favorites_bloc.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
 import '../../../home/presentation/pages/notifications_page.dart';
 import '../../data/datasources/auth_local_data_source.dart';
+import '../../domain/usecases/update_avatar_usecase.dart';
 import '../bloc/auth_bloc.dart';
 import '../bloc/auth_event.dart';
 import '../../../../core/utils/snackbar_utils.dart';
@@ -25,7 +28,9 @@ class ProfilePage extends StatefulWidget {
 class _ProfilePageState extends State<ProfilePage> {
   String _userName = '';
   String _userRole = '';
+  String? _avatarUrl;
   bool _isLoggingOut = false;
+  bool _isUploadingAvatar = false;
 
   String _roleLabel(String role) {
     switch (role) {
@@ -49,12 +54,61 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _loadUserData() async {
     final name = await sl<AuthLocalDataSource>().getUserName();
     final role = await sl<AuthLocalDataSource>().getUserRole();
+    final avatar = await sl<AuthLocalDataSource>().getCachedAvatarUrl();
     if (mounted) {
       setState(() {
         _userName = name ?? 'مستخدم Zag Offers';
         _userRole = role ?? 'CUSTOMER';
+        _avatarUrl = avatar;
       });
     }
+  }
+
+  Future<void> _pickAndUploadAvatar() async {
+    final source = await showModalBottomSheet<ImageSource>(
+      context: context,
+      showDragHandle: true,
+      builder: (context) => SafeArea(
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              ListTile(
+                leading: const Icon(Icons.photo_library_outlined),
+                title: const Text('اختر من المعرض'),
+                onTap: () => Navigator.pop(context, ImageSource.gallery),
+              ),
+              ListTile(
+                leading: const Icon(Icons.camera_alt_outlined),
+                title: const Text('التقط صورة'),
+                onTap: () => Navigator.pop(context, ImageSource.camera),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+    if (source == null || !mounted) return;
+    final picker = ImagePicker();
+    final picked = await picker.pickImage(source: source, maxWidth: 512, maxHeight: 512);
+    if (picked == null) return;
+    setState(() => _isUploadingAvatar = true);
+    final result = await sl<UpdateAvatarUseCase>().call(picked.path);
+    if (!mounted) return;
+    result.fold(
+      (failure) {
+        SnackBarUtils.showError(context, failure.message);
+        setState(() => _isUploadingAvatar = false);
+      },
+      (url) {
+        setState(() {
+          _avatarUrl = url;
+          _isUploadingAvatar = false;
+        });
+        SnackBarUtils.showSuccess(context, 'تم تغيير الصورة بنجاح');
+      },
+    );
   }
 
   Future<void> _logout() async {
@@ -313,10 +367,42 @@ class _ProfilePageState extends State<ProfilePage> {
                               ),
                             ],
                           ),
-                          child: const CircleAvatar(
-                            radius: 50,
-                            backgroundColor: Colors.white,
-                            child: Icon(Icons.person, size: 50, color: AppColors.primary),
+                          child: GestureDetector(
+                            onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                            child: CircleAvatar(
+                              radius: 50,
+                              backgroundColor: Colors.white,
+                              child: _isUploadingAvatar
+                                  ? const SizedBox(
+                                      width: 30,
+                                      height: 30,
+                                      child: CircularProgressIndicator(
+                                        strokeWidth: 3,
+                                        color: AppColors.primary,
+                                      ),
+                                    )
+                                  : _avatarUrl != null
+                                      ? ClipRRect(
+                                          borderRadius: BorderRadius.circular(50),
+                                          child: CachedNetworkImage(
+                                            imageUrl: _avatarUrl!,
+                                            width: 100,
+                                            height: 100,
+                                            fit: BoxFit.cover,
+                                            placeholder: (_, __) => const Icon(
+                                              Icons.person,
+                                              size: 50,
+                                              color: AppColors.primary,
+                                            ),
+                                            errorWidget: (_, __, ___) => const Icon(
+                                              Icons.person,
+                                              size: 50,
+                                              color: AppColors.primary,
+                                            ),
+                                          ),
+                                        )
+                                      : const Icon(Icons.person, size: 50, color: AppColors.primary),
+                            ),
                           ),
                         ),
                         const SizedBox(height: 16),

@@ -49,7 +49,7 @@ export function SocketProvider({ children }: { children: ReactNode }) {
 
     newSocket.on('connect', () => {
       setIsConnected(true);
-      newSocket.emit('join_room', { token: authData.token });
+      newSocket.emit('join_room', { token: authData.token, room: 'admin_room' });
     });
 
     newSocket.on('disconnect', () => setIsConnected(false));

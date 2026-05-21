@@ -25,4 +25,5 @@ abstract class AuthRepository {
     required String newPassword,
   });
   Future<Either<Failure, void>> deleteAccount();
+  Future<Either<Failure, String>> updateAvatar(String filePath);
 }

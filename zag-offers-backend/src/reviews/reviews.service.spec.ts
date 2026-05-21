@@ -4,6 +4,7 @@ import { Prisma } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReviewsService } from './reviews.service';
+import { NotificationsService } from '../notifications/notifications.service';
 
 describe('ReviewsService', () => {
   let service: ReviewsService;
@@ -14,11 +15,19 @@ describe('ReviewsService', () => {
       findFirst: jest.fn(),
       findUnique: jest.fn(),
       delete: jest.fn(),
+      aggregate: jest.fn(),
+    },
+    store: {
+      update: jest.fn(),
     },
   };
 
   const mockEvents = {
     notifyMerchant: jest.fn(),
+  };
+
+  const mockNotifications = {
+    sendToUserId: jest.fn(),
   };
 
   beforeEach(async () => {
@@ -27,6 +36,7 @@ describe('ReviewsService', () => {
         ReviewsService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: EventsGateway, useValue: mockEvents },
+        { provide: NotificationsService, useValue: mockNotifications },
       ],
     }).compile();
 
@@ -108,6 +118,11 @@ describe('ReviewsService', () => {
 
     it('should delete review if user is the owner', async () => {
       mockPrisma.review.findUnique.mockResolvedValue({ customerId: 'user-1' });
+      mockPrisma.review.delete.mockResolvedValue({ id: 'id', storeId: 'store-1' });
+      mockPrisma.review.aggregate.mockResolvedValue({
+        _avg: { rating: 4.5 },
+        _count: { rating: 2 },
+      });
 
       await service.remove('id', 'user-1');
 

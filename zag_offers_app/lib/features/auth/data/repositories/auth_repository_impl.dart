@@ -149,4 +149,19 @@ class AuthRepositoryImpl implements AuthRepository {
       return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
     }
   }
+
+  @override
+  Future<Either<Failure, String>> updateAvatar(String filePath) async {
+    try {
+      final url = await remoteDataSource.uploadAvatar(filePath);
+      await localDataSource.cacheAvatarUrl(url);
+      return Right(url);
+    } on ServerException catch (e) {
+      return Left(ServerFailure(e.message ?? 'فشل رفع الصورة'));
+    } on DioException catch (e) {
+      return Left(ServerFailure(mapDioErrorToMessage(e)));
+    } catch (_) {
+      return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
+    }
+  }
 }

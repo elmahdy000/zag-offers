@@ -226,36 +226,35 @@ function useActivityLogs() {
 // ─── Real-time Notifications Hook (SSE) ─────────────
 function useRealTimeNotifications(onNotification?: (n: Notification) => void) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [connected, setConnected] = useState(false);
-  const eventSourceRef = useRef<EventSource | null>(null);
+  const { socket, isConnected } = useSocketContext();
 
   useEffect(() => {
-    // For demo, simulate notifications with interval
-    // In production: const es = new EventSource('/api/notifications/stream');
-    const simulateNotifications = () => {
-      const types: Notification['type'][] = ['store_pending', 'offer_pending', 'user_registered'];
-      const type = types[Math.floor(Math.random() * types.length)];
+    if (!socket) return;
+    
+    const handler = (data: any) => {
+      let mappedType: Notification['type'] = 'user_registered';
+      if (data.type === 'NEW_PENDING_STORE') mappedType = 'store_pending';
+      if (data.type === 'NEW_PENDING_OFFER') mappedType = 'offer_pending';
+      
       const newNotification: Notification = {
         id: typeof crypto !== 'undefined' && crypto.randomUUID ? crypto.randomUUID() : Math.random().toString(36).substring(2, 11),
-        type,
-        title: type === 'store_pending' ? 'متجر جديد' : type === 'offer_pending' ? 'عرض جديد' : 'مستخدم جديد',
-        message: type === 'store_pending' ? 'تم تسجيل متجر جديد بانتظار الموافقة' : type === 'offer_pending' ? 'تم إضافة عرض جديد بانتظار المراجعة' : 'مستخدم جديد سجل في المنصة',
+        type: mappedType,
+        title: data.title || 'تنبيه جديد',
+        message: data.body || '',
         timestamp: new Date().toISOString(),
         read: false,
+        data: data.payload,
       };
+      
       setNotifications(prev => [newNotification, ...prev].slice(0, 50));
       onNotification?.(newNotification);
     };
 
-    // Simulate connection
-    setConnected(true);
-    const interval = setInterval(simulateNotifications, 30000); // Every 30 seconds for demo
-
+    socket.on('admin_notification', handler);
     return () => {
-      clearInterval(interval);
-      setConnected(false);
+      socket.off('admin_notification', handler);
     };
-  }, [onNotification]);
+  }, [socket, onNotification]);
 
   const markAsRead = useCallback((id: string) => {
     setNotifications(prev => prev.map(n => n.id === id ? { ...n, read: true } : n));
@@ -271,7 +270,7 @@ function useRealTimeNotifications(onNotification?: (n: Notification) => void) {
 
   const unreadCount = notifications.filter(n => !n.read).length;
 
-  return { notifications, connected, unreadCount, markAsRead, markAllAsRead, clearNotifications };
+  return { notifications, connected: isConnected, unreadCount, markAsRead, markAllAsRead, clearNotifications };
 }
 
 // ─── Demo Data Generator ────────────────────────────
@@ -573,18 +572,7 @@ export default function AdminDashboard() {
     },
   );
 
-  useEffect(() => {
-    if (!socket) return;
-    const handler = () => {
-      queryClient.invalidateQueries({ queryKey: ['admin-stats'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-stats-period'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-top-stores'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-top-categories'] });
-      queryClient.invalidateQueries({ queryKey: ['admin-pending'] });
-    };
-    socket.on('admin_notification', handler);
-    return () => { socket.off('admin_notification', handler); };
-  }, [socket, queryClient]);
+  // Handled invalidations internally via useRealTimeNotifications callback
 
   const { data: stats, isLoading: statsLoading, isError: statsError, error: statsErrorObj, refetch: refetchStats } = useQuery({
     queryKey: ['global-stats'],

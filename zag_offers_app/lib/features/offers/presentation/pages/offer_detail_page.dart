@@ -20,6 +20,7 @@ import '../../../reviews/presentation/bloc/reviews_bloc.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../widgets/favorite_button.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
+import 'package:zag_offers_app/core/constants/app_strings.dart';
 import 'store_detail_page.dart';
 
 class OfferDetailPage extends StatefulWidget {
@@ -93,9 +94,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         : 'خصم ${widget.offer.discountPercentage.toInt()}%';
     SharePlus.instance.share(
       ShareParams(
-        text: 'شاهد هذا العرض من ${widget.offer.store.name}\n'
+        text: '${AppStrings.shareOfferText} ${widget.offer.store.name}\n'
             '${widget.offer.title}\n'
-            'الخصم: $discountText',
+            '${AppStrings.discount} $discountText',
       ),
     );
   }
@@ -107,7 +108,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     HapticFeedback.mediumImpact();
     await Clipboard.setData(ClipboardData(text: code));
     if (!context.mounted) return;
-    SnackBarUtils.showSuccess(context, 'تم نسخ الكود');
+    SnackBarUtils.showSuccess(context, AppStrings.copySuccess);
   }
 
   @override
@@ -130,7 +131,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             listener: (context, state) {
               if (state is ReviewActionSuccess) {
                 _reviewsBloc.add(FetchStoreReviews(widget.offer.store.id));
-                SnackBarUtils.showSuccess(context, 'تمت إضافة تقييمك بنجاح');
+                SnackBarUtils.showSuccess(context, AppStrings.reviewAddedSuccess);
               }
               if (state is ReviewsError) {
                 SnackBarUtils.showError(context, state.message);
@@ -341,7 +342,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildStatsRow(String usageCount) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
     return Row(
       mainAxisAlignment: MainAxisAlignment.spaceBetween,
       children: [
@@ -368,13 +370,31 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         ),
         Row(
           children: [
-            const Icon(Icons.flash_on_rounded, color: Colors.orange, size: 18),
-            const SizedBox(width: 4),
-            Text(
-              usageCount,
-              style: textTheme.labelMedium?.copyWith(
-                fontWeight: FontWeight.bold,
-              ),
+            Row(
+              children: [
+                Icon(Icons.remove_red_eye_outlined, color: theme.hintColor, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  '${widget.offer.viewCount} مشاهدة',
+                  style: textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                    color: theme.hintColor,
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(width: 16),
+            Row(
+              children: [
+                const Icon(Icons.flash_on_rounded, color: Colors.orange, size: 18),
+                const SizedBox(width: 4),
+                Text(
+                  usageCount,
+                  style: textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+              ],
             ),
           ],
         ),

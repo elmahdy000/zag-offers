@@ -15,6 +15,7 @@ import 'package:zag_offers_app/features/offers/presentation/widgets/filter_botto
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
 
 import 'offer_detail_page.dart';
+import 'package:zag_offers_app/core/constants/app_strings.dart';
 
 class AllOffersPage extends StatefulWidget {
   final String? initialCategory;
@@ -147,7 +148,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   ),
                   centerTitle: false,
                   title: Text(
-                    'استكشف العروض',
+                    AppStrings.exploreOffers,
                     style: theme.textTheme.titleLarge?.copyWith(
                           fontWeight: FontWeight.bold,
                           color: Colors.white,
@@ -318,21 +319,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
               ),
               const SizedBox(height: 24),
               Text(
-                isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
+                isConnectionError ? AppStrings.connectionErrorTitle : AppStrings.errorLoadingTitle,
                 style: theme.textTheme.headlineSmall?.copyWith(
-                  fontWeight: FontWeight.w900,
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                isConnectionError 
-                    ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
-                    : message,
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium?.copyWith(
-                  color: AppColors.textSecondary,
-                  height: 1.5,
-                ),
               ),
               const SizedBox(height: 32),
               SizedBox(
@@ -354,7 +342,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                       Icon(Icons.refresh_rounded, size: 20),
                       SizedBox(width: 8),
                       Text(
-                        'إعادة المحاولة',
+                        AppStrings.retry,
                         style: TextStyle(fontWeight: FontWeight.bold),
                       ),
                     ],
@@ -401,7 +389,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 ),
                 const SizedBox(height: 24),
                 Text(
-                  'لا توجد عروض',
+                  AppStrings.noOffersTitle,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.titleLarge?.copyWith(
                     fontWeight: FontWeight.bold,
@@ -409,7 +397,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 ),
                 const SizedBox(height: 12),
                 Text(
-                  'لا توجد نتائج تطابق الفلاتر المختارة حالياً. جرّب تغيير التصنيف أو إعادة ضبط الفلاتر.',
+                  AppStrings.noOffersBody,
                   textAlign: TextAlign.center,
                   style: theme.textTheme.bodyMedium?.copyWith(
                     color: AppColors.textSecondary,
@@ -420,7 +408,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 TextButton(
                   onPressed: () => _resetAllFilters(context),
                   child: const Text(
-                    'إعادة تعيين الكل',
+                    AppStrings.resetAll,
                     style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,

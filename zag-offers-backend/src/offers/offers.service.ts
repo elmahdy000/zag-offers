@@ -183,6 +183,7 @@ export class OffersService {
         isFeatured: true,
         minSpend: true,
         discountType: true,
+        views: true,
         createdAt: true,
         store: {
           select: {

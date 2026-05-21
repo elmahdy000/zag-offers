@@ -43,7 +43,7 @@ class OfferModel extends OfferEntity {
           : null,
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       rejectionReason: json['rejectionReason'],
-      viewCount: json['viewCount'] ?? 0,
+      viewCount: json['views'] ?? json['viewCount'] ?? 0,
       couponsCount: json['couponsCount'] ?? (json['_count']?['coupons'] ?? 0),
       isFeatured: json['isFeatured'] ?? false,
     );

@@ -10,12 +10,28 @@ abstract class AuthRemoteDataSource {
   Future<void> forgotPassword(String email);
   Future<void> resetPassword(String email, String otp, String newPassword);
   Future<void> deleteAccount();
+  Future<String> uploadAvatar(String filePath);
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   final ApiClient apiClient;
 
   AuthRemoteDataSourceImpl({required this.apiClient});
+
+  @override
+  Future<String> uploadAvatar(String filePath) async {
+    try {
+      final formData = FormData.fromMap({
+        'avatar': await MultipartFile.fromFile(filePath, filename: 'avatar.jpg'),
+      });
+      final response = await apiClient.dio.post('/users/profile/avatar', data: formData);
+      return response.data['url'] as String;
+    } on DioException catch (e) {
+      throw ServerException(e.response?.data['message'] ?? 'فشل رفع الصورة');
+    } catch (e) {
+      throw ServerException('حدث خطأ غير متوقع');
+    }
+  }
 
   @override
   Future<void> updateFcmToken(String token) async {

@@ -16,7 +16,7 @@ export const useSocket = (token: string | null, userId: string | null, role: str
 
     newSocket.on('connect', () => {
       console.log('Socket connected:', newSocket.id);
-      newSocket.emit('join_room', { token });
+      newSocket.emit('join_room', { token, room: role === 'ADMIN' ? 'admin_room' : undefined });
     });
 
     setSocket(newSocket);

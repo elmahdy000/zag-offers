@@ -77,6 +77,7 @@ class MainScreenState extends State<MainScreen> {
     final localDataSource = sl<AuthLocalDataSource>();
     final token = await localDataSource.getToken();
     final userId = await localDataSource.getUserId();
+    if (!mounted) return;
 
     if (token != null && userId != null) {
       final socketService = sl<SocketService>();

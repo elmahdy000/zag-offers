@@ -14,6 +14,7 @@ export '../../domain/entities/notification_item_entity.dart';
 
 class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   static const String _storageKey = 'notifications_history';
+  static int _localIdCounter = 0;
   final NotificationsRepository repository;
 
   NotificationBloc({required this.repository}) : super(NotificationFeedState(items: const [])) {
@@ -80,8 +81,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) async {
     final currentState = _getCurrentState();
 
+    _localIdCounter++;
     final item = NotificationItemEntity(
-      id: 'local_${DateTime.now().microsecondsSinceEpoch}',
+      id: 'local_$_localIdCounter',
       title: 'تنبيه مباشر',
       message: 'شخص ما حصل للتو على عرض "${event.offerTitle}" من ${event.storeName}',
       createdAt: DateTime.now(),
@@ -106,8 +108,9 @@ class NotificationBloc extends Bloc<NotificationEvent, NotificationState> {
   ) async {
     final currentState = _getCurrentState();
 
+    _localIdCounter++;
     final item = NotificationItemEntity(
-      id: 'local_${DateTime.now().microsecondsSinceEpoch}',
+      id: 'local_$_localIdCounter',
       title: event.title,
       message: event.body,
       createdAt: DateTime.now(),

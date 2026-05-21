@@ -17,6 +17,7 @@ import 'features/auth/domain/usecases/update_fcm_token_usecase.dart';
 import 'features/auth/domain/usecases/forgot_password_usecase.dart';
 import 'features/auth/domain/usecases/reset_password_usecase.dart';
 import 'features/auth/domain/usecases/delete_account_usecase.dart';
+import 'features/auth/domain/usecases/update_avatar_usecase.dart';
 
 // Offers
 import 'features/offers/data/datasources/offers_remote_data_source.dart';
@@ -83,6 +84,7 @@ Future<void> init() async {
   sl.registerLazySingleton(() => ForgotPasswordUseCase(sl()));
   sl.registerLazySingleton(() => ResetPasswordUseCase(sl()));
   sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
+  sl.registerLazySingleton(() => UpdateAvatarUseCase(sl()));
   sl.registerLazySingleton<AuthRepository>(() => AuthRepositoryImpl(
         remoteDataSource: sl(),
         localDataSource: sl(),

@@ -367,6 +367,15 @@ export class AuthService {
       };
     }
 
+    // Rate limit: 60 seconds cooldown between OTP requests
+    if (user.resetOtpExpiry) {
+      const minInterval = 60 * 1000; // 1 minute
+      const age = 15 * 60 * 1000 - (user.resetOtpExpiry.getTime() - Date.now());
+      if (age >= 0 && age < minInterval) {
+        throw new ConflictException('تم إرسال كود للتو، يرجى الانتظار دقيقة قبل الطلب مجدداً');
+      }
+    }
+
     // Generate 6-digit OTP
     const otp = Math.floor(100000 + Math.random() * 900000).toString();
     const hashedOtp = await bcrypt.hash(otp, 10);
