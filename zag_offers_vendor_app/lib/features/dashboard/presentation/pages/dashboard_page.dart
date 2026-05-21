@@ -13,6 +13,10 @@ import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/store_setup_page.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/store_setup_bloc.dart';
 import 'package:zag_offers_vendor_app/features/reviews/presentation/pages/reviews_page.dart';
+import 'package:zag_offers_vendor_app/features/offers/presentation/bloc/offers_bloc.dart';
+import 'package:zag_offers_vendor_app/features/offers/domain/entities/offer_entity.dart';
+import 'package:zag_offers_vendor_app/core/utils/image_url_helper.dart';
+import 'package:zag_offers_vendor_app/core/widgets/network_image.dart';
 import 'package:zag_offers_vendor_app/injection_container.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -276,6 +280,60 @@ class DashboardPage extends StatelessWidget {
 
                 const SliverToBoxAdapter(child: SizedBox(height: 32)),
 
+                // Offers Section
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.symmetric(horizontal: 20),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        _buildSectionHeader('عروضي النشطة'),
+                        TextButton(
+                          onPressed: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(1),
+                          child: Text(
+                            'عرض الكل',
+                            style: _viewAllBtn,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+
+                SliverToBoxAdapter(
+                  child: BlocBuilder<OffersBloc, OffersState>(
+                    builder: (context, offersState) {
+                      if (offersState is OffersLoaded) {
+                        final activeOffers = offersState.offers.where((o) => o.status == 'ACTIVE').toList();
+                        if (activeOffers.isEmpty) {
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+                            child: Text('لا توجد عروض نشطة حالياً', style: _emptyStateText),
+                          );
+                        }
+                        return SizedBox(
+                          height: 180,
+                          child: ListView.builder(
+                            scrollDirection: Axis.horizontal,
+                            padding: const EdgeInsets.symmetric(horizontal: 16),
+                            itemCount: activeOffers.length,
+                            itemBuilder: (context, index) => _buildMiniOfferCard(context, activeOffers[index]),
+                          ),
+                        );
+                      }
+                      if (offersState is OffersLoading) {
+                        return const Padding(
+                          padding: EdgeInsets.all(20),
+                          child: Center(child: CircularProgressIndicator()),
+                        );
+                      }
+                      return const SizedBox();
+                    },
+                  ),
+                ),
+
+                const SliverToBoxAdapter(child: SizedBox(height: 32)),
+
                 // Activity List
                 SliverToBoxAdapter(
                   child: Padding(
@@ -283,7 +341,7 @@ class DashboardPage extends StatelessWidget {
                     child: Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        _buildSectionHeader('أحدث النشاطات'),
+                        _buildSectionHeader('أحدث الطلبات (كوبونات)'),
                         TextButton(
                           onPressed: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
                           child: Text(
@@ -446,6 +504,60 @@ class DashboardPage extends StatelessWidget {
                   style: _activityTime,
                 ),
               ],
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildMiniOfferCard(BuildContext context, OfferEntity offer) {
+    final hasImage = offer.images.isNotEmpty;
+    final firstImage = hasImage ? ImageUrlHelper.resolve(offer.images.first) : null;
+
+    return Container(
+      width: 160,
+      margin: const EdgeInsets.symmetric(horizontal: 4),
+      decoration: BoxDecoration(
+        color: AppColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: AppColors.border),
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            SizedBox(
+              height: 100,
+              width: double.infinity,
+              child: firstImage != null
+                  ? NetworkImageWithPlaceholder(
+                      imageUrl: firstImage,
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      color: AppColors.surface,
+                      child: const Icon(Icons.image_rounded, color: AppColors.textTertiary),
+                    ),
+            ),
+            Padding(
+              padding: const EdgeInsets.all(8.0),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    offer.title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                  ),
+                  Text(
+                    offer.newPrice != null ? '${offer.newPrice} ج.م' : offer.discount,
+                    style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.primary),
+                  ),
+                ],
+              ),
             ),
           ],
         ),

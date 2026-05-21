@@ -4,6 +4,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/utils/image_url_helper.dart';
 import '../../../../core/widgets/network_image.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../bloc/offers_bloc.dart';
@@ -92,7 +93,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
           children: [
             if (images.isNotEmpty)
               NetworkImageWithPlaceholder(
-                imageUrl: images[_selectedImageIndex],
+                imageUrl: ImageUrlHelper.resolve(images[_selectedImageIndex]),
                 fit: BoxFit.cover,
               )
             else
@@ -337,7 +338,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
               child: Opacity(
                 opacity: isSelected ? 1.0 : 0.6,
                 child: NetworkImageWithPlaceholder(
-                  imageUrl: widget.offer.images[index],
+                  imageUrl: ImageUrlHelper.resolve(widget.offer.images[index]),
                   fit: BoxFit.cover,
                 ),
               ),
