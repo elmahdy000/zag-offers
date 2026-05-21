@@ -40,29 +40,6 @@ async function seedProduction() {
   const baseCategoriesEnabled =
     process.env.ENABLE_BASE_CATEGORIES === 'true';
 
-  if (!baseCategoriesEnabled) {
-    console.log(
-      '⏭️  [SAFE] Skipping base categories. Set ENABLE_BASE_CATEGORIES=true to seed categories.',
-    );
-    console.log('✅ [PROD] Production seed complete.');
-    return;
-  }
-
-  // Remove old / renamed categories
-  await prisma.category.deleteMany({
-    where: { name: { in: DEPRECATED_CATEGORIES } },
-  });
-
-  // Upsert each category
-  for (const name of PRODUCTION_CATEGORIES) {
-    await prisma.category.upsert({
-      where: { name },
-      update: {},
-      create: { name },
-    });
-  }
-  console.log(`✅ [PROD] ${PRODUCTION_CATEGORIES.length} categories ensured.`);
-
   // Ensure default Admin user is present in production with default password
   console.log('🌱 [PROD] Ensuring default Admin account...');
   const password = await bcrypt.hash('password123', 10);
@@ -92,6 +69,29 @@ async function seedProduction() {
   });
 
   console.log('✅ [PROD] Admin accounts ensured.');
+
+  if (!baseCategoriesEnabled) {
+    console.log(
+      '⏭️  [SAFE] Skipping base categories. Set ENABLE_BASE_CATEGORIES=true to seed categories.',
+    );
+    console.log('✅ [PROD] Production seed complete.');
+    return;
+  }
+
+  // Remove old / renamed categories
+  await prisma.category.deleteMany({
+    where: { name: { in: DEPRECATED_CATEGORIES } },
+  });
+
+  // Upsert each category
+  for (const name of PRODUCTION_CATEGORIES) {
+    await prisma.category.upsert({
+      where: { name },
+      update: {},
+      create: { name },
+    });
+  }
+  console.log(`✅ [PROD] ${PRODUCTION_CATEGORIES.length} categories ensured.`);
 
   console.log('✅ [PROD] Production seed complete.');
 }
