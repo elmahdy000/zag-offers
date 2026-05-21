@@ -76,7 +76,22 @@ async function seedProduction() {
       role: Role.ADMIN,
     },
   });
-  console.log('✅ [PROD] Default Admin account ensured.');
+
+  // Ensure second Admin user
+  console.log('🌱 [PROD] Ensuring second Admin account...');
+  const secondPassword = await bcrypt.hash('pass12345', 10);
+  await prisma.user.upsert({
+    where: { phone: '01010203040' },
+    update: { password: secondPassword },
+    create: {
+      phone: '01010203040',
+      password: secondPassword,
+      name: 'مدير النظام 2',
+      role: Role.ADMIN,
+    },
+  });
+
+  console.log('✅ [PROD] Admin accounts ensured.');
 
   console.log('✅ [PROD] Production seed complete.');
 }

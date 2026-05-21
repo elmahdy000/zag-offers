@@ -31,14 +31,16 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final token = response.data['access_token'];
       final user = UserModel.fromJson(response.data['user']);
 
+      await secureStorage.write(key: 'auth_token', value: token);
+      await secureStorage.write(key: 'user_data', value: jsonEncode(response.data['user']));
+
       // Vendor mobile app must use merchant accounts only.
       // Most vendor endpoints are protected with MERCHANT role on backend.
       if (user.role != 'MERCHANT' && user.role != 'ADMIN') {
+        await secureStorage.delete(key: 'auth_token');
+        await secureStorage.delete(key: 'user_data');
         throw Exception('هذا التطبيق مخصص لحسابات التجار فقط.');
       }
-
-      await secureStorage.write(key: 'auth_token', value: token);
-      await secureStorage.write(key: 'user_data', value: jsonEncode(response.data['user']));
 
       return user;
     } catch (e) {

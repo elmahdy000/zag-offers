@@ -94,10 +94,15 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     CheckAuthStatus event,
     Emitter<AuthState> emit,
   ) async {
-    final user = await authRepository.checkAuthStatus();
-    if (user != null) {
-      emit(AuthAuthenticated(user));
-    } else {
+    emit(AuthLoading());
+    try {
+      final user = await authRepository.checkAuthStatus();
+      if (user != null) {
+        emit(AuthAuthenticated(user));
+      } else {
+        emit(AuthUnauthenticated());
+      }
+    } catch (_) {
       emit(AuthUnauthenticated());
     }
   }

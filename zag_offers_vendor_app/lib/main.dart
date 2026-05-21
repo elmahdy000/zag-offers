@@ -186,7 +186,7 @@ class AuthWrapper extends StatelessWidget {
         }
       },
       child: BlocBuilder<AuthBloc, AuthState>(
-        buildWhen: (prev, next) => next is AuthAuthenticated || next is AuthInitial || next is AuthLoading,
+        buildWhen: (prev, next) => next is AuthAuthenticated || next is AuthUnauthenticated || next is AuthInitial || next is AuthLoading,
         builder: (context, state) {
           if (state is AuthAuthenticated) {
             return const MainLayout();

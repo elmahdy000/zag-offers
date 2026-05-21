@@ -125,7 +125,7 @@ class MyApp extends StatelessWidget {
           builder: (context, state) {
             if (state is AuthAuthenticated) {
               return const MainShell();
-            } else if (state is AuthInitial || state is AuthLoading) {
+            } else if (state is AuthInitial) {
               return const Scaffold(
                 body: CardSkeleton(),
               );
