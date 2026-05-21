@@ -448,6 +448,13 @@ export class EventsGateway
     );
   }
 
+  broadcastOffersUpdated() {
+    this.server.emit('offers_updated', {
+      timestamp: new Date().toISOString(),
+    });
+    this.logger.log(`Broadcast offers_updated`);
+  }
+
   getConnectedCount(): number {
     return this.connectedClients.size;
   }

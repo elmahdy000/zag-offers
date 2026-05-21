@@ -36,6 +36,7 @@ class MainScreenState extends State<MainScreen> {
   int _selectedIndex = 0;
   String? _userRole;
   StreamSubscription<Map<String, dynamic>>? _newOfferSub;
+  StreamSubscription<Map<String, dynamic>>? _offersUpdatedSub;
   StreamSubscription<Map<String, dynamic>>? _categoriesUpdatedSub;
   StreamSubscription<Map<String, dynamic>>? _socialProofSub;
   final Set<int> _loadedTabs = {0};
@@ -93,6 +94,11 @@ class MainScreenState extends State<MainScreen> {
         );
       });
 
+      _offersUpdatedSub = socketService.onOffersUpdated.listen((_) {
+        if (!mounted) return;
+        context.read<OffersBloc>().add(FetchHomeData());
+      });
+
       _categoriesUpdatedSub = socketService.onCategoriesUpdated.listen((_) {
         if (!mounted) return;
         context.read<OffersBloc>().add(FetchHomeData());
@@ -111,6 +117,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   void dispose() {
     _newOfferSub?.cancel();
+    _offersUpdatedSub?.cancel();
     _categoriesUpdatedSub?.cancel();
     _socialProofSub?.cancel();
     super.dispose();

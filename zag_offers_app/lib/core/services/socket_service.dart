@@ -18,6 +18,7 @@ class SocketService {
   StreamSubscription<bool>? _connectivitySub;
 
   late final StreamController<Map<String, dynamic>> _newOfferController;
+  late final StreamController<Map<String, dynamic>> _offersUpdatedController;
   late final StreamController<Map<String, dynamic>> _couponUpdateController;
   late final StreamController<Map<String, dynamic>> _socialProofController;
   late final StreamController<Map<String, dynamic>> _categoriesUpdatedController;
@@ -25,6 +26,7 @@ class SocketService {
   late final StreamController<Map<String, dynamic>> _reviewReplyController;
 
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
+  Stream<Map<String, dynamic>> get onOffersUpdated => _offersUpdatedController.stream;
   Stream<Map<String, dynamic>> get onCouponUpdate => _couponUpdateController.stream;
   Stream<Map<String, dynamic>> get onSocialProof => _socialProofController.stream;
   Stream<Map<String, dynamic>> get onCategoriesUpdated => _categoriesUpdatedController.stream;
@@ -37,6 +39,7 @@ class SocketService {
 
   void _initControllers() {
     _newOfferController = StreamController<Map<String, dynamic>>.broadcast();
+    _offersUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
     _couponUpdateController = StreamController<Map<String, dynamic>>.broadcast();
     _socialProofController = StreamController<Map<String, dynamic>>.broadcast();
     _categoriesUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
@@ -80,6 +83,11 @@ class SocketService {
     _socket!.on('new_offer', (data) {
       log('[Socket] new_offer: $data');
       if (!_newOfferController.isClosed) _newOfferController.add(_toMap(data));
+    });
+
+    _socket!.on('offers_updated', (data) {
+      log('[Socket] offers_updated: $data');
+      if (!_offersUpdatedController.isClosed) _offersUpdatedController.add(_toMap(data));
     });
 
     _socket!.on('social_proof', (data) {
@@ -148,6 +156,7 @@ class SocketService {
     _socket?.dispose();
     _socket = null;
     _newOfferController.close();
+    _offersUpdatedController.close();
     _couponUpdateController.close();
     _socialProofController.close();
     _categoriesUpdatedController.close();

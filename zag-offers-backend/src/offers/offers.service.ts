@@ -123,6 +123,7 @@ export class OffersService {
       .catch((err) => console.error('Failed to notify admins about new offer:', err));
 
     await this.clearCache();
+    this.eventsGateway.broadcastOffersUpdated();
     return offer;
   }
 
@@ -337,6 +338,7 @@ export class OffersService {
     });
 
     await this.clearCache();
+    this.eventsGateway.broadcastOffersUpdated();
     return updatedOffer;
   }
 
@@ -373,6 +375,7 @@ export class OffersService {
     });
 
     await this.clearCache();
+    this.eventsGateway.broadcastOffersUpdated();
     return deletedOffer;
   }
 
@@ -395,6 +398,7 @@ export class OffersService {
     }
 
     await this.clearCache();
+    this.eventsGateway.broadcastOffersUpdated();
     return offer;
   }
 }
