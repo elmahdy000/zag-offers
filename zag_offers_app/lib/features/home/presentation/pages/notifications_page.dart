@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -211,12 +212,14 @@ class _NotificationCard extends StatelessWidget {
                         const SizedBox(height: 12),
                         ClipRRect(
                           borderRadius: BorderRadius.circular(12),
-                          child: Image.network(
-                            item.imageUrl!,
+                          child: CachedNetworkImage(
+                            imageUrl: item.imageUrl!,
                             height: 100,
                             width: double.infinity,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => const SizedBox.shrink(),
+                            memCacheWidth: 320,
+                            memCacheHeight: 100,
+                            errorWidget: (_, __, ___) => const SizedBox.shrink(),
                           ),
                         ),
                       ],

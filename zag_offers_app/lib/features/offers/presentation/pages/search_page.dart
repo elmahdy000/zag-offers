@@ -86,7 +86,7 @@ class _SearchPageState extends State<SearchPage> {
       ),
     );
 
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _currentArea = result['area'];
         _minDiscount = result['minDiscount'];

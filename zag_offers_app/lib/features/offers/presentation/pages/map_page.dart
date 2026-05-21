@@ -1,12 +1,12 @@
 import 'dart:math' as math;
 import 'dart:ui' as ui;
-import 'dart:async';
 import 'package:flutter/services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/services/location_service.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
@@ -30,7 +30,6 @@ class MapPage extends StatefulWidget {
 }
 
 class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
-  static final _appBarTitleStyle = GoogleFonts.cairo(color: Colors.white, fontWeight: FontWeight.bold, fontSize: 18);
   static final _carouselCategoryStyle = GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.bold);
   static final _carouselNameStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 14);
   static final _carouselDistStyle = GoogleFonts.cairo(fontSize: 11, color: Colors.grey);
@@ -80,9 +79,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
     
     // Dynamically extract stores from the offers list (very useful if featuredStores is empty)
     for (var offer in widget.offers) {
-      if (offer.store != null) {
-        uniqueStoresMap[offer.store.id] = offer.store;
-      }
+      uniqueStoresMap[offer.store.id] = offer.store;
     }
     
     _validStores = uniqueStoresMap.values.toList();
@@ -265,10 +262,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   padding: const EdgeInsets.all(2.0),
                   child: ClipOval(
                     child: store.logo != null && store.logo!.isNotEmpty
-                        ? Image.network(
-                            store.logo!,
+                        ? CachedNetworkImage(
+                            imageUrl: store.logo!,
                             fit: BoxFit.cover,
-                            errorBuilder: (_, __, ___) => Icon(
+                            memCacheWidth: 80,
+                            memCacheHeight: 80,
+                            errorWidget: (_, __, ___) => Icon(
                               _getCategoryIcon(store.category),
                               color: Colors.white,
                               size: isSelected ? 18 : 14,
@@ -464,12 +463,14 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           Positioned.fill(
             child: ClipOval(
               child: node.store.logo != null && node.store.logo!.isNotEmpty
-                  ? Image.network(
-                      node.store.logo!,
+                  ? CachedNetworkImage(
+                      imageUrl: node.store.logo!,
                       width: double.infinity,
                       height: double.infinity,
                       fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Icon(
+                      memCacheWidth: 80,
+                      memCacheHeight: 80,
+                      errorWidget: (_, __, ___) => Icon(
                         _getCategoryIcon(node.store.category),
                         color: Colors.white,
                         size: 14,
@@ -854,10 +855,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                 child: ClipRRect(
                                   borderRadius: BorderRadius.circular(15),
                                   child: store.logo != null && store.logo!.isNotEmpty
-                                      ? Image.network(
-                                          store.logo!,
+                                      ? CachedNetworkImage(
+                                          imageUrl: store.logo!,
                                           fit: BoxFit.cover,
-                                          errorBuilder: (_, __, ___) => Icon(
+                                          memCacheWidth: 120,
+                                          memCacheHeight: 120,
+                                          errorWidget: (_, __, ___) => Icon(
                                             _getCategoryIcon(store.category),
                                             color: categoryColor,
                                             size: 24,

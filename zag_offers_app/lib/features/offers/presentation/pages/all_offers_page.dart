@@ -111,7 +111,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
       ),
     );
 
-    if (result != null) {
+    if (result != null && mounted) {
       setState(() {
         _currentArea = result['area'];
         _minDiscount = result['minDiscount'];
@@ -320,7 +320,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
               const SizedBox(height: 24),
               Text(
                 isConnectionError ? AppStrings.connectionErrorTitle : AppStrings.errorLoadingTitle,
-                style: theme.textTheme.headlineSmall?.copyWith(
+                style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 32),
               SizedBox(
