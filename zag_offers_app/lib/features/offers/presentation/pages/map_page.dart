@@ -210,6 +210,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   Marker _buildOSMMarker(int index, StoreEntity store) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final double centerLat = LocationService.currentLatitude;
     final double centerLng = LocationService.currentLongitude;
     final double lat = store.latitude ?? (centerLat + (math.Random(store.id.hashCode).nextDouble() - 0.5) * 0.012);
@@ -386,6 +387,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   Widget _buildRadarWidget() {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return Container(
       color: isDark ? const Color(0xFF0F172A) : AppColors.background,
       child: Column(
@@ -449,6 +451,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
   }
 
   List<Widget> _buildRadarNodes(Offset center, double radius) {
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     return _radarNodes.map((node) {
       final isSelected = _selectedStoreIndex == node.index;
       final nodeRadius = node.normalizedRadius * radius;
