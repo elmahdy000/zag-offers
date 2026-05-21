@@ -60,6 +60,8 @@ export class StoresService {
         id: true,
         name: true,
         logo: true,
+        coverImage: true,
+        images: true,
         area: true,
         lat: true,
         lng: true,

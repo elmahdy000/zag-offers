@@ -190,6 +190,7 @@ export class OffersService {
             id: true,
             name: true,
             logo: true,
+            coverImage: true,
             area: true,
             category: {
               select: {
