@@ -287,7 +287,9 @@ function StoresContent() {
       const formDataUpload = new FormData();
       formDataUpload.append('file', file);
 
-      const response = await adminApi().post('/upload', formDataUpload);
+      const response = await adminApi().post('/upload', formDataUpload, {
+        headers: { 'Content-Type': 'multipart/form-data' },
+      });
 
       setFormData(prev => ({ ...prev, [type]: response.data.url }));
       showToast('تم رفع الصورة بنجاح');
@@ -309,7 +311,9 @@ function StoresContent() {
       const uploadPromises = files.map(async file => {
         const formDataUpload = new FormData();
         formDataUpload.append('file', file);
-        const response = await adminApi().post('/upload', formDataUpload);
+        const response = await adminApi().post('/upload', formDataUpload, {
+          headers: { 'Content-Type': 'multipart/form-data' },
+        });
         return response.data.url;
       });
 
