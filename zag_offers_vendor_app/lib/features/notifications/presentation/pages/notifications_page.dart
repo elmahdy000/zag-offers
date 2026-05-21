@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../bloc/notifications_bloc.dart';
 import '../../domain/entities/notification_entity.dart';
+import '../../../../core/network/notification_service.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -230,6 +231,11 @@ class _NotificationsPageState extends State<NotificationsPage> {
         onTap: () {
           if (!notification.isRead) {
             context.read<NotificationsBloc>().add(MarkNotificationAsReadRequested(notification.id));
+          }
+          if (notification.data != null) {
+            NotificationService.handleNotificationTapFromData(notification.data!);
+          } else if (notification.type != null) {
+            NotificationService.handleNotificationTapFromData({'type': notification.type});
           }
         },
         contentPadding: const EdgeInsets.all(16),

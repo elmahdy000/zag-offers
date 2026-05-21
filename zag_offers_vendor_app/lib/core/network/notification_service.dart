@@ -5,6 +5,7 @@ import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_local_notifications/flutter_local_notifications.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../../injection_container.dart' as di;
 import '../../features/auth/data/datasources/auth_remote_data_source.dart';
 import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
@@ -249,8 +250,16 @@ class NotificationService {
 
     if (type == 'COUPON_REDEEMED') {
       MainLayout.of(context)?.setIndex(0); // Dashboard
-    } else if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED') {
+    } else if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED' || type == 'OPEN_OFFER') {
       MainLayout.of(context)?.setIndex(1); // Offers
+    } else if (type == 'OPEN_LINK') {
+      final actionValue = data['actionValue']?.toString();
+      if (actionValue != null && actionValue.isNotEmpty) {
+        _launchExternalUrl(actionValue);
+      }
+      Navigator.of(context).push(
+        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+      );
     } else if (type == 'STORE_APPROVED') {
       MainLayout.of(context)?.setIndex(0); // Dashboard
     } else if (type == 'OFFER_REJECTED' || type == 'STORE_REJECTED' || type == 'STORE_SUSPENDED') {
@@ -263,6 +272,19 @@ class NotificationService {
       Navigator.of(context).push(
         MaterialPageRoute(builder: (_) => const NotificationsPage()),
       );
+    }
+  }
+
+  static Future<void> _launchExternalUrl(String url) async {
+    try {
+      final uri = Uri.parse(url);
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        log('❌ Could not launch URL: $url');
+      }
+    } catch (e) {
+      log('❌ Error launching URL: $e');
     }
   }
 }
