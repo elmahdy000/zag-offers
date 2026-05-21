@@ -87,9 +87,11 @@ export interface WsCouponUpdate {
 }
 
 export interface WsAnnouncement {
+  type?: string;
   title: string;
   body: string;
   area?: string;
+  actionValue?: string;
   timestamp: string;
 }
 
@@ -321,8 +323,11 @@ export class EventsGateway
     client.emit('pong', { timestamp: new Date().toISOString() });
   }
 
-  broadcastAnnouncement(data: { type: string; title: string; body: string; area?: string }) {
-    this.server.emit('announcement', data);
+  broadcastAnnouncement(data: { type: string; title: string; body: string; area?: string; actionValue?: string }) {
+    this.server.emit('announcement', {
+      ...data,
+      timestamp: new Date().toISOString(),
+    });
   }
 
   broadcastNewOffer(offer: WsNewOffer | Record<string, unknown>) {
@@ -402,6 +407,18 @@ export class EventsGateway
       ...data,
       timestamp: new Date().toISOString(),
     });
+
+    // Send FCM push to the customer so they know it was redeemed even in background
+    if (data.status === 'USED') {
+      void this.notificationsService.sendToUserId(userId, {
+        title: 'تم استخدام الكوبون بنجاح 🎉',
+        body: `تم استخدام الكوبون ${data.code} لعرض "${data.offerTitle}" في متجر ${data.storeName}. نتمنى لك تجربة ممتعة!`,
+        data: {
+          type: 'COUPON_REDEEMED',
+          code: data.code,
+        },
+      });
+    }
   }
 
   notifyUser(userId: string, event: string, data: Record<string, unknown>) {

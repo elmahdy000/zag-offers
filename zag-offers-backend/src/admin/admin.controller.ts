@@ -447,6 +447,8 @@ export class AdminController {
       body: body.body,
       area: body.area,
       imageUrl: body.imageUrl,
+      actionType: body.actionType,
+      actionValue: body.actionValue,
       adminId: req.user.id,
     });
   }

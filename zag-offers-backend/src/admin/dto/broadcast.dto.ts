@@ -21,4 +21,14 @@ export class BroadcastDto {
   @IsOptional()
   @IsString()
   imageUrl?: string;
+
+  @ApiPropertyOptional({ description: 'The action type for the notification, e.g., OPEN_LINK, OPEN_OFFER, OPEN_STORE' })
+  @IsOptional()
+  @IsString()
+  actionType?: string;
+
+  @ApiPropertyOptional({ description: 'The payload for the action, e.g., the URL or ID' })
+  @IsOptional()
+  @IsString()
+  actionValue?: string;
 }

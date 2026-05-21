@@ -1516,9 +1516,11 @@ export class AdminService {
     body: string;
     area?: string;
     imageUrl?: string;
+    actionType?: string;
+    actionValue?: string;
     adminId: string;
   }) {
-    const { title, body, area, imageUrl, adminId } = params;
+    const { title, body, area, imageUrl, actionType, actionValue, adminId } = params;
 
     if (area) {
       // Send to a specific area
@@ -1526,28 +1528,36 @@ export class AdminService {
         area,
         title,
         body,
-        { type: 'ANNOUNCEMENT' },
+        { 
+          type: actionType || 'ANNOUNCEMENT',
+          ...(actionValue ? { actionValue } : {})
+        },
         imageUrl,
       );
       this.eventsGateway.broadcastAnnouncement({
-        type: 'ANNOUNCEMENT',
+        type: actionType || 'ANNOUNCEMENT',
         title,
         body,
         area,
+        actionValue,
       });
     } else {
       // No area specified → send to ALL users
       await this.notificationsService.sendToAll(
         title,
         body,
-        { type: 'ANNOUNCEMENT' },
+        { 
+          type: actionType || 'ANNOUNCEMENT',
+          ...(actionValue ? { actionValue } : {})
+        },
         imageUrl,
       );
       this.eventsGateway.broadcastAnnouncement({
-        type: 'ANNOUNCEMENT',
+        type: actionType || 'ANNOUNCEMENT',
         title,
         body,
         area: 'all',
+        actionValue,
       });
     }
 
