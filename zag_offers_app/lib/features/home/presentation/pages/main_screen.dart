@@ -39,6 +39,7 @@ class MainScreenState extends State<MainScreen> {
   StreamSubscription<Map<String, dynamic>>? _offersUpdatedSub;
   StreamSubscription<Map<String, dynamic>>? _categoriesUpdatedSub;
   StreamSubscription<Map<String, dynamic>>? _socialProofSub;
+  StreamSubscription<Map<String, dynamic>>? _announcementSub;
   final Set<int> _loadedTabs = {0};
 
   @override
@@ -121,6 +122,18 @@ class MainScreenState extends State<MainScreen> {
           offerTitle: data['offerTitle'] ?? '',
         ));
       });
+
+      _announcementSub = socketService.onAnnouncement.listen((data) {
+        if (!mounted) return;
+        final title = data['title']?.toString() ?? 'إعلان';
+        final body = data['body']?.toString() ?? '';
+        context.read<NotificationBloc>().add(GeneralNotificationReceived(
+          title: title,
+          body: body,
+          type: data['type']?.toString(),
+          data: data,
+        ));
+      });
     }
   }
 
@@ -130,6 +143,7 @@ class MainScreenState extends State<MainScreen> {
     _offersUpdatedSub?.cancel();
     _categoriesUpdatedSub?.cancel();
     _socialProofSub?.cancel();
+    _announcementSub?.cancel();
     super.dispose();
   }
 

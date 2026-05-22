@@ -24,6 +24,7 @@ class SocketService {
   late final StreamController<Map<String, dynamic>> _categoriesUpdatedController;
   late final StreamController<Map<String, dynamic>> _bannersUpdatedController;
   late final StreamController<Map<String, dynamic>> _reviewReplyController;
+  late final StreamController<Map<String, dynamic>> _announcementController;
 
   Stream<Map<String, dynamic>> get onNewOffer => _newOfferController.stream;
   Stream<Map<String, dynamic>> get onOffersUpdated => _offersUpdatedController.stream;
@@ -32,6 +33,7 @@ class SocketService {
   Stream<Map<String, dynamic>> get onCategoriesUpdated => _categoriesUpdatedController.stream;
   Stream<Map<String, dynamic>> get onBannersUpdated => _bannersUpdatedController.stream;
   Stream<Map<String, dynamic>> get onReviewReply => _reviewReplyController.stream;
+  Stream<Map<String, dynamic>> get onAnnouncement => _announcementController.stream;
 
   SocketService() {
     _initControllers();
@@ -45,6 +47,7 @@ class SocketService {
     _categoriesUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
     _bannersUpdatedController = StreamController<Map<String, dynamic>>.broadcast();
     _reviewReplyController = StreamController<Map<String, dynamic>>.broadcast();
+    _announcementController = StreamController<Map<String, dynamic>>.broadcast();
   }
 
   void initSocket(String userId, String token) {
@@ -116,6 +119,20 @@ class SocketService {
       if (!_reviewReplyController.isClosed) _reviewReplyController.add(map);
     });
 
+    _socket!.on('announcement', (data) {
+      log('[Socket] announcement: $data');
+      final map = _toMap(data);
+      if (!_announcementController.isClosed) _announcementController.add(map);
+    });
+
+    _socket!.on('auth_warning', (data) {
+      log('[Socket] auth_warning: $data');
+    });
+
+    _socket!.on('error', (data) {
+      log('[Socket] error: $data');
+    });
+
     _socket!.onConnectError((error) {
       log('[Socket] connect_error: $error');
       _scheduleReconnect();
@@ -162,6 +179,7 @@ class SocketService {
     _categoriesUpdatedController.close();
     _bannersUpdatedController.close();
     _reviewReplyController.close();
+    _announcementController.close();
     _isInitialized = false;
   }
 
@@ -174,16 +192,7 @@ class SocketService {
     _socket = null;
     _isInitialized = false;
     _reconnectAttempts = 0;
-
-    // Close old controllers before replacing them
-    if (!_newOfferController.isClosed) _newOfferController.close();
-    if (!_offersUpdatedController.isClosed) _offersUpdatedController.close();
-    if (!_couponUpdateController.isClosed) _couponUpdateController.close();
-    if (!_socialProofController.isClosed) _socialProofController.close();
-    if (!_categoriesUpdatedController.isClosed) _categoriesUpdatedController.close();
-    if (!_bannersUpdatedController.isClosed) _bannersUpdatedController.close();
-    if (!_reviewReplyController.isClosed) _reviewReplyController.close();
-    
+    _closeControllers();
     _initControllers();
   }
 
@@ -195,6 +204,7 @@ class SocketService {
     _categoriesUpdatedController.close();
     _bannersUpdatedController.close();
     _reviewReplyController.close();
+    _announcementController.close();
   }
 
   Map<String, dynamic> _toMap(dynamic data) {

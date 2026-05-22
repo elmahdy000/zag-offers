@@ -74,6 +74,14 @@ class RealtimeService {
       onAdminNotification(AdminRealtimeNotification.fromSocketData(data));
     });
 
+    socket.on('auth_warning', (data) {
+      debugPrint('Realtime auth_warning: $data');
+    });
+
+    socket.on('error', (data) {
+      debugPrint('Realtime error: $data');
+    });
+
     _socket = socket;
     socket.connect();
   }

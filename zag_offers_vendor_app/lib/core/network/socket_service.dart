@@ -51,7 +51,7 @@ class SocketService {
 
     _socket = io.io(AppConstants.socketUrl, 
       io.OptionBuilder()
-        .setTransports(['websocket'])
+        .setTransports(['websocket', 'polling'])
         .setAuth({'token': token})
         .enableReconnection()
         .setReconnectionAttempts(10)
@@ -70,9 +70,8 @@ class SocketService {
       _isConnected = true;
       log('WebSocket: Connected to server');
       
-      // Join merchant room (React app compatibility)
       if (_userId != null) {
-        _socket?.emit('join_room', {'token': token, 'userId': _userId});
+        _socket?.emit('join_room', {'token': token, 'room': _userId});
         log('WebSocket: Joined merchant room: $_userId');
       }
     });
@@ -114,6 +113,24 @@ class SocketService {
     _socket?.on('new_message', (data) {
       log('WebSocket: New message received: $data');
       // Handle chat messages (React app compatibility)
+    });
+
+    _socket?.on('announcement', (data) {
+      log('WebSocket announcement: $data');
+      try {
+        final rawMap = data is Map ? Map<dynamic, dynamic>.from(data) : <dynamic, dynamic>{};
+        final map = rawMap.cast<String, dynamic>();
+        final title = map['title']?.toString() ?? 'إعلان';
+        final body = map['body']?.toString() ?? '';
+        NotificationService.showLocalNotification(title, body, data: map);
+        NotificationService.saveToHistory(title, body, map);
+      } catch (e) {
+        log('WebSocket: Failed to process announcement: $e');
+      }
+    });
+
+    _socket?.on('auth_warning', (data) {
+      log('WebSocket auth_warning: $data');
     });
 
     _socket?.on('error', (data) {
