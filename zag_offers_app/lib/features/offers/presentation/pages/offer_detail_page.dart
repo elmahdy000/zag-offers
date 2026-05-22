@@ -601,9 +601,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                               );
                             },
                       style: ElevatedButton.styleFrom(
-                        backgroundColor:
-                            canGenerate ? AppColors.primary : Theme.of(context).disabledColor,
+                        backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
+                        disabledBackgroundColor: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white10 
+                            : Colors.grey.shade200,
+                        disabledForegroundColor: Theme.of(context).brightness == Brightness.dark 
+                            ? Colors.white54 
+                            : Colors.grey.shade600,
                         shape: RoundedRectangleBorder(
                           borderRadius: BorderRadius.circular(20),
                         ),
@@ -616,7 +621,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                               children: [
                                 const Icon(
                                   Icons.confirmation_num_rounded,
-                                  color: Colors.white,
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
@@ -625,7 +629,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                       : 'متاح للعملاء فقط',
                                     style: textTheme.titleMedium?.copyWith(
                                       fontWeight: FontWeight.bold,
-                                      color: Colors.white,
                                     ),
                                 ),
                               ],
