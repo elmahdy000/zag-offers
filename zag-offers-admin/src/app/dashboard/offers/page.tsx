@@ -20,7 +20,8 @@ import {
   Plus,
   Image as ImageIcon,
   Upload,
-  Calendar as CalendarIcon
+  Calendar as CalendarIcon,
+  Star
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -55,6 +56,20 @@ interface OfferDetails extends OfferRow {
   images: string[];
   discountType?: string;
   _count: { coupons: number; favorites: number; reviews: number };
+  coupons?: {
+    id: string;
+    code: string;
+    status: string;
+    createdAt: string;
+    customer: { id: string; name: string; phone: string };
+  }[];
+  reviews?: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+    customer: { id: string; name: string; phone: string; avatar?: string };
+  }[];
 }
 
 const statusLabels: Record<string, string> = {
@@ -498,6 +513,60 @@ export default function OffersManagementPage() {
                           </div>
                         </div>
                       )}
+                      {/* Coupons and Reviews */}
+                      <div className="grid sm:grid-cols-2 gap-6 pt-6 border-t border-slate-100">
+                        {/* Coupons */}
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <Zap size={18} className="text-emerald-500" /> أحدث الكوبونات
+                          </h4>
+                          <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                            {offerDetails?.coupons && offerDetails.coupons.length > 0 ? offerDetails.coupons.map(coupon => (
+                              <div key={coupon.id} className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm flex items-center justify-between">
+                                <div>
+                                  <p className="text-xs font-bold text-slate-900">{coupon.customer.name}</p>
+                                  <p className="text-[10px] text-slate-400 mt-1">{coupon.customer.phone}</p>
+                                </div>
+                                <div className="text-left">
+                                  <span className={`text-[10px] font-bold px-2 py-0.5 rounded uppercase tracking-widest ${
+                                    coupon.status === 'USED' ? 'bg-emerald-50 text-emerald-600' : 'bg-slate-50 text-slate-500'
+                                  }`}>
+                                    {coupon.code}
+                                  </span>
+                                  <p className="text-[9px] text-slate-400 mt-1">{new Date(coupon.createdAt).toLocaleDateString('ar-EG')}</p>
+                                </div>
+                              </div>
+                            )) : (
+                              <p className="text-xs text-slate-400 text-center py-4">لم يتم إصدار كوبونات بعد</p>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* Reviews */}
+                        <div>
+                          <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                            <ExternalLink size={18} className="text-blue-500" /> أحدث التقييمات
+                          </h4>
+                          <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                            {offerDetails?.reviews && offerDetails.reviews.length > 0 ? offerDetails.reviews.map(review => (
+                              <div key={review.id} className="p-3 bg-white rounded-xl border border-slate-100 shadow-sm">
+                                <div className="flex items-center justify-between mb-1.5">
+                                  <p className="text-xs font-bold text-slate-900">{review.customer.name}</p>
+                                  <div className="flex items-center gap-0.5">
+                                    {[1, 2, 3, 4, 5].map((star) => (
+                                      <Star key={star} size={10} className={star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-slate-100 text-slate-200'} />
+                                    ))}
+                                  </div>
+                                </div>
+                                <p className="text-xs text-slate-600 bg-slate-50 p-2 rounded-lg leading-relaxed">{review.comment || 'لا يوجد تعليق'}</p>
+                              </div>
+                            )) : (
+                              <p className="text-xs text-slate-400 text-center py-4">لا توجد تقييمات بعد</p>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+
                       <div className="flex gap-4 pt-6 border-t border-slate-100">
                         <button onClick={() => setIsEditing(true)} className="flex-1 h-12 rounded-xl bg-slate-100 text-slate-600 text-xs font-bold flex items-center justify-center gap-2 hover:bg-slate-200 transition-all border border-slate-200">تعديل البيانات</button>
                         <button onClick={() => setDeleteModal({ id: offerDetails!.id, title: offerDetails!.title })} className="h-12 w-12 flex items-center justify-center rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10"><Trash2 size={20} /></button>

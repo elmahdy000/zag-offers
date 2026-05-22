@@ -23,6 +23,8 @@ interface UserItem {
   role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN';
   area?: string | null;
   createdAt?: string;
+  points?: number;
+  tier?: string;
 }
 
 const roleStyles: Record<string, { icon: any; color: string; bg: string; border: string; label: string }> = {
@@ -62,7 +64,14 @@ export const UserCard: React.FC<UserCardProps> = ({ user, onEdit, onDelete }) =>
         <h3 className="text-base font-bold text-slate-900 group-hover:text-orange-600 transition-colors truncate leading-tight">
           {user.name}
         </h3>
-        <p className="mt-1.5 text-xs font-bold text-slate-500 font-outfit">{user.phone}</p>
+        <div className="flex items-center gap-2 mt-1.5">
+          <p className="text-xs font-bold text-slate-500 font-outfit">{user.phone}</p>
+          {user.role === 'CUSTOMER' && user.tier && (
+            <span className="text-[10px] font-bold px-1.5 py-0.5 rounded-md bg-yellow-100 text-yellow-700 border border-yellow-200 uppercase">
+              {user.tier} • {user.points} pts
+            </span>
+          )}
+        </div>
 
         <div className="mt-5 space-y-2">
           {user.email && (

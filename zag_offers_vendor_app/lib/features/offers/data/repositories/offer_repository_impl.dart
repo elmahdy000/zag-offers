@@ -27,6 +27,8 @@ class OfferRepositoryImpl implements OfferRepository {
       storeId: offer.storeId,
       oldPrice: offer.oldPrice,
       newPrice: offer.newPrice,
+      isFlashSale: offer.isFlashSale,
+      flashSaleEndsAt: offer.flashSaleEndsAt,
     );
     return await remoteDataSource.createOffer(model);
   }
@@ -47,6 +49,8 @@ class OfferRepositoryImpl implements OfferRepository {
       storeId: offer.storeId,
       oldPrice: offer.oldPrice,
       newPrice: offer.newPrice,
+      isFlashSale: offer.isFlashSale,
+      flashSaleEndsAt: offer.flashSaleEndsAt,
     );
     return await remoteDataSource.updateOffer(offer.id, model.toJson());
   }

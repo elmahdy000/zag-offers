@@ -4,8 +4,6 @@ import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../constants/app_constants.dart';
 import 'notification_service.dart';
-import '../../injection_container.dart' as di;
-import '../../features/dashboard/presentation/bloc/dashboard_bloc.dart';
 
 class SocketService {
   io.Socket? _socket;
@@ -13,6 +11,9 @@ class SocketService {
   final Map<String, List<Function(dynamic)>> _eventHandlers = {};
   String? _userId;
   final FlutterSecureStorage _secureStorage;
+
+  /// Callback for coupon redemption (avoids core->feature import)
+  void Function()? onCouponRedeemed;
 
   SocketService({FlutterSecureStorage? secureStorage})
       : _secureStorage = secureStorage ?? const FlutterSecureStorage();
@@ -103,7 +104,7 @@ class SocketService {
         NotificationService.saveToHistory(title, body, notificationData);
 
         if (type == 'COUPON_REDEEMED') {
-          di.sl<DashboardBloc>().add(GetDashboardStatsRequested());
+          onCouponRedeemed?.call();
         }
       } catch (e) {
         log('WebSocket: Failed to process merchant notification: $e');

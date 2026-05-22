@@ -1,10 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
-import 'package:zag_offers_vendor_app/features/reviews/data/models/review_model.dart';
-import 'package:zag_offers_vendor_app/features/reviews/domain/repositories/reviews_repository.dart';
-import 'package:zag_offers_vendor_app/injection_container.dart';
+import 'package:zag_offers_vendor_app/features/reviews/presentation/bloc/reviews_bloc.dart';
+import 'package:zag_offers_vendor_app/injection_container.dart' as di;
 
 class ReviewsPage extends StatefulWidget {
   final String storeId;
@@ -29,19 +29,10 @@ class _ReviewsPageState extends State<ReviewsPage> {
   static final _cairoPrimaryBoldSize16 = GoogleFonts.cairo(color: AppColors.primary, fontWeight: FontWeight.bold, fontSize: 16);
   static final _cairoTextSecondarySize16 = GoogleFonts.cairo(color: AppColors.textSecondary, fontSize: 16);
 
-  final ReviewsRepository _repository = sl<ReviewsRepository>();
-  late Future<List<ReviewModel>> _reviewsFuture;
-
   @override
   void initState() {
     super.initState();
-    _reviewsFuture = _repository.getStoreReviews(widget.storeId);
-  }
-
-  void _refresh() {
-    setState(() {
-      _reviewsFuture = _repository.getStoreReviews(widget.storeId);
-    });
+    context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId));
   }
 
   Future<void> _showReplyDialog(String reviewId) async {
@@ -50,10 +41,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
       context: context,
       builder: (ctx) => AlertDialog(
         backgroundColor: AppColors.surface,
-        title: Text(
-          'إضافة رد',
-          style: _cairoWhiteBold,
-        ),
+        title: Text('إضافة رد', style: _cairoWhiteBold),
         content: TextField(
           controller: controller,
           maxLines: 3,
@@ -84,17 +72,10 @@ class _ReviewsPageState extends State<ReviewsPage> {
     );
 
     if (reply != null && reply.isNotEmpty) {
-      try {
-        await _repository.addReply(reviewId, reply);
-        if (mounted) {
-          SnackBarUtils.showSuccess(context, 'تم إضافة الرد بنجاح');
-          _refresh();
-        }
-      } catch (e) {
-        if (mounted) {
-          SnackBarUtils.showError(context, 'فشل إضافة الرد');
-        }
-      }
+      if (!mounted) return;
+      context.read<ReviewsBloc>().add(AddReplyRequested(reviewId, reply));
+      SnackBarUtils.showSuccess(context, 'تم إضافة الرد بنجاح');
+      context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId));
     }
   }
 
@@ -103,35 +84,28 @@ class _ReviewsPageState extends State<ReviewsPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       appBar: AppBar(
-        title: Text(
-          'التقييمات',
-          style: _cairoWhiteBold,
-        ),
+        title: Text('التقييمات', style: _cairoWhiteBold),
         backgroundColor: AppColors.background,
         elevation: 0,
         iconTheme: const IconThemeData(color: Colors.white),
       ),
-      body: FutureBuilder<List<ReviewModel>>(
-        future: _reviewsFuture,
-        builder: (context, snapshot) {
-          if (snapshot.connectionState == ConnectionState.waiting) {
+      body: BlocBuilder<ReviewsBloc, ReviewsState>(
+        builder: (context, state) {
+          if (state is ReviewsLoading) {
             return const Center(child: CircularProgressIndicator());
           }
 
-          if (snapshot.hasError) {
+          if (state is ReviewsError) {
             return Center(
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
                   Icon(Icons.error_outline, color: AppColors.error, size: 48),
                   const SizedBox(height: 16),
-                  Text(
-                    'حدث خطأ أثناء تحميل التقييمات',
-                    style: _cairoTextSecondary,
-                  ),
+                  Text('حدث خطأ أثناء تحميل التقييمات', style: _cairoTextSecondary),
                   const SizedBox(height: 16),
                   ElevatedButton(
-                    onPressed: _refresh,
+                    onPressed: () => context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId)),
                     child: Text('إعادة المحاولة', style: _cairoDefault),
                   ),
                 ],
@@ -139,7 +113,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
             );
           }
 
-          final reviews = snapshot.data ?? [];
+          final reviews = state is ReviewsLoaded ? state.reviews : <dynamic>[];
 
           if (reviews.isEmpty) {
             return Center(
@@ -148,24 +122,18 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 children: [
                   Icon(Icons.star_border, color: AppColors.textDimmer, size: 64),
                   const SizedBox(height: 16),
-                  Text(
-                    'لا توجد تقييمات بعد',
-                    style: _cairoTextSecondarySize16,
-                  ),
+                  Text('لا توجد تقييمات بعد', style: _cairoTextSecondarySize16),
                 ],
               ),
             );
           }
 
           return RefreshIndicator(
-            onRefresh: () async => _refresh(),
+            onRefresh: () async => context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId)),
             child: ListView.builder(
               padding: const EdgeInsets.all(16),
               itemCount: reviews.length,
-              itemBuilder: (context, index) {
-                final review = reviews[index];
-                return _buildReviewCard(review);
-              },
+              itemBuilder: (context, index) => _buildReviewCard(reviews[index]),
             ),
           );
         },
@@ -173,7 +141,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
     );
   }
 
-  Widget _buildReviewCard(ReviewModel review) {
+  Widget _buildReviewCard(review) {
     final date = _formatDate(review.createdAt);
 
     return Container(
@@ -195,27 +163,18 @@ class _ReviewsPageState extends State<ReviewsPage> {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      review.customerName,
-                      style: _cairoBold14White,
-                    ),
+                    Text(review.customerName, style: _cairoBold14White),
                     const SizedBox(height: 4),
                     Row(
                       children: [
                         ...List.generate(5, (i) {
                           return Icon(
-                            i < review.rating
-                                ? Icons.star_rounded
-                                : Icons.star_border_rounded,
-                            color: Colors.amber,
-                            size: 18,
+                            i < review.rating ? Icons.star_rounded : Icons.star_border_rounded,
+                            color: Colors.amber, size: 18,
                           );
                         }),
                         const SizedBox(width: 8),
-                        Text(
-                          date,
-                          style: _cairoTextDimmerSize11,
-                        ),
+                        Text(date, style: _cairoTextDimmerSize11),
                       ],
                     ),
                   ],
@@ -225,10 +184,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
           ),
           if (review.comment != null && review.comment!.isNotEmpty) ...[
             const SizedBox(height: 12),
-            Text(
-              review.comment!,
-              style: _cairoTextSecondarySize13,
-            ),
+            Text(review.comment!, style: _cairoTextSecondarySize13),
           ],
           if (review.merchantReply != null && review.merchantReply!.isNotEmpty) ...[
             const SizedBox(height: 12),
@@ -238,22 +194,14 @@ class _ReviewsPageState extends State<ReviewsPage> {
               decoration: BoxDecoration(
                 color: AppColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.2),
-                ),
+                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
               ),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    'رد التاجر:',
-                    style: _cairoPrimaryBoldSize12,
-                  ),
+                  Text('رد التاجر:', style: _cairoPrimaryBoldSize12),
                   const SizedBox(height: 4),
-                  Text(
-                    review.merchantReply!,
-                    style: _cairoWhite70Size13,
-                  ),
+                  Text(review.merchantReply!, style: _cairoWhite70Size13),
                 ],
               ),
             ),
@@ -264,13 +212,8 @@ class _ReviewsPageState extends State<ReviewsPage> {
               child: TextButton.icon(
                 onPressed: () => _showReplyDialog(review.id),
                 icon: const Icon(Icons.reply_rounded, size: 18),
-                label: Text(
-                  'رد',
-                  style: _cairoBold,
-                ),
-                style: TextButton.styleFrom(
-                  foregroundColor: AppColors.primary,
-                ),
+                label: Text('رد', style: _cairoBold),
+                style: TextButton.styleFrom(foregroundColor: AppColors.primary),
               ),
             ),
           ],
@@ -299,7 +242,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
   String _formatDate(String dateStr) {
     try {
       final dt = DateTime.parse(dateStr);
-      final months = [
+      const months = [
         '', 'يناير', 'فبراير', 'مارس', 'أبريل', 'مايو', 'يونيو',
         'يوليو', 'أغسطس', 'سبتمبر', 'أكتوبر', 'نوفمبر', 'ديسمبر',
       ];

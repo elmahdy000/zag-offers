@@ -45,6 +45,7 @@ import {
   RefreshCcw,
   Terminal,
   AlertTriangle,
+  Star,
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -53,7 +54,17 @@ import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useSocketContext } from '@/components/SocketProvider';
 
 interface GlobalStats {
-  users: { totalUsers: number; totalMerchants: number };
+  users: { 
+    totalUsers: number; 
+    totalMerchants: number;
+    tiers: {
+      bronze: number;
+      silver: number;
+      gold: number;
+      platinum: number;
+    };
+    totalPoints: number;
+  };
   stores: { totalStores: number; pendingStores: number; approvedStores: number };
   offers: { totalOffers: number; activeOffers: number; pendingOffers: number; expiredOffers: number };
   coupons: {
@@ -286,6 +297,13 @@ function generateMockStats(): GlobalStats {
     users: {
       totalUsers: Math.floor(Math.random() * 5000) + 1000,
       totalMerchants: Math.floor(Math.random() * 200) + 50,
+      tiers: {
+        bronze: Math.floor(Math.random() * 3000) + 500,
+        silver: Math.floor(Math.random() * 1000) + 200,
+        gold: Math.floor(Math.random() * 500) + 50,
+        platinum: Math.floor(Math.random() * 100) + 10,
+      },
+      totalPoints: Math.floor(Math.random() * 1000000) + 50000,
     },
     stores: {
       totalStores: Math.floor(Math.random() * 300) + 100,
@@ -1109,6 +1127,47 @@ export default function AdminDashboard() {
           color="text-pink-600"
           bg="bg-pink-50"
           subValue={`${stats?.coupons.totalCouponsUsed ?? 0} عملية مسح`}
+        />
+      </div>
+
+      {/* Gamification Stats */}
+      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-5">
+        <StatCard
+          label="المستوى البلاتيني"
+          value={statsLoading ? '...' : format(stats?.users.tiers.platinum ?? 0)}
+          icon={Award}
+          color="text-slate-700"
+          bg="bg-slate-200"
+          subValue="أعلى فئة للعملاء"
+        />
+        <StatCard
+          label="المستوى الذهبي"
+          value={statsLoading ? '...' : format(stats?.users.tiers.gold ?? 0)}
+          icon={Award}
+          color="text-yellow-600"
+          bg="bg-yellow-50"
+        />
+        <StatCard
+          label="المستوى الفضي"
+          value={statsLoading ? '...' : format(stats?.users.tiers.silver ?? 0)}
+          icon={Award}
+          color="text-slate-500"
+          bg="bg-slate-100"
+        />
+        <StatCard
+          label="المستوى البرونزي"
+          value={statsLoading ? '...' : format(stats?.users.tiers.bronze ?? 0)}
+          icon={Award}
+          color="text-orange-800"
+          bg="bg-orange-100"
+        />
+        <StatCard
+          label="إجمالي النقاط الموزعة"
+          value={statsLoading ? '...' : format(stats?.users.totalPoints ?? 0)}
+          icon={Star}
+          color="text-indigo-600"
+          bg="bg-indigo-50"
+          subValue="عبر المنصة"
         />
       </div>
 

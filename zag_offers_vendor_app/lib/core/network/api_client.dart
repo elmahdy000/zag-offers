@@ -35,7 +35,7 @@ class ApiClient {
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
             await secureStorage.delete(key: 'auth_token');
-            await secureStorage.delete(key: 'user_data');
+            await secureStorage.delete(key: 'vendor_user');
             ApiClient.onUnauthorized?.call();
           }
           return handler.next(e);

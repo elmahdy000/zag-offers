@@ -120,7 +120,8 @@ class SparklinePainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant SparklinePainter oldDelegate) =>
+      oldDelegate.points != points || oldDelegate.color != color;
 }
 
 class AnimatedSparklineChart extends StatefulWidget {

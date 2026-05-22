@@ -15,18 +15,18 @@ class ReviewModel extends ReviewEntity {
 
   factory ReviewModel.fromJson(Map<String, dynamic> json) {
     return ReviewModel(
-      id: json['id'] as String,
-      rating: json['rating'] as int,
+      id: (json['id'] as String?) ?? '',
+      rating: (json['rating'] as int?) ?? 0,
       comment: json['comment'] as String?,
       merchantReply: json['merchantReply'] as String?,
       replyCreatedAt: json['replyCreatedAt'] as String?,
       customerName: json['customer'] != null
-          ? (json['customer']['name'] as String? ?? '')
+          ? ((json['customer'] as Map<String, dynamic>)['name'] as String? ?? '')
           : '',
       customerAvatar: json['customer'] != null
-          ? json['customer']['avatar'] as String?
+          ? (json['customer'] as Map<String, dynamic>)['avatar'] as String?
           : null,
-      createdAt: json['createdAt'] as String,
+      createdAt: (json['createdAt'] as String?) ?? DateTime.now().toIso8601String(),
       offerId: json['offerId'] as String?,
     );
   }

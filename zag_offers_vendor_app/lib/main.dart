@@ -20,6 +20,7 @@ import 'features/qr_scanner/presentation/bloc/qr_scanner_bloc.dart';
 import 'features/offers/presentation/bloc/offers_bloc.dart';
 import 'features/profile/presentation/bloc/profile_bloc.dart';
 import 'features/notifications/presentation/bloc/notifications_bloc.dart';
+import 'features/reviews/presentation/bloc/reviews_bloc.dart';
 
 import 'core/utils/navigation_service.dart';
 import 'core/network/notification_service.dart';
@@ -120,6 +121,9 @@ class ZagOffersVendorApp extends StatelessWidget {
         ),
         BlocProvider(
           create: (_) => di.sl<NotificationsBloc>(),
+        ),
+        BlocProvider(
+          create: (_) => di.sl<ReviewsBloc>(),
         ),
       ],
       child: MaterialApp(

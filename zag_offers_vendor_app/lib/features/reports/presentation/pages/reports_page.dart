@@ -7,6 +7,7 @@ import 'package:zag_offers_vendor_app/core/theme/app_theme.dart';
 import 'package:zag_offers_vendor_app/core/utils/time_utils.dart';
 import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
+import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/store_setup_page.dart';
 
 class ReportsPage extends StatelessWidget {
   static final _couponCode = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 12, color: AppColors.primary);
@@ -353,7 +354,10 @@ class ReportsPage extends StatelessWidget {
             const SizedBox(height: 24),
             ElevatedButton.icon(
               onPressed: () {
-                // Navigate to store creation page
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(builder: (_) => const StoreSetupPage()),
+                );
               },
               icon: const Icon(Icons.add_business_rounded, size: 18),
               label: const Text('إنشاء متجر'),

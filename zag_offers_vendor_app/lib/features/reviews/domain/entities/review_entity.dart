@@ -1,4 +1,6 @@
-class ReviewEntity {
+import 'package:equatable/equatable.dart';
+
+class ReviewEntity extends Equatable {
   final String id;
   final int rating;
   final String? comment;
@@ -20,4 +22,10 @@ class ReviewEntity {
     required this.createdAt,
     this.offerId,
   });
+
+  @override
+  List<Object?> get props => [
+    id, rating, comment, merchantReply, replyCreatedAt,
+    customerName, customerAvatar, createdAt, offerId,
+  ];
 }

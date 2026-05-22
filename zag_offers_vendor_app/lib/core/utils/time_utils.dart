@@ -18,6 +18,7 @@ class TimeUtils {
     } else if (difference.inHours < 24) {
       if (difference.inHours == 1) return 'منذ ساعة';
       if (difference.inHours == 2) return 'منذ ساعتين';
+      if (difference.inHours >= 3 && difference.inHours <= 10) return 'منذ ${difference.inHours} ساعات';
       return 'منذ ${difference.inHours} ساعة';
     } else if (difference.inDays < 7) {
       if (difference.inDays == 1) return 'أمس';

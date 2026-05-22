@@ -21,7 +21,9 @@ import {
   Image as ImageIcon,
   Upload,
   RefreshCw,
-  AlertTriangle
+  AlertTriangle,
+  Star,
+  Ticket
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -60,9 +62,16 @@ interface StoreDetails extends StoreItem {
     id: string;
     title: string;
     status: string;
-    _count: { coupons: number };
+    _count: { coupons: number; favorites: number };
   }[];
-  _count: { offers: number; coupons: number };
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string | null;
+    createdAt: string;
+    customer: { id: string; name: string; phone: string };
+  }[];
+  _count: { offers: number; coupons: number; reviews: number };
 }
 
 function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }: { 
@@ -608,7 +617,7 @@ function StoresContent() {
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">كوبونات</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">-</div>
+                  <div className="text-2xl font-bold text-blue-600">{storeDetails._count?.reviews || 0}</div>
                   <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">تقييم</div>
                 </div>
               </div>
@@ -620,15 +629,45 @@ function StoresContent() {
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {storeDetails.offers.map((offer) => (
                       <div key={offer.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
-                        <span className="text-sm font-bold text-slate-700">{offer.title}</span>
-                        <div className="flex items-center gap-2">
-                          <span className={`text-xs font-bold px-2 py-0.5 rounded ${
+                        <span className="text-sm font-bold text-slate-700 truncate ml-2">{offer.title}</span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          <span className={`text-[10px] font-bold px-2 py-0.5 rounded ${
                             offer.status === 'ACTIVE' ? 'bg-emerald-100 text-emerald-600' : 'bg-yellow-100 text-yellow-600'
                           }`}>
                             {offer.status === 'ACTIVE' ? 'نشط' : 'منتهي'}
                           </span>
-                          <span className="text-xs text-slate-400">{offer._count?.coupons || 0} كوبون</span>
+                          <span className="text-[10px] text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
+                            <Ticket size={10} /> {offer._count?.coupons || 0}
+                          </span>
+                          <span className="text-[10px] text-slate-500 bg-white border border-slate-200 px-2 py-0.5 rounded flex items-center gap-1">
+                            <Star size={10} className="text-rose-400" /> {offer._count?.favorites || 0}
+                          </span>
                         </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {/* Reviews Section */}
+              {storeDetails.reviews && storeDetails.reviews.length > 0 && (
+                <div className="mb-6">
+                  <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
+                    <Star size={18} className="text-yellow-500" /> آخر التقييمات
+                  </h4>
+                  <div className="space-y-3 max-h-48 overflow-y-auto pr-2">
+                    {storeDetails.reviews.map((review) => (
+                      <div key={review.id} className="p-4 bg-white rounded-xl border border-slate-100 shadow-sm">
+                        <div className="flex items-center justify-between mb-2">
+                          <p className="text-xs font-bold text-slate-900">{review.customer?.name || 'مستخدم مجهول'}</p>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star key={star} size={12} className={star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-slate-100 text-slate-200'} />
+                            ))}
+                          </div>
+                        </div>
+                        <p className="text-sm text-slate-600 bg-slate-50 p-2 rounded-lg leading-relaxed">{review.comment || 'لا يوجد تعليق'}</p>
+                        <p className="text-[10px] text-slate-400 mt-2 text-left">{new Date(review.createdAt).toLocaleDateString('ar-EG')}</p>
                       </div>
                     ))}
                   </div>

@@ -35,7 +35,7 @@ class GlassCard extends StatelessWidget {
         color: Colors.transparent,
         child: InkWell(
           onTap: onTap,
-          borderRadius: BorderRadius.circular(borderRadius),
+          borderRadius: BorderRadius.circular(heavy ? 40 : borderRadius),
           child: Padding(
             padding: padding ?? const EdgeInsets.all(24),
             child: child,
@@ -81,10 +81,9 @@ class GlassButton extends StatelessWidget {
       decoration: BoxDecoration(
         color: backgroundColor ?? AppColors.glassBackground,
         borderRadius: BorderRadius.circular(borderRadius),
-        border: borderSide as BoxBorder? ?? Border.all(
-                color: AppColors.glassBorder,
-                width: 1,
-              ),
+        border: borderSide != null
+            ? Border.all(color: borderSide!.color, width: borderSide!.width)
+            : Border.all(color: AppColors.glassBorder, width: 1),
         boxShadow: [
           BoxShadow(
             color: Colors.black.withValues(alpha: 0.2),

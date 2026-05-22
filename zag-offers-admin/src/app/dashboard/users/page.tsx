@@ -41,6 +41,8 @@ interface UserItem {
   role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN';
   area?: string;
   createdAt: string;
+  points?: number;
+  tier?: string;
 }
 
 interface UserDetails extends UserItem {

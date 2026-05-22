@@ -40,6 +40,8 @@ interface UserDetails {
   area: string | null;
   avatar: string | null;
   createdAt: string;
+  points?: number;
+  tier?: string;
   stores: {
     id: string;
     name: string;
@@ -51,7 +53,19 @@ interface UserDetails {
     code: string;
     status: string;
     createdAt: string;
-    offer: { title: string };
+    offer: { title: string; discount?: string; discountType?: string };
+  }[];
+  reviews: {
+    id: string;
+    rating: number;
+    comment: string;
+    createdAt: string;
+    store: { name: string };
+  }[];
+  favorites: {
+    id: string;
+    createdAt: string;
+    offer: { title: string; discount?: string; discountType?: string; store?: { name: string } };
   }[];
   _count: {
     stores: number;
@@ -59,6 +73,12 @@ interface UserDetails {
     reviews: number;
     favorites: number;
   };
+  pointHistory: {
+    id: string;
+    amount: number;
+    reason: string;
+    createdAt: string;
+  }[];
 }
 
 const roleLabels: Record<string, { label: string; color: string; bg: string; border: string }> = {
@@ -92,6 +112,21 @@ export default function UserDetailPage() {
     },
     onError: (err: any) => {
       showToast(err.response?.data?.message || 'فشل حذف المستخدم', 'error');
+    }
+  });
+
+  const [pointsModalOpen, setPointsModalOpen] = useState(false);
+  const [pointsForm, setPointsForm] = useState({ action: 'ADD', amount: 0, reason: '' });
+
+  const pointsMutation = useMutation({
+    mutationFn: () => adminApi().patch(`/admin/users/${id}/points`, pointsForm),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
+      setPointsModalOpen(false);
+      showToast('تم تعديل النقاط بنجاح');
+    },
+    onError: (err: any) => {
+      showToast(err.response?.data?.message || 'فشل تعديل النقاط', 'error');
     }
   });
 
@@ -163,7 +198,17 @@ export default function UserDetailPage() {
                           <p className="text-slate-500 font-medium flex items-center gap-2 text-sm">
                              <Clock size={16} className="text-slate-400" />
                              عضو منذ {formatDate(user.createdAt)}
-                          </p>
+                           </p>
+                           {user.role === 'CUSTOMER' && user.tier && (
+                              <div className="flex items-center gap-3 pt-2">
+                                 <span className="px-3 py-1 bg-yellow-100 text-yellow-700 text-[10px] font-black rounded-lg border border-yellow-200 uppercase tracking-widest">
+                                    {user.tier}
+                                 </span>
+                                 <span className="text-sm font-bold text-slate-700">
+                                    {user.points} نقطة
+                                 </span>
+                              </div>
+                           )}
                        </div>
                        
                        <div className="grid grid-cols-2 sm:grid-cols-4 gap-6 pt-8 border-t border-slate-100">
@@ -227,11 +272,18 @@ export default function UserDetailPage() {
                     <div key={coupon.id} className="p-6 rounded-[2rem] bg-white border border-slate-200 flex items-center justify-between shadow-sm">
                       <div className="flex items-center gap-4">
                         <div className="w-12 h-12 rounded-2xl bg-orange-50 text-orange-600 flex items-center justify-center border border-orange-100">
-                          <Star size={20} />
+                          <Ticket size={20} />
                         </div>
                         <div>
                           <p className="text-sm font-bold text-slate-900 mb-1">{coupon.offer.title}</p>
-                          <p className="text-[10px] font-bold text-slate-400 tracking-widest uppercase">الكود: {coupon.code}</p>
+                          <div className="flex items-center gap-2">
+                            <span className="text-[10px] font-bold text-slate-400 tracking-widest uppercase bg-slate-50 px-2 py-0.5 rounded border border-slate-100">الكود: {coupon.code}</span>
+                            {coupon.offer.discount && (
+                              <span className="text-[10px] font-bold text-emerald-600 tracking-widest uppercase bg-emerald-50 px-2 py-0.5 rounded border border-emerald-100">
+                                خصم {coupon.offer.discount}{coupon.offer.discountType === 'PERCENTAGE' ? '%' : ' ج.م'}
+                              </span>
+                            )}
+                          </div>
                         </div>
                       </div>
                       <div className="text-left">
@@ -250,6 +302,122 @@ export default function UserDetailPage() {
                   )}
                 </div>
               </section>
+
+              {/* Favorites Section */}
+              <section className="space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-3 px-2">
+                  <div className="w-10 h-10 rounded-xl bg-rose-50 text-rose-600 flex items-center justify-center border border-rose-100">
+                    <Star size={20} />
+                  </div>
+                  المفضلة ({user.favorites?.length || 0})
+                </h3>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                  {user.favorites && user.favorites.length > 0 ? user.favorites.map((fav) => (
+                    <div key={fav.id} className="p-5 rounded-[2rem] bg-white border border-slate-200 shadow-sm flex flex-col justify-between hover:shadow-md transition-shadow">
+                      <div>
+                        <div className="flex justify-between items-start mb-2">
+                          <span className="px-2 py-1 bg-slate-50 text-slate-500 text-[10px] font-black rounded-lg uppercase">
+                            {fav.offer.store?.name}
+                          </span>
+                          {fav.offer.discount && (
+                            <span className="px-2 py-1 bg-emerald-50 text-emerald-600 text-[10px] font-black rounded-lg">
+                              {fav.offer.discount}{fav.offer.discountType === 'PERCENTAGE' ? '%' : ' ج.م'}
+                            </span>
+                          )}
+                        </div>
+                        <p className="text-sm font-bold text-slate-900 line-clamp-2 leading-relaxed">{fav.offer.title}</p>
+                      </div>
+                      <p className="text-[10px] text-slate-400 mt-4 font-bold">أضيف في: {formatDate(fav.createdAt)}</p>
+                    </div>
+                  )) : (
+                    <div className="sm:col-span-2 p-12 rounded-[2.5rem] bg-white border border-dashed border-slate-200 text-center text-slate-400 font-bold">
+                      لا يوجد عروض في المفضلة
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Reviews Section */}
+              <section className="space-y-6">
+                <h3 className="text-lg font-bold text-slate-900 flex items-center gap-3 px-2">
+                  <div className="w-10 h-10 rounded-xl bg-blue-50 text-blue-600 flex items-center justify-center border border-blue-100">
+                    <Star size={20} />
+                  </div>
+                  المراجعات والتقييمات ({user.reviews?.length || 0})
+                </h3>
+                <div className="space-y-4">
+                  {user.reviews && user.reviews.length > 0 ? user.reviews.map((review) => (
+                    <div key={review.id} className="p-6 rounded-[2rem] bg-white border border-slate-200 shadow-sm">
+                      <div className="flex justify-between items-start mb-4">
+                        <div>
+                          <p className="text-xs font-bold text-slate-500 mb-1">{review.store.name}</p>
+                          <div className="flex items-center gap-1">
+                            {[1, 2, 3, 4, 5].map((star) => (
+                              <Star key={star} size={14} className={star <= review.rating ? 'fill-yellow-400 text-yellow-400' : 'fill-slate-100 text-slate-200'} />
+                            ))}
+                          </div>
+                        </div>
+                        <span className="text-[10px] font-bold text-slate-400">{formatDate(review.createdAt)}</span>
+                      </div>
+                      <p className="text-sm font-medium text-slate-700 leading-relaxed bg-slate-50 p-4 rounded-2xl border border-slate-100">
+                        {review.comment || 'بدون تعليق'}
+                      </p>
+                    </div>
+                  )) : (
+                    <div className="p-12 rounded-[2.5rem] bg-white border border-dashed border-slate-200 text-center text-slate-400 font-bold">
+                      لم يتم كتابة أي تقييمات
+                    </div>
+                  )}
+                </div>
+              </section>
+
+              {/* Point History Section */}
+              {user.role === 'CUSTOMER' && (
+              <section className="space-y-6">
+                <div className="flex items-center justify-between px-2">
+                  <h3 className="text-lg font-bold text-slate-900 flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-yellow-50 text-yellow-600 flex items-center justify-center border border-yellow-100">
+                      <Star size={20} />
+                    </div>
+                    سجل النقاط ({user.pointHistory?.length || 0})
+                  </h3>
+                  <button 
+                    onClick={() => setPointsModalOpen(true)}
+                    className="h-10 px-4 rounded-xl bg-slate-900 text-white text-xs font-bold hover:bg-slate-800 transition-all shadow-md"
+                  >
+                    تعديل النقاط
+                  </button>
+                </div>
+                <div className="bg-white border border-slate-200 rounded-[2rem] overflow-hidden shadow-sm">
+                  {user.pointHistory && user.pointHistory.length > 0 ? (
+                    <div className="divide-y divide-slate-100">
+                      {user.pointHistory.map((log) => (
+                        <div key={log.id} className="p-5 flex items-center justify-between hover:bg-slate-50 transition-colors">
+                          <div className="flex items-center gap-4">
+                            <div className={`w-10 h-10 rounded-xl flex items-center justify-center ${log.amount > 0 ? 'bg-emerald-50 text-emerald-600' : 'bg-rose-50 text-rose-600'}`}>
+                              {log.amount > 0 ? '+' : ''}{log.amount}
+                            </div>
+                            <div>
+                              <p className="text-sm font-bold text-slate-900">{log.reason.replace('MANUAL_ADJUSTMENT: ', '')}</p>
+                              <p className="text-xs font-bold text-slate-400 mt-0.5">{formatDate(log.createdAt)}</p>
+                            </div>
+                          </div>
+                          {log.reason.startsWith('MANUAL_ADJUSTMENT') && (
+                            <span className="px-2.5 py-1 bg-slate-100 text-slate-500 text-[10px] font-black rounded-md uppercase tracking-widest">
+                              تعديل يدوي
+                            </span>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  ) : (
+                    <div className="p-12 text-center text-slate-400 font-bold">
+                      لا توجد حركات نقاط بعد
+                    </div>
+                  )}
+                </div>
+              </section>
+              )}
            </div>
 
            {/* Sidebar Area */}
@@ -312,6 +480,72 @@ export default function UserDetailPage() {
                   نعم، احذف نهائياً
                 </button>
                 <button onClick={() => setDeleteModalOpen(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
+              </div>
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Adjust Points Modal */}
+      <AnimatePresence>
+        {pointsModalOpen && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
+            <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-[2rem] bg-white p-8 shadow-2xl relative border border-slate-100">
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-xl font-bold text-slate-900">تعديل نقاط المستخدم</h3>
+                <div className="px-3 py-1 bg-slate-100 text-slate-700 rounded-lg text-xs font-bold">
+                  الرصيد: {user.points}
+                </div>
+              </div>
+
+              <div className="space-y-4">
+                <div className="grid grid-cols-2 gap-2">
+                  <button 
+                    onClick={() => setPointsForm({ ...pointsForm, action: 'ADD' })}
+                    className={`h-10 rounded-xl text-sm font-bold border transition-all ${pointsForm.action === 'ADD' ? 'bg-emerald-50 border-emerald-200 text-emerald-700' : 'bg-white border-slate-200 text-slate-500'}`}
+                  >
+                    إضافة (+)
+                  </button>
+                  <button 
+                    onClick={() => setPointsForm({ ...pointsForm, action: 'REMOVE' })}
+                    className={`h-10 rounded-xl text-sm font-bold border transition-all ${pointsForm.action === 'REMOVE' ? 'bg-rose-50 border-rose-200 text-rose-700' : 'bg-white border-slate-200 text-slate-500'}`}
+                  >
+                    خصم (-)
+                  </button>
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500">مقدار النقاط</label>
+                  <input 
+                    type="number" 
+                    min="1"
+                    value={pointsForm.amount || ''} 
+                    onChange={e => setPointsForm({ ...pointsForm, amount: parseInt(e.target.value) || 0 })}
+                    className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200 px-4 text-slate-900 font-bold focus:bg-white focus:border-slate-400 outline-none transition-colors"
+                  />
+                </div>
+
+                <div className="space-y-1.5">
+                  <label className="text-xs font-bold text-slate-500">السبب (يظهر في السجل)</label>
+                  <input 
+                    type="text" 
+                    value={pointsForm.reason} 
+                    onChange={e => setPointsForm({ ...pointsForm, reason: e.target.value })}
+                    placeholder="مثال: تعويض عن مشكلة تقنية"
+                    className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200 px-4 text-slate-900 font-bold focus:bg-white focus:border-slate-400 outline-none transition-colors"
+                  />
+                </div>
+              </div>
+
+              <div className="mt-8 flex gap-3">
+                <button
+                  onClick={() => pointsMutation.mutate()}
+                  disabled={pointsMutation.isPending || pointsForm.amount <= 0 || !pointsForm.reason.trim()}
+                  className="flex-[2] h-12 rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-slate-800 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
+                >
+                  {pointsMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : 'تأكيد العملية'}
+                </button>
+                <button onClick={() => setPointsModalOpen(false)} className="flex-1 h-12 rounded-xl bg-slate-100 text-sm font-bold text-slate-600 hover:bg-slate-200 transition-all">إلغاء</button>
               </div>
             </motion.div>
           </div>

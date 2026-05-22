@@ -8,7 +8,7 @@ import '../../../../injection_container.dart';
 import '../../../upload/domain/usecases/upload_usecase.dart';
 import '../bloc/dashboard_bloc.dart';
 import '../bloc/store_setup_bloc.dart';
-import '../../../offers/data/models/category_model.dart';
+import '../../domain/entities/category_entity.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/services/location_service.dart';
 
@@ -183,7 +183,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         },
         builder: (context, state) {
           // Resolve categories from ANY state that carries them
-          final List<CategoryModel> categories;
+          final List<CategoryEntity> categories;
           if (state is CategoriesLoaded) {
             categories = state.categories;
           } else if (state is StoreSubmitting) {
@@ -346,7 +346,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     );
   }
 
-  Widget _buildCategoryDropdown(List<CategoryModel> categories, bool isLoadingCategories) {
+  Widget _buildCategoryDropdown(List<CategoryEntity> categories, bool isLoadingCategories) {
     final hasValidSelection =
         categories.any((c) => c.id == _selectedCategoryId);
 

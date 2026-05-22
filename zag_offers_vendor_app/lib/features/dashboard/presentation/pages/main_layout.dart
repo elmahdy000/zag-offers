@@ -1,4 +1,3 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,9 +12,9 @@ import 'package:zag_offers_vendor_app/features/qr_scanner/presentation/pages/qr_
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashboard_bloc.dart';
 import 'package:zag_offers_vendor_app/injection_container.dart' as di;
 import 'package:zag_offers_vendor_app/core/network/notification_service.dart';
-import 'package:zag_offers_vendor_app/features/auth/data/datasources/auth_remote_data_source.dart';
 import 'package:zag_offers_vendor_app/features/reports/presentation/pages/reports_page.dart';
-import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
+import 'package:zag_offers_vendor_app/core/utils/navigation_service.dart';
+import 'package:zag_offers_vendor_app/features/notifications/presentation/pages/notifications_page.dart';
 import 'dashboard_page.dart';
 
 class MainLayout extends StatefulWidget {
@@ -46,9 +45,13 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
     WidgetsBinding.instance.addObserver(this);
     _socketService = di.sl<SocketService>();
     _socketService.connect();
+    _socketService.onCouponRedeemed = () {
+      context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+    };
     _setupSocketListeners();
     _registerFcmToken();
     _loadStoreId();
+    _setupNotificationCallbacks();
   }
 
   @override
@@ -65,6 +68,35 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
 
   void _registerFcmToken() async {
     await NotificationService.sendTokenToBackend();
+  }
+
+  void _setupNotificationCallbacks() {
+    NotificationService.onCouponRedeemed = (type, data) {
+      if (mounted) context.read<DashboardBloc>().add(GetDashboardStatsRequested());
+    };
+    NotificationService.onNotificationTap = (type, data) {
+      final ctx = NavigationService.navigatorKey.currentContext;
+      if (ctx == null) return;
+      switch (type) {
+        case 'COUPON_REDEEMED':
+        case 'COUPON_GENERATED':
+        case 'STORE_APPROVED':
+          MainLayout.of(ctx)?.setIndex(0);
+        case 'NEW_OFFER':
+        case 'OFFER_APPROVED':
+        case 'OPEN_OFFER':
+        case 'OFFER_REJECTED':
+        case 'OFFER_UPDATED':
+        case 'NEW_REVIEW':
+        case 'STORE_REJECTED':
+        case 'STORE_SUSPENDED':
+          MainLayout.of(ctx)?.setIndex(1);
+        default:
+          Navigator.of(ctx).push(
+            MaterialPageRoute(builder: (_) => const NotificationsPage()),
+          );
+      }
+    };
   }
 
   void _setupSocketListeners() {
@@ -93,7 +125,7 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
   @override
   Widget build(BuildContext context) {
     return BlocListener<DashboardBloc, DashboardState>(
-      listenWhen: (_, next) => next is DashboardNoStore,
+      listenWhen: (_, next) => next is DashboardLoaded,
       listener: (context, state) {
         if (state is DashboardLoaded) {
           setState(() {

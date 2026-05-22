@@ -45,6 +45,7 @@ import 'features/dashboard/presentation/bloc/store_setup_bloc.dart';
 import 'features/reviews/data/datasources/reviews_remote_data_source.dart';
 import 'features/reviews/data/repositories/reviews_repository_impl.dart';
 import 'features/reviews/domain/repositories/reviews_repository.dart';
+import 'features/reviews/presentation/bloc/reviews_bloc.dart';
 
 final sl = GetIt.instance;
 
@@ -163,6 +164,7 @@ Future<void> init() async {
       () => NotificationsRepositoryImpl(apiClient: sl()));
 
   // --- Features - Reviews ---
+  sl.registerFactory(() => ReviewsBloc(repository: sl()));
   sl.registerLazySingleton<ReviewsRepository>(
       () => ReviewsRepositoryImpl(remoteDataSource: sl()));
   sl.registerLazySingleton<ReviewsRemoteDataSource>(

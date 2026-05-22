@@ -300,6 +300,27 @@ export class AdminController {
     return this.adminService.changeUserRole(id, role);
   }
 
+  @Patch('users/:id/points')
+  @ApiOperation({ summary: 'Adjust user points manually' })
+  @ApiBody({
+    schema: {
+      properties: {
+        action: { type: 'string', enum: ['ADD', 'REMOVE'] },
+        amount: { type: 'number' },
+        reason: { type: 'string' },
+      },
+    },
+  })
+  adjustUserPoints(
+    @Param('id') id: string,
+    @Body('action') action: 'ADD' | 'REMOVE',
+    @Body('amount') amount: number,
+    @Body('reason') reason: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.adminService.adjustUserPoints(id, action, amount, reason, req.user.id);
+  }
+
   @Delete('users/:id')
   @ApiOperation({ summary: 'Delete a user' })
   deleteUser(@Param('id') id: string) {

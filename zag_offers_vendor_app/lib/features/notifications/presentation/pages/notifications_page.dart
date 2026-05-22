@@ -233,9 +233,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
             context.read<NotificationsBloc>().add(MarkNotificationAsReadRequested(notification.id));
           }
           if (notification.data != null) {
-            NotificationService.handleNotificationTapFromData(notification.data!);
+            NotificationService.onNotificationTap?.call(notification.data!['type']?.toString(), notification.data!);
           } else if (notification.type != null) {
-            NotificationService.handleNotificationTapFromData({'type': notification.type});
+            NotificationService.onNotificationTap?.call(notification.type, {'type': notification.type});
           }
         },
         contentPadding: const EdgeInsets.all(16),

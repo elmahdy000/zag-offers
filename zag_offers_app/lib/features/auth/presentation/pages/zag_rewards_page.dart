@@ -1,11 +1,8 @@
-import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
-import '../../../../core/network/api_constants.dart';
-import '../../../../core/network/dio_client.dart';
+import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../injection_container.dart';
-import 'dart:ui';
 
 class ZagRewardsPage extends StatefulWidget {
   final int points;
@@ -58,11 +55,9 @@ class _ZagRewardsPageState extends State<ZagRewardsPage> with SingleTickerProvid
 
   Future<void> _fetchRewardsData() async {
     try {
-      final dio = sl<DioClient>().dio;
-      // Fetch user profile for latest points
-      final profileRes = await dio.get(ApiConstants.me);
-      // Fetch history
-      final historyRes = await dio.get('${ApiConstants.baseUrl}/users/points-history');
+      final dio = sl<ApiClient>().dio;
+      final profileRes = await dio.get('/auth/me');
+      final historyRes = await dio.get('/users/points-history');
       
       if (mounted) {
         setState(() {

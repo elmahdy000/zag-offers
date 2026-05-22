@@ -142,6 +142,11 @@ export class AdminService {
       totalCouponsUsed,
       totalFavorites,
       totalReviews,
+      totalPoints,
+      tierBronze,
+      tierSilver,
+      tierGold,
+      tierPlatinum,
     ] = await Promise.all([
       this.prisma.user.count({ where: { role: Role.CUSTOMER } }),
       this.prisma.user.count({ where: { role: Role.MERCHANT } }),
@@ -156,6 +161,11 @@ export class AdminService {
       this.prisma.coupon.count({ where: { status: CouponStatus.USED } }),
       this.prisma.favorite.count(),
       this.prisma.review.count(),
+      this.prisma.user.aggregate({ _sum: { points: true } }),
+      this.prisma.user.count({ where: { tier: 'BRONZE' } }),
+      this.prisma.user.count({ where: { tier: 'SILVER' } }),
+      this.prisma.user.count({ where: { tier: 'GOLD' } }),
+      this.prisma.user.count({ where: { tier: 'PLATINUM' } }),
     ]);
 
     const couponConversionRate =
@@ -164,7 +174,17 @@ export class AdminService {
         : 0;
 
     return {
-      users: { totalUsers, totalMerchants },
+      users: { 
+        totalUsers, 
+        totalMerchants,
+        tiers: {
+          bronze: tierBronze,
+          silver: tierSilver,
+          gold: tierGold,
+          platinum: tierPlatinum,
+        },
+        totalPoints: totalPoints._sum.points || 0
+      },
       stores: { totalStores, pendingStores, approvedStores },
       offers: { totalOffers, activeOffers, pendingOffers, expiredOffers },
       coupons: {
@@ -925,6 +945,7 @@ export class AdminService {
           avatar: true,
           createdAt: true,
           points: true,
+          tier: true,
           _count: { select: { stores: true, coupons: true, favorites: true } },
         },
         orderBy: { createdAt: 'desc' },
@@ -1022,11 +1043,23 @@ export class AdminService {
         area: true,
         avatar: true,
         createdAt: true,
+        points: true,
+        tier: true,
         stores: {
           include: { _count: { select: { offers: true } } },
         },
         coupons: {
-          include: { offer: { select: { title: true } } },
+          include: { offer: { select: { title: true, discount: true, discountType: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
+        reviews: {
+          include: { store: { select: { name: true } } },
+          orderBy: { createdAt: 'desc' },
+          take: 10,
+        },
+        favorites: {
+          include: { offer: { select: { title: true, discount: true, discountType: true, store: { select: { name: true } } } } },
           orderBy: { createdAt: 'desc' },
           take: 10,
         },
@@ -1041,11 +1074,15 @@ export class AdminService {
       },
     });
 
-    if (!user) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
-    return user;
+    const pointHistory = await this.prisma.pointLog.findMany({
+      where: { userId: id },
+      orderBy: { createdAt: 'desc' },
+      take: 20,
+    });
+
+    return { ...user, pointHistory };
   }
 
   async changeUserRole(id: string, role: Role) {
@@ -1057,6 +1094,54 @@ export class AdminService {
       data: { role },
       select: { id: true, name: true, role: true },
     });
+  }
+
+  async adjustUserPoints(id: string, action: 'ADD' | 'REMOVE', amount: number, reason: string, adminId: string) {
+    if (amount <= 0) throw new BadRequestException('Amount must be positive');
+    
+    const user = await this.prisma.user.findUnique({ where: { id } });
+    if (!user) throw new NotFoundException('User not found');
+
+    if (action === 'REMOVE' && user.points < amount) {
+      throw new BadRequestException('User does not have enough points');
+    }
+
+    const tx = this.prisma;
+    const finalAmount = action === 'ADD' ? amount : -amount;
+    const newPoints = user.points + finalAmount;
+    
+    // Calculate new tier
+    let newTier = 'BRONZE';
+    if (newPoints >= 5000) newTier = 'PLATINUM';
+    else if (newPoints >= 2000) newTier = 'GOLD';
+    else if (newPoints >= 500) newTier = 'SILVER';
+
+    await (tx as any).$transaction([
+      (tx as any).user.update({
+        where: { id },
+        data: {
+          points: newPoints,
+          tier: newTier,
+        },
+      }),
+      (tx as any).pointLog.create({
+        data: {
+          userId: id,
+          amount: finalAmount,
+          reason: `MANUAL_ADJUSTMENT: ${reason}`,
+        },
+      }),
+    ]);
+
+    await this.auditLogService.log({
+      action: action === 'ADD' ? 'ADD_POINTS' : 'REMOVE_POINTS',
+      adminId,
+      targetId: id,
+      targetName: user.name,
+      details: JSON.stringify({ amount, reason, previousPoints: user.points, newPoints }),
+    });
+
+    return { message: 'Points adjusted successfully', newPoints, newTier };
   }
 
   async deleteUser(id: string) {

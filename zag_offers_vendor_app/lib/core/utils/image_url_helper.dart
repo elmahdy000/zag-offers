@@ -3,6 +3,16 @@
 class ImageUrlHelper {
   ImageUrlHelper._();
 
+  static String _baseUrl() {
+    final base = AppConstants.baseUrl;
+    final stripped = base.endsWith('/api')
+        ? base.substring(0, base.length - 4)
+        : base;
+    return stripped.endsWith('/')
+        ? stripped.substring(0, stripped.length - 1)
+        : stripped;
+  }
+
   static String resolve(String url) {
     final trimmed = url.trim();
     if (trimmed.isEmpty) return '';
@@ -11,9 +21,7 @@ class ImageUrlHelper {
       return trimmed;
     }
 
-    final base = AppConstants.socketUrl.endsWith('/')
-        ? AppConstants.socketUrl.substring(0, AppConstants.socketUrl.length - 1)
-        : AppConstants.socketUrl;
+    final base = _baseUrl();
 
     if (trimmed.startsWith('/')) {
       return '$base$trimmed';

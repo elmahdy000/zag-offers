@@ -1,6 +1,6 @@
-import 'package:zag_offers_vendor_app/features/reviews/data/datasources/reviews_remote_data_source.dart';
-import 'package:zag_offers_vendor_app/features/reviews/data/models/review_model.dart';
-import 'package:zag_offers_vendor_app/features/reviews/domain/repositories/reviews_repository.dart';
+import '../../domain/entities/review_entity.dart';
+import '../../domain/repositories/reviews_repository.dart';
+import '../datasources/reviews_remote_data_source.dart';
 
 class ReviewsRepositoryImpl implements ReviewsRepository {
   final ReviewsRemoteDataSource remoteDataSource;
@@ -8,7 +8,7 @@ class ReviewsRepositoryImpl implements ReviewsRepository {
   ReviewsRepositoryImpl({required this.remoteDataSource});
 
   @override
-  Future<List<ReviewModel>> getStoreReviews(String storeId) {
+  Future<List<ReviewEntity>> getStoreReviews(String storeId) {
     return remoteDataSource.getStoreReviews(storeId);
   }
 
