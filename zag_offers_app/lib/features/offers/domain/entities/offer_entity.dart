@@ -31,6 +31,8 @@ class OfferEntity extends Equatable {
   final double? oldPrice;
   final double? newPrice;
   final int viewCount;
+  final int usedCoupons;
+  final int? usageLimit;
   final bool isFeatured;
   final OfferStatus status;
 
@@ -47,6 +49,8 @@ class OfferEntity extends Equatable {
     this.oldPrice,
     this.newPrice,
     this.viewCount = 0,
+    this.usedCoupons = 0,
+    this.usageLimit,
     this.isFeatured = false,
     this.status = OfferStatus.active,
   });
@@ -64,6 +68,8 @@ class OfferEntity extends Equatable {
     double? oldPrice,
     double? newPrice,
     int viewCount = 0,
+    int usedCoupons = 0,
+    int? usageLimit,
     bool isFeatured = false,
     String status = 'ACTIVE',
   }) {
@@ -80,6 +86,8 @@ class OfferEntity extends Equatable {
       oldPrice: oldPrice,
       newPrice: newPrice,
       viewCount: viewCount,
+      usedCoupons: usedCoupons,
+      usageLimit: usageLimit,
       isFeatured: isFeatured,
       status: status.toOfferStatus(),
     );
@@ -110,6 +118,8 @@ class OfferEntity extends Equatable {
         oldPrice,
         newPrice,
         viewCount,
+        usedCoupons,
+        usageLimit,
         isFeatured,
         status,
       ];

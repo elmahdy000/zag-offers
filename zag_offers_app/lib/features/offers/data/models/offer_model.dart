@@ -16,6 +16,8 @@ class OfferModel extends OfferEntity {
     super.oldPrice,
     super.newPrice,
     super.viewCount = 0,
+    super.usedCoupons = 0,
+    super.usageLimit,
     super.isFeatured = false,
     super.status = OfferStatus.active,
   });
@@ -43,6 +45,8 @@ class OfferModel extends OfferEntity {
       oldPrice: (json['oldPrice'] ?? json['originalPrice']) != null ? double.tryParse((json['oldPrice'] ?? json['originalPrice']).toString()) : null,
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       viewCount: json['views'] ?? json['viewCount'] ?? 0,
+      usedCoupons: (json['_count']?['coupons']) ?? 0,
+      usageLimit: json['usageLimit'] != null ? int.tryParse(json['usageLimit'].toString()) : null,
       isFeatured: json['isFeatured'] ?? false,
       status: (json['status'] as String? ?? 'ACTIVE').toOfferStatus(),
     );
