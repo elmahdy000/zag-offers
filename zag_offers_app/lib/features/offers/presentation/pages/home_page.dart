@@ -499,7 +499,7 @@ Widget _buildOffersSectionWidget(
         ),
       ),
       SizedBox(
-        height: 245,
+        height: 270,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
