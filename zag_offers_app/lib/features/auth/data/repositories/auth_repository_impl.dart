@@ -32,6 +32,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUserId(userModel.id);
       await localDataSource.cacheUserName(userModel.name);
       await localDataSource.cacheUserRole(userModel.role);
+      await localDataSource.cachePoints(userModel.points);
+      await localDataSource.cacheTier(userModel.tier);
 
       return Right(userModel);
     } on ServerException catch (e) {
@@ -70,6 +72,8 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUserId(userModel.id);
       await localDataSource.cacheUserName(userModel.name);
       await localDataSource.cacheUserRole(userModel.role);
+      await localDataSource.cachePoints(userModel.points);
+      await localDataSource.cacheTier(userModel.tier);
 
       return Right(userModel);
     } on ServerException catch (e) {

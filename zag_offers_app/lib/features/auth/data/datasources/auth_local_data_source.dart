@@ -11,6 +11,10 @@ abstract class AuthLocalDataSource {
   Future<String?> getUserRole();
   Future<void> cacheAvatarUrl(String url);
   Future<String?> getCachedAvatarUrl();
+  Future<void> cachePoints(int points);
+  Future<int> getPoints();
+  Future<void> cacheTier(String tier);
+  Future<String> getTier();
   Future<void> clearCache();
 }
 
@@ -22,6 +26,8 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
   static const _userNameKey   = 'user_name';
   static const _userRoleKey   = 'user_role';
   static const _avatarUrlKey  = 'avatar_url';
+  static const _pointsKey     = 'user_points';
+  static const _tierKey       = 'user_tier';
 
   AuthLocalDataSourceImpl({required this.sharedPreferences});
 
@@ -66,11 +72,29 @@ class AuthLocalDataSourceImpl implements AuthLocalDataSource {
       sharedPreferences.getString(_avatarUrlKey);
 
   @override
+  Future<void> cachePoints(int points) async =>
+      sharedPreferences.setInt(_pointsKey, points);
+
+  @override
+  Future<int> getPoints() async =>
+      sharedPreferences.getInt(_pointsKey) ?? 0;
+
+  @override
+  Future<void> cacheTier(String tier) async =>
+      sharedPreferences.setString(_tierKey, tier);
+
+  @override
+  Future<String> getTier() async =>
+      sharedPreferences.getString(_tierKey) ?? 'BRONZE';
+
+  @override
   Future<void> clearCache() async {
     await sharedPreferences.remove(_tokenKey);
     await sharedPreferences.remove(_userIdKey);
     await sharedPreferences.remove(_userNameKey);
     await sharedPreferences.remove(_userRoleKey);
     await sharedPreferences.remove(_avatarUrlKey);
+    await sharedPreferences.remove(_pointsKey);
+    await sharedPreferences.remove(_tierKey);
   }
 }

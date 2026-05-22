@@ -9,6 +9,8 @@ class UserModel extends UserEntity {
     required super.role,
     super.area,
     super.avatar,
+    super.points = 0,
+    super.tier = 'BRONZE',
     super.token,
   });
 
@@ -23,6 +25,8 @@ class UserModel extends UserEntity {
       role: json['role'] ?? 'CUSTOMER',
       area: json['area'],
       avatar: json['avatar'],
+      points: json['points'] ?? 0,
+      tier: json['tier'] ?? 'BRONZE',
       token: json['access_token'], // موجود في حالة register بعض الأحيان
     );
   }
@@ -38,6 +42,8 @@ class UserModel extends UserEntity {
       role: userMap['role'] ?? 'CUSTOMER',
       area: userMap['area'],
       avatar: userMap['avatar'],
+      points: userMap['points'] ?? 0,
+      tier: userMap['tier'] ?? 'BRONZE',
       token: json['access_token'],
     );
   }
@@ -51,6 +57,8 @@ class UserModel extends UserEntity {
       'role': role,
       'area': area,
       'avatar': avatar,
+      'points': points,
+      'tier': tier,
       'access_token': token,
     };
   }

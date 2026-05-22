@@ -18,6 +18,7 @@ import '../bloc/auth_event.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import 'login_page.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import 'zag_rewards_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -30,6 +31,8 @@ class _ProfilePageState extends State<ProfilePage> {
   String _userName = '';
   String _userRole = '';
   String? _avatarUrl;
+  int _points = 0;
+  String _tier = 'BRONZE';
   bool _isLoggingOut = false;
   bool _isUploadingAvatar = false;
 
@@ -56,11 +59,15 @@ class _ProfilePageState extends State<ProfilePage> {
     final name = await sl<AuthLocalDataSource>().getUserName();
     final role = await sl<AuthLocalDataSource>().getUserRole();
     final avatar = await sl<AuthLocalDataSource>().getCachedAvatarUrl();
+    final points = await sl<AuthLocalDataSource>().getPoints();
+    final tier = await sl<AuthLocalDataSource>().getTier();
     if (mounted) {
       setState(() {
         _userName = name ?? 'مستخدم Zag Offers';
         _userRole = role ?? 'CUSTOMER';
         _avatarUrl = avatar;
+        _points = points;
+        _tier = tier;
       });
     }
   }
@@ -474,6 +481,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
+                    const SizedBox(height: 24),
+                    _buildRewardsCard(context),
                     const SizedBox(height: 32),
                     _buildPremiumMenu(context),
                     const SizedBox(height: 40),
@@ -521,6 +530,131 @@ class _ProfilePageState extends State<ProfilePage> {
                 color: AppColors.textSecondary,
               ),
             ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildRewardsCard(BuildContext context) {
+    if (_userRole != 'CUSTOMER') return const SizedBox.shrink();
+    
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    
+    Color tierColor;
+    switch (_tier.toUpperCase()) {
+      case 'PLATINUM':
+        tierColor = isDark ? const Color(0xFFE5E4E2) : const Color(0xFF555555);
+        break;
+      case 'GOLD':
+        tierColor = const Color(0xFFFFD700);
+        break;
+      case 'SILVER':
+        tierColor = const Color(0xFFC0C0C0);
+        break;
+      case 'BRONZE':
+      default:
+        tierColor = const Color(0xFFCD7F32);
+        break;
+    }
+
+    return GestureDetector(
+      onTap: () {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => ZagRewardsPage(
+              points: _points,
+              tier: _tier,
+              userName: _userName,
+            ),
+          ),
+        );
+      },
+      child: Container(
+        padding: const EdgeInsets.all(20),
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            colors: isDark 
+                ? [const Color(0xFF1E1E1E), const Color(0xFF2D2D2D)]
+                : [Colors.white, const Color(0xFFF9F9F9)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(24),
+          boxShadow: [
+            BoxShadow(
+              color: tierColor.withValues(alpha: 0.15),
+              blurRadius: 20,
+              offset: const Offset(0, 10),
+            ),
+          ],
+          border: Border.all(
+            color: tierColor.withValues(alpha: 0.3),
+            width: 1.5,
+          ),
+        ),
+        child: Row(
+          children: [
+            Container(
+              padding: const EdgeInsets.all(12),
+              decoration: BoxDecoration(
+                color: tierColor.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: Icon(
+                Icons.workspace_premium_rounded,
+                color: tierColor,
+                size: 32,
+              ),
+            ),
+            const SizedBox(width: 16),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const Text(
+                    'Zag Rewards',
+                    style: TextStyle(
+                      fontSize: 18,
+                      fontWeight: FontWeight.w900,
+                      letterSpacing: 0.5,
+                    ),
+                  ),
+                  const SizedBox(height: 4),
+                  Row(
+                    children: [
+                      Text(
+                        '$_points نقطة',
+                        style: TextStyle(
+                          fontSize: 14,
+                          fontWeight: FontWeight.bold,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 8),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: tierColor.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(color: tierColor.withValues(alpha: 0.5)),
+                        ),
+                        child: Text(
+                          _tier.toUpperCase(),
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.bold,
+                            color: tierColor,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
           ],
         ),
       ),
