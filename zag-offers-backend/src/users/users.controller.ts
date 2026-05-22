@@ -46,4 +46,11 @@ export class UsersController {
   removeProfile(@Request() req: { user: { id: string } }) {
     return this.usersService.remove(req.user.id);
   }
+
+  @Get('points-history')
+  @ApiOperation({ summary: 'عرض سجل النقاط والمكافآت' })
+  @ApiResponse({ status: 200, description: 'ترجع قائمة بمعاملات النقاط الخاصة بالمستخدم' })
+  getPointsHistory(@Request() req: { user: { id: string } }) {
+    return this.usersService.getPointTransactions(req.user.id);
+  }
 }

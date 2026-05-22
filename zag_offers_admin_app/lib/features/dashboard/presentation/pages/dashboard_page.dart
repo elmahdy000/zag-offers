@@ -44,7 +44,6 @@ class _DashboardPageState extends State<DashboardPage> with SingleTickerProvider
   static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
   static final _c12w500Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary, fontWeight: FontWeight.w500);
   static final _c12w700Primary = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.primary);
-  static final _c14Secondary = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary);
   static final _c14White70 = GoogleFonts.cairo(color: Colors.white70, fontSize: 14);
   static final _c14w700Primary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
   static final _c16w700Primary = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.textPrimary);

@@ -11,7 +11,6 @@ import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dar
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
 import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
-import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_state.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/map_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 

@@ -18,7 +18,6 @@ class AuditLogsPage extends StatefulWidget {
 
 class _AuditLogsPageState extends State<AuditLogsPage> {
   static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary, height: 1.4);
-  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
   static final _c13w700Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
   static final _c14Secondary = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary);
   static final _c14w700Primary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);

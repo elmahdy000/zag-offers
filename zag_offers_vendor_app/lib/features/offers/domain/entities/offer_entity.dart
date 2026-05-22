@@ -18,6 +18,8 @@ class OfferEntity extends Equatable {
   final int viewCount;
   final int couponsCount;
   final bool isFeatured;
+  final bool isFlashSale;
+  final DateTime? flashSaleEndsAt;
 
   const OfferEntity({
     required this.id,
@@ -37,6 +39,8 @@ class OfferEntity extends Equatable {
     this.viewCount = 0,
     this.couponsCount = 0,
     this.isFeatured = false,
+    this.isFlashSale = false,
+    this.flashSaleEndsAt,
   });
 
   @override
@@ -58,5 +62,7 @@ class OfferEntity extends Equatable {
         viewCount,
         couponsCount,
         isFeatured,
+        isFlashSale,
+        flashSaleEndsAt,
       ];
 }

@@ -19,6 +19,8 @@ class OfferModel extends Offer {
     super.rejectionReason,
     super.viewCount = 0,
     super.isFeatured = false,
+    super.isFlashSale = false,
+    super.flashSaleEndsAt,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -60,8 +62,12 @@ class OfferModel extends Offer {
           : (json['oldPrice'] != null ? double.tryParse(json['oldPrice'].toString()) : null),
       newPrice: json['newPrice'] != null ? double.tryParse(json['newPrice'].toString()) : null,
       rejectionReason: json['rejectionReason']?.toString(),
-      viewCount: json['viewCount'] ?? 0,
+      viewCount: json['viewCount'] ?? json['views'] ?? 0,
       isFeatured: json['isFeatured'] ?? false,
+      isFlashSale: json['isFlashSale'] ?? false,
+      flashSaleEndsAt: json['flashSaleEndsAt'] != null
+          ? DateTime.tryParse(json['flashSaleEndsAt'].toString())
+          : null,
     );
   }
 
@@ -83,6 +89,8 @@ class OfferModel extends Offer {
       'rejectionReason': rejectionReason,
       'viewCount': viewCount,
       'isFeatured': isFeatured,
+      'isFlashSale': isFlashSale,
+      if (flashSaleEndsAt != null) 'flashSaleEndsAt': flashSaleEndsAt!.toIso8601String(),
     };
   }
 }

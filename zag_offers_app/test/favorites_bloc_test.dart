@@ -3,7 +3,6 @@ import 'package:dartz/dartz.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:mocktail/mocktail.dart';
 import 'package:zag_offers_app/core/error/failures.dart';
-import 'package:zag_offers_app/features/favorites/domain/repositories/favorites_repository.dart';
 import 'package:zag_offers_app/features/favorites/domain/usecases/get_favorites_usecase.dart';
 import 'package:zag_offers_app/features/favorites/domain/usecases/toggle_favorite_usecase.dart';
 import 'package:zag_offers_app/features/favorites/presentation/bloc/favorites_bloc.dart';

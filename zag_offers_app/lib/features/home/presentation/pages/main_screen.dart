@@ -70,6 +70,7 @@ class MainScreenState extends State<MainScreen> {
     final localDataSource = sl<AuthLocalDataSource>();
     final token = await localDataSource.getToken();
     if (token != null && token.isNotEmpty) {
+      if (!mounted) return;
       context.read<FavoritesBloc>().add(FetchFavorites());
     }
   }
@@ -88,10 +89,19 @@ class MainScreenState extends State<MainScreen> {
       _newOfferSub = socketService.onNewOffer.listen((data) {
         if (!mounted) return;
         context.read<OffersBloc>().add(AddLiveOffer(data));
-        SnackBarUtils.showInfo(
-          context,
-          'عرض جديد: ${data['title'] ?? 'تحقق من العروض'}',
-        );
+        final isFlash = data['isFlashSale'] == true;
+        
+        if (isFlash) {
+          SnackBarUtils.showSuccess(
+            context,
+            '⚡️ فرصة حرق أسعار الآن! ${data['title'] ?? ''}',
+          );
+        } else {
+          SnackBarUtils.showInfo(
+            context,
+            'عرض جديد: ${data['title'] ?? 'تحقق من العروض'}',
+          );
+        }
       });
 
       _offersUpdatedSub = socketService.onOffersUpdated.listen((_) {

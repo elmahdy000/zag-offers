@@ -20,6 +20,8 @@ class OfferModel extends OfferEntity {
     super.usageLimit,
     super.isFeatured = false,
     super.status = OfferStatus.active,
+    super.isFlashSale = false,
+    super.flashSaleEndsAt,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -49,5 +51,10 @@ class OfferModel extends OfferEntity {
       usageLimit: json['usageLimit'] != null ? int.tryParse(json['usageLimit'].toString()) : null,
       isFeatured: json['isFeatured'] ?? false,
       status: (json['status'] as String? ?? 'ACTIVE').toOfferStatus(),
+      isFlashSale: json['isFlashSale'] ?? false,
+      flashSaleEndsAt: json['flashSaleEndsAt'] != null
+          ? DateTime.tryParse(json['flashSaleEndsAt'].toString())
+          : null,
     );
-  }}
+  }
+}

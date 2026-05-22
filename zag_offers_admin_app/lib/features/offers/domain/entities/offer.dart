@@ -17,6 +17,8 @@ class Offer extends Equatable {
   final String? rejectionReason;
   final int viewCount;
   final bool isFeatured;
+  final bool isFlashSale;
+  final DateTime? flashSaleEndsAt;
 
   const Offer({
     required this.id,
@@ -35,6 +37,8 @@ class Offer extends Equatable {
     this.rejectionReason,
     this.viewCount = 0,
     this.isFeatured = false,
+    this.isFlashSale = false,
+    this.flashSaleEndsAt,
   });
 
   @override
@@ -55,5 +59,7 @@ class Offer extends Equatable {
     rejectionReason,
     viewCount,
     isFeatured,
+    isFlashSale,
+    flashSaleEndsAt,
   ];
 }

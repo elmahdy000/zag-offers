@@ -3,6 +3,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../domain/entities/offer_entity.dart';
 import 'favorite_button.dart';
+import 'flash_sale_badge.dart';
 
 class OfferCard extends StatelessWidget {
   final OfferEntity offer;
@@ -83,6 +84,12 @@ class OfferCard extends StatelessWidget {
             left: 8,
             child: FavoriteButton(offerId: offer.id, size: 16),
           ),
+          if (offer.isFlashSale && offer.flashSaleEndsAt != null)
+            Positioned(
+              bottom: 8,
+              left: 8,
+              child: FlashSaleBadge(endsAt: offer.flashSaleEndsAt!),
+            ),
         ],
       ),
     );

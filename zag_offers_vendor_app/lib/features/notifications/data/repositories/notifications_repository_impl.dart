@@ -39,6 +39,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       
       return Right(notifications);
     } on DioException catch (e) {
+      if (e.response?.statusCode == 401) {
+        return const Right([]);
+      }
       return Left(ServerFailure(mapDioErrorToMessage(e)));
     } catch (e) {
       return Left(ServerFailure(e.toString()));

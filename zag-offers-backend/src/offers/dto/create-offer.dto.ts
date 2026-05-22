@@ -123,4 +123,21 @@ export class CreateOfferDto {
   })
   @IsOptional()
   isFeatured?: boolean;
+
+  @ApiProperty({
+    description: 'هل العرض هو عرض فلاش/حرق أسعار؟',
+    example: true,
+    required: false,
+  })
+  @IsOptional()
+  isFlashSale?: boolean;
+
+  @ApiProperty({
+    description: 'تاريخ ووقت انتهاء الفلاش سيل',
+    example: '2026-05-22T20:00:00Z',
+    required: false,
+  })
+  @IsOptional()
+  @IsDateString()
+  flashSaleEndsAt?: string;
 }

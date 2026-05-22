@@ -186,6 +186,8 @@ export class OffersService {
         discountType: true,
         views: true,
         createdAt: true,
+        isFlashSale: true,
+        flashSaleEndsAt: true,
         store: {
           select: {
             id: true,

@@ -239,15 +239,15 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: isSelected
-                ? storeColor.withOpacity(0.25)
-                : (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.85),
+                ? storeColor.withValues(alpha: 0.25)
+                : (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.85),
             border: Border.all(
-              color: isSelected ? storeColor : storeColor.withOpacity(0.6),
+              color: isSelected ? storeColor : storeColor.withValues(alpha: 0.6),
               width: isSelected ? 2.5 : 1.5,
             ),
             boxShadow: [
               BoxShadow(
-                color: storeColor.withOpacity(isSelected ? 0.6 : 0.2),
+                color: storeColor.withValues(alpha: isSelected ? 0.6 : 0.2),
                 blurRadius: isSelected ? 12 : 4,
                 spreadRadius: isSelected ? 2 : 0.5,
               ),
@@ -422,11 +422,11 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                         height: 48,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: AppColors.primary.withOpacity(0.15),
+                          color: AppColors.primary.withValues(alpha: 0.15),
                           border: Border.all(color: AppColors.primary, width: 2),
                           boxShadow: [
                             BoxShadow(
-                              color: AppColors.primary.withOpacity(0.4),
+                              color: AppColors.primary.withValues(alpha: 0.4),
                               blurRadius: 12,
                               spreadRadius: 2,
                             ),
@@ -498,7 +498,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                   border: Border.all(color: isDark ? const Color(0xFF0F172A) : Colors.white, width: 1.5),
                   boxShadow: [
                     BoxShadow(
-                      color: storeColor.withOpacity(0.4),
+                      color: storeColor.withValues(alpha: 0.4),
                       blurRadius: 3,
                       spreadRadius: 0.5,
                     ),
@@ -547,17 +547,17 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         color: isSelected
-                            ? storeColor.withOpacity(0.25)
-                            : (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.85),
+                            ? storeColor.withValues(alpha: 0.25)
+                            : (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.85),
                         border: Border.all(
                           color: isSelected
                               ? storeColor
-                              : (isSweeping ? Colors.white : storeColor.withOpacity(0.6)),
+                              : (isSweeping ? Colors.white : storeColor.withValues(alpha: 0.6)),
                           width: isSelected ? 2.5 : 1.2,
                         ),
                         boxShadow: [
                           BoxShadow(
-                            color: storeColor.withOpacity(isSelected ? 0.5 : 0.15),
+                            color: storeColor.withValues(alpha: isSelected ? 0.5 : 0.15),
                             blurRadius: isSelected ? 10 : 4,
                             spreadRadius: isSelected ? 2 : 0.5,
                           ),
@@ -592,7 +592,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               // Back Button
               Container(
                 decoration: BoxDecoration(
-                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                   border: Border.all(color: Colors.white10),
                 ),
@@ -608,7 +608,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 child: Container(
                   height: 48,
                   decoration: BoxDecoration(
-                    color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+                    color: (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
                     borderRadius: BorderRadius.circular(24),
                     border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                   ),
@@ -635,7 +635,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 width: 48,
                 height: 48,
                 decoration: BoxDecoration(
-                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
                   shape: BoxShape.circle,
                   border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                 ),
@@ -679,7 +679,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                           ),
                           selected: isSelected,
                           selectedColor: AppColors.primary,
-                          backgroundColor: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+                          backgroundColor: (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
                           checkmarkColor: Colors.white,
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(18),
@@ -703,7 +703,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               Container(
                 height: 38,
                 decoration: BoxDecoration(
-                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withOpacity(0.9),
+                  color: (isDark ? const Color(0xFF1E293B) : Colors.white).withValues(alpha: 0.9),
                   borderRadius: BorderRadius.circular(19),
                   border: Border.all(color: isDark ? Colors.white10 : Colors.grey.shade200),
                 ),
@@ -809,7 +809,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
             child: Container(
               margin: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
               decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E293B).withOpacity(0.95) : Colors.white.withOpacity(0.95),
+                color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.95),
                 borderRadius: BorderRadius.circular(24),
                 border: Border.all(
                   color: _selectedStoreIndex == index ? AppColors.primary : (isDark ? Colors.white10 : Colors.grey.shade200),
@@ -817,7 +817,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 ),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withOpacity(isDark ? 0.4 : 0.1),
+                    color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.1),
                     blurRadius: 16,
                     offset: const Offset(0, 8),
                   ),
@@ -836,7 +836,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                         height: 120,
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
-                          color: categoryColor.withOpacity(0.08),
+                          color: categoryColor.withValues(alpha: 0.08),
                         ),
                       ),
                     ),
@@ -897,7 +897,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                         Container(
                                           padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
                                           decoration: BoxDecoration(
-                                            color: categoryColor.withOpacity(0.15),
+                                            color: categoryColor.withValues(alpha: 0.15),
                                             borderRadius: BorderRadius.circular(6),
                                           ),
                                           child: Text(
@@ -910,7 +910,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
-                                        Icon(IconlyLight.location, color: isDark ? Colors.white54 : AppColors.textSecondary.withOpacity(0.6), size: 13),
+                                        Icon(IconlyLight.location, color: isDark ? Colors.white54 : AppColors.textSecondary.withValues(alpha: 0.6), size: 13),
                                         const SizedBox(width: 4),
                                         Expanded(
                                           child: Text(
@@ -976,9 +976,9 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                               Container(
                                 padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
                                 decoration: BoxDecoration(
-                                  color: AppColors.primary.withOpacity(0.1),
+                                  color: AppColors.primary.withValues(alpha: 0.1),
                                   borderRadius: BorderRadius.circular(10),
-                                  border: Border.all(color: AppColors.primary.withOpacity(0.3)),
+                                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.3)),
                                 ),
                                 child: Text(
                                   discountText,
@@ -1099,12 +1099,12 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
           margin: const EdgeInsets.symmetric(horizontal: 24, vertical: 8),
           padding: const EdgeInsets.all(24),
           decoration: BoxDecoration(
-            color: isDark ? const Color(0xFF1E293B).withOpacity(0.95) : Colors.white.withOpacity(0.95),
+            color: isDark ? const Color(0xFF1E293B).withValues(alpha: 0.95) : Colors.white.withValues(alpha: 0.95),
             borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: isDark ? Colors.white.withOpacity(0.08) : Colors.grey.shade200),
+            border: Border.all(color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade200),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(isDark ? 0.4 : 0.05),
+                color: Colors.black.withValues(alpha: isDark ? 0.4 : 0.05),
                 blurRadius: 16,
               ),
             ],
@@ -1115,7 +1115,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
               Icon(
                 Icons.radar_rounded,
                 size: 48,
-                color: (isDark ? Colors.white : AppColors.textSecondary).withOpacity(0.15),
+                color: (isDark ? Colors.white : AppColors.textSecondary).withValues(alpha: 0.15),
               ),
               const SizedBox(height: 12),
               Text(
@@ -1166,7 +1166,7 @@ class _RadarPainter extends CustomPainter {
     final maxRadius = math.min(size.width, size.height) * 0.43;
 
     final circlePaint = Paint()
-      ..color = Colors.white.withOpacity(0.04)
+      ..color = Colors.white.withValues(alpha: 0.04)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -1175,7 +1175,7 @@ class _RadarPainter extends CustomPainter {
     canvas.drawCircle(center, maxRadius, circlePaint);
 
     final linePaint = Paint()
-      ..color = Colors.white.withOpacity(0.05)
+      ..color = Colors.white.withValues(alpha: 0.05)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.0;
 
@@ -1186,9 +1186,9 @@ class _RadarPainter extends CustomPainter {
       ..shader = ui.Gradient.sweep(
         center,
         [
-          primaryColor.withOpacity(0.0),
-          primaryColor.withOpacity(0.18),
-          primaryColor.withOpacity(0.35),
+          primaryColor.withValues(alpha: 0.0),
+          primaryColor.withValues(alpha: 0.18),
+          primaryColor.withValues(alpha: 0.35),
         ],
         [0.0, 0.9, 1.0],
         TileMode.clamp,
@@ -1242,7 +1242,7 @@ class _PulsingRingState extends State<_PulsingRing> with SingleTickerProviderSta
             decoration: BoxDecoration(
               shape: BoxShape.circle,
               border: Border.all(
-                color: widget.color.withOpacity((1.0 - _controller.value).clamp(0.0, 1.0)),
+                color: widget.color.withValues(alpha: (1.0 - _controller.value).clamp(0.0, 1.0)),
                 width: 2.0,
               ),
             ),

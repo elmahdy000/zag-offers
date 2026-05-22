@@ -4,6 +4,7 @@ import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { Logger } from '@nestjs/common';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class ReviewsService {
@@ -11,6 +12,7 @@ export class ReviewsService {
     private prisma: PrismaService,
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
+    private usersService: UsersService,
   ) {}
 
   private getConnectedId(
@@ -65,6 +67,11 @@ export class ReviewsService {
           comment: review.comment || '',
         },
       });
+    }
+
+    // Gamification: Add 20 points for adding a review
+    if (customerId) {
+      void this.usersService.addPoints(customerId, 20, 'REVIEW_ADDED').catch(err => Logger.error('Failed to add points for review', err));
     }
 
     return review;

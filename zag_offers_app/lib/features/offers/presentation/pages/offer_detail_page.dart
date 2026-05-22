@@ -23,6 +23,7 @@ import '../../../favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:zag_offers_app/core/constants/app_strings.dart';
 import 'store_detail_page.dart';
 import '../../data/datasources/offers_remote_data_source.dart';
+import '../widgets/flash_sale_badge.dart';
 
 class OfferDetailPage extends StatefulWidget {
   final OfferEntity offer;
@@ -41,6 +42,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   int _selectedImageIndex = 0;
   late final PageController _pageController;
   StreamSubscription<Map<String, dynamic>>? _reviewReplySubscription;
+  Timer? _flashSaleTimer;
 
   List<String> get _allImages {
     final images = widget.offer.images ?? [];
@@ -75,6 +77,17 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     // Fire and forget: Fetch the offer details from backend to increment the view counter
     // and log the analytics event.
     _recordView();
+
+    if (widget.offer.isFlashSale && widget.offer.flashSaleEndsAt != null) {
+      if (widget.offer.flashSaleEndsAt!.isAfter(DateTime.now())) {
+        _flashSaleTimer = Timer.periodic(const Duration(seconds: 1), (timer) {
+          if (widget.offer.flashSaleEndsAt!.isBefore(DateTime.now())) {
+            timer.cancel();
+            if (mounted) setState(() {});
+          }
+        });
+      }
+    }
   }
 
   void _recordView() {
@@ -87,6 +100,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   @override
   void dispose() {
+    _flashSaleTimer?.cancel();
     _pageController.dispose();
     _commentController.dispose();
     _reviewReplySubscription?.cancel();
@@ -247,9 +261,20 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           itemBuilder: (context, index) {
             return GestureDetector(
               onTap: () => _showFullScreenImage(context, images, index),
-              child: NetworkImageWidget(
-                imageUrl: images[index],
-                fit: BoxFit.cover,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  NetworkImageWidget(
+                    imageUrl: images[index],
+                    fit: BoxFit.cover,
+                  ),
+                  if (widget.offer.isFlashSale && widget.offer.flashSaleEndsAt != null)
+                    Positioned(
+                      bottom: 16,
+                      left: 16,
+                      child: FlashSaleBadge(endsAt: widget.offer.flashSaleEndsAt!),
+                    ),
+                ],
               ),
             );
           },
@@ -592,7 +617,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: (state is CouponsLoading || !canGenerate)
+                      onPressed: (state is CouponsLoading || !canGenerate || _isFlashSaleFinished())
                           ? null
                           : () {
                               HapticFeedback.lightImpact();
@@ -624,12 +649,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                 ),
                                 const SizedBox(width: 12),
                                 Text(
-                                  canGenerate
-                                      ? 'احصل على العرض الآن'
-                                      : 'متاح للعملاء فقط',
-                                    style: textTheme.titleMedium?.copyWith(
-                                      fontWeight: FontWeight.bold,
-                                    ),
+                                  _getButtonText(canGenerate),
+                                  style: textTheme.titleMedium?.copyWith(
+                                    fontWeight: FontWeight.bold,
+                                  ),
                                 ),
                               ],
                             ),
@@ -652,6 +675,19 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         },
       ),
     );
+  }
+
+  bool _isFlashSaleFinished() {
+    if (widget.offer.isFlashSale && widget.offer.flashSaleEndsAt != null) {
+      return widget.offer.flashSaleEndsAt!.isBefore(DateTime.now());
+    }
+    return false;
+  }
+
+  String _getButtonText(bool canGenerate) {
+    if (_isFlashSaleFinished()) return 'انتهى العرض';
+    if (canGenerate) return 'احصل على العرض الآن';
+    return 'متاح للعملاء فقط';
   }
 
   void _showCouponDialog(BuildContext context, String code) {

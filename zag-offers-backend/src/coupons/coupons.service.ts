@@ -12,6 +12,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { AnalyticsService } from '../analytics/analytics.service';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class CouponsService {
@@ -21,6 +22,7 @@ export class CouponsService {
     private notificationsService: NotificationsService,
     private auditLogService: AuditLogService,
     private analyticsService: AnalyticsService,
+    private usersService: UsersService,
   ) {}
 
   async generate(offerId: string, customerId: string): Promise<Coupon> {
@@ -145,6 +147,9 @@ export class CouponsService {
       data: { views: { increment: 1 } },
     }).catch(err => console.error('Failed to increment views during coupon generation:', err));
 
+    // Gamification: Add 5 points to the customer for generating a coupon
+    void this.usersService.addPoints(customerId, 5, 'COUPON_GENERATE').catch(err => console.error('Failed to add points:', err));
+
     return newCoupon;
   }
 
@@ -241,6 +246,9 @@ export class CouponsService {
       offerTitle: coupon.offer.title,
       storeName: coupon.offer.store.name,
     });
+
+    // Gamification: Add 50 points to the customer for using a coupon
+    void this.usersService.addPoints(coupon.customerId, 50, 'COUPON_REDEEM').catch(err => console.error('Failed to add points:', err));
 
     // إرسال تنبيه لحظي للتاجر لتحديث الإحصائيات
     this.eventsGateway.notifyMerchant(merchantId, {

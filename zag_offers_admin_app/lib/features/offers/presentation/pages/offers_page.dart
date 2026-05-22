@@ -24,7 +24,6 @@ class OffersPage extends StatefulWidget {
 class _OffersPageState extends State<OffersPage> {
   static const _cairoFamily = 'Cairo';
   static final _c11Secondary = GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary);
-  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
   static final _c12w700 = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
   static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
   static final _c13w700Primary = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary);

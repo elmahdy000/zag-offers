@@ -35,6 +35,8 @@ class OfferEntity extends Equatable {
   final int? usageLimit;
   final bool isFeatured;
   final OfferStatus status;
+  final bool isFlashSale;
+  final DateTime? flashSaleEndsAt;
 
   const OfferEntity({
     required this.id,
@@ -53,6 +55,8 @@ class OfferEntity extends Equatable {
     this.usageLimit,
     this.isFeatured = false,
     this.status = OfferStatus.active,
+    this.isFlashSale = false,
+    this.flashSaleEndsAt,
   });
 
   factory OfferEntity.fromRaw({
@@ -72,6 +76,8 @@ class OfferEntity extends Equatable {
     int? usageLimit,
     bool isFeatured = false,
     String status = 'ACTIVE',
+    bool isFlashSale = false,
+    DateTime? flashSaleEndsAt,
   }) {
     return OfferEntity(
       id: id,
@@ -90,6 +96,8 @@ class OfferEntity extends Equatable {
       usageLimit: usageLimit,
       isFeatured: isFeatured,
       status: status.toOfferStatus(),
+      isFlashSale: isFlashSale,
+      flashSaleEndsAt: flashSaleEndsAt,
     );
   }
 

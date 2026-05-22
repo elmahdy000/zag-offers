@@ -19,6 +19,8 @@ class OfferModel extends OfferEntity {
     super.viewCount = 0,
     super.couponsCount = 0,
     super.isFeatured = false,
+    super.isFlashSale = false,
+    super.flashSaleEndsAt,
   });
 
   factory OfferModel.fromJson(Map<String, dynamic> json) {
@@ -46,6 +48,10 @@ class OfferModel extends OfferEntity {
       viewCount: json['views'] ?? json['viewCount'] ?? 0,
       couponsCount: json['couponsCount'] ?? (json['_count']?['coupons'] ?? 0),
       isFeatured: json['isFeatured'] ?? false,
+      isFlashSale: json['isFlashSale'] ?? false,
+      flashSaleEndsAt: json['flashSaleEndsAt'] != null 
+          ? DateTime.tryParse(json['flashSaleEndsAt'].toString())
+          : null,
     );
   }
 
@@ -62,6 +68,8 @@ class OfferModel extends OfferEntity {
       'storeId': storeId,
       'originalPrice': oldPrice,
       'newPrice': newPrice,
+      'isFlashSale': isFlashSale,
+      if (flashSaleEndsAt != null) 'flashSaleEndsAt': flashSaleEndsAt!.toIso8601String(),
     };
   }
 }

@@ -60,6 +60,9 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   late DateTime _endDate;
   int? _usageLimit;
 
+  bool _isFlashSale = false;
+  int _flashSaleHours = 2;
+
   bool _isUploading = false;
   final List<String> _imageUrls = [];
 
@@ -77,6 +80,11 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     _usageLimit = widget.offer?.usageLimit;
     if (widget.offer?.images != null) {
       _imageUrls.addAll(widget.offer!.images);
+    }
+    _isFlashSale = widget.offer?.isFlashSale ?? false;
+    if (_isFlashSale && widget.offer?.flashSaleEndsAt != null) {
+      final diff = widget.offer!.flashSaleEndsAt!.difference(DateTime.now()).inHours;
+      _flashSaleHours = diff > 0 ? diff : 2;
     }
     
     _oldPriceController.addListener(_calculateDiscount);
@@ -222,6 +230,8 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
         storeId: resolvedStoreId,
         oldPrice: double.tryParse(_oldPriceController.text),
         newPrice: double.tryParse(_newPriceController.text),
+        isFlashSale: _isFlashSale,
+        flashSaleEndsAt: _isFlashSale ? DateTime.now().add(Duration(hours: _flashSaleHours)) : null,
       );
 
       Navigator.push(
@@ -374,6 +384,58 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                 ],
               ),
               
+              const SizedBox(height: 24),
+              _buildSectionTitle('عروض حرق الأسعار (Flash Sales)'),
+              const SizedBox(height: 12),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: AppColors.card,
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: _isFlashSale ? AppColors.error : AppColors.border),
+                ),
+                child: Column(
+                  children: [
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Row(
+                          children: [
+                            Icon(Icons.flash_on_rounded, color: _isFlashSale ? AppColors.error : AppColors.textTertiary),
+                            const SizedBox(width: 8),
+                            Text('تفعيل كعرض فلاش', style: _fieldLabelStyle.copyWith(color: _isFlashSale ? AppColors.error : AppColors.textSecondary)),
+                          ],
+                        ),
+                        Switch(
+                          value: _isFlashSale,
+                          activeColor: AppColors.error,
+                          onChanged: (v) => setState(() => _isFlashSale = v),
+                        ),
+                      ],
+                    ),
+                    if (_isFlashSale) ...[
+                      const Divider(height: 24),
+                      Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text('مدة العرض بالساعات', style: _fieldLabelStyle),
+                          Text('$_flashSaleHours ساعات', style: _fieldValueStyle.copyWith(color: AppColors.error)),
+                        ],
+                      ),
+                      Slider(
+                        value: _flashSaleHours.toDouble(),
+                        min: 1,
+                        max: 48,
+                        divisions: 47,
+                        activeColor: AppColors.error,
+                        label: '$_flashSaleHours',
+                        onChanged: (v) => setState(() => _flashSaleHours = v.toInt()),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+
               const SizedBox(height: 24),
               _buildSectionTitle('الشروط والأحكام'),
               const SizedBox(height: 12),

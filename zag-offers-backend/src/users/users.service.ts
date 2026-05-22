@@ -54,4 +54,44 @@ export class UsersService {
       where: { id },
     });
   }
+
+  async addPoints(userId: string, amount: number, reason: string): Promise<User> {
+    const user = await this.prisma.user.findUnique({ where: { id: userId } });
+    if (!user) throw new Error('User not found');
+
+    const newPoints = user.points + amount;
+    
+    let newTier: any = 'BRONZE';
+    if (newPoints >= 5000) newTier = 'PLATINUM';
+    else if (newPoints >= 2000) newTier = 'GOLD';
+    else if (newPoints >= 500) newTier = 'SILVER';
+
+    const updatedUser = await this.prisma.$transaction(async (tx) => {
+      await (tx as any).pointLog.create({
+        data: {
+          userId,
+          amount,
+          reason,
+        },
+      });
+
+      return tx.user.update({
+        where: { id: userId },
+        data: {
+          points: newPoints,
+          tier: newTier,
+        },
+      });
+    });
+
+    return updatedUser;
+  }
+
+  async getPointTransactions(userId: string) {
+    return (this.prisma as any).pointLog.findMany({
+      where: { userId },
+      orderBy: { createdAt: 'desc' },
+      take: 50,
+    });
+  }
 }
