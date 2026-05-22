@@ -23,7 +23,11 @@ type SanitizedUser = Omit<
   | 'fcmToken'
   | 'resetOtp'
   | 'resetOtpExpiry'
->;
+> & {
+  referralCode?: string | null;
+  referredById?: string | null;
+  hasRewardedReferrer?: boolean;
+};
 
 type UserWithReset = User & {
   resetOtp?: string | null;
@@ -91,6 +95,9 @@ export class AuthService {
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      referralCode: (user as any).referralCode,
+      referredById: (user as any).referredById,
+      hasRewardedReferrer: (user as any).hasRewardedReferrer,
     };
   }
 
@@ -138,6 +145,16 @@ export class AuthService {
     const cleanPhoneEmail = data.phone.trim().toLowerCase();
     let phone: string | null = cleanPhoneEmail;
     let email: string | null = data.email?.trim().toLowerCase() || null;
+    let referredById: string | null = null;
+
+    if (data.referralCode) {
+      const referrer = await this.prisma.user.findUnique({
+        where: { referralCode: data.referralCode.toUpperCase() } as any,
+      });
+      if (referrer) {
+        referredById = referrer.id;
+      }
+    }
 
     // Detect if the provided "phone" is actually an email
     if (cleanPhoneEmail.includes('@')) {
@@ -174,7 +191,9 @@ export class AuthService {
       phone,
       email,
       password: hashedPassword,
-    });
+      referralCode: this.generateReferralCode(),
+      ...(referredById ? { referredBy: { connect: { id: referredById } } } : {}),
+    } as any);
 
     return this.sanitizeUser(user);
   }
@@ -274,10 +293,11 @@ export class AuthService {
           name: name || 'مستخدم زاج',
           avatar: avatar || null,
           role: 'CUSTOMER',
-          phone: null, // Explicitly null for social login to avoid conflicts
-          password: null, // No password for social login
+          phone: null,
+          password: null,
+          referralCode: this.generateReferralCode(),
           [idField]: providerId,
-        });
+        } as any);
       }
     }
 
@@ -293,6 +313,15 @@ export class AuthService {
     }
 
     return this.usersService.findByFacebookId(id);
+  }
+
+  private generateReferralCode(): string {
+    const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
+    let code = 'ZAG-';
+    for (let i = 0; i < 6; i++) {
+      code += chars.charAt(Math.floor(Math.random() * chars.length));
+    }
+    return code;
   }
 
   async getMe(userId: string) {

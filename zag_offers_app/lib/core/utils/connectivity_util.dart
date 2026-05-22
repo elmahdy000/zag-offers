@@ -8,6 +8,7 @@ class ConnectivityUtil {
 
   final Connectivity _connectivity = Connectivity();
   final StreamController<bool> _connectionController = StreamController<bool>.broadcast();
+  StreamSubscription<List<ConnectivityResult>>? _connectivitySub;
 
   bool _isOnline = true;
 
@@ -18,7 +19,7 @@ class ConnectivityUtil {
     final result = await _connectivity.checkConnectivity();
     _updateConnectionStatus(result);
 
-    _connectivity.onConnectivityChanged.listen((result) {
+    _connectivitySub = _connectivity.onConnectivityChanged.listen((result) {
       _updateConnectionStatus(result);
     });
   }
@@ -31,6 +32,7 @@ class ConnectivityUtil {
   }
 
   void dispose() {
+    _connectivitySub?.cancel();
     _connectionController.close();
   }
 }

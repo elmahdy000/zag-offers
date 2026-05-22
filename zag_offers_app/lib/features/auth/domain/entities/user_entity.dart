@@ -10,6 +10,7 @@ class UserEntity extends Equatable {
   final String? avatar;
   final int points;
   final String tier;
+  final String? referralCode;
   final String? token;   // JWT — بيتحفظ في SharedPreferences بعد الـ Login
 
   const UserEntity({
@@ -22,9 +23,10 @@ class UserEntity extends Equatable {
     this.avatar,
     this.points = 0,
     this.tier = 'BRONZE',
+    this.referralCode,
     this.token,
   });
 
   @override
-  List<Object?> get props => [id, phone, email, name, role, area, avatar, points, tier, token];
+  List<Object?> get props => [id, phone, email, name, role, area, avatar, points, tier, referralCode, token];
 }

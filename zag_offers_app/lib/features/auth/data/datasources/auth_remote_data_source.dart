@@ -1,11 +1,12 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
+import '../../../../core/utils/image_url_helper.dart';
 import '../models/user_model.dart';
 
 abstract class AuthRemoteDataSource {
   Future<UserModel> login(String identifier, String password);
-  Future<UserModel> register(String phone, String password, String name, String? area, String? email);
+  Future<UserModel> register(String phone, String password, String name, String? area, String? email, [String? referralCode]);
   Future<void> updateFcmToken(String token);
   Future<void> forgotPassword(String email);
   Future<void> resetPassword(String email, String otp, String newPassword);
@@ -22,10 +23,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   Future<String> uploadAvatar(String filePath) async {
     try {
       final formData = FormData.fromMap({
-        'avatar': await MultipartFile.fromFile(filePath, filename: 'avatar.jpg'),
+        'file': await MultipartFile.fromFile(filePath, filename: 'avatar.jpg'),
       });
-      final response = await apiClient.dio.post('/users/profile/avatar', data: formData);
-      return response.data['url'] as String;
+      final uploadResponse = await apiClient.dio.post('/upload', data: formData);
+      final rawUrl = uploadResponse.data['url'] as String;
+      final resolvedUrl = ImageUrlHelper.resolve(rawUrl);
+      await apiClient.dio.patch('/auth/profile', data: {
+        'avatar': rawUrl,
+      });
+      return resolvedUrl;
     } on DioException catch (e) {
       throw ServerException(e.response?.data['message'] ?? 'فشل رفع الصورة');
     } catch (e) {
@@ -60,7 +66,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   }
 
   @override
-  Future<UserModel> register(String phone, String password, String name, String? area, String? email) async {
+  Future<UserModel> register(String phone, String password, String name, String? area, String? email, [String? referralCode]) async {
     try {
       final response = await apiClient.dio.post('/auth/register', data: {
         'phone': phone,
@@ -68,6 +74,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'name': name,
         'area': area,
         'email': email,
+        if (referralCode != null && referralCode.isNotEmpty) 'referredByCode': referralCode,
       });
       return UserModel.fromJson(response.data);
     } on DioException catch (e) {

@@ -204,6 +204,14 @@ class _HomePageState extends State<HomePage> {
       ),
       actions: [
         BlocBuilder<NotificationBloc, NotificationState>(
+          buildWhen: (prev, next) {
+            if (prev is NotificationFeedState && next is NotificationFeedState) {
+              return prev.items.length != next.items.length ||
+                  prev.items.where((e) => !e.isRead).length !=
+                      next.items.where((e) => !e.isRead).length;
+            }
+            return true;
+          },
           builder: (context, notifState) {
             int unreadCount = 0;
             if (notifState is NotificationFeedState) {

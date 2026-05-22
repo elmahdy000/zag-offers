@@ -122,6 +122,7 @@ class MyApp extends StatelessWidget {
         ],
         theme: AppTheme.lightTheme,
         home: BlocBuilder<AuthBloc, AuthState>(
+          buildWhen: (prev, next) => next is AuthAuthenticated || next is AuthInitial || next is AuthUnauthenticated || next is AuthError,
           builder: (context, state) {
             if (state is AuthAuthenticated) {
               return const MainShell();

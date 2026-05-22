@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import '../../../../core/utils/image_url_helper.dart';
 
 class NotificationItemEntity extends Equatable {
   final String id;
@@ -53,7 +54,7 @@ class NotificationItemEntity extends Equatable {
       createdAt: DateTime.parse(json['createdAt']),
       isRead: json['isRead'] ?? false,
       type: json['type'],
-      imageUrl: json['imageUrl'],
+      imageUrl: ImageUrlHelper.resolveNullable(json['imageUrl']?.toString()),
       data: json['data'] is Map ? Map<String, dynamic>.from(json['data']) : null,
     );
   }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zag_offers_admin_app/core/widgets/network_image.dart';
 import 'package:zag_offers_admin_app/features/merchants/domain/entities/merchant.dart';
 import 'package:intl/intl.dart';
 
@@ -26,24 +27,23 @@ class MerchantCard extends StatelessWidget {
           padding: const EdgeInsets.all(16),
           child: Row(
             children: [
-              Container(
-                width: 60,
-                height: 60,
-                decoration: BoxDecoration(
-                  color: Colors.orange[50],
-                  borderRadius: BorderRadius.circular(12),
-                  image:
-                      (merchant.logoUrl != null && merchant.logoUrl!.isNotEmpty)
-                      ? DecorationImage(
-                          image: NetworkImage(merchant.logoUrl!),
-                          fit: BoxFit.cover,
-                        )
-                      : null,
-                ),
-                child: (merchant.logoUrl == null || merchant.logoUrl!.isEmpty)
-                    ? Icon(Icons.store, color: Colors.orange[300], size: 32)
-                    : null,
-              ),
+              merchant.logoUrl != null && merchant.logoUrl!.isNotEmpty
+                  ? NetworkImageWithPlaceholder(
+                      imageUrl: merchant.logoUrl!,
+                      width: 60,
+                      height: 60,
+                      borderRadius: BorderRadius.circular(12),
+                      fit: BoxFit.cover,
+                    )
+                  : Container(
+                      width: 60,
+                      height: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.orange[50],
+                        borderRadius: BorderRadius.circular(12),
+                      ),
+                      child: Icon(Icons.store, color: Colors.orange[300], size: 32),
+                    ),
               const SizedBox(width: 16),
               Expanded(
                 child: Column(

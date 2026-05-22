@@ -90,8 +90,10 @@ export default function BannersPage() {
   const upsertMutation = useMutation({
     mutationFn: async () => {
       let finalActionUrl = null;
+      let finalOfferId = undefined;
       if (linkType === 'offer' && selectedOfferId) {
         finalActionUrl = `offer:${selectedOfferId}`;
+        finalOfferId = selectedOfferId;
       } else if (linkType === 'store' && selectedStoreId) {
         finalActionUrl = `store:${selectedStoreId}`;
       } else if (linkType === 'url' && externalUrl) {
@@ -104,6 +106,7 @@ export default function BannersPage() {
         tag: form.tag || undefined,
         image: form.image || undefined,
         actionUrl: finalActionUrl,
+        offerId: finalOfferId,
         priority: Number(form.priority || 0),
         isActive: form.isActive,
       };
@@ -228,9 +231,9 @@ export default function BannersPage() {
             ))
           : banners.map((banner) => (
               <div key={banner.id} className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
-                <div className="h-32 overflow-hidden rounded-2xl bg-slate-100">
+                <div className="h-32 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 to-slate-900">
                   {banner.image ? (
-                    <img src={resolveImageUrl(banner.image)} alt={banner.title} className="h-full w-full object-cover" />
+                    <img src={resolveImageUrl(banner.image)} alt={banner.title} className="h-full w-full object-contain" />
                   ) : (
                     <div className="flex h-full items-center justify-center text-slate-400">No image</div>
                   )}
@@ -364,7 +367,11 @@ export default function BannersPage() {
               <label className="block text-xs font-bold text-slate-500">الصورة</label>
               <input type="file" accept="image/*" onChange={uploadImage} />
               {isUploading && <Loader2 className="animate-spin text-orange-600" size={16} />}
-              {form.image ? <img src={resolveImageUrl(form.image)} alt="preview" className="h-24 w-full rounded-xl object-cover" /> : null}
+              {form.image ? (
+                <div className="h-24 w-full rounded-xl bg-gradient-to-br from-indigo-900 to-slate-900 overflow-hidden">
+                  <img src={resolveImageUrl(form.image)} alt="preview" className="h-full w-full object-contain" />
+                </div>
+              ) : null}
               <label className="flex items-center gap-2 text-sm">
                 <input type="checkbox" checked={form.isActive} onChange={(e) => setForm((p) => ({ ...p, isActive: e.target.checked }))} />
                 <span>نشط</span>

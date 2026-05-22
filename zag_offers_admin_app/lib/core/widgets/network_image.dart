@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../utils/image_url_helper.dart';
 
@@ -29,16 +30,15 @@ class NetworkImageWithPlaceholder extends StatelessWidget {
 
     return ClipRRect(
       borderRadius: borderRadius ?? BorderRadius.circular(0),
-      child: Image.network(
-        resolved,
+      child: CachedNetworkImage(
+        imageUrl: resolved,
         width: width,
         height: height,
         fit: fit,
-        loadingBuilder: (context, child, loadingProgress) {
-          if (loadingProgress == null) return child;
-          return placeholder ?? _buildDefaultPlaceholder();
-        },
-        errorBuilder: (context, error, stackTrace) => _buildErrorWidget(),
+        memCacheWidth: width?.toInt(),
+        memCacheHeight: height?.toInt(),
+        placeholder: (_, __) => placeholder ?? _buildDefaultPlaceholder(),
+        errorWidget: (_, __, ___) => _buildErrorWidget(),
       ),
     );
   }

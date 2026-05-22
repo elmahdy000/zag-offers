@@ -302,6 +302,7 @@ class DashboardPage extends StatelessWidget {
 
                 SliverToBoxAdapter(
                   child: BlocBuilder<OffersBloc, OffersState>(
+                    buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading,
                     builder: (context, offersState) {
                       if (offersState is OffersLoaded) {
                         final activeOffers = offersState.offers.where((o) => o.status == 'ACTIVE').toList();

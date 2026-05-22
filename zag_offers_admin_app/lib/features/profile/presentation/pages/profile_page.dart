@@ -222,7 +222,10 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      nameController.dispose();
+      areaController.dispose();
+    });
   }
 
   void _showChangePasswordDialog(BuildContext context) {
@@ -262,6 +265,9 @@ class ProfilePage extends StatelessWidget {
           ),
         ),
       ),
-    );
+    ).whenComplete(() {
+      currentPasswordController.dispose();
+      newPasswordController.dispose();
+    });
   }
 }

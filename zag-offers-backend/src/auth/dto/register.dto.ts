@@ -48,4 +48,14 @@ export class RegisterDto {
   @IsEmail()
   @MaxLength(255)
   email?: string;
+
+  @ApiProperty({
+    description: 'كود الدعوة من صديق',
+    example: 'AHMED1234',
+    required: false,
+  })
+  @IsOptional()
+  @IsString()
+  @MaxLength(20)
+  referralCode?: string;
 }

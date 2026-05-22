@@ -29,6 +29,11 @@ export class CreateBannerDto {
 
   @ApiPropertyOptional()
   @IsOptional()
+  @IsString()
+  offerId?: string;
+
+  @ApiPropertyOptional()
+  @IsOptional()
   @IsBoolean()
   isActive?: boolean;
 

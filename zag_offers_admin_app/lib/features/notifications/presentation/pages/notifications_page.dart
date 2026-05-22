@@ -4,6 +4,7 @@ import 'package:zag_offers_admin_app/core/network/api_client.dart';
 import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:intl/intl.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/image_url_helper.dart';
 import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
 class NotificationsPage extends StatefulWidget {
@@ -215,7 +216,9 @@ class _NotificationsPageState extends State<NotificationsPage> {
                               CircleAvatar(
                                 radius: 24,
                                 backgroundColor: isRead ? Colors.grey.shade100 : AppColors.primary.withValues(alpha: 0.1),
-                                backgroundImage: notification['imageUrl'] != null ? NetworkImage(notification['imageUrl']) : null,
+                                backgroundImage: notification['imageUrl'] != null
+                                    ? NetworkImage(ImageUrlHelper.resolve(notification['imageUrl']))
+                                    : null,
                                 child: notification['imageUrl'] == null ? Icon(Icons.notifications_rounded, color: isRead ? Colors.grey : AppColors.primary) : null,
                               ),
                               if (!isRead)

@@ -11,6 +11,7 @@ class UserModel extends UserEntity {
     super.avatar,
     super.points = 0,
     super.tier = 'BRONZE',
+    super.referralCode,
     super.token,
   });
 
@@ -27,6 +28,7 @@ class UserModel extends UserEntity {
       avatar: json['avatar'],
       points: json['points'] ?? 0,
       tier: json['tier'] ?? 'BRONZE',
+      referralCode: json['referralCode'],
       token: json['access_token'], // موجود في حالة register بعض الأحيان
     );
   }
@@ -44,6 +46,7 @@ class UserModel extends UserEntity {
       avatar: userMap['avatar'],
       points: userMap['points'] ?? 0,
       tier: userMap['tier'] ?? 'BRONZE',
+      referralCode: userMap['referralCode'],
       token: json['access_token'],
     );
   }
@@ -59,6 +62,7 @@ class UserModel extends UserEntity {
       'avatar': avatar,
       'points': points,
       'tier': tier,
+      'referralCode': referralCode,
       'access_token': token,
     };
   }

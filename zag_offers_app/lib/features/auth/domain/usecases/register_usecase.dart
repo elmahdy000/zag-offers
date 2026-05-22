@@ -14,6 +14,7 @@ class RegisterUseCase {
     required String name,
     String? area,
     String? email,
+    String? referralCode,
   }) async {
     return await repository.register(
       phone: phone,
@@ -21,6 +22,7 @@ class RegisterUseCase {
       name: name,
       area: area,
       email: email,
+      referralCode: referralCode,
     );
   }
 }

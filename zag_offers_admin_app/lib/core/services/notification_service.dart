@@ -1,4 +1,5 @@
-﻿import 'dart:convert';
+﻿import 'dart:async';
+import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter/material.dart';
@@ -53,6 +54,9 @@ class NotificationService {
         
   }
 
+  static StreamSubscription<RemoteMessage>? _onMessageSub;
+  static StreamSubscription<RemoteMessage>? _onMessageOpenedAppSub;
+
   static Future<void> initStatic() async {
     await initializeLocalNotifications();
 
@@ -74,8 +78,8 @@ class NotificationService {
       }
     }
 
-    FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    FirebaseMessaging.onMessageOpenedApp.listen((message) {
+    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
+    _onMessageOpenedAppSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
       handleNotificationTapFromData(message.data);
     });
 
@@ -171,6 +175,10 @@ class NotificationService {
 
   static Future<void> resetStatic() async {
     try {
+      _onMessageSub?.cancel();
+      _onMessageOpenedAppSub?.cancel();
+      _onMessageSub = null;
+      _onMessageOpenedAppSub = null;
       await _messaging.unsubscribeFromTopic('all_users');
       await _messaging.unsubscribeFromTopic('all_admins');
       await _messaging.deleteToken();

@@ -174,7 +174,27 @@ class SocketService {
     _socket = null;
     _isInitialized = false;
     _reconnectAttempts = 0;
+
+    // Close old controllers before replacing them
+    if (!_newOfferController.isClosed) _newOfferController.close();
+    if (!_offersUpdatedController.isClosed) _offersUpdatedController.close();
+    if (!_couponUpdateController.isClosed) _couponUpdateController.close();
+    if (!_socialProofController.isClosed) _socialProofController.close();
+    if (!_categoriesUpdatedController.isClosed) _categoriesUpdatedController.close();
+    if (!_bannersUpdatedController.isClosed) _bannersUpdatedController.close();
+    if (!_reviewReplyController.isClosed) _reviewReplyController.close();
+    
     _initControllers();
+  }
+
+  void _closeControllers() {
+    _newOfferController.close();
+    _offersUpdatedController.close();
+    _couponUpdateController.close();
+    _socialProofController.close();
+    _categoriesUpdatedController.close();
+    _bannersUpdatedController.close();
+    _reviewReplyController.close();
   }
 
   Map<String, dynamic> _toMap(dynamic data) {

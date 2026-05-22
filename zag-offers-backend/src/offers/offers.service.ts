@@ -45,10 +45,15 @@ export class OffersService {
   }
 
   async getBanners() {
-    return this.prisma.banner.findMany({
+    const banners = await this.prisma.banner.findMany({
       where: { isActive: true },
       orderBy: [{ priority: 'desc' }, { createdAt: 'desc' }],
     });
+
+    return banners.map(b => ({
+      ...b,
+      actionUrl: b.offerId ? `offer:${b.offerId}` : b.actionUrl
+    }));
   }
 
   async create(

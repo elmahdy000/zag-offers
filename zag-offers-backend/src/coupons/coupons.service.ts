@@ -223,11 +223,15 @@ export class CouponsService {
       throw new BadRequestException('عفواً، صلاحية الكوبون ده انتهت (24 ساعة)');
     }
 
+    const fixedCommission = (coupon.offer as any).fixedCommission || 0;
+    const commissionAmount = fixedCommission; // Direct value in EGP
+
     const updatedCoupon = await this.prisma.coupon.update({
       where: { id: coupon.id },
       data: {
         status: CouponStatus.USED,
         redeemedAt: new Date(),
+        commissionAmount: commissionAmount,
       },
       include: {
         offer: {

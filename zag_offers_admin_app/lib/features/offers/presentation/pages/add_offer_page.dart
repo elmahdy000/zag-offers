@@ -5,6 +5,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:intl/intl.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/widgets/network_image.dart';
 import 'package:zag_offers_admin_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_admin_app/features/merchants/presentation/bloc/merchants_bloc.dart';
 import 'package:zag_offers_admin_app/features/offers/domain/entities/offer.dart';
@@ -115,13 +116,9 @@ class _AddOfferPageState extends State<AddOfferPage> {
           children: [
             Center(
               child: InteractiveViewer(
-                child: Image.network(
-                  url,
+                child: NetworkImageWithPlaceholder(
+                  imageUrl: url,
                   fit: BoxFit.contain,
-                  loadingBuilder: (context, child, loadingProgress) {
-                    if (loadingProgress == null) return child;
-                    return const CircularProgressIndicator(color: Colors.white);
-                  },
                 ),
               ),
             ),
@@ -510,7 +507,7 @@ class _AddOfferPageState extends State<AddOfferPage> {
           },
         );
       },
-    );
+    ).whenComplete(() => searchController.dispose());
   }
 
   Widget _buildImageSection() {
@@ -554,24 +551,9 @@ class _AddOfferPageState extends State<AddOfferPage> {
           children: [
             GestureDetector(
               onTap: () => _showImagePreview(url),
-              child: Image.network(
-                url,
+              child: NetworkImageWithPlaceholder(
+                imageUrl: url,
                 fit: BoxFit.cover,
-                errorBuilder: (context, error, stackTrace) => Container(
-                  color: Colors.grey.shade100,
-                  child: const Icon(Icons.broken_image_rounded, color: Colors.grey),
-                ),
-                loadingBuilder: (context, child, loadingProgress) {
-                  if (loadingProgress == null) return child;
-                  return Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded / loadingProgress.expectedTotalBytes!
-                          : null,
-                      strokeWidth: 2,
-                    ),
-                  );
-                },
               ),
             ),
             Positioned(

@@ -728,6 +728,40 @@ export class NotificationsService implements OnModuleInit {
     );
   }
 
+  async notifyStoreFans(
+    storeId: string,
+    storeName: string,
+    offerTitle: string,
+    offerId: string,
+    imageUrl?: string,
+  ): Promise<void> {
+    try {
+      const users = await this.prisma.user.findMany({
+        where: {
+          OR: [
+            { favorites: { some: { offer: { storeId } } } },
+            { coupons: { some: { offer: { storeId } } } },
+          ],
+        },
+        select: { id: true },
+      });
+      const userIds = users.map((u) => u.id);
+
+      if (userIds.length > 0) {
+        await this.sendToUserIds(userIds, {
+          title: `متجرك المفضل أضاف عرضاً جديداً! 🏪`,
+          body: `${storeName} أضاف: "${offerTitle}". اكتشفه الآن!`,
+          data: { offerId, type: 'NEW_OFFER' },
+          imageUrl,
+        });
+      }
+    } catch (error) {
+      this.logger.error(
+        `Failed to notify store fans for store ${storeId}: ${(error as Error).message}`,
+      );
+    }
+  }
+
   async notifyStoreApproved(
     fcmToken: string,
     storeName: string,

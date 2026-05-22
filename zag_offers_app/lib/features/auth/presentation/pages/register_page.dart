@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_event.dart';
@@ -21,6 +21,7 @@ class _RegisterPageState extends State<RegisterPage> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   final _areaController = TextEditingController();
+  final _referralCodeController = TextEditingController();
   bool _isPasswordVisible = false;
 
   static final _egyptianPhone = RegExp(r'^01[0125][0-9]{8}$');
@@ -67,6 +68,7 @@ class _RegisterPageState extends State<RegisterPage> {
     _emailController.dispose();
     _passwordController.dispose();
     _areaController.dispose();
+    _referralCodeController.dispose();
     super.dispose();
   }
 
@@ -181,6 +183,15 @@ class _RegisterPageState extends State<RegisterPage> {
                       textInputAction: TextInputAction.done,
                       onFieldSubmitted: (_) => _submit(context),
                     ),
+                    const SizedBox(height: 18),
+                    _buildField(
+                      controller: _referralCodeController,
+                      label: 'كود الدعوة (اختياري)',
+                      hint: 'أدخل كود دعوة صديقك لتحصل على نقاط',
+                      icon: Icons.card_giftcard_rounded,
+                      textInputAction: TextInputAction.done,
+                      onFieldSubmitted: (_) => _submit(context),
+                    ),
                     const SizedBox(height: 24),
                     BlocBuilder<AuthBloc, AuthState>(
                       buildWhen: (prev, next) => (prev is AuthLoading) != (next is AuthLoading),
@@ -223,6 +234,9 @@ class _RegisterPageState extends State<RegisterPage> {
               area: _areaController.text.trim().isEmpty
                   ? null
                   : _areaController.text.trim(),
+              referralCode: _referralCodeController.text.trim().isEmpty
+                  ? null
+                  : _referralCodeController.text.trim(),
             ),
           );
     }

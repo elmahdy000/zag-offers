@@ -188,18 +188,16 @@ class _AdsSliderState extends State<AdsSlider> {
                       image: image.isNotEmpty
                           ? DecorationImage(
                               image: CachedNetworkImageProvider(ImageUrlHelper.resolve(image)),
-                              fit: BoxFit.cover,
+                              fit: BoxFit.contain,
                             )
                           : null,
-                      gradient: image.isEmpty
-                          ? LinearGradient(
-                              colors: isEven
-                                  ? [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)]
-                                  : [const Color(0xFF1A1A1A), const Color(0xFF333333)],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            )
-                          : null,
+                      gradient: LinearGradient(
+                        colors: isEven
+                            ? [AppColors.primary, AppColors.primary.withValues(alpha: 0.8)]
+                            : [const Color(0xFF1A1A1A), const Color(0xFF333333)],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
                       boxShadow: [
                         BoxShadow(
                           color: (isEven ? AppColors.primary : Colors.black).withValues(alpha: 0.15),
@@ -208,6 +206,7 @@ class _AdsSliderState extends State<AdsSlider> {
                         ),
                       ],
                     ),
+                    clipBehavior: Clip.antiAlias,
                     child: Stack(
                       children: [
                         if (image.isNotEmpty)

@@ -14,6 +14,7 @@ abstract class AuthRepository {
     required String name,
     String? area,
     String? email,
+    String? referralCode,
   });
 
   Future<Either<Failure, void>> logout();

@@ -5,7 +5,9 @@ import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/features/broadcast/presentation/bloc/broadcast_bloc.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
+import 'package:zag_offers_admin_app/core/utils/image_url_helper.dart';
 import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
+import 'package:zag_offers_admin_app/core/widgets/network_image.dart';
 
 class BroadcastPage extends StatefulWidget {
   const BroadcastPage({super.key});
@@ -221,16 +223,23 @@ class _BroadcastPageState extends State<BroadcastPage> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            width: 48,
-            height: 48,
-            decoration: BoxDecoration(
-              color: AppColors.primary,
-              borderRadius: BorderRadius.circular(12),
-              image: _imageUrlController.text.isNotEmpty ? DecorationImage(image: NetworkImage(_imageUrlController.text), fit: BoxFit.cover) : null,
-            ),
-            child: _imageUrlController.text.isEmpty ? const Icon(Icons.notifications_active_rounded, color: Colors.white) : null,
-          ),
+          _imageUrlController.text.isNotEmpty
+              ? NetworkImageWithPlaceholder(
+                  imageUrl: _imageUrlController.text,
+                  width: 48,
+                  height: 48,
+                  borderRadius: BorderRadius.circular(12),
+                  fit: BoxFit.cover,
+                )
+              : Container(
+                  width: 48,
+                  height: 48,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary,
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: const Icon(Icons.notifications_active_rounded, color: Colors.white),
+                ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(

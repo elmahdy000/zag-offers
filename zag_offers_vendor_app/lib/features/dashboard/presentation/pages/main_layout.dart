@@ -109,6 +109,8 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
 
   @override
   void dispose() {
+    NotificationService.onCouponRedeemed = null;
+    NotificationService.onNotificationTap = null;
     WidgetsBinding.instance.removeObserver(this);
     _socketService.off('merchant_notification');
     _socketService.disconnect();

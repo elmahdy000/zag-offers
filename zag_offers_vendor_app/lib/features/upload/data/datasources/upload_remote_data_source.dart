@@ -14,10 +14,7 @@ class UploadRemoteDataSourceImpl implements UploadRemoteDataSource {
 
   UploadRemoteDataSourceImpl({required this.apiClient});
 
-  String _toAbsoluteUrl(String url) {
-    if (url.startsWith('http://') || url.startsWith('https://')) return url;
-    return '${AppConstants.socketUrl}$url';
-  }
+  // REMOVED: String _toAbsoluteUrl(String url)
 
   @override
   Future<String> uploadImage(File file) async {
@@ -39,7 +36,7 @@ class UploadRemoteDataSourceImpl implements UploadRemoteDataSource {
       if (rawUrl.isEmpty) {
         throw Exception('Failed to upload image');
       }
-      return _toAbsoluteUrl(rawUrl);
+      return rawUrl;
     } on DioException catch (e) {
       throw Exception(e.response?.data['message'] ?? 'Failed to upload image');
     }

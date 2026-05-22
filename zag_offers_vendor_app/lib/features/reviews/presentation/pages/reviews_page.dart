@@ -90,6 +90,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
         iconTheme: const IconThemeData(color: Colors.white),
       ),
       body: BlocBuilder<ReviewsBloc, ReviewsState>(
+        buildWhen: (prev, next) => next is ReviewsLoading || next is ReviewsLoaded || next is ReviewsError,
         builder: (context, state) {
           if (state is ReviewsLoading) {
             return const Center(child: CircularProgressIndicator());

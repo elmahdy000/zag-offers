@@ -26,8 +26,6 @@ class UploadRemoteDataSourceImpl implements UploadRemoteDataSource {
     
     if (url == null) throw Exception('Failed to upload image');
     
-    // Resolve relative URL
-    if (url.toString().startsWith('http')) return url.toString();
-    return '${AppConfig.socketUrl}$url';
+    return url.toString();
   }
 }

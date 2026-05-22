@@ -23,6 +23,7 @@ class RegisterSubmitted extends AuthEvent {
   final String name;
   final String? area;
   final String? email;
+  final String? referralCode;
 
   const RegisterSubmitted({
     required this.phone,
@@ -30,10 +31,11 @@ class RegisterSubmitted extends AuthEvent {
     required this.name,
     this.area,
     this.email,
+    this.referralCode,
   });
 
   @override
-  List<Object> get props => [phone, password, name, area ?? '', email ?? ''];
+  List<Object> get props => [phone, password, name, area ?? '', email ?? '', referralCode ?? ''];
 }
 
 class LogoutRequested extends AuthEvent {}

@@ -4,6 +4,7 @@ import '../../../../core/error/exceptions.dart';
 
 import '../../../../core/error/failures.dart';
 import '../../../../core/network/dio_error_mapper.dart';
+import '../../../../core/utils/image_url_helper.dart';
 import '../../domain/entities/user_entity.dart';
 import '../../domain/repositories/auth_repository.dart';
 import '../datasources/auth_local_data_source.dart';
@@ -34,6 +35,12 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUserRole(userModel.role);
       await localDataSource.cachePoints(userModel.points);
       await localDataSource.cacheTier(userModel.tier);
+      if (userModel.referralCode != null) {
+        await localDataSource.cacheReferralCode(userModel.referralCode!);
+      }
+      if (userModel.avatar != null) {
+        await localDataSource.cacheAvatarUrl(ImageUrlHelper.resolve(userModel.avatar!));
+      }
 
       return Right(userModel);
     } on ServerException catch (e) {
@@ -56,6 +63,7 @@ class AuthRepositoryImpl implements AuthRepository {
     required String name,
     String? area,
     String? email,
+    String? referralCode,
   }) async {
     try {
       final userModel = await remoteDataSource.register(
@@ -64,6 +72,7 @@ class AuthRepositoryImpl implements AuthRepository {
         name,
         area,
         email,
+        referralCode,
       );
 
       if (userModel.token != null) {
@@ -74,6 +83,12 @@ class AuthRepositoryImpl implements AuthRepository {
       await localDataSource.cacheUserRole(userModel.role);
       await localDataSource.cachePoints(userModel.points);
       await localDataSource.cacheTier(userModel.tier);
+      if (userModel.referralCode != null) {
+        await localDataSource.cacheReferralCode(userModel.referralCode!);
+      }
+      if (userModel.avatar != null) {
+        await localDataSource.cacheAvatarUrl(ImageUrlHelper.resolve(userModel.avatar!));
+      }
 
       return Right(userModel);
     } on ServerException catch (e) {

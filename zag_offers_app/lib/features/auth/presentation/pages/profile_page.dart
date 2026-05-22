@@ -1,4 +1,3 @@
-import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
@@ -7,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/socket_service.dart';
+import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../injection_container.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
 import '../../../favorites/presentation/pages/favorites_page.dart';
@@ -19,6 +19,7 @@ import '../../../../core/utils/snackbar_utils.dart';
 import 'login_page.dart';
 import '../../../../core/theme/theme_cubit.dart';
 import 'zag_rewards_page.dart';
+import 'invite_friends_page.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -33,6 +34,7 @@ class _ProfilePageState extends State<ProfilePage> {
   String? _avatarUrl;
   int _points = 0;
   String _tier = 'BRONZE';
+  String _referralCode = '';
   bool _isLoggingOut = false;
   bool _isUploadingAvatar = false;
 
@@ -61,6 +63,7 @@ class _ProfilePageState extends State<ProfilePage> {
     final avatar = await sl<AuthLocalDataSource>().getCachedAvatarUrl();
     final points = await sl<AuthLocalDataSource>().getPoints();
     final tier = await sl<AuthLocalDataSource>().getTier();
+    final referralCode = await sl<AuthLocalDataSource>().getReferralCode();
     if (mounted) {
       setState(() {
         _userName = name ?? 'مستخدم Zag Offers';
@@ -68,6 +71,7 @@ class _ProfilePageState extends State<ProfilePage> {
         _avatarUrl = avatar;
         _points = points;
         _tier = tier;
+        _referralCode = referralCode ?? '';
       });
     }
   }
@@ -152,6 +156,19 @@ class _ProfilePageState extends State<ProfilePage> {
     Navigator.push(
       context,
       MaterialPageRoute(builder: (context) => const FavoritesPage()),
+    );
+  }
+
+  void _openInviteFriends() {
+    if (_referralCode.isEmpty) {
+      SnackBarUtils.showError(context, 'كود الدعوة غير متاح حالياً');
+      return;
+    }
+    Navigator.push(
+      context,
+      MaterialPageRoute(
+        builder: (context) => InviteFriendsPage(referralCode: _referralCode),
+      ),
     );
   }
 
@@ -392,21 +409,11 @@ class _ProfilePageState extends State<ProfilePage> {
                                   : _avatarUrl != null
                                       ? ClipRRect(
                                           borderRadius: BorderRadius.circular(50),
-                                          child: CachedNetworkImage(
+                                          child: NetworkImageWidget(
                                             imageUrl: _avatarUrl!,
                                             width: 100,
                                             height: 100,
                                             fit: BoxFit.cover,
-                                            placeholder: (_, __) => const Icon(
-                                              Icons.person,
-                                              size: 50,
-                                              color: AppColors.primary,
-                                            ),
-                                            errorWidget: (_, __, ___) => const Icon(
-                                              Icons.person,
-                                              size: 50,
-                                              color: AppColors.primary,
-                                            ),
                                           ),
                                         )
                                       : const Icon(Icons.person, size: 50, color: AppColors.primary),
@@ -682,6 +689,12 @@ class _ProfilePageState extends State<ProfilePage> {
           label: 'المفضلات',
           color: Colors.red,
           onTap: _openFavorites,
+        ),
+        _buildMenuOption(
+          icon: Icons.card_giftcard_rounded,
+          label: 'دعوة الأصدقاء',
+          color: Colors.orange,
+          onTap: _openInviteFriends,
         ),
         _buildMenuOption(
           icon: Icons.notifications_rounded,

@@ -125,6 +125,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       name: event.name,
       area: event.area,
       email: event.email,
+      referralCode: event.referralCode,
     );
 
     await registerResult.fold(

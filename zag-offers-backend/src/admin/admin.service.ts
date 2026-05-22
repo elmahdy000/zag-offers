@@ -147,6 +147,7 @@ export class AdminService {
       tierSilver,
       tierGold,
       tierPlatinum,
+      totalAdminRevenue,
     ] = await Promise.all([
       this.prisma.user.count({ where: { role: Role.CUSTOMER } }),
       this.prisma.user.count({ where: { role: Role.MERCHANT } }),
@@ -166,6 +167,7 @@ export class AdminService {
       this.prisma.user.count({ where: { tier: 'SILVER' } }),
       this.prisma.user.count({ where: { tier: 'GOLD' } }),
       this.prisma.user.count({ where: { tier: 'PLATINUM' } }),
+      this.prisma.coupon.aggregate({ _sum: { commissionAmount: true }, where: { status: CouponStatus.USED } }),
     ]);
 
     const couponConversionRate =
@@ -191,6 +193,9 @@ export class AdminService {
         totalCouponsGenerated,
         totalCouponsUsed,
         couponConversionRate: `${couponConversionRate}%`,
+      },
+      revenue: {
+        totalCommission: totalAdminRevenue._sum.commissionAmount || 0,
       },
       engagement: { totalFavorites, totalReviews },
     };
@@ -838,6 +843,15 @@ export class AdminService {
       );
     }
 
+    // Also Notify Store Fans (Favorites / Past Customers)
+    void this.notificationsService.notifyStoreFans(
+      offer.storeId,
+      offer.store.name,
+      offer.title,
+      offer.id,
+      imageUrl,
+    );
+
     await this.auditLogService.log({
       action: 'APPROVE_OFFER',
       adminId,
@@ -1371,6 +1385,7 @@ export class AdminService {
       tag?: string;
       image?: string;
       actionUrl?: string;
+      offerId?: string;
       isActive?: boolean;
       priority?: number;
     },
@@ -1386,6 +1401,7 @@ export class AdminService {
         tag: data.tag?.trim() || null,
         image: data.image?.trim() || null,
         actionUrl: data.actionUrl?.trim() || null,
+        offerId: data.offerId || null,
         isActive: data.isActive ?? true,
         priority: data.priority !== undefined ? Number(data.priority) : 0,
       },
@@ -1417,6 +1433,7 @@ export class AdminService {
       tag?: string;
       image?: string;
       actionUrl?: string;
+      offerId?: string;
       isActive?: boolean;
       priority?: number;
     },
@@ -1444,6 +1461,7 @@ export class AdminService {
         ...(data.actionUrl !== undefined
           ? { actionUrl: data.actionUrl.trim() || null }
           : {}),
+        ...(data.offerId !== undefined ? { offerId: data.offerId || null } : {}),
         ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
         ...(data.priority !== undefined
           ? { priority: Number(data.priority) }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zag_offers_admin_app/core/widgets/network_image.dart';
 import 'package:zag_offers_admin_app/features/offers/domain/entities/offer.dart';
 import 'package:intl/intl.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
@@ -28,17 +29,11 @@ class OfferCard extends StatelessWidget {
             Stack(
               children: [
                 if (offer.imageUrl != null && offer.imageUrl!.isNotEmpty)
-                  Image.network(
-                    offer.imageUrl!,
+                  NetworkImageWithPlaceholder(
+                    imageUrl: offer.imageUrl!,
                     height: 180,
                     width: double.infinity,
                     fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) => Container(
-                      height: 180,
-                      width: double.infinity,
-                      color: AppColors.background,
-                      child: const Icon(Icons.image_not_supported_rounded, color: Colors.grey, size: 32),
-                    ),
                   )
                 else
                   Container(

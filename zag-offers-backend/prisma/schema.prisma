@@ -82,6 +82,13 @@ model User {
 
   analyticsEvents AnalyticsEvent[]
 
+  // Referral System
+  referralCode String? @unique
+  referredById String?
+  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals    User[]  @relation("UserReferrals")
+  hasRewardedReferrer Boolean @default(false)
+
   @@index([role])
 }
 
@@ -104,6 +111,9 @@ model Banner {
   priority  Int      @default(0)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
+
+  offerId   String?
+  offer     Offer?   @relation("BannerToOffer", fields: [offerId], references: [id])
 
   @@index([isActive])
   @@index([priority])
@@ -176,6 +186,7 @@ model Offer {
   minSpend    Float?
   discountType String @default("PERCENTAGE")
   isFeatured  Boolean @default(false)
+  fixedCommission Float @default(0) // Fixed amount in EGP per used coupon
   status      OfferStatus @default(PENDING)
   isNotified  Boolean     @default(false)
   views       Int         @default(0)
@@ -188,6 +199,7 @@ model Offer {
   coupons   Coupon[]
   reviews   Review[]
   favorites Favorite[]
+  banners   Banner[] @relation("BannerToOffer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -219,6 +231,7 @@ model Coupon {
   code      String       @unique
   expiresAt DateTime
   status    CouponStatus @default(GENERATED)
+  commissionAmount Float @default(0) // Admin profit for this specific usage
 
   offerId String
   offer   Offer  @relation(fields: [offerId], references: [id])
