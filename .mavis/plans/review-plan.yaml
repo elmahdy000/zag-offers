@@ -1,0 +1,110 @@
+﻿version: 1
+plan:
+  name: "مراجعة كود Zag Offers - تقرير شامل"
+  max_concurrency: 10
+  max_consecutive_failures: 3
+  max_cycles: 10
+
+tasks:
+  - id: backend-review
+    title: "مراجعة كود الـ Backend"
+    prompt: |
+      راجع الـ Backend الخاص بـ Zag Offers في D:\offers\zag-offers-backend\src
+      
+      المراجعة تشمل:
+      1. هيكل الـ modules والـ architecture العام
+      2. أمان الـ Auth (JWT, password hashing, rate limiting)
+      3. صحة الـ API endpoints والـ validation
+      4. الـ Database queries والـ Prisma implementation
+      5. معالجة الأخطاء والـ edge cases
+      6. Security vulnerabilities محتملة
+      7. الـ Offers/Coupons/Redemptions logic
+      
+      أنشئ ملف D:\offers\.mavis\reviews\backend-review.md يجمع فيه:
+      - ملخص عام عن جودة الكود
+      - المشاكل اللي لقيتها (مُرتبة حسب الخطورة: Critical > High > Medium > Low)
+      - نقاط القوة
+      - توصيات للحل
+      - Overall score (من 10)
+      
+      اكتب التقرير بالعربي.
+    assigned_to: coder
+    verified_by: verifier
+    verify_prompt: |
+      راجع الـ deliverable في D:\offers\.mavis\reviews\backend-review.md
+      
+      تأكد إن:
+      1. كل مشكلة مذكورة ليها مثال من الكود (file + line)
+      2. التقييم عادل ومبني على أدلة
+      3. التوصيات عملية وقابلة للتطبيق
+      
+      لو في مشاكل ناقصة أو تقييم غير دقيق، وضّح السبب.
+    timeout_ms: 3000000
+
+  - id: client-vendor-admin-review
+    title: "مراجعة تطبيقات العميل والتاجر والأدمن"
+    prompt: |
+      راجع الـ 3 تطبيقات Next.js الخاصة بـ Zag Offers:
+      
+      1. Client App: D:\offers\zag-offers-client
+      2. Vendor App: D:\offers\zag-offers-vendor
+      3. Admin App: D:\offers\zag-offers-admin
+      
+      لكل تطبيق راجع:
+      1. هيكل المشروع والـ folder structure
+      2. الـ Authentication flow والـ security
+      3. الـ API integration (React Query hooks)
+      4. UI/UX patterns والـ responsive design
+      5. State management
+      6. Security best practices
+      
+      أنشئ ملف D:\offers\.mavis\reviews\frontend-review.md يجمع فيه:
+      - ملخص لكل تطبيق
+      - المشاكل (مُرتبة حسب الخطورة)
+      - نقاط القوة
+      - توصيات
+      - Overall score لكل تطبيق (من 10)
+      
+      اكتب التقرير بالعربي.
+    assigned_to: general
+    verified_by: verifier
+    verify_prompt: |
+      راجع الـ deliverable في D:\offers\.mavis\reviews\frontend-review.md
+      
+      تأكد إن:
+      1. كل تطبيق له تقييم منفصل
+      2. المشاكل موضّحة بأمثلة من الكود
+      3. التوصيات عملية
+      
+      لو التقييم غير دقيق أو ناقص، وضّح السبب.
+    timeout_ms: 3000000
+
+  - id: final-report
+    title: "إنشاء التقرير النهائي"
+    prompt: |
+      بعد ما الـ 2 مراجعة اللي قبلها تت.finish، اجمع النتائج في تقرير نهائي.
+      
+      أنشئ ملف D:\offers\.mavis\reviews\FINAL_REPORT.md
+      
+      التقرير يشمل:
+      1. ملخص تنفيذي (Executive Summary)
+      2. Backend Review Summary + Score
+      3. Frontend Apps Review Summary + Score لكل تطبيق
+      4. المشاكل الحرجة اللي لازم تتصلح فوراً
+      5. المشاكل المتوسطة اللي ينفع تتصلح لاحقاً
+      6. خطة عمل مقترحة (ترتيب الأولويات)
+      7. Overall Project Score (من 10)
+      
+      اكتب التقرير بالعربي مع علامات الترقيم العربية.
+    assigned_to: general
+    depends_on: [backend-review, client-vendor-admin-review]
+    verified_by: verifier
+    verify_prompt: |
+      راجع الـ deliverable في D:\offers\.mavis\reviews\FINAL_REPORT.md
+      
+      تأكد إن:
+      1. كل المشاكل من الـ 2 مراجعة السابقة مذكورة
+      2. الأولويات واضحة ومنطقية
+      3. التقرير سهل القراءة ومُنظّم
+      4. Overall Score realist
+    timeout_ms: 600000

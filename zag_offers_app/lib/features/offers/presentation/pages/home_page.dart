@@ -10,6 +10,8 @@ import 'package:zag_offers_app/features/home/presentation/pages/notifications_pa
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
+import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
+import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_state.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/map_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 
@@ -202,11 +204,47 @@ class _HomePageState extends State<HomePage> {
         ],
       ),
       actions: [
-        IconButton(
-          icon: const Icon(IconlyLight.notification),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+        BlocBuilder<NotificationBloc, NotificationState>(
+          builder: (context, notifState) {
+            int unreadCount = 0;
+            if (notifState is NotificationFeedState) {
+              unreadCount = notifState.items.where((e) => !e.isRead).length;
+            }
+            return Stack(
+              alignment: Alignment.center,
+              children: [
+                IconButton(
+                  icon: const Icon(IconlyLight.notification),
+                  onPressed: () {
+                    HapticFeedback.lightImpact();
+                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                  },
+                ),
+                if (unreadCount > 0)
+                  Positioned(
+                    top: 10,
+                    right: 12,
+                    child: Container(
+                      padding: const EdgeInsets.all(4),
+                      decoration: BoxDecoration(
+                        color: Colors.red,
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 1.5),
+                      ),
+                      child: Text(
+                        unreadCount > 9 ? '9+' : unreadCount.toString(),
+                        style: const TextStyle(
+                          color: Colors.white,
+                          fontSize: 8,
+                          fontWeight: FontWeight.bold,
+                          height: 1,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    ),
+                  ),
+              ],
+            );
           },
         ),
         IconButton(

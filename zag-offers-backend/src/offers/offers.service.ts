@@ -266,6 +266,13 @@ export class OffersService {
             category: true,
           },
         },
+        _count: {
+          select: {
+            coupons: {
+              where: { status: 'USED' },
+            },
+          },
+        },
       },
     });
 
