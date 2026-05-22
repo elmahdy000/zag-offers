@@ -132,17 +132,19 @@ class OfferCard extends StatelessWidget {
             overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 2),
-          Text(
-            offer.title,
-            style: TextStyle(
-              fontSize: 12,
-              fontWeight: FontWeight.w800,
-              height: 1.2,
-              color: isDark ? Colors.white : AppColors.textPrimary,
-              fontFamily: 'Tajawal',
+          Expanded(
+            child: Text(
+              offer.title,
+              style: TextStyle(
+                fontSize: 12,
+                fontWeight: FontWeight.w800,
+                height: 1.2,
+                color: isDark ? Colors.white : AppColors.textPrimary,
+                fontFamily: 'Tajawal',
+              ),
+              maxLines: 2,
+              overflow: TextOverflow.ellipsis,
             ),
-            maxLines: 2,
-            overflow: TextOverflow.ellipsis,
           ),
           const SizedBox(height: 4),
           Row(
