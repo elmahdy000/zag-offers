@@ -108,6 +108,7 @@ flutter:
   # the material Icons class.
   uses-material-design: true
   assets:
+    - assets/app_icon.png
     - assets/branding/app_icon.png
     - assets/notification_icon.png
     - assets/branding/splash_logo.png

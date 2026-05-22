@@ -188,7 +188,7 @@ class _AdsSliderState extends State<AdsSlider> {
                       image: image.isNotEmpty
                           ? DecorationImage(
                               image: CachedNetworkImageProvider(ImageUrlHelper.resolve(image)),
-                              fit: BoxFit.contain,
+                              fit: BoxFit.cover,
                             )
                           : null,
                       gradient: LinearGradient(
