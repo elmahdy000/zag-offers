@@ -280,7 +280,7 @@ export default function MyCouponsPage() {
 
               <button 
                 onClick={() => setSelectedCoupon(null)}
-                className="mt-6 w-full py-3 text-black/40 font-bold hover:text-black transition-all"
+                className="mt-6 w-full py-3 text-white/40 font-bold hover:text-white transition-all"
               >
                 إغلاق
               </button>
