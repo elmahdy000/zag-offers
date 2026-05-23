@@ -298,6 +298,42 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                       _getCategoryIcon(store.category),
                       color: Colors.white,
                       size: isSelected ? 9 : 7,
+                    ), // closes Icon
+                  ), // closes Container
+                ), // closes Positioned
+              // Rating Badge (Top Right/Left)
+              if (store.rating > 0) 
+                Positioned(
+                  top: -6,
+                  left: -6,
+                  child: Container(
+                    padding: EdgeInsets.symmetric(horizontal: isSelected ? 5 : 3, vertical: isSelected ? 3 : 1),
+                    decoration: BoxDecoration(
+                      color: isDark ? const Color(0xFF1E293B) : Colors.white,
+                      borderRadius: BorderRadius.circular(10),
+                      border: Border.all(color: Colors.amber, width: 1.5),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.15),
+                          blurRadius: 4,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.star_rounded, color: Colors.amber, size: isSelected ? 12 : 9),
+                        const SizedBox(width: 2),
+                        Text(
+                          store.rating.toStringAsFixed(1),
+                          style: GoogleFonts.inter(
+                            color: isDark ? Colors.white : Colors.black87,
+                            fontSize: isSelected ? 10 : 8,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

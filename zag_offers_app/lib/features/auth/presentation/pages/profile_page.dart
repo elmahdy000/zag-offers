@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
@@ -161,10 +161,6 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   void _openInviteFriends() {
-    if (_referralCode.isEmpty) {
-      SnackBarUtils.showError(context, 'كود الدعوة غير متاح حالياً');
-      return;
-    }
     Navigator.push(
       context,
       MaterialPageRoute(

@@ -37,7 +37,7 @@ type UserWithReset = User & {
 type LoginUser = Pick<
   User,
   'id' | 'name' | 'phone' | 'email' | 'role' | 'avatar'
->;
+> & { referralCode?: string | null };
 
 type SocialProvider = 'google' | 'facebook';
 
@@ -114,6 +114,12 @@ export class AuthService {
     }
 
     if (user && user.password && (await bcrypt.compare(pass, user.password))) {
+      // Auto-generate referral code for old users who don't have one
+      if (!(user as any).referralCode) {
+        const newCode = this.generateReferralCode();
+        await this.usersService.update(user.id, { referralCode: newCode } as any);
+        (user as any).referralCode = newCode;
+      }
       return this.sanitizeUser(user);
     }
 
@@ -137,6 +143,7 @@ export class AuthService {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        referralCode: user.referralCode,
       },
     };
   }

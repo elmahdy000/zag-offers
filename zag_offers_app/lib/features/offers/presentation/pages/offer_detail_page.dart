@@ -368,6 +368,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               _buildStoreCard(),
               const SizedBox(height: 32),
               _buildDescriptionSection(),
+              if (widget.offer.terms != null && widget.offer.terms!.isNotEmpty) ...[
+                const SizedBox(height: 24),
+                _buildTermsSection(),
+              ],
               const SizedBox(height: 24),
               _buildExpirySection(),
               const SizedBox(height: 32),
@@ -399,7 +403,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             ],
           ),
           child: Text(
-            widget.offer.discount.isNotEmpty ? widget.offer.discount : 'عرض مميز',
+            widget.offer.discount.isNotEmpty 
+                ? (widget.offer.discount.contains('%') ? widget.offer.discount : '${widget.offer.discount}%') 
+                : 'عرض مميز',
             style: textTheme.labelMedium?.copyWith(
               color: Colors.white,
               fontWeight: FontWeight.bold,
@@ -442,6 +448,27 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildTitleSection() {
     final textTheme = Theme.of(context).textTheme;
+    double? displayNewPrice = widget.offer.newPrice;
+    double? displayOldPrice = widget.offer.oldPrice;
+
+    if (displayOldPrice == null && displayNewPrice != null && widget.offer.discountPercentage > 0) {
+      if (widget.offer.discount.contains('%')) {
+        displayOldPrice = displayNewPrice / (1 - (widget.offer.discountPercentage / 100));
+      } else {
+        displayOldPrice = displayNewPrice + widget.offer.discountPercentage;
+      }
+    } else if (displayNewPrice == null && displayOldPrice != null && widget.offer.discountPercentage > 0) {
+      if (widget.offer.discount.contains('%')) {
+        displayNewPrice = displayOldPrice * (1 - (widget.offer.discountPercentage / 100));
+      } else {
+        displayNewPrice = displayOldPrice - widget.offer.discountPercentage;
+      }
+    }
+
+    if (displayNewPrice == displayOldPrice) {
+      displayOldPrice = null;
+    }
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -452,22 +479,22 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             height: 1.4,
           ),
         ),
-        if (widget.offer.oldPrice != null || widget.offer.newPrice != null) ...[
+        if (displayOldPrice != null || displayNewPrice != null) ...[
           const SizedBox(height: 8),
           Row(
             children: [
-              if (widget.offer.newPrice != null)
+              if (displayNewPrice != null)
                 Text(
-                  '${widget.offer.newPrice!.toStringAsFixed(0)} ج.م',
+                  '${displayNewPrice.toStringAsFixed(0)} ج.م',
                   style: textTheme.headlineSmall?.copyWith(
                     color: AppColors.primary,
                     fontWeight: FontWeight.w900,
                   ),
                 ),
-              if (widget.offer.oldPrice != null) ...[
+              if (displayOldPrice != null) ...[
                 const SizedBox(width: 12),
                 Text(
-                  '${widget.offer.oldPrice!.toStringAsFixed(0)} ج.م',
+                  '${displayOldPrice.toStringAsFixed(0)} ج.م',
                   style: textTheme.titleMedium?.copyWith(
                     color: textTheme.bodySmall?.color?.withValues(alpha: 0.5),
                     decoration: TextDecoration.lineThrough,
@@ -556,6 +583,39 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           widget.offer.description ??
               'استمتع بخصم مميز لفترة محدودة في ${widget.offer.store.name}.',
           style: textTheme.bodyMedium?.copyWith(height: 1.7),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildTermsSection() {
+    final textTheme = Theme.of(context).textTheme;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Row(
+          children: [
+            const Icon(Icons.info_outline_rounded, size: 20, color: AppColors.primary),
+            const SizedBox(width: 8),
+            Text(
+              'الشروط والأحكام',
+              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+            ),
+          ],
+        ),
+        const SizedBox(height: 12),
+        Container(
+          width: double.infinity,
+          padding: const EdgeInsets.all(16),
+          decoration: BoxDecoration(
+            color: Theme.of(context).cardColor,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+          ),
+          child: Text(
+            widget.offer.terms!,
+            style: textTheme.bodyMedium?.copyWith(height: 1.6),
+          ),
         ),
       ],
     );

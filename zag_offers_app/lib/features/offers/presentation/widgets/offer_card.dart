@@ -109,7 +109,9 @@ class OfferCard extends StatelessWidget {
         ],
       ),
       child: Text(
-        offer.discount.isNotEmpty ? offer.discount : 'عرض',
+        offer.discount.isNotEmpty 
+            ? (offer.discount.contains('%') ? offer.discount : '${offer.discount}%') 
+            : 'عرض',
         style: const TextStyle(
           color: Colors.white,
           fontWeight: FontWeight.w900,
@@ -158,16 +160,36 @@ class OfferCard extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               Expanded(
-                child: Text(
-                  '${offer.store.area} • ${offer.store.category ?? ""}',
-                  style: TextStyle(
-                    fontSize: 9,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.white38 : AppColors.textSecondary,
-                    fontFamily: 'Tajawal',
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Text(
+                        '${offer.store.area} • ${offer.store.category ?? ""}',
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.w500,
+                          color: isDark ? Colors.white54 : AppColors.textSecondary,
+                          fontFamily: 'Tajawal',
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                      ),
+                    ),
+                    if (offer.store.rating > 0) ...[
+                      const SizedBox(width: 4),
+                      const Icon(Icons.star_rounded, size: 10, color: Colors.amber),
+                      const SizedBox(width: 2),
+                      Text(
+                        offer.store.rating.toStringAsFixed(1),
+                        style: TextStyle(
+                          fontSize: 9,
+                          fontWeight: FontWeight.bold,
+                          color: isDark ? Colors.white70 : Colors.black87,
+                          fontFamily: 'Tajawal',
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ),
               Row(
@@ -202,7 +224,29 @@ class OfferCard extends StatelessWidget {
   }
 
   Widget _buildActionSection(BuildContext context, bool isDark) {
-    final hasPrice = offer.newPrice != null;
+    double? displayNewPrice = offer.newPrice;
+    double? displayOldPrice = offer.oldPrice;
+
+    if (displayOldPrice == null && displayNewPrice != null && offer.discountPercentage > 0) {
+      if (offer.discount.contains('%')) {
+        displayOldPrice = displayNewPrice / (1 - (offer.discountPercentage / 100));
+      } else {
+        displayOldPrice = displayNewPrice + offer.discountPercentage;
+      }
+    } else if (displayNewPrice == null && displayOldPrice != null && offer.discountPercentage > 0) {
+      if (offer.discount.contains('%')) {
+        displayNewPrice = displayOldPrice * (1 - (offer.discountPercentage / 100));
+      } else {
+        displayNewPrice = displayOldPrice - offer.discountPercentage;
+      }
+    }
+    
+    // Safety check just in case calculations fail or discount is 0
+    if (displayNewPrice == displayOldPrice) {
+      displayOldPrice = null;
+    }
+
+    final hasPrice = displayNewPrice != null || displayOldPrice != null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(10, 4, 10, 10),
@@ -215,21 +259,24 @@ class OfferCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (offer.oldPrice != null)
+                  if (displayOldPrice != null)
                     Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
                         Text(
                           'قبل: ',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 11,
+                            fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white54 : Colors.black54,
                             fontFamily: 'Tajawal',
                           ),
                         ),
                         Text(
-                          '${offer.oldPrice!.toStringAsFixed(0)} ج.م',
+                          '${displayOldPrice.toStringAsFixed(0)} ج.م',
                           style: TextStyle(
-                            fontSize: 11,
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
                             color: isDark ? Colors.white38 : Colors.black45,
                             decoration: TextDecoration.lineThrough,
                             fontFamily: 'Tajawal',
@@ -237,10 +284,10 @@ class OfferCard extends StatelessWidget {
                         ),
                       ],
                     ),
-                  Row(
-                    crossAxisAlignment: CrossAxisAlignment.end,
-                    children: [
-                      if (offer.oldPrice != null)
+                  if (displayNewPrice != null)
+                    Row(
+                      crossAxisAlignment: CrossAxisAlignment.end,
+                      children: [
                         Text(
                           'بعد: ',
                           style: TextStyle(
@@ -250,45 +297,33 @@ class OfferCard extends StatelessWidget {
                             fontFamily: 'Tajawal',
                           ),
                         ),
-                      Text(
-                        '${offer.newPrice!.toStringAsFixed(0)} ج.م',
-                        style: const TextStyle(
-                          color: AppColors.primary,
-                          fontWeight: FontWeight.w900,
-                          fontSize: 16,
-                          height: 1,
-                          fontFamily: 'Tajawal',
+                        Text(
+                          '${displayNewPrice.toStringAsFixed(0)} ج.م',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                            height: 1.2,
+                            fontFamily: 'Tajawal',
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
+                      ],
+                    ),
                 ],
               ),
             ),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
-              gradient: LinearGradient(
-                colors: [
-                  AppColors.primary,
-                  AppColors.primary.withValues(alpha: 0.8),
-                ],
-              ),
-              borderRadius: BorderRadius.circular(8),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  blurRadius: 4,
-                  offset: const Offset(0, 2),
-                ),
-              ],
+              color: AppColors.primary,
+              borderRadius: BorderRadius.circular(6),
             ),
             child: const Text(
               'احصل عليه',
               style: TextStyle(
                 color: Colors.white,
-                fontWeight: FontWeight.w800,
-                fontSize: 10.5,
+                fontWeight: FontWeight.bold,
+                fontSize: 11,
                 fontFamily: 'Tajawal',
               ),
             ),
