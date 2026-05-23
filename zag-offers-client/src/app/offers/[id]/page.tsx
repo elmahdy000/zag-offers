@@ -528,7 +528,13 @@ export default function OfferDetailsPage() {
                   </div>
 
                   <a 
-                    href={`https://wa.me/${offer.store?.whatsapp || '201066711545'}?text=${encodeURIComponent(`السلام عليكم، أريد تفعيل كود الخصم الخاص بعرض: ${offer.title}\nكود الكوبون: ${couponCode}`)}`}
+                    href={`https://wa.me/${(()=>{
+                      let p = offer.store?.whatsapp || offer.store?.phone || '201066711545';
+                      p = p.replace(/\D/g, '');
+                      if (p.startsWith('01')) return '+20' + p.substring(1);
+                      if (p.startsWith('20')) return '+' + p;
+                      return '+' + p;
+                    })()}?text=${encodeURIComponent(`السلام عليكم، أريد تفعيل كود الخصم الخاص بعرض: ${offer.title}\nكود الكوبون: ${couponCode}`)}`}
                     target="_blank"
                     rel="noopener noreferrer"
                     className="w-full py-4 bg-emerald-500 text-white font-black rounded-2xl shadow-xl hover:bg-emerald-600 transition-all flex items-center justify-center gap-2"

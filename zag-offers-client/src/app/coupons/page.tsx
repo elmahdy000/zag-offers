@@ -235,8 +235,12 @@ export default function MyCouponsPage() {
                     onClick={async () => {
                       if (!selectedCoupon) return;
                       const text = `مرحباً، أود تفعيل كوبون خصم تطبيق عروض الزقازيق:\n\n🏷️ العرض: ${selectedCoupon.offer?.title}\n🏪 المحل: ${selectedCoupon.offer?.store?.name}\n🔑 الكود: ${selectedCoupon.code}\n\nشكراً لكم!`;
-                      let phone = selectedCoupon.offer?.store?.whatsapp || selectedCoupon.offer?.store?.phone || '';
-                      if (phone.startsWith('01')) phone = '2' + phone;
+                      let p = selectedCoupon.offer?.store?.whatsapp || selectedCoupon.offer?.store?.phone || '';
+                      p = p.replace(/\D/g, '');
+                      let phone = '';
+                      if (p.startsWith('01')) phone = '+20' + p.substring(1);
+                      else if (p.startsWith('20')) phone = '+' + p;
+                      else phone = '+' + p;
                       
                       const whatsappUrl = `https://wa.me/${phone}?text=${encodeURIComponent(text)}`;
                       

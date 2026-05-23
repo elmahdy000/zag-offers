@@ -7,7 +7,7 @@ import { motion } from 'framer-motion';
 
 export default function ContactPage() {
   const handleWhatsApp = () => {
-    window.open('https://wa.me/201066711545', '_blank');
+    window.open('https://wa.me/+201066711545', '_blank');
   };
 
   return (

@@ -129,7 +129,13 @@ export default function StoreDetailsPage() {
             <a href={`tel:${store.phone}`} className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-[#FF6B00] hover:text-white transition-all"><Phone size={24} /></a>
             {store.whatsapp && (
               <a
-                href={`https://wa.me/${store.whatsapp.replace(/\D/g, '')}`}
+                href={`https://wa.me/${(()=>{
+                  let p = store.whatsapp || '';
+                  p = p.replace(/\D/g, '');
+                  if (p.startsWith('01')) return '+20' + p.substring(1);
+                  if (p.startsWith('20')) return '+' + p;
+                  return '+' + p;
+                })()}`}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-green-500 hover:text-white transition-all"
