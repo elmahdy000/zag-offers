@@ -1,6 +1,6 @@
-import 'dart:convert';
+﻿import 'dart:convert';
+import 'package:zag_offers_app/core/error/error_handler.dart';
 import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/error/failures.dart';
 import '../../domain/entities/notification_item_entity.dart';
@@ -38,14 +38,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       }).toList();
       
       return Right(notifications);
-    } on DioException catch (e) {
-      if (e.response?.statusCode == 401) {
-        return const Right([]);
-      }
-      return Left(ServerFailure(e.message ?? 'فشل جلب الإشعارات'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -53,11 +46,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     try {
       await apiClient.dio.post('/notifications/read-all');
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.message ?? 'فشل تحديث الإشعارات'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -65,11 +54,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     try {
       await apiClient.dio.post('/notifications/$notificationId/read');
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.message ?? 'فشل تحديث الإشعار'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -77,11 +62,7 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     try {
       await apiClient.dio.delete('/notifications/clear-all');
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.message ?? 'فشل حذف الإشعارات'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -89,10 +70,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
     try {
       await apiClient.dio.delete('/notifications/$notificationId');
       return const Right(null);
-    } on DioException catch (e) {
-      return Left(ServerFailure(e.message ?? 'فشل حذف الإشعار'));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 }
+
+
+

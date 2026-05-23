@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/offer_model.dart';
 
@@ -16,42 +16,27 @@ class OfferRemoteDataSourceImpl implements OfferRemoteDataSource {
 
   @override
   Future<List<OfferModel>> getMyOffers() async {
-    try {
-      final response = await apiClient.dio.get('/offers/my');
-      final raw = response.data;
-      final items = raw is List ? List<dynamic>.from(raw) : <dynamic>[];
-      return items
-          .map<OfferModel>((e) => OfferModel.fromJson(e))
-          .toList();
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    final response = await apiClient.dio.get('/offers/my');
+    final raw = response.data;
+    final items = raw is List ? List<dynamic>.from(raw) : <dynamic>[];
+    return items
+        .map<OfferModel>((e) => OfferModel.fromJson(e as Map<String, dynamic>))
+        .toList();
   }
 
   @override
   Future<void> createOffer(OfferModel offer) async {
-    try {
-      await apiClient.dio.post('/offers', data: offer.toJson());
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message);
-    }
+    await apiClient.dio.post('/offers', data: offer.toJson());
   }
 
   @override
   Future<void> updateOffer(String id, Map<String, dynamic> data) async {
-    try {
-      await apiClient.dio.patch('/offers/$id', data: data);
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message);
-    }
+    await apiClient.dio.patch('/offers/$id', data: data);
   }
 
   @override
   Future<void> deleteOffer(String id) async {
-    try {
-      await apiClient.dio.delete('/offers/$id');
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    await apiClient.dio.delete('/offers/$id');
   }
 }
+

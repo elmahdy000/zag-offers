@@ -1,4 +1,5 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/categories/domain/entities/category.dart';
 import 'package:zag_offers_admin_app/features/categories/domain/repositories/category_repository.dart';
@@ -15,7 +16,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       final categories = await remoteDataSource.getCategories();
       return Right(categories);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -28,7 +29,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await remoteDataSource.createCategory(name, icon);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -42,7 +43,7 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await remoteDataSource.updateCategory(id, name, icon);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -52,7 +53,8 @@ class CategoryRepositoryImpl implements CategoryRepository {
       await remoteDataSource.deleteCategory(id);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+

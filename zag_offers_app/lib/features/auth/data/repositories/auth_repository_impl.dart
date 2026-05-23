@@ -1,5 +1,6 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
+import 'package:zag_offers_app/core/error/error_handler.dart';
 import '../../../../core/error/exceptions.dart';
 
 import '../../../../core/error/failures.dart';
@@ -51,8 +52,8 @@ class AuthRepositoryImpl implements AuthRepository {
         fallbackMessage: 'حصلت مشكلة في الدخول، جرّب تاني',
       );
       return Left(ServerFailure(message));
-    } catch (_) {
-      return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 
@@ -99,8 +100,8 @@ class AuthRepositoryImpl implements AuthRepository {
         fallbackMessage: 'حصلت مشكلة في التسجيل، جرّب تاني',
       );
       return Left(ServerFailure(message));
-    } catch (_) {
-      return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 
@@ -109,8 +110,8 @@ class AuthRepositoryImpl implements AuthRepository {
     try {
       await localDataSource.clearCache();
       return const Right(null);
-    } catch (_) {
-      return const Left(ServerFailure('فشل تسجيل الخروج'));
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 
@@ -122,7 +123,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (e) {
       return Left(ServerFailure(mapDioErrorToMessage(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -134,7 +135,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (e) {
       return Left(ServerFailure(mapDioErrorToMessage(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString().replaceAll('Exception: ', '')));
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 
@@ -150,7 +151,7 @@ class AuthRepositoryImpl implements AuthRepository {
     } on DioException catch (e) {
       return Left(ServerFailure(mapDioErrorToMessage(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString().replaceAll('Exception: ', '')));
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 
@@ -164,8 +165,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(e.message ?? 'فشل حذف الحساب'));
     } on DioException catch (e) {
       return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (_) {
-      return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 
@@ -179,8 +180,8 @@ class AuthRepositoryImpl implements AuthRepository {
       return Left(ServerFailure(e.message ?? 'فشل رفع الصورة'));
     } on DioException catch (e) {
       return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (_) {
-      return const Left(ServerFailure('عفوًا، حصل خطأ غير متوقع'));
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e).replaceAll('Exception: ', '')));
     }
   }
 }

@@ -1,4 +1,4 @@
-import '../../domain/entities/dashboard_stats_entity.dart';
+﻿import '../../domain/entities/dashboard_stats_entity.dart';
 import '../../domain/repositories/dashboard_repository.dart';
 import '../datasources/dashboard_remote_data_source.dart';
 
@@ -12,3 +12,4 @@ class DashboardRepositoryImpl implements DashboardRepository {
     return await remoteDataSource.getDashboardStats();
   }
 }
+

@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../models/dashboard_stats_model.dart';
 
@@ -19,7 +19,8 @@ class DashboardRemoteDataSourceImpl implements DashboardRemoteDataSource {
     } on DioException {
       rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 }
+

@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter/services.dart';
 import 'package:image_picker/image_picker.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/services/socket_service.dart';
@@ -87,12 +88,12 @@ class _ProfilePageState extends State<ProfilePage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               ListTile(
-                leading: const Icon(Icons.photo_library_outlined),
+                leading: const Icon(IconlyBroken.image),
                 title: const Text('اختر من المعرض'),
                 onTap: () => Navigator.pop(context, ImageSource.gallery),
               ),
               ListTile(
-                leading: const Icon(Icons.camera_alt_outlined),
+                leading: const Icon(IconlyBroken.camera),
                 title: const Text('التقط صورة'),
                 onTap: () => Navigator.pop(context, ImageSource.camera),
               ),
@@ -127,7 +128,7 @@ class _ProfilePageState extends State<ProfilePage> {
     setState(() => _isLoggingOut = true);
     try {
       sl<SocketService>().dispose();
-      // Dispatch through AuthBloc — it handles FCM token removal + cache clear
+      // Dispatch through AuthBloc â€” it handles FCM token removal + cache clear
       if (mounted) {
         context.read<AuthBloc>().add(LogoutRequested());
       }
@@ -201,10 +202,16 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _openPrivacyPolicy() async {
-    final url = Uri.parse('https://zagoffers.online/privacy');
-    if (await canLaunchUrl(url)) {
-      await launchUrl(url, mode: LaunchMode.externalApplication);
-    } else {
+    try {
+      final url = Uri.parse('https://zagoffers.online/privacy');
+      if (await canLaunchUrl(url)) {
+        try { await launchUrl(url, mode: LaunchMode.externalApplication); } catch (e) { if (context.mounted) SnackBarUtils.showError(context, 'تعذر فتح الرابط'); }
+      } else {
+        if (mounted) {
+          SnackBarUtils.showError(context, 'تعذر فتح سياسة الخصوصية');
+        }
+      }
+    } catch (e) {
       if (mounted) {
         SnackBarUtils.showError(context, 'تعذر فتح سياسة الخصوصية');
       }
@@ -277,7 +284,7 @@ class _ProfilePageState extends State<ProfilePage> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 ListTile(
-                  leading: const Icon(Icons.notifications_outlined),
+                  leading: const Icon(IconlyBroken.notification),
                   title: const Text('الإشعارات'),
                   onTap: () {
                     Navigator.pop(context);
@@ -285,7 +292,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.help_outline),
+                  leading: const Icon(IconlyBroken.infoSquare),
                   title: const Text('مركز المساعدة'),
                   onTap: () {
                     Navigator.pop(context);
@@ -293,7 +300,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.info_outline),
+                  leading: const Icon(IconlyBroken.infoCircle),
                   title: const Text('عن التطبيق'),
                   onTap: () {
                     Navigator.pop(context);
@@ -301,7 +308,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.privacy_tip_outlined),
+                  leading: const Icon(IconlyBroken.lock),
                   title: const Text('سياسة الخصوصية'),
                   onTap: () {
                     Navigator.pop(context);
@@ -309,7 +316,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.no_accounts_outlined, color: Colors.red),
+                  leading: const Icon(IconlyBroken.delete, color: Colors.red),
                   title: const Text('حذف الحساب', style: TextStyle(color: Colors.red)),
                   onTap: () {
                     Navigator.pop(context);
@@ -317,7 +324,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   },
                 ),
                 ListTile(
-                  leading: const Icon(Icons.copy_rounded),
+                  leading: const Icon(IconlyBroken.document),
                   title: const Text('نسخ اسم المستخدم'),
                   onTap: () async {
                     Navigator.pop(context);
@@ -416,7 +423,7 @@ class _ProfilePageState extends State<ProfilePage> {
                                             fit: BoxFit.cover,
                                           ),
                                         )
-                                      : const Icon(Icons.person, size: 50, color: AppColors.primary),
+                                      : const Icon(IconlyBroken.profile, size: 50, color: AppColors.primary),
                             ),
                           ),
                         ),
@@ -476,15 +483,15 @@ class _ProfilePageState extends State<ProfilePage> {
                         _buildStatCard(
                           'كوبونات نشطة',
                           _userRole == 'CUSTOMER' ? 'متاح' : '--',
-                          Icons.confirmation_num_rounded,
-                          Colors.orange,
+                          IconlyBroken.ticketStar,
+                          Colors.orange.shade600,
                         ),
                         const SizedBox(width: 16),
                         _buildStatCard(
                           'نوع الحساب',
                           _roleLabel(_userRole),
-                          Icons.verified_user_rounded,
-                          Colors.green,
+                          IconlyBroken.shieldDone,
+                          const Color(0xFF10B981), // Emerald Green
                         ),
                       ],
                     ),
@@ -610,7 +617,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 shape: BoxShape.circle,
               ),
               child: Icon(
-                Icons.workspace_premium_rounded,
+                IconlyBroken.star,
                 color: tierColor,
                 size: 32,
               ),
@@ -661,7 +668,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
-            const Icon(Icons.arrow_forward_ios_rounded, size: 16, color: Colors.grey),
+            const Icon(IconlyLight.arrowLeft2, size: 18, color: Colors.grey),
           ],
         ),
       ),
@@ -675,9 +682,9 @@ class _ProfilePageState extends State<ProfilePage> {
           builder: (context, themeMode) {
             final isDark = themeMode == ThemeMode.dark;
             return _buildMenuOption(
-              icon: isDark ? Icons.dark_mode_rounded : Icons.light_mode_rounded,
-              label: isDark ? 'الوضع الداكن' : 'الوضع الفاتح',
-              color: Colors.amber,
+              icon: IconlyBroken.setting,
+              label: isDark ? 'الوضع الفاتح' : 'الوضع الداكن',
+              color: const Color(0xFF6366F1), // Indigo
               onTap: () {
                 context.read<ThemeCubit>().toggleTheme();
               },
@@ -685,45 +692,45 @@ class _ProfilePageState extends State<ProfilePage> {
           },
         ),
         _buildMenuOption(
-          icon: Icons.favorite_rounded,
+          icon: IconlyBroken.heart,
           label: 'المفضلات',
-          color: Colors.red,
+          color: const Color(0xFFEC4899), // Pink
           onTap: _openFavorites,
         ),
         _buildMenuOption(
-          icon: Icons.card_giftcard_rounded,
+          icon: IconlyBroken.addUser,
           label: 'دعوة الأصدقاء',
-          color: Colors.orange,
+          color: Colors.amber.shade600,
           onTap: _openInviteFriends,
         ),
         _buildMenuOption(
-          icon: Icons.notifications_rounded,
+          icon: IconlyBroken.notification,
           label: 'الإشعارات',
-          color: Colors.blue,
+          color: const Color(0xFF0EA5E9), // Sky Blue
           onTap: _openNotifications,
         ),
         _buildMenuOption(
-          icon: Icons.help_center_rounded,
+          icon: IconlyBroken.infoSquare,
           label: 'مركز المساعدة',
-          color: Colors.purple,
+          color: const Color(0xFF8B5CF6), // Purple
           onTap: _showHelpDialog,
         ),
         _buildMenuOption(
-          icon: Icons.info_rounded,
+          icon: IconlyBroken.infoCircle,
           label: 'عن التطبيق',
-          color: Colors.teal,
+          color: const Color(0xFF14B8A6), // Teal
           onTap: _showAboutDialogSheet,
         ),
         _buildMenuOption(
-          icon: Icons.privacy_tip_rounded,
+          icon: IconlyBroken.lock,
           label: 'سياسة الخصوصية',
-          color: Colors.indigo,
+          color: Colors.blueGrey,
           onTap: _openPrivacyPolicy,
         ),
         _buildMenuOption(
-          icon: Icons.no_accounts_rounded,
+          icon: IconlyBroken.delete,
           label: 'حذف الحساب',
-          color: Colors.blueGrey,
+          color: const Color(0xFFEF4444), // Red
           onTap: _deleteAccount,
         ),
       ],
@@ -766,7 +773,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
                 ),
               ),
-              Icon(Icons.arrow_forward_ios_rounded, size: 14, color: theme.dividerColor),
+              Icon(IconlyLight.arrowLeft2, size: 16, color: theme.dividerColor),
             ],
           ),
         ),
@@ -813,3 +820,4 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
+

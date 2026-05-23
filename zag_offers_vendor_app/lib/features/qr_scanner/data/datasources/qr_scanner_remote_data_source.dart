@@ -12,14 +12,9 @@ class QRScannerRemoteDataSourceImpl implements QRScannerRemoteDataSource {
 
   @override
   Future<void> redeemCoupon(String code, String? storeId) async {
-    try {
-      await apiClient.dio.post(
-        '/coupons/redeem',
-        data: {'code': code, if (storeId != null) 'storeId': storeId},
-      );
-    } on DioException catch (e) {
-      final message = e.response?.data['message'] ?? e.message;
-      throw Exception(message);
-    }
+    await apiClient.dio.post(
+      '/coupons/redeem',
+      data: {'code': code, if (storeId != null) 'storeId': storeId},
+    );
   }
 }

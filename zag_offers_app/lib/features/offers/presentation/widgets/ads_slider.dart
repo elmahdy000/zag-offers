@@ -124,7 +124,7 @@ class _AdsSliderState extends State<AdsSlider> {
     });
   }
 
-  void _onBannerTap(BannerItem ad) {
+  Future<void> _onBannerTap(BannerItem ad) async {
     final actionUrl = ad.actionUrl;
     if (actionUrl == null || actionUrl.isEmpty) return;
 
@@ -145,7 +145,9 @@ class _AdsSliderState extends State<AdsSlider> {
         ),
       );
     } else if (actionUrl.startsWith('http://') || actionUrl.startsWith('https://')) {
-      launchUrl(Uri.parse(actionUrl), mode: LaunchMode.externalApplication);
+      try {
+        await launchUrl(Uri.parse(actionUrl), mode: LaunchMode.externalApplication);
+      } catch (_) {}
     }
   }
 

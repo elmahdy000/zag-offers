@@ -74,8 +74,24 @@ class ReviewsBloc extends Bloc<ReviewsEvent, ReviewsState> {
     AddReplyRequested event,
     Emitter<ReviewsState> emit,
   ) async {
+    final currentState = state;
     try {
       await repository.addReply(event.reviewId, event.reply);
-    } catch (_) {}
+      if (currentState is ReviewsLoaded) {
+        // Optimistically update the UI or just emit success state. 
+        // For simplicity, we emit a copy with a fake update or trigger reload from UI
+        emit(ReplyAddedSuccess());
+        emit(currentState);
+      } else {
+        emit(ReplyAddedSuccess());
+      }
+    } catch (e) {
+      emit(ReviewsError(e.toString().replaceAll('Exception: ', '')));
+      if (currentState is ReviewsLoaded) {
+        emit(currentState);
+      }
+    }
   }
 }
+
+class ReplyAddedSuccess extends ReviewsState {}

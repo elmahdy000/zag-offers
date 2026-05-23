@@ -1,6 +1,7 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/entities/admin_user.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:zag_offers_admin_app/core/services/notification_service.dart';
@@ -51,7 +52,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LogoutEvent>((event, emit) async {
-      await repository.logout();
+      try {
+        await repository.logout();
+      } catch (e) {
+        emit(AuthError(message: ErrorHandler.handle(e).replaceAll('Exception: ', '')));
+      }
       sl<NotificationService>().reset();
       emit(AuthUnauthenticated());
     });
@@ -78,3 +83,5 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 }
+
+

@@ -1,8 +1,8 @@
-import 'package:flutter/foundation.dart';
+﻿import 'package:flutter/foundation.dart';
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:dio/dio.dart';
-import '../../../../core/network/dio_error_mapper.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../domain/repositories/store_setup_repository.dart';
 import '../../domain/entities/store_entity.dart';
 import '../../domain/entities/category_entity.dart';
@@ -40,7 +40,7 @@ class CategoriesLoaded extends StoreSetupState {
   List<Object?> get props => [categories];
 }
 
-/// Submission in progress — categories remain accessible so dropdown doesn't crash
+/// Submission in progress â€” categories remain accessible so dropdown doesn't crash
 class StoreSubmitting extends StoreSetupState {
   final List<CategoryEntity> categories;
   StoreSubmitting(this.categories);
@@ -86,7 +86,7 @@ class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
       emit(CategoriesLoaded(_categories));
     } on DioException catch (e) {
       debugPrint('[StoreSetupBloc] DioException loading categories: ${e.message} | status: ${e.response?.statusCode}');
-      emit(StoreSetupError(mapDioErrorToMessage(e), categories: _categories));
+      emit(StoreSetupError(ErrorHandler.handle(e), categories: _categories));
     } catch (e) {
       debugPrint('[StoreSetupBloc] Exception loading categories: $e');
       emit(StoreSetupError(
@@ -105,7 +105,7 @@ class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
       final store = await repository.createStore(event.data);
       emit(StoreCreatedSuccess(store));
     } on DioException catch (e) {
-      emit(StoreSetupError(mapDioErrorToMessage(e), categories: _categories));
+      emit(StoreSetupError(ErrorHandler.handle(e), categories: _categories));
     } catch (e) {
       emit(StoreSetupError(
         e.toString().replaceAll('Exception: ', ''),
@@ -114,3 +114,4 @@ class StoreSetupBloc extends Bloc<StoreSetupEvent, StoreSetupState> {
     }
   }
 }
+

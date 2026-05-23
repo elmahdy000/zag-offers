@@ -1,4 +1,5 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
+import '../../../../core/error/exceptions.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../offers/data/models/offer_model.dart';
 
@@ -18,7 +19,7 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
       final response = await apiClient.dio.post('/favorites/toggle/$offerId');
       return (response.data as Map<String, dynamic>?)?['favorited'] as bool? ?? false;
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(e.message);
     }
   }
 
@@ -34,7 +35,6 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
               : <dynamic>[];
 
       return list.whereType<Map<String, dynamic>>().map((item) {
-        // Backend wraps offer inside { offer: {...} }
         final offerJson = item['offer'];
         if (offerJson is Map<String, dynamic>) {
           return OfferModel.fromJson(offerJson);
@@ -42,7 +42,8 @@ class FavoritesRemoteDataSourceImpl implements FavoritesRemoteDataSource {
         return OfferModel.fromJson(item);
       }).toList();
     } on DioException catch (e) {
-      throw Exception(e.message);
+      throw ServerException(e.message);
     }
   }
 }
+

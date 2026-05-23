@@ -1,4 +1,4 @@
-import '../../domain/repositories/qr_scanner_repository.dart';
+﻿import '../../domain/repositories/qr_scanner_repository.dart';
 import '../datasources/qr_scanner_remote_data_source.dart';
 
 class QRScannerRepositoryImpl implements QRScannerRepository {
@@ -11,3 +11,4 @@ class QRScannerRepositoryImpl implements QRScannerRepository {
     return await remoteDataSource.redeemCoupon(code, storeId);
   }
 }
+

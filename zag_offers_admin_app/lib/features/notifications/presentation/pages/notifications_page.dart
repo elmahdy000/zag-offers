@@ -1,8 +1,9 @@
-import 'package:flutter/material.dart';
+﻿import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_admin_app/core/network/api_client.dart';
 import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:intl/intl.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:zag_offers_admin_app/core/utils/image_url_helper.dart';
 import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
@@ -58,7 +59,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         }
       });
     } catch (e) {
-      debugPrint('Error marking notification as read: $e');
+      if (mounted) SnackBarUtils.showError(context, 'خطأ في تعيين الإشعار كمقروء');
     }
   }
 
@@ -71,7 +72,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         }
       });
     } catch (e) {
-      debugPrint('Error marking all notifications as read: $e');
+      if (mounted) SnackBarUtils.showError(context, 'خطأ في تعيين الكل كمقروء');
     }
   }
 
@@ -82,7 +83,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
         _notifications.removeWhere((n) => n['id'] == id);
       });
     } catch (e) {
-      debugPrint('Error deleting notification: $e');
+      if (mounted) SnackBarUtils.showError(context, 'خطأ في حذف الإشعار');
     }
   }
 
@@ -91,7 +92,7 @@ class _NotificationsPageState extends State<NotificationsPage> {
       await _apiClient.delete('/notifications/clear-all');
       setState(() => _notifications.clear());
     } catch (e) {
-      debugPrint('Error deleting all notifications: $e');
+      if (mounted) SnackBarUtils.showError(context, 'خطأ في حذف جميع الإشعارات');
     }
   }
 
@@ -258,3 +259,4 @@ class _NotificationsPageState extends State<NotificationsPage> {
     );
   }
 }
+

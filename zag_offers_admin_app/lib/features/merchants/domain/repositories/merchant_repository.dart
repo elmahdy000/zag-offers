@@ -20,5 +20,13 @@ abstract class MerchantRepository {
     String? area,
     String? address,
   });
+  Future<Either<Failure, void>> updateMerchant(
+    String id, {
+    String? storeName,
+    String? categoryId,
+    String? logoUrl,
+    String? ownerName,
+    String? phone,
+  });
   Future<Either<Failure, void>> deleteMerchant(String id);
 }

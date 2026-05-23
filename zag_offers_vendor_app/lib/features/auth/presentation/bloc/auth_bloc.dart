@@ -1,5 +1,5 @@
+﻿import 'package:zag_offers_vendor_app/core/error/error_handler.dart';
 import 'package:equatable/equatable.dart';
-import '../../../../core/network/dio_error_mapper.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/user_entity.dart';
@@ -84,7 +84,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       
       emit(AuthAuthenticated(user));
     } on DioException catch (e) {
-      emit(AuthError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تسجيل الدخول')));
+      emit(AuthError(ErrorHandler.handle(e)));
     } catch (e) {
       emit(AuthError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -111,8 +111,18 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     LogoutRequested event,
     Emitter<AuthState> emit,
   ) async {
-    await NotificationService.removeTokenFromBackend();
+    try {
+      await NotificationService.removeTokenFromBackend();
+    } catch (_) {
+      // Best-effort â€” proceed with local logout
+    }
     await authRepository.logout();
     emit(AuthUnauthenticated());
   }
 }
+
+
+
+
+
+

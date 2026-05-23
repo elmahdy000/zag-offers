@@ -16,6 +16,14 @@ abstract class MerchantRemoteDataSource {
     String? area,
     String? address,
   });
+  Future<void> updateMerchant(
+    String id, {
+    String? storeName,
+    String? categoryId,
+    String? logoUrl,
+    String? ownerName,
+    String? phone,
+  });
 }
 
 class MerchantRemoteDataSourceImpl implements MerchantRemoteDataSource {
@@ -108,5 +116,24 @@ class MerchantRemoteDataSourceImpl implements MerchantRemoteDataSource {
       'phone': phone, // Use same phone for store
       'status': 'APPROVED',
     });
+  }
+
+  @override
+  Future<void> updateMerchant(
+    String id, {
+    String? storeName,
+    String? categoryId,
+    String? logoUrl,
+    String? ownerName,
+    String? phone,
+  }) async {
+    final Map<String, dynamic> data = {};
+    if (storeName != null) data['name'] = storeName;
+    if (categoryId != null) data['categoryId'] = categoryId;
+    if (logoUrl != null) data['logoUrl'] = logoUrl;
+    if (ownerName != null) data['ownerName'] = ownerName;
+    if (phone != null) data['phone'] = phone;
+
+    await client.patch('/admin/stores/$id', data: data);
   }
 }

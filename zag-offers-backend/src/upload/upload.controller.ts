@@ -26,7 +26,7 @@ export class UploadController {
 
   @Post()
   @UseGuards(JwtAuthGuard)
-  @Throttle({ short: { limit: 3, ttl: 10000 }, medium: { limit: 20, ttl: 3600000 } })
+  @Throttle({ short: { limit: 10, ttl: 10000 }, medium: { limit: 50, ttl: 3600000 } })
   @ApiBearerAuth()
   @ApiOperation({
     summary: 'رفع صورة جديدة ومعالجتها (تغيير حجم وتحويل لـ WebP)',

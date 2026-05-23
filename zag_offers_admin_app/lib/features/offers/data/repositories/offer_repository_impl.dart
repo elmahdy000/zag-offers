@@ -1,4 +1,4 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/offers/domain/entities/offer.dart';
 import 'package:zag_offers_admin_app/features/offers/domain/repositories/offer_repository.dart';

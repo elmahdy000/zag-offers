@@ -172,6 +172,7 @@ Future<void> init() async {
 
   // --- Core ---
   sl.registerLazySingleton(() => ApiClient(secureStorage: sl()));
+  ApiClient.onUnauthorized = () => sl<AuthBloc>().add(LogoutRequested());
   sl.registerLazySingleton(() => SocketService(secureStorage: sl()));
 
   // --- External ---

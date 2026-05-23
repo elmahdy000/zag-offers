@@ -34,11 +34,14 @@ class UploadRemoteDataSourceImpl implements UploadRemoteDataSource {
 
       final rawUrl = (response.data['url'] ?? '').toString();
       if (rawUrl.isEmpty) {
-        throw Exception('Failed to upload image');
+        throw DioException(
+          requestOptions: response.requestOptions,
+          error: 'Failed to upload image',
+        );
       }
       return rawUrl;
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'Failed to upload image');
+    } on DioException {
+      rethrow;
     }
   }
 }

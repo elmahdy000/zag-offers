@@ -1,6 +1,6 @@
-import 'package:equatable/equatable.dart';
+﻿import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
-import '../../../../core/network/dio_error_mapper.dart';
+import '../../../../core/error/error_handler.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../../../core/usecases/usecase.dart';
 import '../../domain/entities/offer_entity.dart';
@@ -94,7 +94,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       final offers = await getMyOffersUseCase(NoParams());
       emit(OffersLoaded(offers));
     } on DioException catch (e) {
-      emit(OffersError(mapDioErrorToMessage(e)));
+      emit(OffersError(ErrorHandler.handle(e)));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -108,7 +108,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       add(GetMyOffersRequested());
       sl<DashboardBloc>().add(GetDashboardStatsRequested());
     } on DioException catch (e) {
-      emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل إضافة العرض')));
+      emit(OffersError(ErrorHandler.handle(e)));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -122,7 +122,7 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       add(GetMyOffersRequested());
       sl<DashboardBloc>().add(GetDashboardStatsRequested());
     } on DioException catch (e) {
-      emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل تحديث العرض')));
+      emit(OffersError(ErrorHandler.handle(e)));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
@@ -136,9 +136,12 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
       add(GetMyOffersRequested());
       sl<DashboardBloc>().add(GetDashboardStatsRequested());
     } on DioException catch (e) {
-      emit(OffersError(mapDioErrorToMessage(e, fallbackMessage: 'فشل حذف العرض')));
+      emit(OffersError(ErrorHandler.handle(e)));
     } catch (e) {
       emit(OffersError(e.toString().replaceAll('Exception: ', '')));
     }
   }
 }
+
+
+

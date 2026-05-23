@@ -1,4 +1,5 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/dashboard/domain/entities/stats.dart';
 import 'package:zag_offers_admin_app/features/dashboard/domain/repositories/dashboard_repository.dart';
@@ -15,7 +16,8 @@ class DashboardRepositoryImpl implements DashboardRepository {
       final stats = await remoteDataSource.getStats();
       return Right(stats);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+

@@ -1,4 +1,5 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/broadcast/domain/repositories/broadcast_repository.dart';
 import 'package:zag_offers_admin_app/features/broadcast/data/datasources/broadcast_remote_datasource.dart';
@@ -24,7 +25,8 @@ class BroadcastRepositoryImpl implements BroadcastRepository {
       );
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+

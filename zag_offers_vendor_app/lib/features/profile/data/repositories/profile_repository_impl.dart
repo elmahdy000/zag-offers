@@ -1,4 +1,4 @@
-import 'package:zag_offers_vendor_app/features/auth/domain/entities/user_entity.dart';
+﻿import 'package:zag_offers_vendor_app/features/auth/domain/entities/user_entity.dart';
 import 'package:zag_offers_vendor_app/features/profile/data/datasources/profile_remote_data_source.dart';
 import 'package:zag_offers_vendor_app/features/profile/domain/repositories/profile_repository.dart';
 
@@ -46,3 +46,4 @@ class ProfileRepositoryImpl implements ProfileRepository {
     );
   }
 }
+

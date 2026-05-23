@@ -1,4 +1,4 @@
-import 'dart:async';
+﻿import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -58,8 +58,13 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   }
 
   Future<void> _launchUrl(BuildContext context, String url) async {
-    final uri = Uri.parse(url);
-    if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+    try {
+      final uri = Uri.parse(url);
+      if (!await launchUrl(uri, mode: LaunchMode.externalApplication)) {
+        if (!context.mounted) return;
+        SnackBarUtils.showError(context, 'تعذر فتح التطبيق المطلوب على هذا الجهاز');
+      }
+    } catch (e) {
       if (!context.mounted) return;
       SnackBarUtils.showError(context, 'تعذر فتح التطبيق المطلوب على هذا الجهاز');
     }
@@ -607,3 +612,4 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     );
   }
 }
+

@@ -70,5 +70,24 @@ class MerchantsBloc extends Bloc<MerchantsEvent, MerchantsState> {
         },
       );
     });
+
+    on<UpdateMerchantEvent>((event, emit) async {
+      emit(MerchantActionLoading());
+      final result = await repository.updateMerchant(
+        event.id,
+        storeName: event.storeName,
+        categoryId: event.categoryId,
+        logoUrl: event.logoUrl,
+        ownerName: event.ownerName,
+        phone: event.phone,
+      );
+      result.fold(
+        (failure) => emit(MerchantsError(message: failure.message)),
+        (_) {
+          emit(MerchantStatusUpdated()); // Reuse or create a new state like MerchantUpdated
+          add(const LoadMerchantsEvent());
+        },
+      );
+    });
   }
 }

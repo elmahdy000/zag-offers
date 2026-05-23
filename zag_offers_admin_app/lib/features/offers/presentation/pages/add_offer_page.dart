@@ -232,6 +232,7 @@ class _AddOfferPageState extends State<AddOfferPage> {
         'usageLimit': _usageLimit,
         'storeId': _selectedMerchantId,
         'originalPrice': double.tryParse(_originalPriceController.text),
+        'newPrice': _calculateNewPrice() != null ? double.tryParse(_calculateNewPrice()!) : null,
         'status': widget.initialOffer?.status ?? 'APPROVED',
       };
 

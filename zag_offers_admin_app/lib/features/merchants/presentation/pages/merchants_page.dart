@@ -251,6 +251,27 @@ class _MerchantsPageState extends State<MerchantsPage> {
               const SizedBox(height: 16),
               Center(child: Text(merchant.storeName, style: _c22w700Primary)),
               Center(child: _buildStatusBadge(merchant.status)),
+              const SizedBox(height: 24),
+              Center(
+                child: OutlinedButton.icon(
+                  onPressed: () {
+                    Navigator.pop(sheetContext);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => AddMerchantPage(merchant: merchant),
+                      ),
+                    );
+                  },
+                  icon: const Icon(IconlyLight.edit, size: 18),
+                  label: const Text('تعديل بيانات المتجر'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                ),
+              ),
               const SizedBox(height: 32),
               _buildDetailItem('اسم المالك', merchant.ownerName, IconlyLight.profile),
               _buildDetailItem('رقم الهاتف', merchant.phone, IconlyLight.call),

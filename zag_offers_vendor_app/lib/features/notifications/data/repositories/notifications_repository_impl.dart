@@ -1,9 +1,9 @@
-import 'dart:convert';
+﻿import 'dart:convert';
+import 'package:zag_offers_vendor_app/core/error/error_handler.dart';
 import 'package:dartz/dartz.dart';
 import 'package:dio/dio.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/network/dio_error_mapper.dart';
 import 'package:zag_offers_vendor_app/features/notifications/domain/entities/notification_entity.dart';
 import 'package:zag_offers_vendor_app/features/notifications/domain/repositories/notifications_repository.dart';
 
@@ -42,9 +42,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       if (e.response?.statusCode == 401) {
         return const Right([]);
       }
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -54,9 +54,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       await apiClient.post('/notifications/$id/read');
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -66,9 +66,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       await apiClient.post('/notifications/read-all');
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -78,9 +78,9 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       await apiClient.delete('/notifications/$id');
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -90,9 +90,13 @@ class NotificationsRepositoryImpl implements NotificationsRepository {
       await apiClient.delete('/notifications/clear-all');
       return const Right(null);
     } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+
+
+
+

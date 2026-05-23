@@ -18,7 +18,7 @@ class CouponsBloc extends Bloc<CouponsEvent, CouponsState> {
         page: event.page,
       );
       result.fold(
-        (failure) => emit(CouponsError(message: failure)),
+        (failure) => emit(CouponsError(message: failure.message)),
         (coupons) => emit(CouponsLoaded(coupons: coupons)),
       );
     });
@@ -26,7 +26,7 @@ class CouponsBloc extends Bloc<CouponsEvent, CouponsState> {
     on<DeleteCouponEvent>((event, emit) async {
       final result = await repository.deleteCoupon(event.id);
       result.fold(
-        (failure) => emit(CouponsError(message: failure)),
+        (failure) => emit(CouponsError(message: failure.message)),
         (_) => add(const LoadCouponsEvent()),
       );
     });

@@ -1,3 +1,4 @@
+﻿import 'package:flutter/foundation.dart';
 import 'package:firebase_messaging/firebase_messaging.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
@@ -103,10 +104,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     await result.fold(
       (failure) async => emit(AuthError(failure.message)),
       (user) async {
-        final token = await FirebaseMessaging.instance.getToken();
-        if (token != null) {
-          await updateFcmTokenUseCase(token);
-        }
+        try { final token = await FirebaseMessaging.instance.getToken(); if (token != null) { await updateFcmTokenUseCase(token); } } catch (e) { debugPrint('Failed to update FCM token: $e'); }
 
         NotificationService.subscribeToArea(user.area);
         emit(AuthSuccess(user));
@@ -143,10 +141,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             ),
           ),
           (user) async {
-            final token = await FirebaseMessaging.instance.getToken();
-            if (token != null) {
-              await updateFcmTokenUseCase(token);
-            }
+            try { final token = await FirebaseMessaging.instance.getToken(); if (token != null) { await updateFcmTokenUseCase(token); } } catch (e) { debugPrint('Failed to update FCM token: $e'); }
 
             NotificationService.subscribeToArea(user.area);
             emit(AuthSuccess(user));
@@ -156,3 +151,4 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     );
   }
 }
+

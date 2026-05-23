@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:zag_offers_vendor_app/core/network/api_client.dart';
 import '../models/review_model.dart';
 
@@ -28,7 +28,7 @@ class ReviewsRemoteDataSourceImpl implements ReviewsRemoteDataSource {
     } on DioException {
       rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 
@@ -39,7 +39,8 @@ class ReviewsRemoteDataSourceImpl implements ReviewsRemoteDataSource {
     } on DioException {
       rethrow;
     } catch (e) {
-      throw Exception(e.toString());
+      rethrow;
     }
   }
 }
+

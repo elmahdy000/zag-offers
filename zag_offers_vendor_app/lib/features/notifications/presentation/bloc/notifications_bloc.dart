@@ -1,4 +1,4 @@
-import 'package:flutter_bloc/flutter_bloc.dart';
+﻿import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:equatable/equatable.dart';
 import 'package:zag_offers_vendor_app/features/notifications/domain/entities/notification_entity.dart';
 import 'package:zag_offers_vendor_app/features/notifications/domain/repositories/notifications_repository.dart';
@@ -84,7 +84,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     final currentState = state;
     final result = await repository.markAsRead(event.id);
     result.fold(
-      (failure) => null,
+      (failure) { emit(NotificationsError(failure.message)); if (state is NotificationsLoaded) { emit(state); } },
       (_) {
         if (currentState is NotificationsLoaded) {
           final updatedNotifications = currentState.notifications.map((n) {
@@ -115,7 +115,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     final currentState = state;
     final result = await repository.deleteNotification(event.id);
     result.fold(
-      (failure) => null,
+      (failure) { emit(NotificationsError(failure.message)); if (state is NotificationsLoaded) { emit(state); } },
       (_) {
         if (currentState is NotificationsLoaded) {
           final updatedNotifications = currentState.notifications
@@ -134,7 +134,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     final currentState = state;
     final result = await repository.deleteAllNotifications();
     result.fold(
-      (failure) => null,
+      (failure) { emit(NotificationsError(failure.message)); if (state is NotificationsLoaded) { emit(state); } },
       (_) {
         if (currentState is NotificationsLoaded) {
           emit(NotificationsLoaded([]));
@@ -150,7 +150,7 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     final currentState = state;
     final result = await repository.markAllAsRead();
     result.fold(
-      (failure) => null,
+      (failure) { emit(NotificationsError(failure.message)); if (state is NotificationsLoaded) { emit(state); } },
       (_) {
         if (currentState is NotificationsLoaded) {
           final updatedNotifications = currentState.notifications.map((n) {
@@ -171,3 +171,5 @@ class NotificationsBloc extends Bloc<NotificationsEvent, NotificationsState> {
     );
   }
 }
+
+

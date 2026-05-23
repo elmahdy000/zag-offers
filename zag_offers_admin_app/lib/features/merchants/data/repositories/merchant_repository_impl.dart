@@ -1,4 +1,5 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/merchants/domain/entities/merchant.dart';
 import 'package:zag_offers_admin_app/features/merchants/domain/repositories/merchant_repository.dart';
@@ -15,7 +16,7 @@ class MerchantRepositoryImpl implements MerchantRepository {
       final result = await remoteDataSource.getMerchants(status: status);
       return Right(result);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -25,7 +26,7 @@ class MerchantRepositoryImpl implements MerchantRepository {
       final merchant = await remoteDataSource.getMerchantDetails(id);
       return Right(merchant);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -39,7 +40,7 @@ class MerchantRepositoryImpl implements MerchantRepository {
       await remoteDataSource.updateMerchantStatus(id, status, reason: reason);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -49,7 +50,7 @@ class MerchantRepositoryImpl implements MerchantRepository {
       await remoteDataSource.deleteMerchant(id);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -77,7 +78,32 @@ class MerchantRepositoryImpl implements MerchantRepository {
       );
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
+  }
+
+  @override
+  Future<Either<Failure, void>> updateMerchant(
+    String id, {
+    String? storeName,
+    String? categoryId,
+    String? logoUrl,
+    String? ownerName,
+    String? phone,
+  }) async {
+    try {
+      await remoteDataSource.updateMerchant(
+        id,
+        storeName: storeName,
+        categoryId: categoryId,
+        logoUrl: logoUrl,
+        ownerName: ownerName,
+        phone: phone,
+      );
+      return const Right(null);
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+

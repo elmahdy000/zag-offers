@@ -1,9 +1,7 @@
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_app/core/error/error_handler.dart';
 
-import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/network/dio_error_mapper.dart';
 import '../../domain/entities/review_entity.dart';
 import '../../domain/repositories/reviews_repository.dart';
 import '../datasources/reviews_remote_data_source.dart';
@@ -28,13 +26,7 @@ class ReviewsRepositoryImpl implements ReviewsRepository {
         comment: comment,
       );
       return const Right(null);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -44,12 +36,9 @@ class ReviewsRepositoryImpl implements ReviewsRepository {
     try {
       final result = await remoteDataSource.getReviewsByStore(storeId);
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 }
+
+
+

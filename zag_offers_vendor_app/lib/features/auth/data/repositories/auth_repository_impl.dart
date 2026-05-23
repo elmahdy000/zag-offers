@@ -55,3 +55,4 @@ class AuthRepositoryImpl implements AuthRepository {
     await secureStorage.delete(key: 'user_data');
   }
 }
+

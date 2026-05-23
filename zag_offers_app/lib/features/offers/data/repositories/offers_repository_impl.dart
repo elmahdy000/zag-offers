@@ -1,9 +1,7 @@
-import 'package:dartz/dartz.dart';
-import 'package:dio/dio.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_app/core/error/error_handler.dart';
 
-import '../../../../core/error/exceptions.dart';
 import '../../../../core/error/failures.dart';
-import '../../../../core/network/dio_error_mapper.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../domain/entities/store_entity.dart';
 import '../../domain/entities/category_entity.dart';
@@ -28,13 +26,7 @@ class OffersRepositoryImpl implements OffersRepository {
         page: page,
       );
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -42,13 +34,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getTrendingOffers();
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -56,13 +42,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getRecommendedOffers();
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -70,13 +50,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.searchOffers(query);
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -84,13 +58,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getFeaturedStores();
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -100,13 +68,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getOffersByStore(storeId);
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -114,13 +76,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getCategories();
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -128,13 +84,7 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getOfferById(id);
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 
   @override
@@ -142,12 +92,9 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getStoreById(id);
       return Right(result);
-    } on ServerException catch (e) {
-      return Left(ServerFailure(e.message ?? 'Server error'));
-    } on DioException catch (e) {
-      return Left(ServerFailure(mapDioErrorToMessage(e)));
-    } catch (e) {
-      return Left(ServerFailure(e.toString()));
-    }
+    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
   }
 }
+
+
+

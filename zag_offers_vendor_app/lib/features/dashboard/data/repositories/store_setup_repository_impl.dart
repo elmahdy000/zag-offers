@@ -1,4 +1,4 @@
-import '../../domain/repositories/store_setup_repository.dart';
+﻿import '../../domain/repositories/store_setup_repository.dart';
 import '../datasources/store_setup_remote_data_source.dart';
 import '../../domain/entities/store_entity.dart';
 import '../../domain/entities/category_entity.dart';
@@ -19,3 +19,4 @@ class StoreSetupRepositoryImpl implements StoreSetupRepository {
     return models.map((m) => CategoryEntity(id: m.id, name: m.name, image: m.image)).toList();
   }
 }
+

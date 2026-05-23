@@ -9,6 +9,11 @@ import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:zag_offers_admin_app/core/utils/snackbar_utils.dart';
 
+class _DetailsLoadException implements Exception {
+  final String message;
+  const _DetailsLoadException(this.message);
+}
+
 class UserDetailsPage extends StatefulWidget {
   final AppUser user;
 
@@ -31,7 +36,7 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
   Future<AppUserDetails> _loadDetails() async {
     final result = await sl<UserRepository>().getUserDetails(widget.user.id);
     return result.fold(
-      (failure) => throw Exception(failure.message),
+      (failure) => throw _DetailsLoadException(failure.message),
       (data) => data,
     );
   }

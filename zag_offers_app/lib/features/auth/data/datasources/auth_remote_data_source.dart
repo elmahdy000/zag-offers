@@ -1,5 +1,5 @@
-import 'package:dio/dio.dart';
-import '../../../../core/error/exceptions.dart';
+﻿import 'package:dio/dio.dart';
+import 'package:flutter/foundation.dart';
 import '../../../../core/network/api_client.dart';
 import '../../../../core/utils/image_url_helper.dart';
 import '../models/user_model.dart';
@@ -32,21 +32,15 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'avatar': rawUrl,
       });
       return resolvedUrl;
-    } on DioException catch (e) {
-      throw ServerException(e.response?.data['message'] ?? 'فشل رفع الصورة');
-    } catch (e) {
-      throw ServerException('حدث خطأ غير متوقع');
-    }
+    } on DioException { rethrow; }
   }
 
   @override
   Future<void> updateFcmToken(String token) async {
     try {
-      await apiClient.dio.post('/notifications/fcm-token', data: {
-        'fcmToken': token,
-      });
+      await apiClient.dio.post('/auth/fcm-token', data: {'token': token});
     } catch (e) {
-      // Silent fail
+      debugPrint('updateFcmToken failed: $e');
     }
   }
 
@@ -58,11 +52,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'password': password,
       });
       return UserModel.fromLoginJson(response.data);
-    } on DioException catch (e) {
-      throw ServerException(e.response?.data['message'] ?? 'فشل تسجيل الدخول');
-    } catch (e) {
-      throw ServerException('حدث خطأ غير متوقع');
-    }
+    } on DioException { rethrow; }
   }
 
   @override
@@ -77,11 +67,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         if (referralCode != null && referralCode.isNotEmpty) 'referredByCode': referralCode,
       });
       return UserModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw ServerException(e.response?.data['message'] ?? 'فشل إنشاء الحساب');
-    } catch (e) {
-      throw ServerException('حدث خطأ غير متوقع');
-    }
+    } on DioException { rethrow; }
   }
 
   @override
@@ -90,11 +76,7 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       await apiClient.dio.post('/auth/forgot-password', data: {
         'email': email,
       });
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'فشل إرسال كود الاستعادة');
-    } catch (e) {
-      throw Exception('حدث خطأ غير متوقع');
-    }
+    } on DioException { rethrow; }
   }
 
   @override
@@ -105,21 +87,14 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
         'otp': otp,
         'newPassword': newPassword,
       });
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? 'فشل إعادة تعيين كلمة السر');
-    } catch (e) {
-      throw Exception('حدث خطأ غير متوقع');
-    }
+    } on DioException { rethrow; }
   }
 
   @override
   Future<void> deleteAccount() async {
     try {
       await apiClient.dio.delete('/users/profile');
-    } on DioException catch (e) {
-      throw ServerException(e.response?.data['message'] ?? 'فشل حذف الحساب');
-    } catch (e) {
-      throw ServerException('حدث خطأ غير متوقع');
-    }
+    } on DioException { rethrow; }
   }
 }
+

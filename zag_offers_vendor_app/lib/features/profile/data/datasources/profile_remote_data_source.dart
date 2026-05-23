@@ -1,4 +1,4 @@
-import 'package:dio/dio.dart';
+﻿import 'package:dio/dio.dart';
 import 'package:zag_offers_vendor_app/features/auth/data/models/user_model.dart';
 import 'package:zag_offers_vendor_app/core/network/api_client.dart';
 
@@ -15,22 +15,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
 
   @override
   Future<UserModel> getProfile() async {
-    try {
-      final response = await apiClient.dio.get('/auth/me');
-      return UserModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.message);
-    }
+    final response = await apiClient.dio.get('/auth/me');
+    return UserModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   @override
   Future<UserModel> updateProfile(Map<String, dynamic> data) async {
-    try {
-      final response = await apiClient.dio.patch('/auth/profile', data: data);
-      return UserModel.fromJson(response.data);
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message);
-    }
+    final response = await apiClient.dio.patch('/auth/profile', data: data);
+    return UserModel.fromJson(response.data as Map<String, dynamic>);
   }
 
   @override
@@ -38,13 +30,10 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     required String currentPassword,
     required String newPassword,
   }) async {
-    try {
-      await apiClient.dio.post('/auth/password', data: {
-        'currentPassword': currentPassword,
-        'newPassword': newPassword,
-      });
-    } on DioException catch (e) {
-      throw Exception(e.response?.data['message'] ?? e.message ?? 'فشل تغيير كلمة المرور');
-    }
+    await apiClient.dio.post('/auth/password', data: {
+      'currentPassword': currentPassword,
+      'newPassword': newPassword,
+    });
   }
 }
+

@@ -1,4 +1,5 @@
-import 'dart:io';
+﻿import 'dart:io';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:dartz/dartz.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/upload/data/datasources/upload_remote_datasource.dart';
@@ -15,7 +16,8 @@ class UploadRepositoryImpl implements UploadRepository {
       final url = await remoteDataSource.uploadImage(file);
       return Right(url);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+

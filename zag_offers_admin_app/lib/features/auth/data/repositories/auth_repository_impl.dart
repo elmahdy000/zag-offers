@@ -1,4 +1,5 @@
 import 'package:dartz/dartz.dart';
+import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/entities/admin_user.dart';
@@ -73,7 +74,15 @@ class AuthRepositoryImpl implements AuthRepository {
 
   @override
   Future<void> logout() async {
-    await remoteDataSource.logout();
-    await prefs.remove('token');
+    try {
+      try {
+        await remoteDataSource.logout();
+      } catch (e) {
+        debugPrint('Logout remote call failed: $e');
+      }
+      await prefs.remove('token');
+    } catch (e) {
+      debugPrint('Logout local failed: $e');
+    }
   }
 }

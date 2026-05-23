@@ -2,30 +2,33 @@ import 'package:flutter/material.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 
 class SnackBarUtils {
-  static void showSuccess(BuildContext context, String message) {
+  static void showSuccess(BuildContext context, String message, {VoidCallback? onTap}) {
     _show(
       context,
       message,
       accentColor: AppColors.primary, // Brand Orange instead of Green!
       icon: Icons.check_circle_rounded,
+      onTap: onTap,
     );
   }
 
-  static void showError(BuildContext context, String message) {
+  static void showError(BuildContext context, String message, {VoidCallback? onTap}) {
     _show(
       context,
       message,
       accentColor: AppColors.error,
       icon: Icons.error_rounded,
+      onTap: onTap,
     );
   }
 
-  static void showInfo(BuildContext context, String message) {
+  static void showInfo(BuildContext context, String message, {VoidCallback? onTap}) {
     _show(
       context,
       message,
       accentColor: const Color(0xFF0284C7), // Sleek Cyan-Blue
       icon: Icons.info_rounded,
+      onTap: onTap,
     );
   }
 
@@ -34,6 +37,7 @@ class SnackBarUtils {
     String message, {
     required Color accentColor,
     required IconData icon,
+    VoidCallback? onTap,
   }) {
     final messenger = ScaffoldMessenger.of(context);
     final mediaQuery = MediaQuery.of(context);
@@ -48,8 +52,15 @@ class SnackBarUtils {
         margin: EdgeInsets.fromLTRB(16, 12, 16, bottomOffset),
         duration: const Duration(seconds: 4),
         dismissDirection: DismissDirection.horizontal,
-        content: Container(
-          decoration: BoxDecoration(
+        content: GestureDetector(
+          onTap: () {
+            if (onTap != null) {
+              ScaffoldMessenger.of(context).hideCurrentSnackBar();
+              onTap();
+            }
+          },
+          child: Container(
+            decoration: BoxDecoration(
             color: const Color(0xFF0D1422), // Premium Dark Navy/Obsidian
             borderRadius: BorderRadius.circular(20),
             border: Border.all(
@@ -123,6 +134,7 @@ class SnackBarUtils {
             ),
           ),
         ),
+      ),
       ),
     );
   }

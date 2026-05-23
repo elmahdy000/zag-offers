@@ -1,4 +1,5 @@
-import 'package:dartz/dartz.dart';
+﻿import 'package:dartz/dartz.dart';
+import 'package:zag_offers_admin_app/core/error/error_handler.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/users/domain/entities/app_user.dart';
 import 'package:zag_offers_admin_app/features/users/domain/entities/app_user_details.dart';
@@ -16,7 +17,7 @@ class UserRepositoryImpl implements UserRepository {
       final result = await remoteDataSource.getUsers(search: search);
       return Right(result);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -26,7 +27,7 @@ class UserRepositoryImpl implements UserRepository {
       final user = await remoteDataSource.getUserDetails(id);
       return Right(user);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -36,7 +37,7 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.deleteUser(id);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -50,7 +51,7 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.updateUser(id, points: points, role: role);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 
@@ -60,7 +61,8 @@ class UserRepositoryImpl implements UserRepository {
       await remoteDataSource.updateUserRole(id, role);
       return const Right(null);
     } catch (e) {
-      return Left(ServerFailure(e.toString()));
+      return Left(ServerFailure(ErrorHandler.handle(e)));
     }
   }
 }
+

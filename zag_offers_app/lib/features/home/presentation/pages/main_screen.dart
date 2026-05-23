@@ -96,11 +96,21 @@ class MainScreenState extends State<MainScreen> {
           SnackBarUtils.showSuccess(
             context,
             '⚡️ فرصة حرق أسعار الآن! ${data['title'] ?? ''}',
+            onTap: () {
+              if (data['id'] != null) {
+                NotificationService.navigateToOffer(data['id'].toString());
+              }
+            },
           );
         } else {
           SnackBarUtils.showInfo(
             context,
             'عرض جديد: ${data['title'] ?? 'تحقق من العروض'}',
+            onTap: () {
+              if (data['id'] != null) {
+                NotificationService.navigateToOffer(data['id'].toString());
+              }
+            },
           );
         }
       });
