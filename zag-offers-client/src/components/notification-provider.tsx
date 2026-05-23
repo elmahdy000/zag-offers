@@ -110,7 +110,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
           >
             <div className="px-4 py-1.5 rounded-full text-[10px] font-black border bg-red-500/10 border-red-500/20 text-red-400 backdrop-blur-md shadow-lg flex items-center gap-2">
               <div className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-              تنبيه: تعذر الاتصال اللحظي بالخادم
+              الشبكة عندك ضعيفة
             </div>
           </motion.div>
         )}

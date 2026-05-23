@@ -9,7 +9,7 @@
   <rect width="192" height="192" rx="44" fill="url(#logo-gradient)"/>
   
   <!-- Shopping Bag Icon (simplified Lucide-style for clarity at small sizes) -->
-  <g transform="translate(48, 48) scale(4)">
+  <g transform="translate(66, 66) scale(2.5)">
     <path d="M6 2 3 6v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2V6l-3-4Z" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" fill="none"/>
     <path d="M3 6h18" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
     <path d="M16 10a4 4 0 0 1-8 0" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>
