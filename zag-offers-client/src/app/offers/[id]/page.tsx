@@ -32,6 +32,7 @@ interface Offer {
     logo?: string;
     area: string;
     address?: string;
+    phone?: string;
     whatsapp?: string;
     locationUrl?: string;
     category?: {
