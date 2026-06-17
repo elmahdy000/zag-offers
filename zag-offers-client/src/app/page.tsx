@@ -380,11 +380,24 @@ function HomePageContent() {
                 <div className="w-1.5 h-6 bg-[#FF6B00] rounded-full" />
                 <h2 className="text-lg sm:text-xl font-black text-white">الأقسام</h2>
               </div>
-              <div className="flex items-center gap-4">
-                <button className="flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-xl text-xs font-black text-[#9A9A9A] hover:text-white transition-all">
-                  <RiArrowUpDownLine size={14} className="text-[#FF6B00]" />
-                  <span>ترتيب حسب: الأحدث</span>
-                </button>
+              <div className="flex items-center gap-1.5 bg-white/[0.02] border border-white/5 p-1 rounded-xl">
+                {(['newest', 'expiring', 'discount'] as SortOption[]).map((option) => {
+                  const label = option === 'newest' ? 'الأحدث' : option === 'expiring' ? 'ينتهي قريباً' : 'الأعلى خصماً';
+                  const icon = option === 'newest' ? '📅' : option === 'expiring' ? '⏰' : '💰';
+                  return (
+                    <button
+                      key={option}
+                      onClick={() => setSortBy(option)}
+                      className={`px-3 py-1.5 rounded-lg text-[10px] sm:text-xs font-bold transition-all flex items-center gap-1.5
+                        ${sortBy === option 
+                          ? 'bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white shadow-[0_4px_12px_rgba(255,107,0,0.25)]' 
+                          : 'text-[#9A9A9A] hover:text-white hover:bg-white/5'}`}
+                    >
+                      <span>{icon}</span>
+                      <span className="hidden sm:inline">{label}</span>
+                    </button>
+                  );
+                })}
               </div>
             </div>
 
@@ -393,12 +406,16 @@ function HomePageContent() {
                 href="/offers"
                 className={`flex-shrink-0 group relative w-24 sm:w-28 aspect-[4/5] rounded-[2rem] overflow-hidden border transition-all duration-500
                   ${!activeCat 
-                    ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
+                    ? 'border-[#FF6B00]/40 bg-gradient-to-br from-[#FF6B00]/25 to-[#D95A00]/5 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
                     : 'border-white/5 bg-[#252525] opacity-80 hover:opacity-100 hover:border-[#FF6B00]/30 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(255,107,0,0.1)]'}`}
               >
+                <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B00]/10 to-transparent opacity-40 group-hover:opacity-60 transition-opacity" />
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
-                  <span className={`text-xs sm:text-sm font-bold tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
-                  {!activeCat && <div className="absolute bottom-6 w-1 h-1 bg-[#FF6B00] rounded-full" />}
+                  <div className={`p-2 rounded-xl mb-1 bg-white/5 transition-all duration-300 ${!activeCat ? 'bg-[#FF6B00]/25 text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white group-hover:scale-110'}`}>
+                    <RiSparkling2Fill size={18} />
+                  </div>
+                  <span className={`text-[10px] sm:text-xs font-bold tracking-wider transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] font-black' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
+                  {!activeCat && <div className="absolute bottom-3 w-1.5 h-1.5 bg-[#FF6B00] rounded-full shadow-[0_0_8px_#FF6B00]" />}
                 </div>
               </Link>
 
@@ -442,23 +459,28 @@ function HomePageContent() {
 
           {/* Areas Row */}
           <div className="space-y-4">
-            <div className="flex items-center gap-2 text-[#9A9A9A] mb-2 mr-1">
-              <RiMapPin2Fill size={16} className="text-[#FF6B00]" />
-              <span className="text-sm font-black">اختر منطقتك بالزقازيق:</span>
+            <div className="flex items-center gap-2.5 text-[#E0E0E0] mr-1">
+              <div className="w-8 h-8 rounded-lg bg-[#FF6B00]/10 flex items-center justify-center text-[#FF6B00]">
+                <RiMapPin2Fill size={16} />
+              </div>
+              <span className="text-xs sm:text-sm font-bold">تصفح العروض حسب المنطقة في الزقازيق:</span>
             </div>
-            <div className="flex items-center gap-2 overflow-x-auto no-scrollbar pb-2">
-              {ZAGAZIG_AREAS.map((area) => (
-                <button
-                  key={area}
-                  onClick={() => setActiveArea(area === 'الكل' ? '' : area)}
-                  className={`flex-shrink-0 px-4 py-2 rounded-xl text-[11px] font-semibold transition-all border
-                    ${(area === 'الكل' && !activeArea) || activeArea === area
-                      ? 'bg-[#FF6B00] text-white border-[#FF6B00] shadow-[0_4px_15px_rgba(255,107,0,0.3)] scale-105'
-                      : 'bg-white/5 text-[#9A9A9A] border-white/5 hover:bg-white/10'}`}
-                >
-                  {area}
-                </button>
-              ))}
+            <div className="flex items-center gap-2.5 overflow-x-auto no-scrollbar pb-3 -mx-4 px-4 sm:mx-0 sm:px-0">
+              {ZAGAZIG_AREAS.map((area) => {
+                const isActive = (area === 'الكل' && !activeArea) || activeArea === area;
+                return (
+                  <button
+                    key={area}
+                    onClick={() => setActiveArea(area === 'الكل' ? '' : area)}
+                    className={`flex-shrink-0 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 border
+                      ${isActive
+                        ? 'bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white border-[#FF6B00]/30 shadow-[0_8px_20px_rgba(255,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(255,107,0,0.35)] -translate-y-0.5'
+                        : 'bg-white/[0.03] backdrop-blur-md text-[#9A9A9A] border-white/5 hover:text-white hover:bg-white/[0.08] hover:-translate-y-0.5'}`}
+                  >
+                    {area}
+                  </button>
+                );
+              })}
             </div>
           </div>
 
@@ -538,18 +560,6 @@ function HomePageContent() {
             <h2 className="text-lg sm:text-xl font-black text-white">
               {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
             </h2>
-          </div>
-          
-          <div className="flex items-center gap-4">
-            <select 
-              value={sortBy}
-              onChange={(e) => setSortBy(e.target.value as SortOption)}
-              className="bg-[#252525] border border-white/5 text-[#F0F0F0] text-[11px] font-semibold px-3 py-2 rounded-lg outline-none cursor-pointer"
-            >
-              <option value="newest">📅 الأحدث</option>
-              <option value="expiring">⏰ ينتهي قريباً</option>
-              <option value="discount">💰 الأعلى خصم</option>
-            </select>
           </div>
         </div>
 
