@@ -79,26 +79,39 @@ function HomePageContent() {
   const offersGridRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
-  // Scroll to results ONLY when category or area changes (not during search typing)
+  // Reliable scroll helper — waits for DOM paint then scrolls
+  const scrollToGrid = (delay = 0) => {
+    const run = () => {
+      const el = offersGridRef.current;
+      if (!el) return;
+      requestAnimationFrame(() => {
+        const top = el.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    };
+    if (delay > 0) setTimeout(run, delay);
+    else run();
+  };
+
+  // Scroll when category / area changes (immediate)
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
-    offersGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [activeCat, activeArea]);
+    scrollToGrid();
+  }, [activeCat, activeArea]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // For search: scroll only AFTER user has finished typing (input loses focus or debounce settled)
+  // Scroll after search debounce settles — only if user stopped typing
   useEffect(() => {
     if (!debouncedSearch) return;
-    // Only scroll if user is NOT actively typing in the input
     const timer = setTimeout(() => {
       if (document.activeElement !== searchInputRef.current) {
-        offersGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToGrid();
       }
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
-  }, [debouncedSearch]);
+  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const scrollActiveIntoView = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     const target = e.currentTarget;

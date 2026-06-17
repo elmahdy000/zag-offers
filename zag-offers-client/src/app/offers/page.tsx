@@ -61,6 +61,20 @@ function OffersPageContent() {
     const target = e.currentTarget;
     target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
   };
+
+  // Reliable scroll helper — waits one animation frame after re-render
+  const scrollToResults = (delay = 0) => {
+    const run = () => {
+      const el = resultsRef.current;
+      if (!el) return;
+      requestAnimationFrame(() => {
+        const top = el.getBoundingClientRect().top + window.scrollY - 80;
+        window.scrollTo({ top: Math.max(0, top), behavior: 'smooth' });
+      });
+    };
+    if (delay > 0) setTimeout(run, delay);
+    else run();
+  };
   
   // Initial values from URL
   const initialCat    = searchParams.get('category') || searchParams.get('categoryId') || '';
@@ -91,27 +105,26 @@ function OffersPageContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [activeCat, area, search, sort, pathname, router, searchParams]);
 
-  // Scroll to results immediately when category/area/sort changes
+  // Scroll when category / area / sort changes (immediate)
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
-    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [activeCat, area, sort]);
+    scrollToResults();
+  }, [activeCat, area, sort]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  // For search: scroll only AFTER the user stops typing (input not focused)
+  // Scroll after search debounce settles — only if user stopped typing
   useEffect(() => {
     if (!debouncedSearch) return;
     const timer = setTimeout(() => {
-      // Don't steal focus mid-typing
       const activeEl = document.activeElement as HTMLElement;
       if (activeEl?.tagName !== 'INPUT') {
-        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        scrollToResults();
       }
-    }, 300);
+    }, 200);
     return () => clearTimeout(timer);
-  }, [debouncedSearch]);
+  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
 
   const [isOffline, setIsOffline] = useState(false);
   const { socket } = usePublicSocket();
