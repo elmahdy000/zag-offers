@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -115,6 +115,15 @@ class _SearchPageState extends State<SearchPage> {
           child: TextField(
             controller: _searchController,
             onChanged: (val) => _onSearchChanged(val, context),
+            onSubmitted: (val) {
+              _debounceTimer?.cancel();
+              final trimmed = val.trim();
+              if (OfferFilterUtils.shouldRunSearch(trimmed)) {
+                context.read<OffersBloc>().add(SearchOffers(trimmed));
+              }
+              FocusScope.of(context).unfocus();
+            },
+            textInputAction: TextInputAction.search,
             autofocus: true,
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
@@ -131,12 +140,12 @@ class _SearchPageState extends State<SearchPage> {
               ),
               suffixIcon: _searchController.text.isNotEmpty
                   ? IconButton(
-                      icon: const Icon(
-                        Icons.close_rounded,
-                        size: 18,
-                      ),
-                      onPressed: () => _clearSearch(context),
-                    )
+                  icon: const Icon(
+                    Icons.close_rounded,
+                    size: 18,
+                  ),
+                  onPressed: () => _clearSearch(context),
+                )
                   : null,
             ),
           ),
@@ -292,6 +301,7 @@ class _SearchPageState extends State<SearchPage> {
         ),
       ),
       child: ListView.builder(
+        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: const EdgeInsets.symmetric(vertical: 12),
         itemCount: itemCount,
         itemBuilder: (context, index) {
@@ -436,6 +446,7 @@ class _SearchPageState extends State<SearchPage> {
                 : 0.67;
 
         return GridView.builder(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.all(16),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
