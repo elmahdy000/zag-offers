@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Store as StoreIcon, MapPin, Tag, ArrowLeft, Search } from 'lucide-react';
+import { Store as StoreIcon, MapPin, Tag, ArrowLeft, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
@@ -12,11 +12,32 @@ import { API_URL, BASE_URL } from '@/lib/constants';
 
 import { Store } from '@/lib/types';
 
+function useDebounce<T>(value: T, delay: number): T {
+  const [debouncedValue, setDebouncedValue] = useState<T>(value);
+  useEffect(() => {
+    const handler = setTimeout(() => setDebouncedValue(value), delay);
+    return () => clearTimeout(handler);
+  }, [value, delay]);
+  return debouncedValue;
+}
+
+const normalizeArabic = (str: string) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/[ى]/g, 'ي')
+    .replace(/[\u064B-\u0652]/g, '');
+};
+
 export default function StoresListPage() {
   const [stores, setStores] = useState<Store[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
+  const debouncedSearch = useDebounce(search, 400);
 
   const fetchStores = useCallback(async () => {
     const cachedRaw = localStorage.getItem('cache_stores_list');
@@ -66,8 +87,10 @@ export default function StoresListPage() {
 
   const filteredStores = stores.filter(s => {
     if (!s || !s.name || !s.area) return false;
-    const q = search.toLowerCase();
-    return s.name.toLowerCase().includes(q) || s.area.toLowerCase().includes(q);
+    const q = normalizeArabic(debouncedSearch);
+    return normalizeArabic(s.name).includes(q)
+      || normalizeArabic(s.area).includes(q)
+      || normalizeArabic(s.category?.name || '').includes(q);
   });
 
   return (
@@ -81,11 +104,19 @@ export default function StoresListPage() {
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A]" size={18} />
           <input 
             type="text"
-            placeholder="ابحث عن محل..."
+            placeholder="ابحث باسم المحل أو المنطقة أو الصنف..."
             className="w-full bg-[#252525] border border-white/[0.08] rounded-xl px-12 py-3.5 text-sm font-bold text-[#F0F0F0] focus:border-[#FF6B00] outline-none transition-all shadow-lg"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
       </div>
 

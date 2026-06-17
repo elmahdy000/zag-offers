@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
@@ -21,18 +21,22 @@ export default function FavoritesPage() {
     setTimeout(() => setIsLoggedIn(!!token), 0);
   }, []);
 
+  const favoritesRef = useRef<Offer[]>([]);
+
   const fetchFavorites = useCallback(async () => {
     const token = localStorage.getItem('token');
     
     const cached = safeJsonParse<Offer[]>(localStorage.getItem('cache_favorites_v2'), []);
-    if (cached.length > 0 && favorites.length === 0) {
+    if (cached.length > 0 && favoritesRef.current.length === 0) {
       setFavorites(cached);
+      favoritesRef.current = cached;
       setLoading(false);
     }
 
     if (!token) {
       const saved = safeJsonParse<Offer[]>(localStorage.getItem('favorites'), []);
       setFavorites(saved);
+      favoritesRef.current = saved;
       localStorage.setItem('cache_favorites_v2', JSON.stringify(saved));
       setLoading(false);
       return;
@@ -49,6 +53,7 @@ export default function FavoritesPage() {
           store: fav.offer.store
         }));
         setFavorites(offers);
+        favoritesRef.current = offers;
         localStorage.setItem('cache_favorites_v2', JSON.stringify(offers));
       }
       setError(null);
@@ -60,7 +65,7 @@ export default function FavoritesPage() {
     } finally {
       setLoading(false);
     }
-  }, [favorites.length]);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     fetchFavorites();

@@ -7,6 +7,7 @@ import {
   RiQrCodeLine, RiWhatsappFill, RiShareLine 
 } from 'react-icons/ri';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { useNotifications } from '@/components/notification-provider';
@@ -31,6 +32,7 @@ interface Coupon {
 }
 
 export default function MyCouponsPage() {
+  const router = useRouter();
   const { addNotification } = useNotifications();
   const [coupons, setCoupons] = useState<Coupon[]>([]);
   const [loading, setLoading] = useState(true);
@@ -77,12 +79,14 @@ export default function MyCouponsPage() {
 
     // Re-fetch when coming back online
     const handleOnline = () => { setIsOffline(false); fetchCoupons(); };
+    const handleOffline = () => setIsOffline(true);
     window.addEventListener('online', handleOnline);
-    window.addEventListener('offline', () => setIsOffline(true));
+    window.addEventListener('offline', handleOffline);
     return () => {
       window.removeEventListener('online', handleOnline);
+      window.removeEventListener('offline', handleOffline);
     };
-  }, [coupons.length]);
+  }, []);
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
@@ -175,7 +179,7 @@ export default function MyCouponsPage() {
                 className="absolute top-4 left-4 p-2 text-white/20 hover:text-white transition-colors"
                 onClick={(e) => {
                   e.stopPropagation();
-                  if (coupon.offer?.id) window.location.href = `/offers/${coupon.offer.id}`;
+                  if (coupon.offer?.id) router.push(`/offers/${coupon.offer.id}`);
                 }}
               >
                 <RiArrowRightLine size={18} />

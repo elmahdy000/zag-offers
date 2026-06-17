@@ -4,6 +4,7 @@ import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
 import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
+import Image from 'next/image';
 import { ErrorDisplay } from '@/components/error-display';
 import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
@@ -126,7 +127,7 @@ export default function CategoriesPage() {
       ) : (
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
           {categories.map((cat, i) => (
-            <Link key={cat.id} href={`/offers?categoryId=${cat.id}`}>
+            <Link key={cat.id} href={`/offers?category=${cat.id}`}>
               <motion.div 
                 initial={{ opacity: 0, y: 20 }}
                 animate={{ opacity: 1, y: 0 }}
@@ -134,11 +135,13 @@ export default function CategoriesPage() {
                 className="group relative aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-[#FF6B00]/50 transition-all duration-500 cursor-pointer shadow-2xl"
               >
                   <div className="absolute inset-0 bg-[#252525]">
-                  <img 
-                    src={cat.image ? resolveImageUrl(cat.image) : (CAT_ASSETS[cat.name] || CAT_ASSETS.default)} 
+                  <Image 
+                    src={cat.image ? (resolveImageUrl(cat.image) ?? CAT_ASSETS.default) : (CAT_ASSETS[cat.name] || CAT_ASSETS.default)} 
                     alt={cat.name} 
-                    className="w-full h-full object-cover transition-all duration-700 group-hover:scale-110"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    fill
+                    className="object-cover transition-all duration-700 group-hover:scale-110"
+                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
+                    quality={75}
                   />
                 </div>
                 <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
