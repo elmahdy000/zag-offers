@@ -83,6 +83,12 @@ class _UsersPageState extends State<UsersPage> {
                     fillColor: AppColors.white,
                   ),
                   onChanged: _onSearchChanged,
+                  onSubmitted: (value) {
+                    if (_debounce?.isActive ?? false) _debounce!.cancel();
+                    context.read<UsersBloc>().add(LoadUsersEvent(search: value.trim().isEmpty ? null : value.trim()));
+                    FocusScope.of(context).unfocus();
+                  },
+                  textInputAction: TextInputAction.search,
                 ),
               ),
 
@@ -151,6 +157,7 @@ class _UsersPageState extends State<UsersPage> {
       return RefreshIndicator(
         onRefresh: () async => context.read<UsersBloc>().add(LoadUsersEvent()),
         child: ListView.separated(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: state.users.length,
           separatorBuilder: (_, __) => const SizedBox(height: 12),

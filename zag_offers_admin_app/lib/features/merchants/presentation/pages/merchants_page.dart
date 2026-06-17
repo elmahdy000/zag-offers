@@ -152,6 +152,8 @@ class _MerchantsPageState extends State<MerchantsPage> {
               fillColor: AppColors.white,
             ),
             onChanged: (v) => setState(() => _searchQuery = v.toLowerCase()),
+            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+            textInputAction: TextInputAction.search,
           ),
           const SizedBox(height: 12),
           SingleChildScrollView(
@@ -187,6 +189,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
       return RefreshIndicator(
         onRefresh: () async => context.read<MerchantsBloc>().add(LoadMerchantsEvent(status: _selectedStatus)),
         child: ListView.builder(
+          keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
           itemCount: filtered.length,
           itemBuilder: (context, index) {

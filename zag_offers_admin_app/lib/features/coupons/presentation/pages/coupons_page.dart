@@ -100,6 +100,7 @@ class _CouponsPageState extends State<CouponsPage> {
                           ));
                     },
                     child: ListView.builder(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       itemCount: grouped.length,
                       itemBuilder: (context, index) {
@@ -144,6 +145,15 @@ class _CouponsPageState extends State<CouponsPage> {
                   : null,
             ),
             onChanged: _onSearchChanged,
+            onSubmitted: (value) {
+              if (_debounce?.isActive ?? false) _debounce!.cancel();
+              context.read<CouponsBloc>().add(LoadCouponsEvent(
+                    search: value.trim().isEmpty ? null : value.trim(),
+                    status: _selectedStatus,
+                  ));
+              FocusScope.of(context).unfocus();
+            },
+            textInputAction: TextInputAction.search,
           ),
           const SizedBox(height: 12),
           SingleChildScrollView(
@@ -278,6 +288,7 @@ class _CouponsPageState extends State<CouponsPage> {
               const SizedBox(height: 16),
               Expanded(
                 child: ListView.separated(
+                  keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                   controller: scrollController,
                   itemCount: coupons.length,
                   separatorBuilder: (_, __) => const Divider(height: 1),

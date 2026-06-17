@@ -182,6 +182,7 @@ class _OffersPageState extends State<OffersPage> {
                       _onFilterChanged();
                     },
                     child: ListView.builder(
+                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
@@ -240,6 +241,8 @@ class _OffersPageState extends State<OffersPage> {
                               border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
                             ),
                             onChanged: (v) => setModalState(() => query = v.toLowerCase()),
+                            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                            textInputAction: TextInputAction.search,
                           ),
                         ],
                       ),
@@ -258,6 +261,7 @@ class _OffersPageState extends State<OffersPage> {
                             }
 
                             return ListView.builder(
+                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
                               controller: scrollController,
                               padding: const EdgeInsets.symmetric(horizontal: 16),
                               itemCount: filteredMerchants.length,

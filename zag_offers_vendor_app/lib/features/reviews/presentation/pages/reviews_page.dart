@@ -132,6 +132,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
           return RefreshIndicator(
             onRefresh: () async => context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId)),
             child: ListView.builder(
+              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
               padding: const EdgeInsets.all(16),
               itemCount: reviews.length,
               itemBuilder: (context, index) => _buildReviewCard(reviews[index]),
