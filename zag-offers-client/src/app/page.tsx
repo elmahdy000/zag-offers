@@ -79,16 +79,26 @@ function HomePageContent() {
   const offersGridRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
+  // Scroll to results ONLY when category or area changes (not during search typing)
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
-    // Scroll to grid top smoothly when filters change
-    if (activeCat || activeArea || debouncedSearch) {
-      offersGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [activeCat, activeArea, debouncedSearch]);
+    offersGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [activeCat, activeArea]);
+
+  // For search: scroll only AFTER user has finished typing (input loses focus or debounce settled)
+  useEffect(() => {
+    if (!debouncedSearch) return;
+    // Only scroll if user is NOT actively typing in the input
+    const timer = setTimeout(() => {
+      if (document.activeElement !== searchInputRef.current) {
+        offersGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [debouncedSearch]);
 
   const scrollActiveIntoView = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
     const target = e.currentTarget;

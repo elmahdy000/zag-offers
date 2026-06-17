@@ -91,16 +91,27 @@ function OffersPageContent() {
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [activeCat, area, search, sort, pathname, router, searchParams]);
 
+  // Scroll to results immediately when category/area/sort changes
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
-    // Scroll to results list smoothly when filters change
-    if (activeCat || area || debouncedSearch || sort !== 'newest') {
-      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-    }
-  }, [activeCat, area, debouncedSearch, sort]);
+    resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }, [activeCat, area, sort]);
+
+  // For search: scroll only AFTER the user stops typing (input not focused)
+  useEffect(() => {
+    if (!debouncedSearch) return;
+    const timer = setTimeout(() => {
+      // Don't steal focus mid-typing
+      const activeEl = document.activeElement as HTMLElement;
+      if (activeEl?.tagName !== 'INPUT') {
+        resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [debouncedSearch]);
 
   const [isOffline, setIsOffline] = useState(false);
   const { socket } = usePublicSocket();
