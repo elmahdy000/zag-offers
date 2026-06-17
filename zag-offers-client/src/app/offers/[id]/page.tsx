@@ -382,11 +382,13 @@ export default function OfferDetailsPage() {
                     onClick={() => setActiveImg(i)}
                     className={`relative w-20 h-20 rounded-2xl overflow-hidden border-2 shrink-0 transition-all ${i === activeImg ? 'border-[#FF6B00] scale-95' : 'border-white/5 opacity-50 hover:opacity-100'}`}
                   >
-                    <img 
-                      src={resolveImageUrl(img)} 
-                      className="w-full h-full object-cover" 
+                    <Image 
+                      src={resolveImageUrl(img) ?? '/placeholder-offer.jpg'} 
                       alt=""
-                      onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                      fill
+                      className="object-cover" 
+                      sizes="80px"
+                      quality={60}
                     />
                   </button>
                 ))}

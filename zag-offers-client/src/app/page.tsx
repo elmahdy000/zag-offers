@@ -426,11 +426,13 @@ function HomePageContent() {
                 className="group relative flex-shrink-0 w-[85vw] sm:w-[500px] h-[160px] sm:h-[200px] rounded-[2rem] overflow-hidden border border-white/5 bg-[#252525] transition-all duration-500 hover:border-[#FF6B00]/30"
               >
                 {banner.image ? (
-                  <img
-                    src={resolveImageUrl(banner.image)}
+                  <Image
+                    src={resolveImageUrl(banner.image) ?? '/placeholder-offer.jpg'}
                     alt={banner.title}
-                    className="absolute inset-0 w-full h-full object-cover transition-all duration-700 group-hover:scale-105"
-                    onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                    fill
+                    className="object-cover transition-all duration-700 group-hover:scale-105"
+                    sizes="(max-width: 640px) 85vw, 500px"
+                    quality={85}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-gradient-to-br from-[#FF6B00]/20 to-[#D95A00]/10" />
