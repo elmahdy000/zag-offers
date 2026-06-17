@@ -43,6 +43,17 @@ import { usePublicSocket } from '@/lib/socket';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
+const normalizeArabic = (str: string) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/[ى]/g, 'ي')
+    .replace(/[\u064B-\u0652]/g, '');
+};
+
 
 
 const CACHE_KEY = 'zag_offers_home_cache_v4';
@@ -65,6 +76,24 @@ function HomePageContent() {
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const debouncedSearch = useDebounce(search, 400);
   const searchInputRef = useRef<HTMLInputElement>(null);
+  const offersGridRef = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    // Scroll to grid top smoothly when filters change
+    if (activeCat || activeArea || debouncedSearch) {
+      offersGridRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activeCat, activeArea, debouncedSearch]);
+
+  const scrollActiveIntoView = (e: React.MouseEvent<HTMLButtonElement | HTMLAnchorElement>) => {
+    const target = e.currentTarget;
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  };
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -230,11 +259,22 @@ function HomePageContent() {
     }
 
     if (debouncedSearch) {
-      const q = debouncedSearch.toLowerCase();
-      result = result.filter(o =>
-        (o.title || '').toLowerCase().includes(q) ||
-        (o.store?.name || '').toLowerCase().includes(q)
-      );
+      const q = normalizeArabic(debouncedSearch);
+      result = result.filter(o => {
+        const title = normalizeArabic(o.title || '');
+        const desc = normalizeArabic(o.description || '');
+        const storeName = normalizeArabic(o.store?.name || '');
+        const areaName = normalizeArabic(o.store?.area || '');
+        const catName = normalizeArabic(getCatName(o.store?.category?.name || ''));
+        
+        return (
+          title.includes(q) ||
+          desc.includes(q) ||
+          storeName.includes(q) ||
+          areaName.includes(q) ||
+          catName.includes(q)
+        );
+      });
     }
 
     return result.sort((a, b) => {
@@ -492,7 +532,10 @@ function HomePageContent() {
                 return (
                   <button
                     key={area}
-                    onClick={() => setActiveArea(area === 'الكل' ? '' : area)}
+                    onClick={(e) => {
+                      setActiveArea(area === 'الكل' ? '' : area);
+                      scrollActiveIntoView(e);
+                    }}
                     className={`flex-shrink-0 px-5 py-2.5 rounded-2xl text-xs font-bold transition-all duration-300 border
                       ${isActive
                         ? 'bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white border-[#FF6B00]/30 shadow-[0_8px_20px_rgba(255,107,0,0.2)] hover:shadow-[0_10px_25px_rgba(255,107,0,0.35)] -translate-y-0.5'
@@ -572,7 +615,7 @@ function HomePageContent() {
       )}
 
       {/* ─── Main Content Grid ───────────────────────────── */}
-      <section className="max-w-7xl mx-auto px-4">
+      <section ref={offersGridRef} className="max-w-7xl mx-auto px-4 scroll-mt-24">
         <div className="flex items-center justify-between mb-8">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">

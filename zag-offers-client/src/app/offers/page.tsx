@@ -1,8 +1,8 @@
 "use client";
 
-import React, { useState, useEffect, useMemo, useCallback, Suspense } from 'react';
+import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers } from 'lucide-react';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
@@ -38,10 +38,29 @@ function useDebounce<T>(value: T, delay: number): T {
   return debouncedValue;
 }
 
+const normalizeArabic = (str: string) => {
+  if (!str) return '';
+  return str
+    .toLowerCase()
+    .trim()
+    .replace(/[أإآ]/g, 'ا')
+    .replace(/ة/g, 'ه')
+    .replace(/[ى]/g, 'ي')
+    .replace(/[\u064B-\u0652]/g, '');
+};
+
 function OffersPageContent() {
   const searchParams  = useSearchParams();
   const router        = useRouter();
   const pathname      = usePathname();
+
+  const resultsRef = useRef<HTMLDivElement>(null);
+  const isFirstMount = useRef(true);
+
+  const scrollActiveIntoView = (e: React.MouseEvent<HTMLButtonElement>) => {
+    const target = e.currentTarget;
+    target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+  };
   
   // Initial values from URL
   const initialCat    = searchParams.get('category') || searchParams.get('categoryId') || '';
@@ -71,6 +90,17 @@ function OffersPageContent() {
     // Use replace to avoid polluting history stack with every keystroke
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
   }, [activeCat, area, search, sort, pathname, router, searchParams]);
+
+  useEffect(() => {
+    if (isFirstMount.current) {
+      isFirstMount.current = false;
+      return;
+    }
+    // Scroll to results list smoothly when filters change
+    if (activeCat || area || debouncedSearch || sort !== 'newest') {
+      resultsRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  }, [activeCat, area, debouncedSearch, sort]);
 
   const [isOffline, setIsOffline] = useState(false);
   const { socket } = usePublicSocket();
@@ -146,10 +176,13 @@ function OffersPageContent() {
 
   const filtered = useMemo(() => {
     let list = offers.filter(o => {
-      const q = debouncedSearch.toLowerCase();
+      const q = normalizeArabic(debouncedSearch);
       const matchSearch = !q
-        || (o.title || '').toLowerCase().includes(q)
-        || o.store?.name?.toLowerCase().includes(q);
+        || normalizeArabic(o.title || '').includes(q)
+        || normalizeArabic(o.description || '').includes(q)
+        || normalizeArabic(o.store?.name || '').includes(q)
+        || normalizeArabic(o.store?.area || '').includes(q)
+        || normalizeArabic(o.store?.category?.name || '').includes(q);
       const matchCat  = activeCat ? (o.store?.category?.id === activeCat || o.store?.categoryId === activeCat) : true;
       const matchArea = area ? o.store?.area === area : true;
       return matchSearch && matchCat && matchArea;
@@ -165,7 +198,7 @@ function OffersPageContent() {
     }
 
     return list;
-  }, [offers, search, activeCat, area, sort]);
+  }, [offers, debouncedSearch, activeCat, area, sort]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, Offer[]> = {};
@@ -204,21 +237,30 @@ function OffersPageContent() {
           />
           <input
             type="text"
-            placeholder="ابحث عن عرض أو محل..."
+            placeholder="ابحث بالاسم أو المحل أو المنطقة أو الصنف..."
             className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
-                       pr-10 pl-3.5 py-2.5 text-sm font-bold text-[#F0F0F0]
+                       pr-10 pl-10 py-2.5 text-sm font-bold text-[#F0F0F0]
                        placeholder:text-[#9A9A9A] outline-none
                        focus:border-[#FF6B00] focus:shadow-[0_0_0_3px_rgba(255,107,0,0.15)]
                        transition-all"
             value={search}
             onChange={e => setSearch(e.target.value)}
           />
+          {search && (
+            <button
+              onClick={() => setSearch('')}
+              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
+              title="مسح البحث"
+            >
+              <X size={15} />
+            </button>
+          )}
         </div>
 
         {/* Category Ribbon */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar scroll-smooth -mx-0.5 px-0.5">
           <button
-            onClick={() => setActiveCat('')}
+            onClick={(e) => { setActiveCat(''); scrollActiveIntoView(e); }}
             className={`flex items-center gap-1.5 px-4 py-2 rounded-xl whitespace-nowrap font-black transition-all text-[11px] sm:text-xs ${
               !activeCat 
               ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
@@ -230,7 +272,7 @@ function OffersPageContent() {
           {categories.map(cat => (
             <button
               key={cat.id}
-              onClick={() => setActiveCat(cat.id)}
+              onClick={(e) => { setActiveCat(cat.id); scrollActiveIntoView(e); }}
               className={`flex items-center gap-1.5 px-4 py-2 rounded-xl whitespace-nowrap font-black transition-all text-[11px] sm:text-xs ${
                 activeCat === cat.id 
                 ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
@@ -287,6 +329,7 @@ function OffersPageContent() {
       )}
 
       {/* ─── Grouped Content ─────────────────────────────── */}
+      <div ref={resultsRef} className="scroll-mt-20" />
       {loading ? (
         <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
