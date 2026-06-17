@@ -72,23 +72,36 @@ function HomePageContent() {
   const fetchData = useCallback(async (force = false) => {
     // Try to load from cache first
     const cachedData = localStorage.getItem(CACHE_KEY);
+    let hasFreshCache = false;
+
     if (cachedData) {
-      const parsed = JSON.parse(cachedData);
-      const age = Date.now() - (parsed.timestamp || 0);
-      if (age > CACHE_DURATION) {
-        localStorage.removeItem(CACHE_KEY);
-      } else if (offers.length === 0) {
-        setOffers(parsed.offers || []);
-        setCategories(parsed.categories || []);
-        setStores(parsed.stores || []);
-        setRecommended(parsed.recommended || []);
-        setBanners(parsed.banners || []);
-        setLoading(false);
+      try {
+        const parsed = JSON.parse(cachedData);
+        const age = Date.now() - (parsed.timestamp || 0);
+        if (age > CACHE_DURATION) {
+          localStorage.removeItem(CACHE_KEY);
+        } else {
+          hasFreshCache = true;
+          if (offers.length === 0) {
+            setOffers(parsed.offers || []);
+            setCategories(parsed.categories || []);
+            setStores(parsed.stores || []);
+            setRecommended(parsed.recommended || []);
+            setBanners(parsed.banners || []);
+            setLoading(false);
+          }
+        }
+      } catch (e) {
+        console.error('Error parsing cache:', e);
       }
     }
 
+    const shouldShowLoading = !hasFreshCache || force;
+
     try {
-      setLoading(true);
+      if (shouldShowLoading) {
+        setLoading(true);
+      }
       const t = Date.now();
       const responses = await Promise.all([
         fetch(`${API_URL}/offers?limit=24&_t=${t}`, { cache: 'no-store' }),
