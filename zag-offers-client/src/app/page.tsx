@@ -4,7 +4,8 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } fr
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiSearch2Line, RiFireFill, RiSparkling2Fill, 
-  RiStore3Fill, RiArrowUpDownLine, RiMapPin2Fill 
+  RiStore3Fill, RiArrowUpDownLine, RiMapPin2Fill,
+  RiCloseLine
 } from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -297,7 +298,6 @@ function HomePageContent() {
           </motion.p>
 
           {/* Search Box - Premium Style */}
-          {/* Search Box - Premium Style */}
           <motion.div 
             initial={{ opacity: 0, y: 30 }}
             animate={{ opacity: 1, y: 0 }}
@@ -305,25 +305,46 @@ function HomePageContent() {
             className="max-w-xl mx-auto relative group"
           >
             {/* Pulsing Aura */}
-            <div className="absolute -inset-1.5 bg-gradient-to-r from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] rounded-[2.5rem] blur-xl opacity-0 group-focus-within:opacity-30 transition-all duration-700 animate-pulse" />
+            <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] rounded-[2.5rem] blur-xl opacity-0 group-focus-within:opacity-20 transition-all duration-700 animate-pulse" />
             
-            <div className="relative flex items-center bg-[#1E1E1E]/90 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
-              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 mx-2">
+            <div className="relative flex items-center bg-[#1E1E1E]/95 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
+              {/* Search Icon */}
+              <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 mx-1 flex-shrink-0">
                 <RiSearch2Line className="text-[#FF6B00]" size={20} />
               </div>
+
+              {/* Text Input */}
               <input 
                 ref={searchInputRef}
                 type="text" 
-                placeholder="ابحث عن عرض، محل، أو صنف..."
-                className="flex-1 bg-transparent py-2.5 text-xs sm:text-sm font-semibold text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
+                placeholder="ابحث مباشرة عن عرض، محل، أو صنف..."
+                className="no-focus-ring flex-1 bg-transparent py-2.5 text-xs sm:text-sm font-semibold text-white placeholder:text-[#9A9A9A]/30 border-0 focus:ring-0 focus:border-0 outline-none pr-3 pl-2"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
               />
-              <div className="hidden md:flex items-center gap-2 px-4 py-2 bg-white/5 border border-white/5 rounded-2xl mr-2 text-[10px] font-black text-[#5A5A5A] uppercase tracking-[0.2em]">
+
+              {/* Clear button (appears only when text is entered) */}
+              {search && (
+                <button 
+                  onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}
+                  className="p-1.5 ml-1 rounded-full hover:bg-white/5 text-[#9A9A9A] hover:text-white transition-all duration-200"
+                  title="مسح البحث"
+                >
+                  <RiCloseLine size={18} />
+                </button>
+              )}
+
+              {/* Keyboard Shortcut Hint */}
+              <div className="hidden md:flex items-center gap-1.5 px-3 py-1.5 bg-white/5 border border-white/5 rounded-xl ml-2 text-[9px] font-black text-[#5A5A5A] uppercase tracking-wider select-none flex-shrink-0">
                 <span>CTRL</span>
                 <span>K</span>
               </div>
-              <button className="px-6 py-2.5 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-bold text-[11px] rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-[0_10px_20px_rgba(255,107,0,0.3)]">
+
+              {/* Action Button */}
+              <button 
+                onClick={() => searchInputRef.current?.blur()}
+                className="px-6 py-2.5 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-bold text-[11px] rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-[0_8px_16px_rgba(255,107,0,0.2)] flex-shrink-0"
+              >
                 بحث
               </button>
             </div>

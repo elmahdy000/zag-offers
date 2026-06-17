@@ -99,3 +99,10 @@ input:focus, select:focus {
   border-color: var(--color-primary) !important;
   box-shadow: 0 0 0 3px var(--color-primary-glow);
 }
+
+/* ── No focus ring override ── */
+input.no-focus-ring:focus {
+  border-color: transparent !important;
+  box-shadow: none !important;
+  outline: none !important;
+}
