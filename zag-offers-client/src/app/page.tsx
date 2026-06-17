@@ -63,6 +63,18 @@ function HomePageContent() {
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const debouncedSearch = useDebounce(search, 400);
+  const searchInputRef = useRef<HTMLInputElement>(null);
+
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   const { trackEvent } = useAnalytics();
 
@@ -300,6 +312,7 @@ function HomePageContent() {
                 <RiSearch2Line className="text-[#FF6B00]" size={20} />
               </div>
               <input 
+                ref={searchInputRef}
                 type="text" 
                 placeholder="ابحث عن عرض، محل، أو صنف..."
                 className="flex-1 bg-transparent py-2.5 text-xs sm:text-sm font-semibold text-white outline-none ring-0 border-none focus:ring-0 placeholder:text-[#9A9A9A]/30 pr-2"
@@ -381,7 +394,7 @@ function HomePageContent() {
                 className={`flex-shrink-0 group relative w-24 sm:w-28 aspect-[4/5] rounded-[2rem] overflow-hidden border transition-all duration-500
                   ${!activeCat 
                     ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.15)]' 
-                    : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
+                    : 'border-white/5 bg-[#252525] opacity-80 hover:opacity-100 hover:border-[#FF6B00]/30 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(255,107,0,0.1)]'}`}
               >
                 <div className="absolute inset-0 flex flex-col items-center justify-center z-20">
                   <span className={`text-xs sm:text-sm font-bold tracking-widest transition-all duration-300 ${!activeCat ? 'text-[#FF6B00] scale-110' : 'text-white/40 group-hover:text-white'}`}>الكل</span>
@@ -401,7 +414,7 @@ function HomePageContent() {
                     className={`flex-shrink-0 group relative block w-24 sm:w-28 aspect-[4/5] rounded-[2rem] overflow-hidden border transition-all duration-500
                       ${activeCat === c.id 
                         ? 'border-[#FF6B00]/40 bg-[#FF6B00]/10 shadow-[0_10px_30px_rgba(255,107,0,0.2)] scale-105' 
-                        : 'border-white/5 bg-[#252525] opacity-50 hover:opacity-100 hover:border-white/20'}`}
+                        : 'border-white/5 bg-[#252525] opacity-80 hover:opacity-100 hover:border-[#FF6B00]/30 hover:-translate-y-1 hover:shadow-[0_10px_20px_rgba(255,107,0,0.1)]'}`}
                   >
                     <div className="absolute inset-0 bg-[#151515]">
                       <Image 
@@ -492,8 +505,8 @@ function HomePageContent() {
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
             {stores.slice(0, 12).map(store => (
               <Link key={store.id} href={`/stores/${store.id}`} className="group">
-                <div className="bg-[#252525] border border-white/5 rounded-xl p-3 sm:p-4 flex flex-col items-center justify-center space-y-2 hover:border-[#FF6B00]/50 hover:bg-[#FF6B00]/5 transition-all duration-300">
-                  <div className="w-10 h-10 sm:w-14 sm:h-14 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-110 transition-transform duration-300">
+                <div className="bg-white/[0.03] backdrop-blur-md border border-white/5 rounded-2xl p-4 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/30 hover:bg-gradient-to-b hover:from-[#FF6B00]/5 hover:to-transparent hover:shadow-[0_10px_25px_rgba(255,107,0,0.05)] hover:-translate-y-0.5 transition-all duration-300">
+                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-105 transition-transform duration-500 shadow-inner">
                     {store.logo ? (
                       <Image 
                         src={resolveImageUrl(store.logo)!} 
@@ -507,7 +520,7 @@ function HomePageContent() {
                       <RiStore3Fill className="text-white/20" size={20} />
                     )}
                   </div>
-                  <span className="text-[9px] sm:text-[10px] font-semibold text-white/60 group-hover:text-white transition-colors text-center">{store.name}</span>
+                  <span className="text-[10px] sm:text-xs font-bold text-white/70 group-hover:text-white transition-colors text-center">{store.name}</span>
                 </div>
               </Link>
             ))}
