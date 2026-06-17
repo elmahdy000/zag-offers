@@ -16,6 +16,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://zagoffers.online'),
   title: "Zag Offers | زقازيق أوفرز - أفضل عروض الزقازيق",
   description: "اكتشف أفضل الخصومات والكوبونات الحصرية في مدينة الزقازيق. وفر أكثر مع زقازيق أوفرز في المطاعم، الكافيهات، والخدمات.",
   keywords: ["زقازيق", "عروض الزقازيق", "خصومات الزقازيق", "كوبونات", "Zag Offers", "دليل الزقازيق", "توفير", "مطاعم الزقازيق"],

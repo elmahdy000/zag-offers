@@ -334,12 +334,16 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
           final response = await apiClient.upload('/admin/upload', formData);
           uploadedLogoUrl = response.data['url'];
         } catch (e) {
+          if (!mounted) return;
           SnackBarUtils.showError(context, 'فشل في رفع الصورة: $e');
           setState(() => _isUploadingImage = false);
           return;
         }
+        if (!mounted) return;
         setState(() => _isUploadingImage = false);
       }
+
+      if (!mounted) return;
 
       if (isEdit) {
         context.read<MerchantsBloc>().add(

@@ -200,12 +200,16 @@ class _ProfilePageState extends State<ProfilePage> {
   Future<void> _openPrivacyPolicy() async {
     try {
       final url = Uri.parse('https://zagoffers.online/privacy');
-      if (await canLaunchUrl(url)) {
-        try { await launchUrl(url, mode: LaunchMode.externalApplication); } catch (e) { if (context.mounted) SnackBarUtils.showError(context, 'تعذر فتح الرابط'); }
-      } else {
-        if (mounted) {
-          SnackBarUtils.showError(context, 'تعذر فتح سياسة الخصوصية');
+      final canLaunch = await canLaunchUrl(url);
+      if (!mounted) return;
+      if (canLaunch) {
+        try {
+          await launchUrl(url, mode: LaunchMode.externalApplication);
+        } catch (_) {
+          if (mounted) SnackBarUtils.showError(context, 'تعذر فتح الرابط');
         }
+      } else {
+        SnackBarUtils.showError(context, 'تعذر فتح سياسة الخصوصية');
       }
     } catch (e) {
       if (mounted) {

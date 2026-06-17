@@ -18,10 +18,12 @@ class InviteFriendsPage extends StatelessWidget {
   }
 
   void _shareCode() {
-    Share.share(
-      'انضم إلي في تطبيق Zag Offers واستخدم كود الدعوة الخاص بي: $referralCode\n'
-      'احصل على خصومات حصرية، واجمع نقاط لتحصل على مكافآت رائعة!\n\n'
-      'حمل التطبيق من هنا: https://zagoffers.online',
+    SharePlus.instance.share(
+      ShareParams(
+        text: 'انضم إلي في تطبيق Zag Offers واستخدم كود الدعوة الخاص بي: $referralCode\n'
+            'احصل على خصومات حصرية، واجمع نقاط لتحصل على مكافآت رائعة!\n\n'
+            'حمل التطبيق من هنا: https://zagoffers.online',
+      ),
     );
   }
 

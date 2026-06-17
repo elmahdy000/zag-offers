@@ -9,6 +9,7 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://zagoffers.online'),
   title: 'ZAG Offers - Vendor',
   description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
   manifest: '/manifest.json',

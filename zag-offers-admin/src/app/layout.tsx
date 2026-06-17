@@ -10,6 +10,7 @@ const cairo = Cairo({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL('https://zagoffers.online'),
   title: 'ZAG Offers - لوحة التحكم',
   description: 'نظام إدارة منصة ZAG Offers',
   icons: {
