@@ -37,45 +37,49 @@ class _ReviewsPageState extends State<ReviewsPage> {
 
   Future<void> _showReplyDialog(String reviewId) async {
     final controller = TextEditingController();
-    final reply = await showDialog<String>(
-      context: context,
-      builder: (ctx) => AlertDialog(
-        backgroundColor: AppColors.surface,
-        title: Text('إضافة رد', style: _cairoWhiteBold),
-        content: TextField(
-          controller: controller,
-          maxLines: 3,
-          decoration: InputDecoration(
-            hintText: 'اكتب ردك هنا...',
-            hintStyle: TextStyle(color: AppColors.textSecondary),
-            filled: true,
-            fillColor: AppColors.card,
-            border: OutlineInputBorder(
-              borderRadius: BorderRadius.circular(12),
-              borderSide: BorderSide.none,
+    try {
+      final reply = await showDialog<String>(
+        context: context,
+        builder: (ctx) => AlertDialog(
+          backgroundColor: AppColors.surface,
+          title: Text('إضافة رد', style: _cairoWhiteBold),
+          content: TextField(
+            controller: controller,
+            maxLines: 3,
+            decoration: InputDecoration(
+              hintText: 'اكتب ردك هنا...',
+              hintStyle: TextStyle(color: AppColors.textSecondary),
+              filled: true,
+              fillColor: AppColors.card,
+              border: OutlineInputBorder(
+                borderRadius: BorderRadius.circular(12),
+                borderSide: BorderSide.none,
+              ),
             ),
+            style: _cairoWhite,
           ),
-          style: _cairoWhite,
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(ctx),
+              child: Text('إلغاء', style: _cairoDefault),
+            ),
+            ElevatedButton(
+              style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
+              onPressed: () => Navigator.pop(ctx, controller.text.trim()),
+              child: Text('إرسال', style: _cairoWhite),
+            ),
+          ],
         ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(ctx),
-            child: Text('إلغاء', style: _cairoDefault),
-          ),
-          ElevatedButton(
-            style: ElevatedButton.styleFrom(backgroundColor: AppColors.primary),
-            onPressed: () => Navigator.pop(ctx, controller.text.trim()),
-            child: Text('إرسال', style: _cairoWhite),
-          ),
-        ],
-      ),
-    );
+      );
 
-    if (reply != null && reply.isNotEmpty) {
-      if (!mounted) return;
-      context.read<ReviewsBloc>().add(AddReplyRequested(reviewId, reply));
-      SnackBarUtils.showSuccess(context, 'تم إضافة الرد بنجاح');
-      context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId));
+      if (reply != null && reply.isNotEmpty) {
+        if (!mounted) return;
+        context.read<ReviewsBloc>().add(AddReplyRequested(reviewId, reply));
+        SnackBarUtils.showSuccess(context, 'تم إضافة الرد بنجاح');
+        context.read<ReviewsBloc>().add(GetReviewsRequested(widget.storeId));
+      }
+    } finally {
+      controller.dispose();
     }
   }
 

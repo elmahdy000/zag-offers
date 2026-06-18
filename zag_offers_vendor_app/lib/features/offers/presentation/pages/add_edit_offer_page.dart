@@ -159,6 +159,8 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
 
   @override
   void dispose() {
+    _oldPriceController.removeListener(_calculateDiscount);
+    _newPriceController.removeListener(_calculateDiscount);
     _titleController.dispose();
     _descController.dispose();
     _discountController.dispose();

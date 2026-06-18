@@ -303,7 +303,7 @@ class _OffersPageState extends State<OffersPage> {
           },
         );
       },
-    ).then((_) => searchController.dispose());
+    ).whenComplete(() => searchController.dispose());
   }
 
   Widget _buildMerchantFilterChip() {
@@ -605,7 +605,7 @@ class _OffersPageState extends State<OffersPage> {
           ),
         ),
       ),
-    ).then((_) => reasonController.dispose());
+    ).whenComplete(() => reasonController.dispose());
   }
 
   void _showDeleteConfirmation(BuildContext context, Offer offer) async {

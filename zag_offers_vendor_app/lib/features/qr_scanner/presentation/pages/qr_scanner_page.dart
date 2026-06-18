@@ -141,7 +141,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
           ],
         ),
       ),
-    );
+    ).whenComplete(() => controller.dispose());
   }
 
   void _showResultDialog(BuildContext context, bool success, String message) {

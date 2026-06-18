@@ -442,7 +442,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
           ),
         ),
       ),
-    ).then((_) => reasonController.dispose());
+    ).whenComplete(() => reasonController.dispose());
   }
 
   void _confirmDelete(BuildContext context, Merchant merchant) async {

@@ -276,30 +276,33 @@ class _UserDetailsPageState extends State<UserDetailsPage> {
 
   Future<void> _showEditPointsDialog(AppUserDetails user) async {
     final controller = TextEditingController(text: user.points.toString());
-    await showDialog(
-      context: context,
-      builder: (dialogContext) => AlertDialog(
-        title: const Text('تعديل نقاط المستخدم'),
-        content: TextField(
-          controller: controller,
-          keyboardType: TextInputType.number,
-          decoration: const InputDecoration(labelText: 'عدد النقاط الجديد'),
-        ),
-        actions: [
-          TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
-          ElevatedButton(
-            onPressed: () async {
-              final points = int.tryParse(controller.text.trim());
-              if (points == null) return;
-              Navigator.pop(dialogContext);
-              await _updatePoints(points);
-            },
-            child: const Text('حفظ'),
+    try {
+      await showDialog(
+        context: context,
+        builder: (dialogContext) => AlertDialog(
+          title: const Text('تعديل نقاط المستخدم'),
+          content: TextField(
+            controller: controller,
+            keyboardType: TextInputType.number,
+            decoration: const InputDecoration(labelText: 'عدد النقاط الجديد'),
           ),
-        ],
-      ),
-    );
-    controller.dispose();
+          actions: [
+            TextButton(onPressed: () => Navigator.pop(dialogContext), child: const Text('إلغاء')),
+            ElevatedButton(
+              onPressed: () async {
+                final points = int.tryParse(controller.text.trim());
+                if (points == null) return;
+                Navigator.pop(dialogContext);
+                await _updatePoints(points);
+              },
+              child: const Text('حفظ'),
+            ),
+          ],
+        ),
+      );
+    } finally {
+      controller.dispose();
+    }
   }
 
   Future<void> _updatePoints(int points) async {

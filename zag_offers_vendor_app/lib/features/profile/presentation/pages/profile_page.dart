@@ -151,7 +151,11 @@ class _ProfilePageState extends State<ProfilePage> {
           },
         );
       },
-    );
+    ).whenComplete(() {
+      currentCtrl.clear();
+      newCtrl.clear();
+      confirmCtrl.clear();
+    });
   }
 
   Widget _buildPasswordField({
