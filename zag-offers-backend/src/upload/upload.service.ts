@@ -28,7 +28,7 @@ export class UploadService {
     }
 
     // Validate MIME type
-    if (!this.allowedMimeTypes.includes(file.mimetype)) {
+    if (!this.allowedMimeTypes.includes(file.mimetype.toLowerCase())) {
       throw new BadRequestException('نوع الملف غير مدعوم');
     }
 
@@ -51,17 +51,21 @@ export class UploadService {
     const path = join(uploadDir, filename);
 
     // Process image with security constraints
-    await sharp(file.buffer)
-      .resize(1200, 1200, {
-        fit: 'inside',
-        withoutEnlargement: true,
-        background: { r: 255, g: 255, b: 255, alpha: 1 },
-      })
-      .webp({
-        quality: 85,
-        effort: 4,
-      })
-      .toFile(path);
+    try {
+      await sharp(file.buffer)
+        .resize(1200, 1200, {
+          fit: 'inside',
+          withoutEnlargement: true,
+          background: { r: 255, g: 255, b: 255, alpha: 1 },
+        })
+        .webp({
+          quality: 85,
+          effort: 4,
+        })
+        .toFile(path);
+    } catch (e) {
+      throw new BadRequestException('الملف المرفوع تالف أو ليس صورة صالحة');
+    }
 
     return filename;
   }

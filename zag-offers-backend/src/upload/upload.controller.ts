@@ -46,7 +46,7 @@ export class UploadController {
   @UseInterceptors(
     FileInterceptor('file', {
       fileFilter: (req, file, cb) => {
-        if (!file.mimetype.match(/\/(jpg|jpeg|png|webp)$/)) {
+        if (!file.mimetype.toLowerCase().match(/\/(jpg|jpeg|png|webp)$/)) {
           return cb(
             new BadRequestException(
               'عفواً، مسموح فقط بصور من نوع JPG أو PNG أو WebP',
