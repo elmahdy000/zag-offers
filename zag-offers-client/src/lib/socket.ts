@@ -93,30 +93,43 @@ export const useSocket = (token?: string | null) => {
   return { socket, isConnected, connectionStatus };
 };
 
+let sharedPublicSocket: Socket | null = null;
+
 export const usePublicSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
 
   useEffect(() => {
-    const newSocket = io(SOCKET_URL, {
-      transports: ['websocket', 'polling'],
-      reconnection: true,
-      reconnectionDelay: RECONNECT_INTERVAL,
-      reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
-    });
+    if (!sharedPublicSocket) {
+      sharedPublicSocket = io(SOCKET_URL, {
+        transports: ['websocket', 'polling'],
+        reconnection: true,
+        reconnectionDelay: RECONNECT_INTERVAL,
+        reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
+      });
+    }
 
-    newSocket.on('connect', () => {
+    const s = sharedPublicSocket;
+
+    const handleConnect = () => {
       setIsConnected(true);
-    });
+    };
 
-    newSocket.on('disconnect', () => {
+    const handleDisconnect = () => {
       setIsConnected(false);
-    });
+    };
 
-    setSocket(newSocket);
+    s.on('connect', handleConnect);
+    s.on('disconnect', handleDisconnect);
+
+    if (s.connected) {
+      setIsConnected(true);
+    }
+    setSocket(s);
 
     return () => {
-      newSocket.disconnect();
+      s.off('connect', handleConnect);
+      s.off('disconnect', handleDisconnect);
     };
   }, []);
 
