@@ -5,7 +5,6 @@ import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
 import BottomNav from "@/components/bottom-nav";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
-import { register } from "@/lib/register-sw";
 import OnlineStatusBanner from "@/components/online-status-banner";
 
 const cairo = Cairo({
@@ -42,15 +41,13 @@ export const viewport = {
   themeColor: "#1A1A1A",
 };
 
+import ClientInit from "@/components/client-init";
+
 export default function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
-  // تسجيل Service Worker
-  if (typeof window !== 'undefined') {
-    register();
-  }
   return (
     <html lang="ar" dir="rtl" className={cairo.variable}>
       <head>
@@ -64,6 +61,7 @@ export default function RootLayout({
         <link rel="apple-touch-icon" href="/icon-192.svg" />
       </head>
       <body className="antialiased">
+        <ClientInit />
         <ReactQueryProvider>
           <NotificationProvider>
             <Navbar />

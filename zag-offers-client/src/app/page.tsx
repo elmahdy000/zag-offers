@@ -9,7 +9,7 @@ import {
 } from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
-import { useSearchParams } from 'next/navigation';
+import { useSearchParams, useRouter } from 'next/navigation';
 import { resolveImageUrl } from '@/lib/utils';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 
@@ -61,7 +61,15 @@ const CACHE_DURATION = 5 * 60 * 1000;
 
 function HomePageContent() {
   const searchParams = useSearchParams();
+  const router = useRouter();
   const catIdParam = searchParams.get('category');
+
+  const handleSearchSubmit = (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (search.trim()) {
+      router.push(`/offers?q=${encodeURIComponent(search.trim())}`);
+    }
+  };
 
   const [offers, setOffers] = useState<Offer[]>([]);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -370,7 +378,7 @@ function HomePageContent() {
             {/* Pulsing Aura */}
             <div className="absolute -inset-1 bg-gradient-to-r from-[#FF6B00] via-[#FF8C35] to-[#FFA15A] rounded-[2.5rem] blur-xl opacity-0 group-focus-within:opacity-20 transition-all duration-700 animate-pulse" />
             
-            <div className="relative flex items-center bg-[#1E1E1E]/95 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
+            <form onSubmit={handleSearchSubmit} className="relative flex items-center bg-[#1E1E1E]/95 backdrop-blur-3xl border border-white/5 p-1.5 rounded-[2.5rem] shadow-[0_20px_50px_rgba(0,0,0,0.5)] transition-all duration-300 group-focus-within:border-[#FF6B00]/40">
               {/* Search Icon */}
               <div className="flex items-center justify-center w-10 h-10 rounded-full bg-white/5 mx-1 flex-shrink-0">
                 <RiSearch2Line className="text-[#FF6B00]" size={20} />
@@ -389,6 +397,7 @@ function HomePageContent() {
               {/* Clear button (appears only when text is entered) */}
               {search && (
                 <button 
+                  type="button"
                   onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}
                   className="p-1.5 ml-1 rounded-full hover:bg-white/5 text-[#9A9A9A] hover:text-white transition-all duration-200"
                   title="مسح البحث"
@@ -405,12 +414,12 @@ function HomePageContent() {
 
               {/* Action Button */}
               <button 
-                onClick={() => searchInputRef.current?.blur()}
+                type="submit"
                 className="px-6 py-2.5 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-bold text-[11px] rounded-[1.5rem] hover:scale-105 active:scale-95 transition-all shadow-[0_8px_16px_rgba(255,107,0,0.2)] flex-shrink-0"
               >
                 بحث
               </button>
-            </div>
+            </form>
           </motion.div>
         </div>
       </section>
