@@ -57,4 +57,29 @@ class OfferModel extends OfferEntity {
           : null,
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'title': title,
+      'description': description,
+      'image': image,
+      'images': images,
+      'discount': discount,
+      'expiryDate': expiryDate.toIso8601String(),
+      'store': store is StoreModel 
+          ? (store as StoreModel).toJson() 
+          : StoreModel(id: store.id, name: store.name, area: store.area, logo: store.logo, coverImage: store.coverImage, rating: store.rating).toJson(),
+      'terms': terms,
+      'oldPrice': oldPrice,
+      'newPrice': newPrice,
+      'views': viewCount,
+      'usedCoupons': usedCoupons,
+      'usageLimit': usageLimit,
+      'isFeatured': isFeatured,
+      'status': status.name.toUpperCase(),
+      'isFlashSale': isFlashSale,
+      'flashSaleEndsAt': flashSaleEndsAt?.toIso8601String(),
+    };
+  }
 }

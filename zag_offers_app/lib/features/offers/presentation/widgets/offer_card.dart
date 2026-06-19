@@ -69,9 +69,12 @@ class OfferCard extends StatelessWidget {
       child: Stack(
         fit: StackFit.expand,
         children: [
-          NetworkImageWidget(
-            imageUrl: offer.image,
-            fit: BoxFit.cover,
+          Hero(
+            tag: 'offer_image_${offer.id}',
+            child: NetworkImageWidget(
+              imageUrl: offer.image,
+              fit: BoxFit.cover,
+            ),
           ),
           // Badges Overlay
           Positioned(

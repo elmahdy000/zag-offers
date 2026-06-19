@@ -15,4 +15,12 @@ class CategoryModel extends CategoryEntity {
       image: ImageUrlHelper.resolveNullable(json['image']),
     );
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'image': image,
+    };
+  }
 }

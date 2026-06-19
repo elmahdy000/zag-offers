@@ -264,10 +264,18 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               child: Stack(
                 fit: StackFit.expand,
                 children: [
-                  NetworkImageWidget(
-                    imageUrl: images[index],
-                    fit: BoxFit.cover,
-                  ),
+                  index == 0
+                      ? Hero(
+                          tag: 'offer_image_${widget.offer.id}',
+                          child: NetworkImageWidget(
+                            imageUrl: images[index],
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : NetworkImageWidget(
+                          imageUrl: images[index],
+                          fit: BoxFit.cover,
+                        ),
                   if (widget.offer.isFlashSale && widget.offer.flashSaleEndsAt != null)
                     Positioned(
                       bottom: 16,

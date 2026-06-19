@@ -154,11 +154,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
           mainAxisSize: MainAxisSize.min,
           children: [
             const SizedBox(height: 16),
-            Icon(
-              success ? Icons.check_circle_outline : Icons.error_outline,
-              color: success ? AppColors.success : AppColors.error,
-              size: 80,
-            ),
+            success ? const AnimatedCheckmark() : const AnimatedCross(),
             const SizedBox(height: 24),
             Text(
               success ? 'تم التفعيل!' : 'خطأ في التفعيل',
@@ -258,5 +254,282 @@ class _ScannerOverlay extends StatelessWidget {
         ),
       ],
     );
+  }
+}
+
+class AnimatedCheckmark extends StatefulWidget {
+  final double size;
+  final Color color;
+
+  const AnimatedCheckmark({
+    super.key,
+    this.size = 80,
+    this.color = const Color(0xFF10B981),
+  });
+
+  @override
+  State<AnimatedCheckmark> createState() => _AnimatedCheckmarkState();
+}
+
+class _AnimatedCheckmarkState extends State<AnimatedCheckmark> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _circleAnimation;
+  late final Animation<double> _checkAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _circleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.5, curve: Curves.easeOut),
+      ),
+    );
+
+    _checkAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 1.0, curve: Curves.elasticOut),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          size: Size(widget.size, widget.size),
+          painter: _CheckmarkPainter(
+            circleProgress: _circleAnimation.value,
+            checkProgress: _checkAnimation.value,
+            color: widget.color,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CheckmarkPainter extends CustomPainter {
+  final double circleProgress;
+  final double checkProgress;
+  final Color color;
+
+  _CheckmarkPainter({
+    required this.circleProgress,
+    required this.checkProgress,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - paint.strokeWidth) / 2;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.5708,
+      6.28319 * circleProgress,
+      false,
+      paint,
+    );
+
+    if (checkProgress > 0) {
+      final path = Path();
+      final startPoint = Offset(size.width * 0.28, size.height * 0.5);
+      final midPoint = Offset(size.width * 0.44, size.height * 0.66);
+      final endPoint = Offset(size.width * 0.72, size.height * 0.34);
+
+      if (checkProgress <= 0.4) {
+        final progress = checkProgress / 0.4;
+        path.moveTo(startPoint.dx, startPoint.dy);
+        path.lineTo(
+          startPoint.dx + (midPoint.dx - startPoint.dx) * progress,
+          startPoint.dy + (midPoint.dy - startPoint.dy) * progress,
+        );
+      } else {
+        path.moveTo(startPoint.dx, startPoint.dy);
+        path.lineTo(midPoint.dx, midPoint.dy);
+        final progress = (checkProgress - 0.4) / 0.6;
+        path.lineTo(
+          midPoint.dx + (endPoint.dx - midPoint.dx) * progress,
+          midPoint.dy + (endPoint.dy - midPoint.dy) * progress,
+        );
+      }
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CheckmarkPainter oldDelegate) {
+    return oldDelegate.circleProgress != circleProgress ||
+        oldDelegate.checkProgress != checkProgress ||
+        oldDelegate.color != color;
+  }
+}
+
+class AnimatedCross extends StatefulWidget {
+  final double size;
+  final Color color;
+
+  const AnimatedCross({
+    super.key,
+    this.size = 80,
+    this.color = const Color(0xFFEF4444),
+  });
+
+  @override
+  State<AnimatedCross> createState() => _AnimatedCrossState();
+}
+
+class _AnimatedCrossState extends State<AnimatedCross> with SingleTickerProviderStateMixin {
+  late final AnimationController _controller;
+  late final Animation<double> _circleAnimation;
+  late final Animation<double> _cross1Animation;
+  late final Animation<double> _cross2Animation;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      duration: const Duration(milliseconds: 800),
+      vsync: this,
+    );
+
+    _circleAnimation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.0, 0.4, curve: Curves.easeOut),
+      ),
+    );
+
+    _cross1Animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.4, 0.7, curve: Curves.easeOut),
+      ),
+    );
+
+    _cross2Animation = Tween<double>(begin: 0.0, end: 1.0).animate(
+      CurvedAnimation(
+        parent: _controller,
+        curve: const Interval(0.7, 1.0, curve: Curves.easeOut),
+      ),
+    );
+
+    _controller.forward();
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return AnimatedBuilder(
+      animation: _controller,
+      builder: (context, child) {
+        return CustomPaint(
+          size: Size(widget.size, widget.size),
+          painter: _CrossPainter(
+            circleProgress: _circleAnimation.value,
+            cross1Progress: _cross1Animation.value,
+            cross2Progress: _cross2Animation.value,
+            color: widget.color,
+          ),
+        );
+      },
+    );
+  }
+}
+
+class _CrossPainter extends CustomPainter {
+  final double circleProgress;
+  final double cross1Progress;
+  final double cross2Progress;
+  final Color color;
+
+  _CrossPainter({
+    required this.circleProgress,
+    required this.cross1Progress,
+    required this.cross2Progress,
+    required this.color,
+  });
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    final paint = Paint()
+      ..color = color
+      ..style = PaintingStyle.stroke
+      ..strokeWidth = 5
+      ..strokeCap = StrokeCap.round;
+
+    final center = Offset(size.width / 2, size.height / 2);
+    final radius = (size.width - paint.strokeWidth) / 2;
+
+    canvas.drawArc(
+      Rect.fromCircle(center: center, radius: radius),
+      -1.5708,
+      6.28319 * circleProgress,
+      false,
+      paint,
+    );
+
+    if (cross1Progress > 0) {
+      final start1 = Offset(size.width * 0.32, size.height * 0.32);
+      final end1 = Offset(size.width * 0.68, size.height * 0.68);
+      canvas.drawLine(
+        start1,
+        Offset(
+          start1.dx + (end1.dx - start1.dx) * cross1Progress,
+          start1.dy + (end1.dy - start1.dy) * cross1Progress,
+        ),
+        paint,
+      );
+    }
+
+    if (cross2Progress > 0) {
+      final start2 = Offset(size.width * 0.68, size.height * 0.32);
+      final end2 = Offset(size.width * 0.32, size.height * 0.68);
+      canvas.drawLine(
+        start2,
+        Offset(
+          start2.dx + (end2.dx - start2.dx) * cross2Progress,
+          start2.dy + (end2.dy - start2.dy) * cross2Progress,
+        ),
+        paint,
+      );
+    }
+  }
+
+  @override
+  bool shouldRepaint(covariant _CrossPainter oldDelegate) {
+    return oldDelegate.circleProgress != circleProgress ||
+        oldDelegate.cross1Progress != cross1Progress ||
+        oldDelegate.cross2Progress != cross2Progress ||
+        oldDelegate.color != color;
   }
 }

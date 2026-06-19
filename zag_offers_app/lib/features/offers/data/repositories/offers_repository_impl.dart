@@ -1,4 +1,4 @@
-﻿import 'package:dartz/dartz.dart';
+import 'package:dartz/dartz.dart';
 import 'package:zag_offers_app/core/error/error_handler.dart';
 
 import '../../../../core/error/failures.dart';
@@ -7,11 +7,16 @@ import '../../domain/entities/store_entity.dart';
 import '../../domain/entities/category_entity.dart';
 import '../../domain/repositories/offers_repository.dart';
 import '../datasources/offers_remote_data_source.dart';
+import '../datasources/offers_local_data_source.dart';
 
 class OffersRepositoryImpl implements OffersRepository {
   final OffersRemoteDataSource remoteDataSource;
+  final OffersLocalDataSource localDataSource;
 
-  OffersRepositoryImpl({required this.remoteDataSource});
+  OffersRepositoryImpl({
+    required this.remoteDataSource,
+    required this.localDataSource,
+  });
 
   @override
   Future<Either<Failure, List<OfferEntity>>> getAllOffers({
@@ -26,23 +31,43 @@ class OffersRepositoryImpl implements OffersRepository {
         page: page,
       );
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
   Future<Either<Failure, List<OfferEntity>>> getTrendingOffers() async {
     try {
       final result = await remoteDataSource.getTrendingOffers();
+      await localDataSource.cacheTrendingOffers(result);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      try {
+        final cached = await localDataSource.getCachedTrendingOffers();
+        if (cached.isNotEmpty) {
+          return Right(cached);
+        }
+      } catch (_) {}
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
   Future<Either<Failure, List<OfferEntity>>> getRecommendedOffers() async {
     try {
       final result = await remoteDataSource.getRecommendedOffers();
+      await localDataSource.cacheRecommendedOffers(result);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      try {
+        final cached = await localDataSource.getCachedRecommendedOffers();
+        if (cached.isNotEmpty) {
+          return Right(cached);
+        }
+      } catch (_) {}
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
@@ -50,15 +75,26 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.searchOffers(query);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
   Future<Either<Failure, List<StoreEntity>>> getFeaturedStores() async {
     try {
       final result = await remoteDataSource.getFeaturedStores();
+      await localDataSource.cacheFeaturedStores(result);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      try {
+        final cached = await localDataSource.getCachedFeaturedStores();
+        if (cached.isNotEmpty) {
+          return Right(cached);
+        }
+      } catch (_) {}
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
@@ -68,15 +104,26 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getOffersByStore(storeId);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
   Future<Either<Failure, List<CategoryEntity>>> getCategories() async {
     try {
       final result = await remoteDataSource.getCategories();
+      await localDataSource.cacheCategories(result);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      try {
+        final cached = await localDataSource.getCachedCategories();
+        if (cached.isNotEmpty) {
+          return Right(cached);
+        }
+      } catch (_) {}
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
@@ -84,7 +131,9 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getOfferById(id);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 
   @override
@@ -92,9 +141,8 @@ class OffersRepositoryImpl implements OffersRepository {
     try {
       final result = await remoteDataSource.getStoreById(id);
       return Right(result);
-    } catch (e) { return Left(ServerFailure(ErrorHandler.handle(e))); }
+    } catch (e) {
+      return Left(ServerFailure(ErrorHandler.handle(e)));
+    }
   }
 }
-
-
-

@@ -20,6 +20,7 @@ import 'features/auth/domain/usecases/delete_account_usecase.dart';
 import 'features/auth/domain/usecases/update_avatar_usecase.dart';
 
 // Offers
+import 'features/offers/data/datasources/offers_local_data_source.dart';
 import 'features/offers/data/datasources/offers_remote_data_source.dart';
 import 'features/offers/data/repositories/offers_repository_impl.dart';
 import 'features/offers/presentation/bloc/offers_bloc.dart';
@@ -109,8 +110,12 @@ Future<void> init() async {
   sl.registerLazySingleton(() => SearchOffersUseCase(sl()));
   sl.registerLazySingleton(() => GetRecommendedOffersUseCase(sl()));
   sl.registerLazySingleton(() => GetCategoriesUseCase(sl()));
-  sl.registerLazySingleton<OffersRepository>(() => OffersRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<OffersRepository>(() => OffersRepositoryImpl(
+        remoteDataSource: sl(),
+        localDataSource: sl(),
+      ));
   sl.registerLazySingleton<OffersRemoteDataSource>(() => OffersRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<OffersLocalDataSource>(() => OffersLocalDataSourceImpl(sharedPreferences: sl()));
 
   //! Features - Coupons
   sl.registerFactory(

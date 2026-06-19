@@ -42,5 +42,22 @@ class StoreModel extends StoreEntity {
     if (raw is Map) return raw['name']?.toString();
     return null;
   }
+
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'name': name,
+      'logo': logo,
+      'coverImage': coverImage,
+      'category': category,
+      'area': area,
+      'ratingAvg': rating,
+      'lat': latitude,
+      'lng': longitude,
+      'images': images,
+      'phone': phone,
+      'whatsapp': whatsapp,
+    };
+  }
 }
 
