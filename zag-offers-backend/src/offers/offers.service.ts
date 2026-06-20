@@ -107,25 +107,7 @@ export class OffersService {
       payload: { offerId: offer.id, storeName: offer.store.name },
     });
 
-    void this.prisma.user
-      .findMany({
-        where: { role: 'ADMIN', fcmToken: { not: null } },
-        select: { id: true },
-      })
-      .then((admins) => admins.map((admin) => admin.id))
-      .then((adminIds) => {
-        if (adminIds.length === 0) return;
-        return this.notificationsService.sendToUserIds(adminIds, {
-          title: 'عرض جديد بانتظار المراجعة',
-          body: `المتجر "${offer.store.name}" أضاف عرضًا جديدًا: ${offer.title}`,
-          data: {
-            type: 'NEW_PENDING_OFFER',
-            offerId: offer.id,
-            storeName: offer.store.name,
-          },
-        });
-      })
-      .catch((err) => console.error('Failed to notify admins about new offer:', err));
+
 
     await this.clearCache();
     this.eventsGateway.broadcastOffersUpdated();

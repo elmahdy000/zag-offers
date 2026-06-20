@@ -362,15 +362,23 @@ export class EventsGateway
       timestamp: new Date().toISOString(),
     });
 
+    const fcmData: Record<string, string> = {
+      type: data.type,
+    };
+    if (data.payload) {
+      for (const [key, val] of Object.entries(data.payload)) {
+        if (val !== undefined && val !== null) {
+          fcmData[key] = typeof val === 'object' ? JSON.stringify(val) : String(val);
+        }
+      }
+    }
+
     // Send FCM push to all admins
     void this.notificationsService.sendToTopic(
       'all_admins',
       data.title,
       data.body,
-      {
-        type: data.type,
-        ...(data.payload ? { payload: JSON.stringify(data.payload) } : {}),
-      },
+      fcmData,
     );
 
     this.logger.log(`Admin notified: ${data.type} - ${data.title}`);
@@ -385,18 +393,21 @@ export class EventsGateway
       timestamp: new Date().toISOString(),
     });
 
-    // Get merchant's FCM token and send push
-    // For simplicity, we can also use a personal topic if implemented,
-    // but the backend already has sendToUserId.
-    // However, merchantId here is likely the user.id.
+    const fcmData: Record<string, string> = {
+      type: data.type,
+    };
+    if (data.payload) {
+      for (const [key, val] of Object.entries(data.payload)) {
+        if (val !== undefined && val !== null) {
+          fcmData[key] = typeof val === 'object' ? JSON.stringify(val) : String(val);
+        }
+      }
+    }
 
     void this.notificationsService.sendToUserId(merchantId, {
       title: data.title,
       body: data.body,
-      data: {
-        type: data.type,
-        ...(data.payload ? { payload: JSON.stringify(data.payload) } : {}),
-      },
+      data: fcmData,
     });
 
     this.logger.log(`Merchant ${merchantId} notified: ${data.type}`);

@@ -465,12 +465,6 @@ export class AdminService {
       payload: { storeId: store.id, storeName: store.name },
     });
 
-    void this.notificationsService.sendToUserId(store.ownerId, {
-      title: 'تم قبول متجرك! 🎉',
-      body: `مبروك! تمت الموافقة على "${store.name}". يمكنك الآن البدء في إضافة عروضك.`,
-      data: { storeId: store.id, type: 'STORE_APPROVED' },
-    });
-
     await this.auditLogService.log({
       action: 'APPROVE_STORE',
       adminId,
@@ -500,12 +494,6 @@ export class AdminService {
       title: 'تم رفض طلب المتجر',
       body: reason || 'نعتذر، لم يتم اعتماد طلب المتجر الحالي.',
       payload: { storeId: store.id, storeName: store.name },
-    });
-
-    void this.notificationsService.sendToUserId(store.ownerId, {
-      title: 'تم رفض طلب المتجر',
-      body: reason || `تم رفض طلب "${store.name}". تواصل مع الدعم للمزيد.`,
-      data: { storeId: store.id, type: 'STORE_REJECTED' },
     });
 
     await this.auditLogService.log({
@@ -544,15 +532,6 @@ export class AdminService {
       body: reason || 'تم إيقاف نشاط المتجر مؤقتاً لمراجعة البيانات.',
       payload: { storeId: store.id, storeName: store.name },
     });
-
-    if (store.owner.fcmToken) {
-      void this.notificationsService.sendToUser(
-        store.owner.fcmToken,
-        'تنبيه: تم إيقاف المتجر',
-        reason || 'تم إيقاف نشاط المتجر مؤقتاً لمراجعة البيانات.',
-        { storeId: store.id, type: 'STORE_SUSPENDED' },
-      );
-    }
 
     await this.clearCache();
     return updated;
@@ -818,11 +797,11 @@ export class AdminService {
       offer.images && offer.images.length > 0 ? offer.images[0] : undefined;
 
     // Notify the merchant
-    void this.notificationsService.sendToUserId(offer.store.ownerId, {
+    this.eventsGateway.notifyMerchant(offer.store.ownerId, {
+      type: 'OFFER_APPROVED',
       title: 'تم قبول العرض بنجاح',
       body: `عرضك "${offer.title}" متاح الآن لجميع العملاء.`,
-      data: { offerId: offer.id, type: 'OFFER_APPROVED' },
-      imageUrl,
+      payload: { offerId: offer.id, offerTitle: offer.title },
     });
 
     // Notify customers in the area about the new offer
@@ -881,12 +860,6 @@ export class AdminService {
       title: 'تم رفض العرض',
       body: reason || 'نعتذر، لم يتم اعتماد العرض المرسل.',
       payload: { offerId: offer.id, offerTitle: offer.title },
-    });
-
-    void this.notificationsService.sendToUserId(offer.store.ownerId, {
-      title: 'تم رفض العرض ❌',
-      body: reason || `تم رفض عرضك "${offer.title}". تواصل مع الدعم للمزيد.`,
-      data: { offerId: offer.id, type: 'OFFER_REJECTED' },
     });
 
     await this.auditLogService.log({

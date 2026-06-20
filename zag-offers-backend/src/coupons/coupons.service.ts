@@ -110,19 +110,12 @@ export class CouponsService {
       offerTitle: newCoupon.offer.title,
     });
 
-    // إشعار التاجر بحصول عميل على كوبون جديد
+    // إشعار التاجر بحصول عميل على كوبون جديد (يرسل كلاً من WebSocket و Push Notification)
     this.eventsGateway.notifyMerchant(newCoupon.offer.store.ownerId, {
       type: 'COUPON_GENERATED',
       title: 'كوبون جديد مستخرج',
       body: `تم استخراج كوبون جديد لعرض: ${newCoupon.offer.title}`,
       payload: { code: newCoupon.code, offerTitle: newCoupon.offer.title },
-    });
-
-    // إرسال Push Notification حقيقية للتاجر
-    void this.notificationsService.sendToUserId(newCoupon.offer.store.ownerId, {
-      title: 'كوبون جديد مستخرج',
-      body: `تم استخراج كوبون جديد لعرض: ${newCoupon.offer.title}`,
-      data: { type: 'COUPON_GENERATED', code: newCoupon.code },
     });
 
     // Log the generation for admin visibility
@@ -254,7 +247,7 @@ export class CouponsService {
     // Gamification: Add 50 points to the customer for using a coupon
     void this.usersService.addPoints(coupon.customerId, 50, 'COUPON_REDEEM').catch(err => console.error('Failed to add points:', err));
 
-    // إرسال تنبيه لحظي للتاجر لتحديث الإحصائيات
+    // إرسال تنبيه لحظي للتاجر لتحديث الإحصائيات (يرسل كلاً من WebSocket و Push Notification)
     this.eventsGateway.notifyMerchant(merchantId, {
       type: 'COUPON_REDEEMED',
       title: 'تفعيل الكوبون',
@@ -266,20 +259,6 @@ export class CouponsService {
         customerPhone: coupon.customer?.phone,
       },
     });
-
-    // إرسال Push Notification للتاجر
-    if (user?.fcmToken) {
-      void this.notificationsService.sendToUser(
-        user.fcmToken,
-        'تفعيل الكوبون',
-        `تم تفعيل الكوبون ${updatedCoupon.code} للعميل ${coupon.customer?.name || 'غير معروف'}`,
-        {
-          couponId: updatedCoupon.id,
-          type: 'COUPON_REDEEMED',
-          customerName: coupon.customer?.name,
-        },
-      );
-    }
 
     // Log the redemption for admin visibility
     void this.auditLogService.log({
@@ -379,19 +358,12 @@ export class CouponsService {
       throw new NotFoundException('الكوبون غير موجود');
     }
 
-    // إرسال تنبيه لحظي للتاجر لتنبيهه بوجود رسالة واتساب
+    // إرسال تنبيه لحظي للتاجر لتنبيهه بوجود رسالة واتساب (يرسل كلاً من WebSocket و Push Notification)
     this.eventsGateway.notifyMerchant(coupon.offer.store.ownerId, {
       type: 'COUPON_SHARED',
       title: 'تواصل عبر واتساب',
       body: `العميل ${coupon.customer.name} يرغب في تفعيل الكوبون ${coupon.code}.`,
       payload: { code: coupon.code, customerName: coupon.customer.name },
-    });
-
-    // إرسال Push Notification للتاجر
-    void this.notificationsService.sendToUserId(coupon.offer.store.ownerId, {
-      title: 'مشاركة الكوبون',
-      body: `العميل ${coupon.customer.name} تواصل معك بخصوص تفعيل الكوبون.`,
-      data: { type: 'COUPON_SHARED', code: coupon.code },
     });
 
     return { success: true };
