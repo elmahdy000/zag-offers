@@ -315,9 +315,18 @@ function HomePageContent() {
   return (
     <div className="relative overflow-x-hidden bg-[#07101F] pb-20" dir="rtl">
       {/* ─── Hero Section ────────────────────────────────── */}
-      <section className="brand-hero border-b border-[#25344A] px-4 py-7 sm:py-10">
-        <div className="site-container grid min-h-[300px] items-center gap-6 lg:grid-cols-[1.3fr_.7fr] lg:gap-9">
-          <div className="w-full space-y-5 text-center lg:text-right">
+      <section className="brand-hero brand-hero-market border-b border-[#25344A] px-4 py-7 sm:py-10">
+        <Image
+          src="/hero-local-market.webp"
+          alt="سوق محلي يضم متاجر ومطاعم وخدمات متنوعة"
+          fill
+          priority
+          sizes="100vw"
+          className="brand-hero-market-image object-cover"
+        />
+        <span className="brand-hero-market-overlay" aria-hidden="true" />
+        <div className="site-container flex min-h-[360px] items-center">
+          <div className="brand-hero-market-copy w-full max-w-[760px] space-y-5 text-center lg:text-right">
           <motion.div 
             initial={false}
             animate={{ opacity: 1, scale: 1 }}
@@ -394,48 +403,6 @@ function HomePageContent() {
             <Link prefetch={false} href="/stores" className="rounded-xl border border-[#34445B] px-5 py-2.5 text-sm font-bold text-white hover:border-[#FF8A32]">تصفح المتاجر</Link>
           </div>
           </div>
-
-          <motion.div
-            initial={false}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.65, ease: 'easeOut' }}
-            className="hero-offers-visual relative mx-auto hidden h-[270px] w-full max-w-[350px] lg:block"
-          >
-            <div className="hero-offers-photo">
-              <Image
-                src="/categories/all.png"
-                alt="متاجر وعروض محلية قريبة منك"
-                fill
-                priority
-                sizes="350px"
-                className="object-cover"
-              />
-              <span className="hero-offers-photo-shade" aria-hidden="true" />
-              <span className="hero-offers-location">
-                <RiMapPin2Fill aria-hidden="true" />
-                من قلب الزقازيق
-              </span>
-            </div>
-
-            <div className="hero-offers-ticket" aria-label="خصومات تصل إلى خمسين بالمائة">
-              <span className="hero-offers-ticket-label">خصومات حقيقية</span>
-              <strong>حتى 50%</strong>
-              <span>في متاجر قريبة منك</span>
-            </div>
-
-            <div className="hero-offers-categories" aria-label="فئات عروض رائجة">
-              <span className="hero-offers-thumb">
-                <Image src="/categories/food.png" alt="عروض المطاعم" fill sizes="46px" className="object-cover" />
-              </span>
-              <span className="hero-offers-thumb">
-                <Image src="/categories/tech.png" alt="عروض الإلكترونيات" fill sizes="46px" className="object-cover" />
-              </span>
-              <span className="hero-offers-category-copy">
-                <strong>عروض بتتجدد</strong>
-                <small>كل يوم، في كل الفئات</small>
-              </span>
-            </div>
-          </motion.div>
         </div>
       </section>
 
