@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { motion } from 'framer-motion';
 import { 
   RiMapPin2Line, RiHeartFill, RiStore3Line,
   RiRestaurant2Fill, RiCupFill, RiShirtFill, 
@@ -165,8 +164,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
 
   return (
-    <motion.div
-      whileHover={{ y: -3, transition: { duration: 0.15 } }}
+    <div
       onClick={() => router.push(`/offers/${offer.id}`)}
       className="global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:border-[#FF8A32]/55 hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)]
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
@@ -293,7 +291,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
           عرض التفاصيل
         </div>
       </div>
-    </motion.div>
+    </div>
   );
 }
 

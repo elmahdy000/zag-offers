@@ -24,7 +24,7 @@ export default function BottomNav() {
           const isActive = pathname === item.path || (item.path !== '/' && pathname.startsWith(`${item.path}/`));
           const Icon = item.icon;
           return (
-            <Link key={item.path} href={item.path} className={`mobile-dock-item ${isActive ? 'is-active' : ''}`} aria-current={isActive ? 'page' : undefined}>
+            <Link prefetch={false} key={item.path} href={item.path} className={`mobile-dock-item ${isActive ? 'is-active' : ''}`} aria-current={isActive ? 'page' : undefined}>
               <span className="mobile-dock-icon">
                 <Icon size={22} strokeWidth={isActive ? 2.5 : 1.8} />
               </span>

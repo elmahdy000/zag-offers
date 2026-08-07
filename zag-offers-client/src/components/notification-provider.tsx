@@ -36,7 +36,8 @@ const NotificationContext = createContext<{
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [token, setToken] = useState<string | null>(null);
-  const { socket, isConnected, connectionStatus } = useSocket(token);
+  const [realtimeReady, setRealtimeReady] = useState(false);
+  const { socket, isConnected, connectionStatus } = useSocket(token, realtimeReady);
   const router = useRouter();
 
   // Read token from localStorage
@@ -52,6 +53,21 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
       window.removeEventListener('auth-change', updateToken);
       window.removeEventListener('storage', updateToken);
     };
+  }, []);
+
+  // Realtime is useful but must not compete with the critical first render.
+  useEffect(() => {
+    const start = () => setRealtimeReady(true);
+    const idleWindow = window as Window & {
+      requestIdleCallback?: (callback: () => void, options?: { timeout: number }) => number;
+      cancelIdleCallback?: (id: number) => void;
+    };
+    if (idleWindow.requestIdleCallback) {
+      const id = idleWindow.requestIdleCallback(start, { timeout: 2500 });
+      return () => idleWindow.cancelIdleCallback?.(id);
+    }
+    const id = window.setTimeout(start, 1500);
+    return () => window.clearTimeout(id);
   }, []);
 
   const addNotification = useCallback((title: string, body: string, type?: string, data?: { url?: string }) => {

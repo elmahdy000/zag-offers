@@ -5,7 +5,7 @@ const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.on
 const RECONNECT_INTERVAL = 5000; // 5 seconds
 const MAX_RECONNECT_ATTEMPTS = 10;
 
-export const useSocket = (token?: string | null) => {
+export const useSocket = (token?: string | null, enabled = true) => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
@@ -13,6 +13,7 @@ export const useSocket = (token?: string | null) => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
+    if (!enabled) return;
     setTimeout(() => setConnectionStatus('connecting'), 0);
     reconnectAttempts.current = 0;
 
@@ -84,7 +85,7 @@ export const useSocket = (token?: string | null) => {
         setConnectionStatus('disconnected');
       }, 0);
     };
-  }, [token]);
+  }, [token, enabled]);
 
   return { socket, isConnected, connectionStatus };
 };

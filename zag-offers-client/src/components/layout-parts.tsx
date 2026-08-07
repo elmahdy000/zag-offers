@@ -169,6 +169,7 @@ function NotificationPortal({
 const NavLink = ({ href, label, active }: { href: string; label: string; active: boolean }) => {
   return (
     <Link
+      prefetch={false}
       href={href}
       className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors
         ${active ? 'nav-link-active bg-[#162238] text-white' : 'text-[#AAB5C6] hover:bg-[#101B2D] hover:text-white'}`}
@@ -302,7 +303,7 @@ export function Navbar() {
       <nav className="fixed inset-x-0 top-0 z-50 h-[72px] border-b border-[#25344A] bg-[#0A1324]/95 backdrop-blur-xl">
         <div className="site-container flex h-full items-center gap-4" dir="rtl">
           {/* Logo */}
-          <Link href="/" className="group flex flex-shrink-0 items-center gap-2.5" aria-label="Zag Offers - الرئيسية">
+          <Link prefetch={false} href="/" className="group flex flex-shrink-0 items-center gap-2.5" aria-label="Zag Offers - الرئيسية">
             <span className="relative block h-12 w-14 transition-transform group-hover:-translate-y-0.5">
               <BrandMark priority className="h-full w-full drop-shadow-[0_6px_9px_rgba(0,0,0,.25)]" />
             </span>
@@ -345,6 +346,7 @@ export function Navbar() {
               <RiMapPin2Line className="text-[#FF8A32]" size={17} /> كل المناطق
             </span>
             <Link
+              prefetch={false}
               href="/favorites"
               aria-label="المفضلة"
               className="rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
@@ -380,6 +382,7 @@ export function Navbar() {
 
             {isLoggedIn ? (
               <Link
+                prefetch={false}
                 href="/profile"
                 className="flex items-center gap-2 py-1.5 px-3 bg-white/[0.05] rounded-full
                            border border-white/[0.07] hover:border-[#FF6B00]/40 transition-all"
@@ -391,6 +394,7 @@ export function Navbar() {
               </Link>
             ) : (
               <Link
+                prefetch={false}
                 href="/login"
                 aria-label="تسجيل الدخول"
                 className="rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
@@ -438,6 +442,7 @@ export function Navbar() {
                   ...(isLoggedIn ? [{ href: '/notifications', label: 'الإشعارات' }, { href: '/profile', label: 'حسابي' }] : []),
                 ].map(({ href, label }) => (
                   <Link
+                    prefetch={false}
                     key={href}
                     href={href}
                     className={`text-base font-bold py-3 px-3 rounded-xl transition-all
@@ -450,6 +455,7 @@ export function Navbar() {
                 ))}
                 {!isLoggedIn && (
                   <Link
+                    prefetch={false}
                     href="/login"
                     className="mt-3 py-3 text-center bg-[#FF6B00]
                                text-white font-black rounded-xl shadow-[0_4px_12px_rgba(255,107,0,0.3)]"
@@ -478,11 +484,11 @@ export function Footer() {
       <div className="site-container footer-cta">
         <div className="footer-cta-icon"><RiPriceTag3Line size={28} /></div>
         <div><span>اختيارات جديدة كل يوم</span><h3>أفضل العروض أقرب إليك مما تتخيل</h3></div>
-        <Link href="/offers">اكتشف العروض <RiArrowLeftLine size={18} /></Link>
+        <Link prefetch={false} href="/offers">اكتشف العروض <RiArrowLeftLine size={18} /></Link>
       </div>
       <div className="site-container footer-main">
         <div className="footer-brand">
-          <Link href="/" className="footer-logo" aria-label="Zag Offers - الرئيسية">
+          <Link prefetch={false} href="/" className="footer-logo" aria-label="Zag Offers - الرئيسية">
             <span className="relative block h-16 w-20"><BrandMark className="h-full w-full" /></span>
             <span><b><span>Zag</span> Offers</b><small>عروض قريبة منك</small></span>
           </Link>
@@ -500,7 +506,7 @@ export function Footer() {
           <div key={column.title} className="footer-column">
             <h4>{column.title}</h4>
             <ul>
-              {column.links.map(([label, href]) => <li key={label}><Link href={href}><RiArrowLeftLine />{label}</Link></li>)}
+              {column.links.map(([label, href]) => <li key={label}><Link prefetch={false} href={href}><RiArrowLeftLine />{label}</Link></li>)}
             </ul>
           </div>
         ))}

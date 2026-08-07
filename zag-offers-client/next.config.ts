@@ -68,9 +68,6 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   turbopack: {},
   images: {
-    // Uploaded offer images are already WebP and are served by our API CDN.
-    // Serving them directly avoids intermittent optimizer 502s.
-    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2_592_000,
     remotePatterns: [

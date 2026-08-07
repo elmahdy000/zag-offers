@@ -36,6 +36,11 @@ body {
 html { color-scheme: dark; }
 html[data-theme="light"] { color-scheme: light; }
 
+.content-auto {
+  content-visibility: auto;
+  contain-intrinsic-size: 560px;
+}
+
 .brand-hero {
   position: relative;
   overflow: hidden;

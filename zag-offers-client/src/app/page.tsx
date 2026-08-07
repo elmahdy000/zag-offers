@@ -239,14 +239,14 @@ function HomePageContent() {
     };
   }, [socket]);
 
-  // Polling fallback when socket is not connected
+  // Conservative fallback only when realtime stays unavailable.
   useEffect(() => {
     if (isConnected) return;
     if (!navigator.onLine) return;
 
     const interval = setInterval(() => {
-      fetchDataRef.current(true);
-    }, 30000);
+      if (document.visibilityState === 'visible') fetchDataRef.current(false);
+    }, 5 * 60 * 1000);
 
     return () => clearInterval(interval);
   }, [isConnected]);
@@ -361,8 +361,8 @@ function HomePageContent() {
             </form>
           </motion.div>
           <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-            <Link href="/offers" className="rounded-xl bg-[#FF8A32] px-5 py-2.5 text-sm font-bold text-[#07101F] hover:bg-[#FF9B4F]">استكشف العروض ←</Link>
-            <Link href="/stores" className="rounded-xl border border-[#34445B] px-5 py-2.5 text-sm font-bold text-white hover:border-[#FF8A32]">تصفح المتاجر</Link>
+            <Link prefetch={false} href="/offers" className="rounded-xl bg-[#FF8A32] px-5 py-2.5 text-sm font-bold text-[#07101F] hover:bg-[#FF9B4F]">استكشف العروض ←</Link>
+            <Link prefetch={false} href="/stores" className="rounded-xl border border-[#34445B] px-5 py-2.5 text-sm font-bold text-white hover:border-[#FF8A32]">تصفح المتاجر</Link>
           </div>
           </div>
 
@@ -386,7 +386,7 @@ function HomePageContent() {
       {banners.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 mt-8 mb-8">
           <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-            {banners.map((banner) => (
+            {banners.map((banner, index) => (
               <a
                 key={banner.id}
                 href={banner.actionUrl || '#'}
@@ -400,6 +400,7 @@ function HomePageContent() {
                     className="object-cover transition-all duration-700 group-hover:scale-105"
                     sizes="(max-width: 640px) 85vw, 500px"
                     quality={85}
+                    {...(index === 0 ? { preload: true, fetchPriority: 'high' as const } : { loading: 'lazy' as const })}
                   />
                 ) : (
                   <div className="absolute inset-0 bg-[#162338]" />
@@ -426,11 +427,11 @@ function HomePageContent() {
       <section className="site-container mb-12 mt-9">
         <div className="mb-5 flex items-center justify-between">
           <h2 className="text-xl font-bold text-white sm:text-2xl">تصفح حسب القسم</h2>
-          <Link href="/categories" className="text-sm font-semibold text-[#FF8A32] hover:text-[#FFAC6E]">كل الأقسام ←</Link>
+          <Link prefetch={false} href="/categories" className="text-sm font-semibold text-[#FF8A32] hover:text-[#FFAC6E]">كل الأقسام ←</Link>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {categories.slice(0, 6).map((category) => (
-            <Link key={category.id} href={`/offers?category=${category.id}`} className="group block transition-transform hover:-translate-y-1">
+            <Link prefetch={false} key={category.id} href={`/offers?category=${category.id}`} className="group block transition-transform hover:-translate-y-1">
               <CategoryImageCard name={getCatName(category.name)} image={category.image} compact />
             </Link>
           ))}
@@ -494,11 +495,11 @@ function HomePageContent() {
         <section className="max-w-7xl mx-auto px-4 mb-16">
           <div className="flex items-center justify-between mb-8">
             <h2 className="section-title text-white">براندات بنحبها</h2>
-            <Link href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
+            <Link prefetch={false} href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
             {stores.slice(0, 12).map(store => (
-              <Link key={store.id} href={`/stores/${store.id}`} className="group">
+              <Link prefetch={false} key={store.id} href={`/stores/${store.id}`} className="group">
                 <div className="bg-[#0F1A2B] border border-[#2A3A52] rounded-2xl p-4 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#162338] hover:-translate-y-0.5 transition-all duration-300">
                   <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-105 transition-transform duration-500 shadow-inner">
                     {store.logo ? (
@@ -557,26 +558,18 @@ function HomePageContent() {
           </motion.div>
         ) : (
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            <AnimatePresence mode="popLayout">
-              {filteredOffers.slice(0, 48).map((offer, i) => (
-                <motion.div 
-                  key={offer.id} 
-                  layout 
-                  initial={{ opacity: 0, y: 20 }} 
-                  animate={{ opacity: 1, y: 0 }} 
-                  exit={{ opacity: 0, scale: 0.9 }}
-                  transition={{ duration: 0.3, delay: i < 12 ? i * 0.05 : 0 }}
-                >
+              {filteredOffers.slice(0, 24).map((offer, i) => (
+                <div key={offer.id} className="content-auto">
                   <OfferCard offer={offer} priority={i < 2} />
-                </motion.div>
+                </div>
               ))}
-            </AnimatePresence>
           </div>
         )}
 
         {!loading && filteredOffers.length >= 24 && (
           <div className="mt-20 text-center">
             <Link 
+              prefetch={false}
               href="/offers"
               className="inline-flex items-center gap-3 px-12 py-5 bg-[#FF6B00] rounded-2xl font-black text-white hover:bg-[#D95A00] transition-all shadow-[0_10px_30px_rgba(255,107,0,0.3)] hover:scale-105 active:scale-95"
             >
