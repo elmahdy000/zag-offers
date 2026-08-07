@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
-import { MapPin, ArrowLeft, Search, X, BadgeCheck, Store as StoreIcon, RotateCcw } from 'lucide-react';
+import { MapPin, ArrowLeft, Search, X, Check, TicketX, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
@@ -166,20 +166,24 @@ const StoreCard = memo(function StoreCard({ store, stats }: { store: Store; stat
   return (
     <Link href={`/stores/${store.id}`} className="store-card" aria-label={`استكشف متجر ${store.name}`}>
       <div className="store-card-cover">
-        {coverUrl ? <Image src={coverUrl} alt="" fill loading="lazy" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px" className="object-cover" onError={() => setCoverFailed(true)} /> : <div className="store-image-fallback"><StoreIcon size={26} /><span>{initial}</span></div>}
+        {coverUrl ? <Image src={coverUrl} alt={`غلاف متجر ${store.name}`} fill loading="lazy" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px" className="object-cover" onError={() => setCoverFailed(true)} /> : <div className="store-image-fallback" aria-hidden="true"><span>{initial}</span></div>}
         {store.status === 'APPROVED' && <span className="store-status"><span /> متجر معتمد</span>}
       </div>
       <div className="store-card-logo">
         {logoUrl ? <Image src={logoUrl} alt={`شعار ${store.name}`} fill loading="lazy" sizes="64px" className="object-cover" onError={() => setLogoFailed(true)} /> : <span>{initial}</span>}
       </div>
       <div className="store-card-body">
-        <div className="store-name-row"><h2>{store.name}</h2>{store.status === 'APPROVED' && <BadgeCheck aria-label="متجر موثق" />}</div>
+        <div className="store-name-row"><h2>{store.name}</h2>{store.status === 'APPROVED' && <span className="store-verified" title="متجر موثّق" aria-label="متجر موثّق"><Check aria-hidden="true" /></span>}</div>
         <div className="store-meta-row"><span>{store.category?.name || 'متجر محلي'}</span><i>•</i><span><MapPin size={13} />{store.area || 'الزقازيق'}</span></div>
-        <div className="store-offer-stats">
-          <div><small>العروض المتاحة</small><strong>{stats?.count || 0} {stats?.count === 1 ? 'عرض' : 'عروض'}</strong></div>
-          <div><small>أعلى خصم</small><strong>{stats?.maxDiscount ? `حتى ${stats.maxDiscount}%` : 'قريبًا'}</strong></div>
-        </div>
-        <span className="store-card-action">استكشف المتجر <ArrowLeft size={17} /></span>
+        {(stats?.count || 0) > 0 ? (
+          <div className={`store-offer-stats ${!stats?.maxDiscount ? 'has-single-stat' : ''}`}>
+            <div><small>العروض المتاحة</small><strong>{stats?.count} {stats?.count === 1 ? 'عرض' : 'عروض'}</strong></div>
+            {!!stats?.maxDiscount && <div><small>أعلى خصم</small><strong>حتى {stats.maxDiscount}%</strong></div>}
+          </div>
+        ) : (
+          <div className="store-no-offers"><TicketX aria-hidden="true" /><span>لا توجد عروض متاحة حاليًا</span></div>
+        )}
+        <span className="store-card-action"><span>استكشف المتجر</span><ArrowLeft size={18} aria-hidden="true" /></span>
       </div>
     </Link>
   );
