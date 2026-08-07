@@ -40,8 +40,7 @@ export default function CategoriesPage() {
     }
 
     try {
-      const t = Date.now();
-      const res = await fetch(`${API_URL}/offers/categories?_t=${t}`, { cache: 'no-store' });
+      const res = await fetch(`${API_URL}/offers/categories`, { cache: 'no-store' });
       if (!res.ok) {
         throw new Error(`HTTP ${res.status}`);
       }

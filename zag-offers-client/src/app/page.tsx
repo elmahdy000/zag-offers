@@ -152,35 +152,45 @@ function HomePageContent() {
       if (shouldShowLoading) {
         setLoading(true);
       }
-      const t = Date.now();
-      const responses = await Promise.all([
-        fetch(`${API_URL}/offers?limit=24&_t=${t}`, { cache: 'no-store' }),
-        fetch(`${API_URL}/offers/categories?_t=${t}`, { cache: 'no-store' }),
-        fetch(`${API_URL}/stores?limit=12&_t=${t}`, { cache: 'no-store' }),
-        fetch(`${API_URL}/recommendations?_t=${t}`, { cache: 'no-store' }),
-        fetch(`${API_URL}/offers/banners?_t=${t}`, { cache: 'no-store' })
+      const primaryResponses = await Promise.all([
+        fetch(`${API_URL}/offers?limit=24`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers/categories`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers/banners`, { cache: 'no-store' }),
       ]);
-
-      for (const res of responses) {
+      for (const res of primaryResponses) {
         if (!res.ok) throw new Error(`HTTP ${res.status} for ${res.url}`);
       }
 
-      const [oData, cData, sData, rData, bData] = await Promise.all([
-        responses[0].json(), responses[1].json(), responses[2].json(), responses[3].json(), responses[4].json()
+      const [oData, cData, bData] = await Promise.all([
+        primaryResponses[0].json(),
+        primaryResponses[1].json(),
+        primaryResponses[2].json(),
       ]);
 
       const normalizedCats = normalizeCategories(cData);
-
       const offerItems = extractItems<Offer>(oData);
-      const storeItems = extractItems<Store>(sData);
-      const recommendationItems = extractItems<Offer>(rData);
-
       setOffers(offerItems);
       setCategories(normalizedCats);
+      setBanners(Array.isArray(bData) ? bData : []);
+      setLoading(false);
+
+      // Below-the-fold data must not delay the first useful render.
+      const secondaryResponses = await Promise.all([
+        fetch(`${API_URL}/stores?limit=12`, { cache: 'no-store' }),
+        fetch(`${API_URL}/recommendations`, { cache: 'no-store' }),
+      ]);
+      for (const res of secondaryResponses) {
+        if (!res.ok) throw new Error(`HTTP ${res.status} for ${res.url}`);
+      }
+      const [sData, rData] = await Promise.all([
+        secondaryResponses[0].json(),
+        secondaryResponses[1].json(),
+      ]);
+      const storeItems = extractItems<Store>(sData);
+      const recommendationItems = extractItems<Offer>(rData);
       setStores(storeItems);
       setRecommended(recommendationItems);
-      setBanners(Array.isArray(bData) ? bData : []);
-      
+
       // Save to cache
       localStorage.setItem(CACHE_KEY, JSON.stringify({
         offers: offerItems,
