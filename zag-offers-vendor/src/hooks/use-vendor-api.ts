@@ -2,6 +2,12 @@ import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCookie, vendorApi, getVendorStoreId } from '@/lib/api';
 import axios from 'axios';
 
+const retryTransientRequest = (failureCount: number, error: unknown) => {
+  const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+  if (status && [400, 401, 403, 404].includes(status)) return false;
+  return failureCount < 2;
+};
+
 // Types
 interface CreateOfferData {
   title: string;
@@ -53,7 +59,7 @@ export const useVendorOffers = () => {
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 1000 * 60, // 1 minute
     gcTime: 1000 * 60 * 5, // 5 minutes
-    retry: 2,
+    retry: retryTransientRequest,
     refetchOnWindowFocus: false,
   });
 };
@@ -84,7 +90,7 @@ export function useVendorStats() {
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 2 * 60 * 1000, // Realtime events handle important changes; this is a safety refresh.
-    retry: 3,
+    retry: retryTransientRequest,
   });
 }
 
@@ -115,7 +121,7 @@ export function useVendorStore() {
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 5 * 60 * 1000, // 5 minutes
-    retry: 2,
+    retry: retryTransientRequest,
     retryDelay: (attempt) => Math.min(attempt * 1000, 3000),
   });
 }

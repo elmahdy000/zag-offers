@@ -24,7 +24,13 @@ export default function LoginPage() {
 
   useEffect(() => {
     const active = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
-    const timer = window.setTimeout(() => setTheme(active), 0);
+    const reason = new URLSearchParams(window.location.search).get('reason');
+    const timer = window.setTimeout(() => {
+      setTheme(active);
+      if (reason === 'admin-account') setError('هذا حساب إدارة. افتح لوحة الإدارة لتسجيل الدخول.');
+      if (reason === 'session-expired') setError('انتهت الجلسة. سجّل الدخول مرة أخرى.');
+      if (reason === 'unauthorized') setError('الجلسة لا تملك صلاحية لوحة التاجر. سجّل الدخول بحساب تاجر.');
+    }, 0);
     return () => window.clearTimeout(timer);
   }, []);
 
@@ -56,8 +62,10 @@ export default function LoginPage() {
       if (!access_token || !user?.id || !user?.role) {
         throw new Error('استجابة تسجيل الدخول غير مكتملة. حاول مرة أخرى.');
       }
-      if (user.role !== 'MERCHANT' && user.role !== 'ADMIN') {
-        setError('هذا الحساب ليس حساب تاجر. استخدم تطبيق العملاء.');
+      if (user.role !== 'MERCHANT') {
+        setError(user.role === 'ADMIN'
+          ? 'هذا حساب إدارة. استخدم لوحة الإدارة بدلًا من لوحة التاجر.'
+          : 'هذا الحساب ليس حساب تاجر. استخدم تطبيق العملاء.');
         setLoading(false);
         return;
       }

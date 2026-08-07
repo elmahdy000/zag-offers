@@ -122,10 +122,11 @@ export function vendorApi() {
           error: true
         });
       }
-      if (error.response?.status === 401 && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      if ((error.response?.status === 401 || error.response?.status === 403) && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         deleteCookie('auth_token');
         if (typeof secureStorage !== 'undefined') secureStorage.clear();
-        window.location.href = '/login';
+        const reason = error.response.status === 403 ? 'unauthorized' : 'session-expired';
+        window.location.replace(`/login?reason=${reason}`);
       }
       return Promise.reject(error);
     }

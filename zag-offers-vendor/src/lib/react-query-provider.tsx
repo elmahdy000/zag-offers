@@ -2,6 +2,7 @@
 
 import { QueryClient, QueryClientProvider, QueryCache, MutationCache } from '@tanstack/react-query';
 import { ReactNode } from 'react';
+import axios from 'axios';
 import { handleApiError } from './errorHandler';
 import { emitGlobalError } from './error-events';
 
@@ -22,7 +23,11 @@ const queryClient = new QueryClient({
     queries: {
       staleTime: 60 * 1000,
       gcTime: 5 * 60 * 1000,
-      retry: 3,
+      retry: (failureCount, error) => {
+        const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+        if (status && [400, 401, 403, 404].includes(status)) return false;
+        return failureCount < 2;
+      },
       refetchOnWindowFocus: false,
       refetchOnReconnect: true,
     },

@@ -1,11 +1,12 @@
 'use client';
 import { useState, useEffect } from 'react';
+import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { Menu, X, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { vendorApi, getVendorStoreId } from '@/lib/api';
+import { deleteCookie, getCookie } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
-import { secureStoreData } from '@/lib/crypto';
+import { secureStorage, secureUserData } from '@/lib/crypto';
 import { OfflineSync } from '@/lib/offline-sync';
 import BrandMark from '@/components/BrandMark';
 import ThemeToggle from '@/components/ThemeToggle';
@@ -17,8 +18,24 @@ export default function DashboardLayout({
 }) {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isOnline, setIsOnline] = useState(true);
+  const [isAuthorized, setIsAuthorized] = useState(false);
+  const router = useRouter();
+  const pathname = usePathname();
   
   useEffect(() => {
+    const token = getCookie('auth_token');
+    const user = secureUserData.load();
+
+    if (!token || user?.role !== 'MERCHANT') {
+      deleteCookie('auth_token');
+      secureStorage.clear();
+      const reason = user?.role === 'ADMIN' ? 'admin-account' : 'unauthorized';
+      router.replace(`/login?reason=${reason}`);
+      return;
+    }
+
+    const authorizationTimer = window.setTimeout(() => setIsAuthorized(true), 0);
+
     if (typeof window !== 'undefined') {
       const statusTimer = window.setTimeout(() => setIsOnline(navigator.onLine), 0);
       const stopOfflineSync = OfflineSync.init();
@@ -29,25 +46,19 @@ export default function DashboardLayout({
       window.addEventListener('online', handleOnline);
       window.addEventListener('offline', handleOffline);
 
-      const storeId = getVendorStoreId();
-      if (!storeId) {
-        vendorApi().get('/stores/my-dashboard')
-          .then((res: { data?: { storeId?: string } }) => {
-            if (res.data?.storeId) {
-              secureStoreData.save(res.data.storeId);
-            }
-          })
-          .catch(() => {});
-      }
-
       return () => {
+        window.clearTimeout(authorizationTimer);
         window.clearTimeout(statusTimer);
         stopOfflineSync?.();
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
       };
     }
-  }, []);
+  }, [pathname, router]);
+
+  if (!isAuthorized) {
+    return <div className="min-h-screen bg-bg" aria-busy="true" />;
+  }
 
   return (
     <div className="vendor-shell flex bg-bg min-h-screen relative overflow-x-hidden">

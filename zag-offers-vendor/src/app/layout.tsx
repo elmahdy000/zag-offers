@@ -1,4 +1,5 @@
 import type { Metadata, Viewport } from 'next';
+import '@fontsource-variable/cairo';
 import './globals.css';
 import LayoutClient from './layout-client';
 
