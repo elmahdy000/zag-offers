@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiSearch2Line, RiFireFill, RiSparkling2Fill, 
   RiStore3Fill, RiArrowUpDownLine, RiMapPin2Fill,
-  RiCloseLine
+  RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine
 } from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -52,6 +52,8 @@ function HomePageContent() {
   const [stores, setStores] = useState<Store[]>([]);
   const [recommended, setRecommended] = useState<Offer[]>([]);
   const [banners, setBanners] = useState<Banner[]>([]);
+  const [activeBanner, setActiveBanner] = useState(0);
+  const [bannerPaused, setBannerPaused] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(catIdParam || '');
@@ -62,6 +64,24 @@ function HomePageContent() {
   const searchInputRef = useRef<HTMLInputElement>(null);
   const offersGridRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
+
+  const showNextBanner = useCallback(() => {
+    setActiveBanner((current) => banners.length ? (current + 1) % banners.length : 0);
+  }, [banners.length]);
+
+  const showPreviousBanner = useCallback(() => {
+    setActiveBanner((current) => banners.length ? (current - 1 + banners.length) % banners.length : 0);
+  }, [banners.length]);
+
+  useEffect(() => {
+    if (banners.length < 2 || bannerPaused) return;
+    const timer = window.setInterval(showNextBanner, 5000);
+    return () => window.clearInterval(timer);
+  }, [banners.length, bannerPaused, showNextBanner]);
+
+  useEffect(() => {
+    if (activeBanner >= banners.length) setActiveBanner(0);
+  }, [activeBanner, banners.length]);
 
   // Reliable scroll helper — waits for DOM paint then scrolls
   const scrollToGrid = (delay = 0) => {
@@ -421,42 +441,91 @@ function HomePageContent() {
 
       {/* ─── Banners Carousel ──────────────────────────── */}
       {banners.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 mt-8 mb-8">
-          <div className="flex gap-4 overflow-x-auto no-scrollbar scroll-smooth pb-2 -mx-4 px-4 sm:mx-0 sm:px-0">
-            {banners.map((banner, index) => (
-              <a
-                key={banner.id}
-                href={banner.actionUrl || '#'}
-                className="group relative flex-shrink-0 w-[85vw] sm:w-[500px] h-[160px] sm:h-[200px] rounded-[2rem] overflow-hidden border border-white/5 bg-[#252525] transition-all duration-500 hover:border-[#FF6B00]/30"
-              >
-                {banner.image ? (
-                  <Image
-                    src={resolveImageUrl(banner.image) ?? '/placeholder-offer.jpg'}
-                    alt={banner.title}
-                    fill
-                    className="object-cover transition-all duration-700 group-hover:scale-105"
-                    sizes="(max-width: 640px) 85vw, 500px"
-                    quality={85}
-                    {...(index === 0 ? { preload: true, fetchPriority: 'high' as const } : { loading: 'lazy' as const })}
-                  />
-                ) : (
-                  <div className="absolute inset-0 bg-[#162338]" />
-                )}
-                <div className="absolute inset-0 bg-black/35" />
-                {banner.tag && (
-                  <span className="absolute top-3 right-3 px-3 py-1 bg-[#FF6B00] text-white text-[10px] font-black rounded-full">
-                    {banner.tag}
-                  </span>
-                )}
-                <div className="absolute bottom-4 right-4 left-4">
-                  <h3 className="text-white text-base sm:text-lg font-black">{banner.title}</h3>
-                  {banner.subtitle && (
-                    <p className="text-white/70 text-xs sm:text-sm font-semibold mt-1">{banner.subtitle}</p>
-                  )}
-                </div>
-              </a>
-            ))}
+        <section
+          className="ad-carousel site-container my-8"
+          aria-roledescription="carousel"
+          aria-label="إعلانات وعروض مميزة"
+          data-paused={bannerPaused ? 'true' : 'false'}
+          onMouseEnter={() => setBannerPaused(true)}
+          onMouseLeave={() => setBannerPaused(false)}
+          onFocusCapture={() => setBannerPaused(true)}
+          onBlurCapture={() => setBannerPaused(false)}
+        >
+          <div className="ad-carousel-heading">
+            <div>
+              <span className="ad-carousel-kicker"><RiSparkling2Fill /> مختار ليك</span>
+              <h2>عروض وإعلانات مميزة</h2>
+            </div>
+            {banners.length > 1 && (
+              <div className="ad-carousel-controls">
+                <button type="button" onClick={showPreviousBanner} aria-label="الإعلان السابق"><RiArrowRightSLine /></button>
+                <button type="button" onClick={showNextBanner} aria-label="الإعلان التالي"><RiArrowLeftSLine /></button>
+              </div>
+            )}
           </div>
+
+          <div className="ad-carousel-stage">
+            <AnimatePresence mode="wait" initial={false}>
+              <motion.a
+                key={banners[activeBanner].id}
+                href={banners[activeBanner].actionUrl || '#'}
+                className="ad-carousel-main group"
+                initial={{ opacity: 0, x: 34, scale: 0.985 }}
+                animate={{ opacity: 1, x: 0, scale: 1 }}
+                exit={{ opacity: 0, x: -28, scale: 0.985 }}
+                transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
+                drag={banners.length > 1 ? 'x' : false}
+                dragConstraints={{ left: 0, right: 0 }}
+                dragElastic={0.12}
+                onDragEnd={(_, info) => {
+                  if (info.offset.x < -55) showNextBanner();
+                  if (info.offset.x > 55) showPreviousBanner();
+                }}
+              >
+                {banners[activeBanner].image ? (
+                  <Image
+                    src={resolveImageUrl(banners[activeBanner].image) ?? '/placeholder-offer.jpg'}
+                    alt={banners[activeBanner].title}
+                    fill
+                    className="object-cover transition-transform duration-1000 group-hover:scale-[1.025]"
+                    sizes="(max-width: 768px) 100vw, 950px"
+                    quality={88}
+                    priority={activeBanner === 0}
+                  />
+                ) : <div className="absolute inset-0 bg-[#162338]" />}
+                <span className="ad-carousel-shade" aria-hidden="true" />
+                <div className="ad-carousel-copy">
+                  {banners[activeBanner].tag && <span className="ad-carousel-tag">{banners[activeBanner].tag}</span>}
+                  <h3>{banners[activeBanner].title}</h3>
+                  {banners[activeBanner].subtitle && <p>{banners[activeBanner].subtitle}</p>}
+                  {banners[activeBanner].actionUrl && <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>}
+                </div>
+                <span className="ad-carousel-count"><b>{String(activeBanner + 1).padStart(2, '0')}</b> / {String(banners.length).padStart(2, '0')}</span>
+              </motion.a>
+            </AnimatePresence>
+
+            {banners.length > 1 && (
+              <button type="button" className="ad-carousel-preview" onClick={showNextBanner} aria-label={`عرض الإعلان التالي: ${banners[(activeBanner + 1) % banners.length].title}`}>
+                {banners[(activeBanner + 1) % banners.length].image && (
+                  <Image src={resolveImageUrl(banners[(activeBanner + 1) % banners.length].image) ?? '/placeholder-offer.jpg'} alt="" fill className="object-cover" sizes="320px" />
+                )}
+                <span className="ad-carousel-preview-shade" />
+                <span className="ad-carousel-preview-label">التالي</span>
+                <strong>{banners[(activeBanner + 1) % banners.length].title}</strong>
+                <RiArrowLeftSLine className="ad-carousel-preview-arrow" />
+              </button>
+            )}
+          </div>
+
+          {banners.length > 1 && (
+            <div className="ad-carousel-pagination">
+              {banners.map((banner, index) => (
+                <button key={banner.id} type="button" className={index === activeBanner ? 'is-active' : ''} onClick={() => setActiveBanner(index)} aria-label={`الانتقال إلى الإعلان ${index + 1}`} aria-current={index === activeBanner ? 'true' : undefined}>
+                  <span />
+                </button>
+              ))}
+            </div>
+          )}
         </section>
       )}
 
