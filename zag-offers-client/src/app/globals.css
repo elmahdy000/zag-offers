@@ -298,6 +298,77 @@ html[data-theme="light"] .category-image-copy span { color:rgba(255,255,255,.76)
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
+/* Stores marketplace */
+.stores-page { min-height:70vh; overflow-x:clip; background:#071426; }
+.stores-page-header { max-width:760px; margin-bottom:28px; }
+.stores-page-header h1 { color:#f8fafc; font-size:clamp(1.8rem,3vw,2.35rem); line-height:1.25; font-weight:900; letter-spacing:-.025em; }
+.stores-page-header > div > p { margin-top:7px; color:#94a3b8; font-size:14px; font-weight:600; }
+.stores-search-wrap { position:relative; max-width:620px; margin-top:20px; }
+.stores-search-wrap > svg { position:absolute; z-index:2; right:16px; top:50%; color:#7f8da1; transform:translateY(-50%); pointer-events:none; }
+.stores-search-wrap input { width:100%; height:48px; border:1px solid #263750; border-radius:12px; outline:0; background:#111d30; padding:0 47px 0 44px; color:#f8fafc; font-size:13px; font-weight:600; transition:border-color .2s ease,box-shadow .2s ease; }
+.stores-search-wrap input::placeholder { color:#77869a; }
+.stores-search-wrap input:focus { border-color:#ff6b00; box-shadow:0 0 0 3px rgba(255,107,0,.12); }
+.stores-search-clear { position:absolute; z-index:2; left:12px; top:50%; display:grid; width:27px; height:27px; place-items:center; border-radius:7px; color:#8d9aad; transform:translateY(-50%); }
+.stores-search-clear:hover { background:#1c2b41; color:#fff; }
+.stores-grid { display:grid; grid-template-columns:repeat(auto-fit,minmax(280px,1fr)); gap:24px; align-items:stretch; }
+.store-card { position:relative; display:block; min-width:0; height:100%; min-height:328px; overflow:hidden; border:1px solid #263750; border-radius:18px; outline:0; background:#111d30; color:#f8fafc; transition:transform .2s ease,border-color .2s ease,box-shadow .2s ease; }
+.store-card:hover { border-color:rgba(255,107,0,.5); box-shadow:0 12px 28px rgba(0,0,0,.2); transform:translateY(-4px); }
+.store-card:focus-visible { border-color:#ff6b00; box-shadow:0 0 0 3px rgba(255,107,0,.23); }
+.store-card-cover { position:relative; height:132px; overflow:hidden; background:#17263a; }
+.store-card-cover > img { transition:transform .35s ease; }
+.store-card:hover .store-card-cover > img { transform:scale(1.025); }
+.store-image-fallback { position:absolute; inset:0; display:flex; align-items:center; justify-content:center; gap:10px; background:#17263a; color:#6f8096; }
+.store-image-fallback span { font-size:30px; font-weight:900; color:#9cacbf; }
+.store-status { position:absolute; top:10px; left:10px; display:inline-flex; align-items:center; gap:6px; border:1px solid rgba(255,255,255,.16); border-radius:999px; background:#0b1829; padding:5px 9px; color:#dce4ef; font-size:9px; font-weight:800; }
+.store-status > span { width:6px; height:6px; border-radius:50%; background:#22c55e; }
+.store-card-logo { position:absolute; z-index:2; top:98px; right:18px; display:grid; width:66px; height:66px; place-items:center; overflow:hidden; border:4px solid #111d30; border-radius:17px; background:#1b2a40; color:#ff8a3d; font-size:25px; font-weight:900; }
+.store-card-body { display:flex; min-height:194px; flex-direction:column; padding:38px 18px 16px; }
+.store-name-row { display:flex; min-width:0; align-items:center; gap:6px; }
+.store-name-row h2 { overflow:hidden; color:#f8fafc; font-size:17px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.store-name-row svg { width:17px; height:17px; flex:0 0 auto; color:#ff6b00; }
+.store-meta-row { display:flex; min-width:0; align-items:center; gap:7px; margin-top:6px; color:#94a3b8; font-size:11px; font-weight:700; }
+.store-meta-row > span { display:flex; min-width:0; align-items:center; gap:4px; overflow:hidden; text-overflow:ellipsis; white-space:nowrap; }
+.store-meta-row > span:first-child { border:1px solid rgba(255,107,0,.24); border-radius:999px; background:rgba(255,107,0,.12); padding:3px 8px; color:#ff8a3d; }
+.store-meta-row i { color:#526178; font-style:normal; }
+.store-meta-row svg { flex:0 0 auto; color:#ff6b00; }
+.store-offer-stats { display:grid; grid-template-columns:1fr 1fr; gap:8px; margin-top:14px; }
+.store-offer-stats > div { min-width:0; border:1px solid #263750; border-radius:10px; background:#0d192a; padding:8px 10px; }
+.store-offer-stats small { display:block; color:#718096; font-size:9px; font-weight:700; }
+.store-offer-stats strong { display:block; margin-top:2px; overflow:hidden; color:#e9eef5; font-size:12px; font-weight:900; text-overflow:ellipsis; white-space:nowrap; }
+.store-card-action { display:flex; width:100%; height:39px; align-items:center; justify-content:center; gap:6px; margin-top:auto; border-radius:10px; background:#ff6b00; color:#fff; font-size:12px; font-weight:900; transition:background .2s ease; }
+.store-card:hover .store-card-action { background:#ff7a1a; }
+.stores-empty-state { display:flex; min-height:270px; flex-direction:column; align-items:center; justify-content:center; border:1px dashed #304159; border-radius:18px; background:#0d192a; padding:36px 20px; text-align:center; }
+.stores-empty-state > span { display:grid; width:54px; height:54px; place-items:center; border-radius:15px; background:#16263b; color:#708096; }
+.stores-empty-state h3 { margin-top:14px; color:#f8fafc; font-size:17px; font-weight:900; }
+.stores-empty-state p { margin-top:5px; color:#94a3b8; font-size:12px; font-weight:600; }
+.stores-empty-action { display:inline-flex; align-items:center; gap:6px; margin-top:17px; border-radius:10px; background:#ff6b00; padding:10px 16px; color:#fff; font-size:11px; font-weight:900; }
+.store-card-skeleton { pointer-events:none; }
+.skeleton-cover,.skeleton-logo,.store-card-skeleton i,.skeleton-stats { background:#1b2a40; animation:shimmer 1.5s ease-in-out infinite; }
+.skeleton-cover { height:132px; }
+.skeleton-logo { position:absolute; top:98px; right:18px; width:66px; height:66px; border:4px solid #111d30; border-radius:17px; }
+.store-card-skeleton i { display:block; width:55%; height:13px; border-radius:6px; }
+.store-card-skeleton i + i { width:37%; height:10px; margin-top:9px; }
+.skeleton-stats { height:48px; margin-top:15px; border-radius:10px; }
+.store-card-skeleton i.skeleton-button { width:100%; height:39px; margin-top:auto; border-radius:10px; }
+
+html[data-theme="light"] .stores-page { background:#f8fafc; }
+html[data-theme="light"] .stores-page-header h1,html[data-theme="light"] .store-name-row h2,html[data-theme="light"] .stores-empty-state h3 { color:#0f172a; }
+html[data-theme="light"] .stores-page-header > div > p,html[data-theme="light"] .store-meta-row,html[data-theme="light"] .stores-empty-state p { color:#64748b; }
+html[data-theme="light"] .stores-search-wrap input { border-color:#e2e8f0; background:#fff; color:#0f172a; }
+html[data-theme="light"] .store-card { border-color:#e2e8f0; background:#fff; color:#0f172a; }
+html[data-theme="light"] .store-card:hover { border-color:rgba(255,107,0,.45); box-shadow:0 12px 28px rgba(15,23,42,.09); }
+html[data-theme="light"] .store-card-logo { border-color:#fff; background:#f1f5f9; }
+html[data-theme="light"] .store-card-cover,html[data-theme="light"] .store-image-fallback { background:#e9eef5; }
+html[data-theme="light"] .store-offer-stats > div { border-color:#e2e8f0; background:#f8fafc; }
+html[data-theme="light"] .store-offer-stats strong { color:#0f172a; }
+html[data-theme="light"] .stores-empty-state { border-color:#d8e0ea; background:#fff; }
+html[data-theme="light"] .skeleton-cover,html[data-theme="light"] .skeleton-logo,html[data-theme="light"] .store-card-skeleton i,html[data-theme="light"] .skeleton-stats { background:#e8edf3; }
+html[data-theme="light"] .skeleton-logo { border-color:#fff; }
+
+@media (min-width:1280px) { .stores-grid { grid-template-columns:repeat(4,minmax(0,1fr)); } }
+@media (min-width:768px) and (max-width:1279px) { .stores-grid { grid-template-columns:repeat(2,minmax(0,1fr)); } }
+@media (max-width:767px) { .stores-grid { grid-template-columns:minmax(0,1fr); gap:18px; } .stores-page-header { margin-bottom:22px; } .stores-page-header h1 { font-size:1.75rem; } .stores-search-wrap { margin-top:16px; } }
+
 /* ── Live dot ── */
 .live-dot {
   display: inline-block;

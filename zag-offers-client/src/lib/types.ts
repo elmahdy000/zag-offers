@@ -18,6 +18,10 @@ export interface Store {
   locationUrl?: string;
   categoryId?: string;
   category?: Category;
+  coverImage?: string;
+  images?: string[];
+  status?: string;
+  workingHours?: unknown;
 }
 
 export interface Banner {

@@ -1,8 +1,7 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
-import { motion } from 'framer-motion';
-import { MapPin, ArrowLeft, Search, X } from 'lucide-react';
+import React, { memo, useState, useEffect, useCallback, useMemo } from 'react';
+import { MapPin, ArrowLeft, Search, X, BadgeCheck, Store as StoreIcon, RotateCcw } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
@@ -10,7 +9,7 @@ import { ErrorDisplay } from '@/components/error-display';
 
 import { API_URL } from '@/lib/constants';
 
-import { Store } from '@/lib/types';
+import { Offer, Store } from '@/lib/types';
 import { extractItems, filterStores } from '@/lib/catalog-utils';
 
 function useDebounce<T>(value: T, delay: number): T {
@@ -24,6 +23,7 @@ function useDebounce<T>(value: T, delay: number): T {
 
 export default function StoresListPage() {
   const [stores, setStores] = useState<Store[]>([]);
+  const [offers, setOffers] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [search, setSearch] = useState('');
@@ -47,7 +47,10 @@ export default function StoresListPage() {
     }
 
     try {
-      const res = await fetch(`${API_URL}/stores?limit=100`, { cache: 'no-store' });
+      const [res, offersRes] = await Promise.all([
+        fetch(`${API_URL}/stores?limit=100`, { cache: 'no-store' }),
+        fetch(`${API_URL}/offers?limit=100`, { cache: 'no-store' }),
+      ]);
       if (res.ok) {
         const data = await res.json();
         const storesData = extractItems<Store>(data);
@@ -55,7 +58,10 @@ export default function StoresListPage() {
         setStores(validStores);
         localStorage.setItem('cache_stores_list', JSON.stringify(validStores));
         localStorage.setItem('cache_stores_list_ts', String(Date.now()));
+      } else {
+        throw new Error(`HTTP ${res.status}`);
       }
+      if (offersRes.ok) setOffers(extractItems<Offer>(await offersRes.json()));
       setError(null);
     } catch (e) { 
       console.error('Failed to fetch stores (offline?):', e); 
@@ -78,98 +84,107 @@ export default function StoresListPage() {
     };
   }, [fetchStores]);
 
-  const filteredStores = filterStores(stores, debouncedSearch);
+  const filteredStores = useMemo(() => filterStores(stores, debouncedSearch), [stores, debouncedSearch]);
+  const storeOfferStats = useMemo(() => {
+    const stats = new Map<string, { count: number; maxDiscount: number }>();
+    offers.forEach((offer) => {
+      const storeId = offer.store?.id;
+      if (!storeId) return;
+      const current = stats.get(storeId) || { count: 0, maxDiscount: 0 };
+      const discount = Number(String(offer.discount || '').match(/\d+(?:\.\d+)?/)?.[0] || 0);
+      stats.set(storeId, { count: current.count + 1, maxDiscount: Math.max(current.maxDiscount, discount) });
+    });
+    return stats;
+  }, [offers]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12" dir="rtl">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
+    <main className="stores-page" dir="rtl">
+      <div className="site-container py-7 sm:py-9">
+      <header className="stores-page-header">
         <div>
-          <h1 className="text-[32px] font-bold mb-3 text-[#F0F0F0]">شركاء النجاح</h1>
-          <p className="text-[#AAB7C9] text-[15px] font-normal">اكتشف أفضل المحلات والخدمات في الزقازيق</p>
+          <h1>شركاء النجاح</h1>
+          <p>اكتشف أفضل المحلات والخدمات في الزقازيق</p>
         </div>
-        <div className="relative w-full md:w-80">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A]" size={18} />
+        <div className="stores-search-wrap">
+          <Search aria-hidden="true" size={19} />
           <input 
             type="text"
-            placeholder="ابحث باسم المحل أو المنطقة أو الصنف..."
-            className="w-full bg-[#0F1A2B] border border-[#2A3A52] rounded-xl px-12 py-3.5 text-sm font-normal text-[#F0F0F0] focus:border-[#FF6B00] outline-none transition-all"
+            placeholder="ابحث باسم المتجر أو التصنيف أو المنطقة"
+            aria-label="البحث في المتاجر"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
           {search && (
             <button
               onClick={() => setSearch('')}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
+              className="stores-search-clear"
+              aria-label="مسح البحث"
             >
               <X size={15} />
             </button>
           )}
         </div>
-      </div>
+      </header>
 
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
-          {[1,2,3,4,5,6].map(i => <div key={i} className="h-40 sm:h-48 bg-white/5 rounded-2xl sm:rounded-[32px] animate-pulse" />)}
+        <div className="stores-grid" aria-label="جارٍ تحميل المتاجر">
+          {[1,2,3,4,5,6,7,8].map(i => <StoreCardSkeleton key={i} />)}
         </div>
       ) : error ? (
         <ErrorDisplay message={error} onRetry={fetchStores} />
       ) : filteredStores.length === 0 ? (
-        <div className="text-center py-16 sm:py-24 bg-[#252525]/50 rounded-[2rem] border border-white/[0.05]">
-          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/10">
-            <Search size={32} />
-          </div>
-          <h3 className="text-lg sm:text-xl font-black mb-2 text-white">لا توجد نتائج</h3>
-          <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mb-8 max-w-xs mx-auto">لم نجد متاجر تطابق &ldquo;{search}&rdquo;. جرّب كلمات بحث مختلفة.</p>
+        <div className="stores-empty-state">
+          <span><Search size={26} /></span>
+          <h3>{search ? 'لم نجد متاجر مطابقة لبحثك' : 'لا توجد متاجر متاحة حاليًا'}</h3>
+          <p>{search ? 'جرّب البحث باسم مختلف أو غيّر المنطقة' : 'ستظهر المتاجر هنا فور إضافتها واعتمادها'}</p>
+          {search && (
           <button
             onClick={() => setSearch('')}
-            className="px-8 py-3.5 bg-[#FF6B00] text-white font-black rounded-xl shadow-lg hover:scale-[1.02] transition-all inline-flex items-center gap-2 text-sm"
+            className="stores-empty-action"
           >
-            مسح البحث
+            <RotateCcw size={15} /> مسح البحث
           </button>
+          )}
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-          {filteredStores.map((store) => {
-            const logoUrl = resolveImageUrl(store.logo);
-            return (
-              <Link key={store.id} href={`/stores/${store.id}`}>
-                <motion.div
-                  whileHover={{ y: -5 }}
-                  className="global-card min-h-[300px] bg-[#0F1A2B] border border-[#2A3A52] p-6 rounded-[20px] flex flex-col items-center text-center hover:border-[#FF6B00]/50 hover:bg-[#162338] transition-all cursor-pointer group h-full"
-                >
-                  <div className="w-24 h-24 bg-[#162338] rounded-[22px] border border-[#2A3A52] flex items-center justify-center overflow-hidden mb-5">
-                    {logoUrl ? 
-                      <Image
-                        src={logoUrl}
-                        alt={store.name || 'Store Logo'}
-                        width={96}
-                        height={96}
-                        className="w-full h-full object-cover"
-                        loading="lazy"
-                        sizes="96px"
-                        quality={80}
-                        placeholder="blur"
-                        blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
-                      /> : 
-                      <span className="text-3xl font-bold text-[#8FA0B8]">{store.name.trim().charAt(0)}</span>
-                    }
-                  </div>
-                  <h3 className="font-bold text-lg mb-2 group-hover:text-[#FF7A1A] transition-colors">{store.name}</h3>
-                  <p className="text-sm font-semibold text-[#FF8A3D] bg-[#FF6B00]/10 px-4 py-1.5 rounded-full mb-4">
-                    {store.category?.name || 'متجر'}
-                  </p>
-                  <div className="flex items-center gap-2 text-[#8FA0B8] text-sm font-normal mb-5">
-                    <MapPin size={16} className="text-[#FF6B00]" /> {store.area}
-                  </div>
-                  <div className="mt-auto w-full border-t border-[#2A3A52]/70 pt-4 flex items-center justify-center gap-2 text-base font-bold text-[#FF7A1A]">
-                    عرض المتجر <ArrowLeft size={15} />
-                  </div>
-                </motion.div>
-              </Link>
-            );
-          })}
+        <div className="stores-grid">
+          {filteredStores.map((store) => <StoreCard key={store.id} store={store} stats={storeOfferStats.get(store.id)} />)}
         </div>
       )}
-    </div>
+      </div>
+    </main>
   );
+}
+
+const StoreCard = memo(function StoreCard({ store, stats }: { store: Store; stats?: { count: number; maxDiscount: number } }) {
+  const [logoFailed, setLogoFailed] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
+  const logoUrl = !logoFailed ? resolveImageUrl(store.logo) : '';
+  const coverUrl = !coverFailed ? resolveImageUrl(store.coverImage || store.images?.[0]) : '';
+  const initial = store.name.trim().charAt(0) || 'م';
+
+  return (
+    <Link href={`/stores/${store.id}`} className="store-card" aria-label={`استكشف متجر ${store.name}`}>
+      <div className="store-card-cover">
+        {coverUrl ? <Image src={coverUrl} alt="" fill loading="lazy" sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px" className="object-cover" onError={() => setCoverFailed(true)} /> : <div className="store-image-fallback"><StoreIcon size={26} /><span>{initial}</span></div>}
+        {store.status === 'APPROVED' && <span className="store-status"><span /> متجر معتمد</span>}
+      </div>
+      <div className="store-card-logo">
+        {logoUrl ? <Image src={logoUrl} alt={`شعار ${store.name}`} fill loading="lazy" sizes="64px" className="object-cover" onError={() => setLogoFailed(true)} /> : <span>{initial}</span>}
+      </div>
+      <div className="store-card-body">
+        <div className="store-name-row"><h2>{store.name}</h2>{store.status === 'APPROVED' && <BadgeCheck aria-label="متجر موثق" />}</div>
+        <div className="store-meta-row"><span>{store.category?.name || 'متجر محلي'}</span><i>•</i><span><MapPin size={13} />{store.area || 'الزقازيق'}</span></div>
+        <div className="store-offer-stats">
+          <div><small>العروض المتاحة</small><strong>{stats?.count || 0} {stats?.count === 1 ? 'عرض' : 'عروض'}</strong></div>
+          <div><small>أعلى خصم</small><strong>{stats?.maxDiscount ? `حتى ${stats.maxDiscount}%` : 'قريبًا'}</strong></div>
+        </div>
+        <span className="store-card-action">استكشف المتجر <ArrowLeft size={17} /></span>
+      </div>
+    </Link>
+  );
+});
+
+function StoreCardSkeleton() {
+  return <div className="store-card store-card-skeleton" aria-hidden="true"><div className="skeleton-cover" /><div className="skeleton-logo" /><div className="store-card-body"><i /><i /><div className="skeleton-stats" /><i className="skeleton-button" /></div></div>;
 }
