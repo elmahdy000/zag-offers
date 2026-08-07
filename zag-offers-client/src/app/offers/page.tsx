@@ -1,14 +1,16 @@
 "use client";
 
 import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
+import Image from 'next/image';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2 } from 'lucide-react';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2, ChevronDown, Check } from 'lucide-react';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { useNotifications } from '@/components/notification-provider';
 import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
+import { resolveImageUrl } from '@/lib/utils';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
@@ -36,6 +38,49 @@ function useDebounce<T>(value: T, delay: number): T {
     return () => clearTimeout(handler);
   }, [value, delay]);
   return debouncedValue;
+}
+
+function FilterDropdown({
+  label, icon, value, options, onChange,
+}: {
+  label: string;
+  icon: React.ReactNode;
+  value: string;
+  options: Array<{ value: string; label: string }>;
+  onChange: (value: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const dropdownRef = useRef<HTMLDivElement>(null);
+  const selected = options.find((option) => option.value === value) || options[0];
+
+  useEffect(() => {
+    if (!open) return;
+    const close = (event: MouseEvent) => {
+      if (!dropdownRef.current?.contains(event.target as Node)) setOpen(false);
+    };
+    document.addEventListener('mousedown', close);
+    return () => document.removeEventListener('mousedown', close);
+  }, [open]);
+
+  return (
+    <div ref={dropdownRef} className={`offers-filter-dropdown ${open ? 'is-open' : ''}`}>
+      <button type="button" className="offers-filter-trigger" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+        <span className="offers-filter-trigger-icon">{icon}</span>
+        <span className="offers-filter-trigger-copy"><small>{label}</small><strong>{selected.label}</strong></span>
+        <ChevronDown className="offers-filter-chevron" size={15} />
+      </button>
+      {open && (
+        <div className="offers-filter-menu" role="listbox">
+          {options.map((option) => (
+            <button type="button" role="option" aria-selected={option.value === value} key={option.value} className={option.value === value ? 'is-selected' : ''} onClick={() => { onChange(option.value); setOpen(false); }}>
+              <span>{option.label}</span>
+              {option.value === value && <Check size={14} />}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
 }
 
 function OffersPageContent() {
@@ -284,7 +329,7 @@ function OffersPageContent() {
               : ''
             }`}
           >
-            <Layers size={12} /> الكل
+            <span className="offers-category-thumb is-all"><Layers size={15} /></span> الكل
           </button>
           {categories.map(cat => (
             <button
@@ -296,35 +341,36 @@ function OffersPageContent() {
                 : ''
               }`}
             >
-              {CAT_ICONS[cat.name] || CAT_ICONS.default} {cat.name}
+              <span className="offers-category-thumb">
+                {resolveImageUrl(cat.image) ? (
+                  <Image src={resolveImageUrl(cat.image)!} alt="" fill sizes="32px" className="object-cover" />
+                ) : (CAT_ICONS[cat.name] || CAT_ICONS.default)}
+              </span>
+              {cat.name}
             </button>
           ))}
         </div>
 
         {/* Filters Grid */}
         <div className="offers-select-grid">
-          <label className="offers-select-wrap"><MapPin size={16} /><span>المنطقة</span><select
-            className="w-full bg-[#0B1526] border border-[#25344A] rounded-xl
-                       pr-3.5 py-2.5 text-xs font-bold text-[#F0F0F0] cursor-pointer outline-none
-                       focus:border-[#FF6B00] transition-all appearance-none"
+          <FilterDropdown
+            label="المنطقة"
+            icon={<MapPin size={16} />}
             value={area}
-            onChange={e => setArea(e.target.value)}
-          >
-            <option value="">كل المناطق</option>
-            {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-          </select></label>
-
-          <label className="offers-select-wrap"><ArrowUpDown size={16} /><span>الترتيب</span><select
-            className="flex-1 min-w-[160px] bg-[#0B1526] border border-[#25344A] rounded-xl
-                       pr-3.5 py-2.5 text-xs font-bold text-[#F0F0F0] cursor-pointer outline-none
-                       focus:border-[#FF6B00] transition-all appearance-none"
+            onChange={setArea}
+            options={[{ value: '', label: 'كل المناطق' }, ...AREAS.map((item) => ({ value: item, label: item }))]}
+          />
+          <FilterDropdown
+            label="الترتيب"
+            icon={<ArrowUpDown size={16} />}
             value={sort}
-            onChange={e => setSort(e.target.value as SortOption)}
-          >
-            <option value="newest">الأحدث أولاً</option>
-            <option value="expiring">ينتهي قريباً</option>
-            <option value="discount">أعلى خصم</option>
-          </select></label>
+            onChange={(value) => setSort(value as SortOption)}
+            options={[
+              { value: 'newest', label: 'الأحدث أولاً' },
+              { value: 'expiring', label: 'ينتهي قريباً' },
+              { value: 'discount', label: 'أعلى خصم' },
+            ]}
+          />
         </div>
       </div>
 
