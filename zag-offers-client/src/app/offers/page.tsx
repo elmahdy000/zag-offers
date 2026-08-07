@@ -358,7 +358,7 @@ function OffersPageContent() {
             icon={<MapPin size={16} />}
             value={area}
             onChange={setArea}
-            options={[{ value: '', label: 'كل المناطق' }, ...AREAS.map((item) => ({ value: item, label: item }))]}
+            options={[{ value: '', label: 'كل المناطق' }, ...AREAS.filter((item) => item !== 'الكل').map((item) => ({ value: item, label: item }))]}
           />
           <FilterDropdown
             label="الترتيب"
