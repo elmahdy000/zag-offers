@@ -3,9 +3,9 @@
 import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  RiSearch2Line, RiFireFill, RiSparkling2Fill, 
-  RiStore3Fill, RiArrowUpDownLine, RiMapPin2Fill,
-  RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine
+  RiSearch2Line, RiFireFill, RiSparkling2Fill, RiMapPin2Fill,
+  RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine,
+  RiCoupon3Line, RiMapPinLine, RiCompass3Line, RiArrowLeftLine
 } from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -60,28 +60,32 @@ function HomePageContent() {
   const [activeArea, setActiveArea] = useState('');
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
+  const [currentTime, setCurrentTime] = useState(0);
   const debouncedSearch = useDebounce(search, 400);
   const searchInputRef = useRef<HTMLInputElement>(null);
   const offersGridRef = useRef<HTMLDivElement>(null);
   const isFirstMount = useRef(true);
 
-  const showNextBanner = useCallback(() => {
+  const showNextBanner = () => {
     setActiveBanner((current) => banners.length ? (current + 1) % banners.length : 0);
-  }, [banners.length]);
+  };
 
-  const showPreviousBanner = useCallback(() => {
+  const showPreviousBanner = () => {
     setActiveBanner((current) => banners.length ? (current - 1 + banners.length) % banners.length : 0);
-  }, [banners.length]);
+  };
 
   useEffect(() => {
     if (banners.length < 2 || bannerPaused) return;
-    const timer = window.setInterval(showNextBanner, 5000);
+    const timer = window.setInterval(() => {
+      setActiveBanner((current) => (current + 1) % banners.length);
+    }, 6500);
     return () => window.clearInterval(timer);
-  }, [banners.length, bannerPaused, showNextBanner]);
+  }, [banners.length, bannerPaused]);
 
   useEffect(() => {
-    if (activeBanner >= banners.length) setActiveBanner(0);
-  }, [activeBanner, banners.length]);
+    const timer = window.setTimeout(() => setCurrentTime(Date.now()), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
 
   // Reliable scroll helper — waits for DOM paint then scrolls
   const scrollToGrid = (delay = 0) => {
@@ -301,21 +305,29 @@ function HomePageContent() {
     }), sortBy);
   }, [offers, activeCat, activeArea, debouncedSearch, sortBy]);
 
-  if (error && !loading && offers.length === 0) {
-    return (
-      <div className="min-h-screen flex items-center justify-center p-4 text-center">
-        <div>
-          <h2 className="text-xl font-black text-white mb-4">{error}</h2>
-          <button onClick={() => fetchDataRef.current(true)} className="px-6 py-2 bg-[#FF6B00] text-white rounded-lg">إعادة المحاولة</button>
-        </div>
-      </div>
-    );
-  }
+  const nearbyOffers = useMemo(() => {
+    if (!activeArea) return [];
+    return offers.filter((offer) => offer.store?.area === activeArea).slice(0, 4);
+  }, [offers, activeArea]);
+
+  const endingSoonOffers = useMemo(() => {
+    if (!currentTime) return [];
+    const sevenDays = 7 * 24 * 60 * 60 * 1000;
+    return offers
+      .filter((offer) => {
+        const end = new Date(offer.endDate).getTime();
+        return Number.isFinite(end) && end > currentTime && end - currentTime <= sevenDays;
+      })
+      .sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime())
+      .slice(0, 4);
+  }, [offers, currentTime]);
+
+  const safeActiveBanner = banners.length ? activeBanner % banners.length : 0;
 
   return (
-    <div className="relative overflow-x-hidden bg-[#07101F] pb-20" dir="rtl">
+    <div className="homepage relative overflow-x-hidden pb-16" dir="rtl" lang="ar">
       {/* ─── Hero Section ────────────────────────────────── */}
-      <section className="brand-hero brand-hero-market border-b border-[#25344A] px-4 py-7 sm:py-10">
+      <section className="brand-hero brand-hero-market" aria-labelledby="home-hero-title">
         <Image
           src="/hero-local-market.webp"
           alt="سوق محلي يضم متاجر ومطاعم وخدمات متنوعة"
@@ -325,8 +337,8 @@ function HomePageContent() {
           className="brand-hero-market-image object-cover"
         />
         <span className="brand-hero-market-overlay" aria-hidden="true" />
-        <div className="site-container flex min-h-[360px] items-center">
-          <div className="brand-hero-market-copy w-full max-w-[760px] space-y-5 text-center lg:text-right">
+        <div className="home-container flex h-full items-center">
+          <div className="brand-hero-market-copy w-full max-w-[720px] space-y-5 text-center lg:text-right">
           <motion.div 
             initial={false}
             animate={{ opacity: 1, scale: 1 }}
@@ -336,11 +348,12 @@ function HomePageContent() {
             <span className="text-xs font-semibold text-[#D7DFEA]">منصة عروض محلية في الزقازيق</span>
           </motion.div>
 
-          <motion.h1 
+          <motion.h1
+            id="home-hero-title"
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-[32px] font-bold leading-[1.3] tracking-tight text-white sm:text-[42px]"
+            className="home-hero-title font-bold text-white"
           >
             عروض الزقازيق في مكان واحد
           </motion.h1>
@@ -355,13 +368,13 @@ function HomePageContent() {
           </motion.p>
 
           {/* Search Box - Premium Style */}
-          <motion.div 
+          <motion.div
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.3 }}
             className="group relative mx-auto max-w-2xl lg:mx-0"
           >
-            <form onSubmit={handleSearchSubmit} className="relative flex items-center gap-2 rounded-xl border border-[#2C3A50] bg-[#0B1526] p-1.5 transition-colors group-focus-within:border-[#FF8A32]">
+            <form onSubmit={handleSearchSubmit} className="home-hero-search relative flex items-center gap-2 rounded-xl border border-[#41516A] bg-[#071426] p-1.5 transition-colors group-focus-within:border-[#FF8A32]">
               {/* Search Icon */}
               <div className="mx-1 flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg text-[#95A3B7]">
                 <RiSearch2Line size={20} />
@@ -382,8 +395,9 @@ function HomePageContent() {
                 <button 
                   type="button"
                   onClick={() => { setSearch(''); searchInputRef.current?.focus(); }}
-                  className="p-1.5 ml-1 rounded-full hover:bg-white/5 text-[#9A9A9A] hover:text-white transition-all duration-200"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-[#AEB9C9] hover:bg-white/5 hover:text-white"
                   title="مسح البحث"
+                  aria-label="مسح البحث"
                 >
                   <RiCloseLine size={18} />
                 </button>
@@ -392,24 +406,69 @@ function HomePageContent() {
               {/* Action Button */}
               <button 
                 type="submit"
-                className="flex-shrink-0 rounded-lg bg-[#FF8A32] px-8 py-2.5 text-sm font-bold text-[#07101F] transition-all hover:bg-[#FF9B4F] active:scale-[.98]"
+                className="min-h-11 flex-shrink-0 rounded-lg bg-[#FF6B00] px-7 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
               >
                 بحث
               </button>
             </form>
           </motion.div>
           <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-            <Link prefetch={false} href="/offers" className="rounded-xl bg-[#FF8A32] px-5 py-2.5 text-sm font-bold text-[#07101F] hover:bg-[#FF9B4F]">استكشف العروض ←</Link>
-            <Link prefetch={false} href="/stores" className="rounded-xl border border-[#34445B] px-5 py-2.5 text-sm font-bold text-white hover:border-[#FF8A32]">تصفح المتاجر</Link>
+            <label htmlFor="hero-area" className="sr-only">اختر منطقتك</label>
+            <div className="home-hero-location flex min-h-11 items-center gap-2 rounded-xl border border-[#41516A] bg-[#071426] px-3">
+              <RiMapPin2Fill aria-hidden="true" className="text-[#FF8A32]" />
+              <select id="hero-area" value={activeArea} onChange={(event) => setActiveArea(event.target.value)} className="min-w-[150px] bg-transparent text-sm font-medium text-white outline-none">
+                {ZAGAZIG_AREAS.map((area) => <option key={area} value={area === 'الكل' ? '' : area}>{area === 'الكل' ? 'كل المناطق' : area}</option>)}
+              </select>
+            </div>
+            <Link prefetch={false} href="/offers" className="home-primary-link inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#FF6B00] px-5 text-sm font-bold text-white hover:bg-[#E85F00]">استكشف العروض <RiArrowLeftLine /></Link>
           </div>
           </div>
         </div>
       </section>
 
-      {/* ─── Banners Carousel ──────────────────────────── */}
+      {error && !loading && (
+        <div className="home-container home-api-error" role="alert">
+          <span>{error}</span>
+          <button type="button" onClick={() => fetchDataRef.current(true)}>إعادة المحاولة</button>
+        </div>
+      )}
+
+      {/* ─── Categories ───────────────────────────────── */}
+      {categories.length > 0 && (
+        <section className="home-container home-section" aria-labelledby="home-categories-title">
+          <div className="home-section-heading">
+            <div>
+              <span className="home-section-kicker">اختار اللي يناسبك</span>
+              <h2 id="home-categories-title" className="home-section-title">تصفح حسب القسم</h2>
+            </div>
+            <Link prefetch={false} href="/categories" className="home-section-link">كل الأقسام <RiArrowLeftLine /></Link>
+          </div>
+          <div className="home-categories-row">
+            {categories.slice(0, 8).map((category) => (
+              <Link prefetch={false} key={category.id} href={`/offers?category=${category.id}`} className="home-category-link group" aria-label={`عرض قسم ${getCatName(category.name)}`}>
+                <CategoryImageCard name={getCatName(category.name)} image={category.image} compact />
+              </Link>
+            ))}
+          </div>
+          <div className="home-areas-row" aria-label="تصفية العروض حسب المنطقة">
+            <RiMapPin2Fill aria-hidden="true" className="flex-shrink-0 text-[#FF8A32]" />
+            {ZAGAZIG_AREAS.map((area) => {
+              const isActive = (area === 'الكل' && !activeArea) || activeArea === area;
+              return <button key={area} type="button" onClick={(event) => { setActiveArea(area === 'الكل' ? '' : area); scrollActiveIntoView(event); }} className={`home-area-chip ${isActive ? 'is-active' : ''}`}>{area}</button>;
+            })}
+          </div>
+        </section>
+      )}
+
+      {/* ─── Offers near the selected area ─────────────── */}
+      {activeArea && nearbyOffers.length > 0 && (
+        <HomeOffersSection id="nearby-offers" title="عروض قريبة منك" subtitle={`عروض متاحة في ${activeArea}`} offers={nearbyOffers} />
+      )}
+
+      {/* ─── Featured advertisements ───────────────────── */}
       {banners.length > 0 && (
         <section
-          className="ad-carousel site-container my-8"
+          className="ad-carousel home-container home-section"
           aria-roledescription="carousel"
           aria-label="إعلانات وعروض مميزة"
           data-paused={bannerPaused ? 'true' : 'false'}
@@ -434,8 +493,8 @@ function HomePageContent() {
           <div className="ad-carousel-stage">
             <AnimatePresence mode="wait" initial={false}>
               <motion.a
-                key={banners[activeBanner].id}
-                href={banners[activeBanner].actionUrl || '#'}
+                key={banners[safeActiveBanner].id}
+                href={banners[safeActiveBanner].actionUrl || '#'}
                 className="ad-carousel-main group"
                 initial={{ opacity: 0, x: 34, scale: 0.985 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -449,36 +508,36 @@ function HomePageContent() {
                   if (info.offset.x > 55) showPreviousBanner();
                 }}
               >
-                {banners[activeBanner].image ? (
+                {banners[safeActiveBanner].image ? (
                   <Image
-                    src={resolveImageUrl(banners[activeBanner].image) ?? '/placeholder-offer.jpg'}
-                    alt={banners[activeBanner].title}
+                    src={resolveImageUrl(banners[safeActiveBanner].image) ?? '/placeholder-offer.jpg'}
+                    alt={banners[safeActiveBanner].title}
                     fill
                     className="object-cover transition-transform duration-1000 group-hover:scale-[1.025]"
                     sizes="(max-width: 768px) 100vw, 950px"
                     quality={88}
-                    priority={activeBanner === 0}
+                    priority={safeActiveBanner === 0}
                   />
                 ) : <div className="absolute inset-0 bg-[#162338]" />}
                 <span className="ad-carousel-shade" aria-hidden="true" />
                 <div className="ad-carousel-copy">
-                  {banners[activeBanner].tag && <span className="ad-carousel-tag">{banners[activeBanner].tag}</span>}
-                  <h3>{banners[activeBanner].title}</h3>
-                  {banners[activeBanner].subtitle && <p>{banners[activeBanner].subtitle}</p>}
-                  {banners[activeBanner].actionUrl && <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>}
+                  {banners[safeActiveBanner].tag && <span className="ad-carousel-tag">{banners[safeActiveBanner].tag}</span>}
+                  <h3>{banners[safeActiveBanner].title}</h3>
+                  {banners[safeActiveBanner].subtitle && <p>{banners[safeActiveBanner].subtitle}</p>}
+                  {banners[safeActiveBanner].actionUrl && <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>}
                 </div>
-                <span className="ad-carousel-count"><b>{String(activeBanner + 1).padStart(2, '0')}</b> / {String(banners.length).padStart(2, '0')}</span>
+                {banners.length > 1 && <span className="ad-carousel-count"><b>{String(safeActiveBanner + 1).padStart(2, '0')}</b> / {String(banners.length).padStart(2, '0')}</span>}
               </motion.a>
             </AnimatePresence>
 
             {banners.length > 1 && (
-              <button type="button" className="ad-carousel-preview" onClick={showNextBanner} aria-label={`عرض الإعلان التالي: ${banners[(activeBanner + 1) % banners.length].title}`}>
-                {banners[(activeBanner + 1) % banners.length].image && (
-                  <Image src={resolveImageUrl(banners[(activeBanner + 1) % banners.length].image) ?? '/placeholder-offer.jpg'} alt="" fill className="object-cover" sizes="320px" />
+              <button type="button" className="ad-carousel-preview" onClick={showNextBanner} aria-label={`عرض الإعلان التالي: ${banners[(safeActiveBanner + 1) % banners.length].title}`}>
+                {banners[(safeActiveBanner + 1) % banners.length].image && (
+                  <Image src={resolveImageUrl(banners[(safeActiveBanner + 1) % banners.length].image) ?? '/placeholder-offer.jpg'} alt="" fill className="object-cover" sizes="320px" />
                 )}
                 <span className="ad-carousel-preview-shade" />
                 <span className="ad-carousel-preview-label">التالي</span>
-                <strong>{banners[(activeBanner + 1) % banners.length].title}</strong>
+                <strong>{banners[(safeActiveBanner + 1) % banners.length].title}</strong>
                 <RiArrowLeftSLine className="ad-carousel-preview-arrow" />
               </button>
             )}
@@ -487,7 +546,7 @@ function HomePageContent() {
           {banners.length > 1 && (
             <div className="ad-carousel-pagination">
               {banners.map((banner, index) => (
-                <button key={banner.id} type="button" className={index === activeBanner ? 'is-active' : ''} onClick={() => setActiveBanner(index)} aria-label={`الانتقال إلى الإعلان ${index + 1}`} aria-current={index === activeBanner ? 'true' : undefined}>
+                <button key={banner.id} type="button" className={index === safeActiveBanner ? 'is-active' : ''} onClick={() => setActiveBanner(index)} aria-label={`الانتقال إلى الإعلان ${index + 1}`} aria-current={index === safeActiveBanner ? 'true' : undefined}>
                   <span />
                 </button>
               ))}
@@ -496,66 +555,15 @@ function HomePageContent() {
         </section>
       )}
 
-      {/* ─── Categories & Areas Filter ──────────────────────────── */}
-      <section className="site-container mb-12 mt-9">
-        <div className="mb-5 flex items-center justify-between">
-          <h2 className="home-section-title text-xl font-bold text-white sm:text-2xl">تصفح حسب القسم</h2>
-          <Link prefetch={false} href="/categories" className="text-sm font-semibold text-[#FF8A32] hover:text-[#FFAC6E]">كل الأقسام ←</Link>
-        </div>
-        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
-          {categories.slice(0, 6).map((category) => (
-            <Link prefetch={false} key={category.id} href={`/offers?category=${category.id}`} className="group block transition-transform hover:-translate-y-1">
-              <CategoryImageCard name={getCatName(category.name)} image={category.image} compact />
-            </Link>
-          ))}
-        </div>
-
-        <div className="mt-6 flex items-center gap-2 overflow-x-auto pb-2 no-scrollbar">
-          <RiMapPin2Fill size={17} className="flex-shrink-0 text-[#FF8A32]" />
-              {ZAGAZIG_AREAS.map((area) => {
-                const isActive = (area === 'الكل' && !activeArea) || activeArea === area;
-                return (
-                  <button
-                    key={area}
-                    onClick={(e) => {
-                      setActiveArea(area === 'الكل' ? '' : area);
-                      scrollActiveIntoView(e);
-                    }}
-                    className={`home-area-chip flex-shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-all
-                      ${isActive
-                        ? 'border-[#FF8A32] bg-[#FF8A32] text-[#07101F]'
-                        : 'border-[#25344A] bg-[#0D1728] text-[#AAB5C6] hover:border-[#FF8A32]/60 hover:text-white'}`}
-                  >
-                    {area}
-                  </button>
-                );
-              })}
-        </div>
-      </section>
-
-      {/* ─── Smart Recommendations ───────────────────────── */}
+      {/* ─── Featured offers ─────────────────────────────── */}
       <AnimatePresence>
         {!activeCat && !search && recommended.length > 0 && (
-          <motion.section 
-            initial={{ opacity: 0, x: 20 }}
-            animate={{ opacity: 1, x: 0 }}
-            className="max-w-7xl mx-auto px-4 mb-16"
-          >
-            <div className="flex items-center justify-between mb-8">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-                  <RiSparkling2Fill size={20} />
-                </div>
-                <h2 className="home-section-title text-lg sm:text-xl font-black text-white">عروض مختارة لك</h2>
-              </div>
-            </div>
-            <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+          <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="home-container home-section">
+            <div className="home-section-heading"><div><span className="home-section-kicker">مقترحة لك</span><h2 className="home-section-title">عروض مختارة لك</h2></div></div>
+            <div className="home-horizontal-offers">
               {recommended.map((offer) => (
-                <div key={offer.id} className="min-w-[240px] sm:min-w-[280px]">
-                  <OfferCard 
-                    offer={offer} 
-                    priority={offer.id === recommended[0]?.id || offer.id === recommended[1]?.id} 
-                  />
+                <div key={offer.id} className="home-horizontal-offer">
+                  <OfferCard offer={offer} />
                 </div>
               ))}
             </div>
@@ -563,29 +571,17 @@ function HomePageContent() {
         )}
       </AnimatePresence>
 
-      {/* ─── Featured Stores Bento ───────────────────────── */}
-      {!activeCat && !search && stores.length > 0 && (
-        <section className="max-w-7xl mx-auto px-4 mb-16">
-          <div className="flex items-center justify-between mb-8">
-            <h2 className="home-section-title section-title text-white">براندات بنحبها</h2>
-            <Link prefetch={false} href="/stores" className="home-all-stores text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
-          </div>
-          <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-            {stores.slice(0, 12).map(store => <FeaturedStoreCard key={store.id} store={store} />)}
-          </div>
-        </section>
-      )}
-
-      {/* ─── Main Content Grid ───────────────────────────── */}
-      <section ref={offersGridRef} className="site-container scroll-mt-24">
-        <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
+      {/* ─── Latest offers ───────────────────────────────── */}
+      <section ref={offersGridRef} className="home-container home-section scroll-mt-24" aria-labelledby="latest-offers-title">
+        <div className="home-section-heading flex-wrap">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-              <RiFireFill size={20} />
+            <div className="home-heading-icon"><RiFireFill size={20} /></div>
+            <div>
+              <span className="home-section-kicker">اتضافت مؤخرًا</span>
+              <h2 id="latest-offers-title" className="home-section-title">
+                {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
+              </h2>
             </div>
-            <h2 className="home-section-title text-lg sm:text-xl font-black text-white">
-              {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
-            </h2>
           </div>
           <div className="home-sort-control flex items-center gap-1 rounded-xl border border-[#25344A] bg-[#0D1728] p-1">
             {(['newest', 'expiring', 'discount'] as SortOption[]).map((option) => (
@@ -597,20 +593,20 @@ function HomePageContent() {
         </div>
 
         {loading ? (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="home-offers-grid">
             {Array.from({ length: 8 }).map((_, i) => <SkeletonCard key={i} />)}
           </div>
         ) : filteredOffers.length === 0 ? (
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="home-offers-empty rounded-2xl border border-[#25344A] bg-[#101A2B] py-20 text-center"
+            className="home-offers-empty rounded-2xl border border-[#25344A] bg-[#101A2B] py-12 text-center"
           >
             <h3 className="text-lg font-black text-white">للأسف مفيش عروض هنا حالياً</h3>
             <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm hover:underline">عرض كل العروض</button>
           </motion.div>
         ) : (
-          <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="home-offers-grid">
               {filteredOffers.slice(0, 24).map((offer, i) => (
                 <div key={offer.id} className="content-auto">
                   <OfferCard offer={offer} priority={i < 2} />
@@ -619,45 +615,75 @@ function HomePageContent() {
           </div>
         )}
 
-        {!loading && filteredOffers.length >= 24 && (
-          <div className="mt-20 text-center">
+        {!loading && filteredOffers.length > 0 && (
+          <div className="mt-8 text-center">
             <Link 
               prefetch={false}
               href="/offers"
-              className="inline-flex items-center gap-3 px-12 py-5 bg-[#FF6B00] rounded-2xl font-black text-white hover:bg-[#D95A00] transition-all shadow-[0_10px_30px_rgba(255,107,0,0.3)] hover:scale-105 active:scale-95"
+              className="home-primary-link inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#FF6B00] px-6 text-sm font-bold text-white hover:bg-[#E85F00]"
             >
-              استكشف كل العروض الحصرية
-              <RiArrowUpDownLine size={20} className="rotate-90" />
+              عرض كل العروض <RiArrowLeftLine />
             </Link>
           </div>
         )}
       </section>
 
-      <section className="site-container mt-16">
-        <h2 className="home-section-title mb-6 text-2xl font-bold text-white">كيف تستخدم زاج؟</h2>
-        <div className="grid gap-4 md:grid-cols-3">
+      {/* ─── Featured stores ─────────────────────────────── */}
+      {!activeCat && !search && stores.length > 0 && (
+        <section className="home-container home-section" aria-labelledby="featured-stores-title">
+          <div className="home-section-heading home-store-heading"><div><span className="home-section-kicker">شركاء قريبين منك</span><h2 id="featured-stores-title" className="home-section-title">متاجر مميزة</h2></div><Link prefetch={false} href="/stores" className="home-section-link">عرض كل المتاجر <RiArrowLeftLine /></Link></div>
+          <div className="home-stores-row">
+            {stores.slice(0, 6).map(store => <FeaturedStoreCard key={store.id} store={store} />)}
+          </div>
+        </section>
+      )}
+
+      {/* ─── Ending soon ─────────────────────────────────── */}
+      {endingSoonOffers.length > 0 && <HomeOffersSection id="ending-soon" title="عروض تنتهي قريبًا" subtitle="المدة المتبقية محسوبة من تاريخ انتهاء العرض" offers={endingSoonOffers} />}
+
+      {/* ─── How it works ────────────────────────────────── */}
+      <section className="home-container home-section" aria-labelledby="how-zag-works">
+        <div className="home-section-heading"><div><span className="home-section-kicker">بخطوات بسيطة</span><h2 id="how-zag-works" className="home-section-title">كيف تستخدم زاج؟</h2></div></div>
+        <div className="home-steps-grid">
           {[
-            ['1', 'اختر منطقتك', 'حدد منطقتك في الزقازيق لتصلك العروض القريبة منك.'],
-            ['2', 'تصفح العروض', 'اكتشف الخصومات والكوبونات المتاحة في المطاعم والمتاجر.'],
-            ['3', 'احصل على الكوبون', 'احفظ الكوبون واستخدمه في المتجر مباشرة.'],
-          ].map(([number, title, description]) => (
-            <div key={number} className="surface-card p-6">
-              <span className="mb-4 flex h-11 w-11 items-center justify-center rounded-full bg-[#1B2940] text-lg font-bold text-[#FF8A32]">{number}</span>
-              <h3 className="text-lg font-bold text-white">{title}</h3>
-              <p className="mt-2 text-sm leading-7 text-[#9EABBE]">{description}</p>
+            ['1', <RiMapPinLine key="map" />, 'اختر منطقتك', 'حدد منطقتك في الزقازيق لتظهر لك العروض القريبة منك.'],
+            ['2', <RiCompass3Line key="compass" />, 'اكتشف العرض المناسب', 'تصفح الخصومات والكوبونات المتاحة في المطاعم والمتاجر والخدمات.'],
+            ['3', <RiCoupon3Line key="coupon" />, 'احصل على الكوبون', 'احفظ الكوبون واعرض الكود أو QR داخل المتجر.'],
+          ].map(([number, icon, title, description]) => (
+            <div key={number as string} className="home-step-card">
+              <div className="home-step-top"><span className="home-step-icon">{icon}</span><span className="home-step-number">{number}</span></div>
+              <h3>{title}</h3>
+              <p>{description}</p>
             </div>
           ))}
         </div>
 
-        <div className="surface-card mt-8 flex flex-col items-start justify-between gap-5 p-7 sm:flex-row sm:items-center">
+        <div className="home-merchant-cta">
           <div>
-            <h2 className="text-xl font-bold text-white">عندك متجر في الزقازيق؟</h2>
-            <p className="mt-2 text-sm text-[#9EABBE]">أضف متجرك على زاج ووصل عروضك لآلاف العملاء المحليين.</p>
+            <h2>عندك متجر في الزقازيق؟</h2>
+            <p>أضف متجرك على زاج أوفرز، انشر عروضك ووصل لعملاء قريبين منك.</p>
           </div>
-          <Link href="https://vendor.zagoffers.online" target="_blank" className="rounded-xl bg-[#FF8A32] px-6 py-3 text-sm font-bold text-[#07101F] hover:bg-[#FF9B4F]">أضف متجرك</Link>
+          <Link href="https://vendor.zagoffers.online" target="_blank" className="home-primary-link">سجّل متجرك <RiArrowLeftLine /></Link>
         </div>
       </section>
     </div>
+  );
+}
+
+function HomeOffersSection({ id, title, subtitle, offers }: { id: string; title: string; subtitle: string; offers: Offer[] }) {
+  return (
+    <section className="home-container home-section" aria-labelledby={id}>
+      <div className="home-section-heading">
+        <div>
+          <span className="home-section-kicker">{subtitle}</span>
+          <h2 id={id} className="home-section-title">{title}</h2>
+        </div>
+        <Link prefetch={false} href="/offers" className="home-section-link">عرض كل العروض <RiArrowLeftLine /></Link>
+      </div>
+      <div className="home-offers-grid home-offers-grid-compact">
+        {offers.map((offer) => <div key={offer.id} className="content-auto"><OfferCard offer={offer} /></div>)}
+      </div>
+    </section>
   );
 }
 
@@ -665,13 +691,12 @@ function FeaturedStoreCard({ store }: { store: Store }) {
   const [logoFailed, setLogoFailed] = useState(false);
   const logoUrl = !logoFailed ? resolveImageUrl(store.logo) : '';
   return (
-    <Link prefetch={false} href={`/stores/${store.id}`} className="group">
-      <div className="home-featured-store-card bg-[#0F1A2B] border border-[#2A3A52] rounded-2xl p-4 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#162338] hover:-translate-y-0.5 transition-all duration-300">
-        <div className="home-featured-store-logo w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-105 transition-transform duration-500 shadow-inner">
-          {logoUrl ? <Image src={logoUrl} alt={store.name} width={56} height={56} className="w-full h-full object-contain" quality={70} onError={() => setLogoFailed(true)} /> : <span className="home-featured-store-fallback">{store.name.trim().charAt(0)}</span>}
+    <Link prefetch={false} href={`/stores/${store.id}`} className="home-featured-store-card group">
+        <div className="home-featured-store-logo">
+          {logoUrl ? <Image src={logoUrl} alt={`شعار ${store.name}`} width={64} height={64} className="h-full w-full object-contain" quality={72} loading="lazy" onError={() => setLogoFailed(true)} /> : <span className="home-featured-store-fallback">{store.name.trim().charAt(0)}</span>}
         </div>
-        <span className="home-featured-store-name text-[10px] sm:text-xs font-bold text-white/70 group-hover:text-white transition-colors text-center">{store.name}</span>
-      </div>
+        <div className="min-w-0"><strong className="home-featured-store-name">{store.name}</strong>{store.category?.name && <span>{getCatName(store.category.name)}</span>}{store.area && <small><RiMapPin2Fill /> {store.area}</small>}</div>
+        <RiArrowLeftSLine className="home-store-arrow" aria-hidden="true" />
     </Link>
   );
 }
