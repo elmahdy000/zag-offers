@@ -499,7 +499,7 @@ function HomePageContent() {
       {/* ─── Categories & Areas Filter ──────────────────────────── */}
       <section className="site-container mb-12 mt-9">
         <div className="mb-5 flex items-center justify-between">
-          <h2 className="text-xl font-bold text-white sm:text-2xl">تصفح حسب القسم</h2>
+          <h2 className="home-section-title text-xl font-bold text-white sm:text-2xl">تصفح حسب القسم</h2>
           <Link prefetch={false} href="/categories" className="text-sm font-semibold text-[#FF8A32] hover:text-[#FFAC6E]">كل الأقسام ←</Link>
         </div>
         <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
@@ -521,7 +521,7 @@ function HomePageContent() {
                       setActiveArea(area === 'الكل' ? '' : area);
                       scrollActiveIntoView(e);
                     }}
-                    className={`flex-shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-all
+                    className={`home-area-chip flex-shrink-0 rounded-full border px-4 py-2 text-xs font-semibold transition-all
                       ${isActive
                         ? 'border-[#FF8A32] bg-[#FF8A32] text-[#07101F]'
                         : 'border-[#25344A] bg-[#0D1728] text-[#AAB5C6] hover:border-[#FF8A32]/60 hover:text-white'}`}
@@ -546,7 +546,7 @@ function HomePageContent() {
                 <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
                   <RiSparkling2Fill size={20} />
                 </div>
-                <h2 className="text-lg sm:text-xl font-black text-white">عروض مختارة لك</h2>
+                <h2 className="home-section-title text-lg sm:text-xl font-black text-white">عروض مختارة لك</h2>
               </div>
             </div>
             <div className="flex gap-4 overflow-x-auto no-scrollbar pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
@@ -567,31 +567,11 @@ function HomePageContent() {
       {!activeCat && !search && stores.length > 0 && (
         <section className="max-w-7xl mx-auto px-4 mb-16">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="section-title text-white">براندات بنحبها</h2>
-            <Link prefetch={false} href="/stores" className="text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
+            <h2 className="home-section-title section-title text-white">براندات بنحبها</h2>
+            <Link prefetch={false} href="/stores" className="home-all-stores text-xs font-black text-[#FF6B00] bg-[#FF6B00]/10 px-4 py-2 rounded-full hover:bg-[#FF6B00] hover:text-white transition-all">كل المتاجر</Link>
           </div>
           <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-6 gap-3 sm:gap-4">
-            {stores.slice(0, 12).map(store => (
-              <Link prefetch={false} key={store.id} href={`/stores/${store.id}`} className="group">
-                <div className="bg-[#0F1A2B] border border-[#2A3A52] rounded-2xl p-4 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#162338] hover:-translate-y-0.5 transition-all duration-300">
-                  <div className="w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-105 transition-transform duration-500 shadow-inner">
-                    {store.logo ? (
-                      <Image 
-                        src={resolveImageUrl(store.logo)!} 
-                        alt={store.name} 
-                        width={56}
-                        height={56}
-                        className="w-full h-full object-contain" 
-                        quality={70}
-                      />
-                    ) : (
-                      <RiStore3Fill className="text-white/20" size={20} />
-                    )}
-                  </div>
-                  <span className="text-[10px] sm:text-xs font-bold text-white/70 group-hover:text-white transition-colors text-center">{store.name}</span>
-                </div>
-              </Link>
-            ))}
+            {stores.slice(0, 12).map(store => <FeaturedStoreCard key={store.id} store={store} />)}
           </div>
         </section>
       )}
@@ -603,11 +583,11 @@ function HomePageContent() {
             <div className="w-10 h-10 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
               <RiFireFill size={20} />
             </div>
-            <h2 className="text-lg sm:text-xl font-black text-white">
+            <h2 className="home-section-title text-lg sm:text-xl font-black text-white">
               {activeCat ? `عروض ${getCatName(categories.find(c => c.id === activeCat)?.name || '')}` : 'أحدث العروض'}
             </h2>
           </div>
-          <div className="flex items-center gap-1 rounded-xl border border-[#25344A] bg-[#0D1728] p-1">
+          <div className="home-sort-control flex items-center gap-1 rounded-xl border border-[#25344A] bg-[#0D1728] p-1">
             {(['newest', 'expiring', 'discount'] as SortOption[]).map((option) => (
               <button key={option} onClick={() => setSortBy(option)} className={`rounded-lg px-3 py-1.5 text-xs font-semibold ${sortBy === option ? 'bg-[#FF8A32] text-[#07101F]' : 'text-[#95A3B7] hover:text-white'}`}>
                 {option === 'newest' ? 'الأحدث' : option === 'expiring' ? 'ينتهي قريبًا' : 'الأعلى خصمًا'}
@@ -624,7 +604,7 @@ function HomePageContent() {
           <motion.div 
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
-            className="rounded-2xl border border-[#25344A] bg-[#101A2B] py-20 text-center"
+            className="home-offers-empty rounded-2xl border border-[#25344A] bg-[#101A2B] py-20 text-center"
           >
             <h3 className="text-lg font-black text-white">للأسف مفيش عروض هنا حالياً</h3>
             <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm hover:underline">عرض كل العروض</button>
@@ -654,7 +634,7 @@ function HomePageContent() {
       </section>
 
       <section className="site-container mt-16">
-        <h2 className="mb-6 text-2xl font-bold text-white">كيف تستخدم زاج؟</h2>
+        <h2 className="home-section-title mb-6 text-2xl font-bold text-white">كيف تستخدم زاج؟</h2>
         <div className="grid gap-4 md:grid-cols-3">
           {[
             ['1', 'اختر منطقتك', 'حدد منطقتك في الزقازيق لتصلك العروض القريبة منك.'],
@@ -678,6 +658,21 @@ function HomePageContent() {
         </div>
       </section>
     </div>
+  );
+}
+
+function FeaturedStoreCard({ store }: { store: Store }) {
+  const [logoFailed, setLogoFailed] = useState(false);
+  const logoUrl = !logoFailed ? resolveImageUrl(store.logo) : '';
+  return (
+    <Link prefetch={false} href={`/stores/${store.id}`} className="group">
+      <div className="home-featured-store-card bg-[#0F1A2B] border border-[#2A3A52] rounded-2xl p-4 flex flex-col items-center justify-center space-y-3 hover:border-[#FF6B00]/50 hover:bg-[#162338] hover:-translate-y-0.5 transition-all duration-300">
+        <div className="home-featured-store-logo w-12 h-12 sm:w-16 sm:h-16 rounded-xl overflow-hidden bg-white/5 flex items-center justify-center p-2 group-hover:scale-105 transition-transform duration-500 shadow-inner">
+          {logoUrl ? <Image src={logoUrl} alt={store.name} width={56} height={56} className="w-full h-full object-contain" quality={70} onError={() => setLogoFailed(true)} /> : <span className="home-featured-store-fallback">{store.name.trim().charAt(0)}</span>}
+        </div>
+        <span className="home-featured-store-name text-[10px] sm:text-xs font-bold text-white/70 group-hover:text-white transition-colors text-center">{store.name}</span>
+      </div>
+    </Link>
   );
 }
 

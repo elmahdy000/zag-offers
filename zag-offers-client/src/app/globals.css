@@ -1097,6 +1097,37 @@ html[data-theme="light"] .footer-bottom { border-color:#e4e7ec; }
 
 html[data-theme="light"] .global-card { box-shadow: 0 10px 28px rgba(16,32,57,.07); }
 
+/* Home and offer cards — explicit light theme contrast */
+html[data-theme="light"] .home-section-title { color:#102039 !important; }
+html[data-theme="light"] .home-area-chip:not([class*="bg-[#FF8A32]"]) { border-color:#dbe1e9 !important; background:#fff !important; color:#526174 !important; }
+html[data-theme="light"] .home-featured-store-card { border-color:#dbe1e9 !important; background:#fff !important; box-shadow:0 8px 22px rgba(16,32,57,.06); }
+html[data-theme="light"] .home-featured-store-card:hover { border-color:rgba(255,107,0,.45) !important; background:#fff8f3 !important; }
+html[data-theme="light"] .home-featured-store-logo { border:1px solid #e5e9ef; background:#f4f6f9 !important; box-shadow:none; }
+html[data-theme="light"] .home-featured-store-fallback { color:#75869b; font-size:19px; font-weight:900; }
+html[data-theme="light"] .home-featured-store-name { color:#344054 !important; }
+html[data-theme="light"] .home-all-stores { border:1px solid rgba(255,107,0,.3); background:#fff0e5 !important; color:#b94700 !important; }
+html[data-theme="light"] .home-all-stores:hover { background:#ff6b00 !important; color:#fff !important; }
+html[data-theme="light"] .home-sort-control { border-color:#dbe1e9 !important; background:#fff !important; }
+html[data-theme="light"] .home-sort-control button:not([class*="bg-[#FF8A32]"]) { color:#667085 !important; }
+html[data-theme="light"] .home-sort-control button:hover { color:#102039 !important; }
+html[data-theme="light"] .home-offers-empty { border-color:#dbe1e9 !important; background:#fff !important; }
+html[data-theme="light"] .home-offers-empty h3 { color:#102039 !important; }
+html[data-theme="light"] .home-offers-empty button { color:#d95400 !important; }
+html[data-theme="light"] .offer-card { border-color:#dbe1e9 !important; background:#fff !important; color:#102039; }
+html[data-theme="light"] .offer-card:hover { border-color:rgba(255,107,0,.46) !important; box-shadow:0 14px 32px rgba(16,32,57,.11); }
+html[data-theme="light"] .offer-card-media,html[data-theme="light"] .offer-image-fallback { background:#eef2f6 !important; }
+html[data-theme="light"] .offer-image-fallback { color:#75859a !important; }
+html[data-theme="light"] .offer-image-fallback > span { border-color:#d8dee8 !important; background:#fff !important; }
+html[data-theme="light"] .offer-card-body h3 { color:#102039 !important; }
+html[data-theme="light"] .offer-card-body p { color:#526174 !important; }
+html[data-theme="light"] .offer-card-body > div[class*="border-t"] { border-color:#e1e6ed !important; }
+html[data-theme="light"] .offer-card-body div[class*="group-hover:bg"] { background:#fff3e9; }
+html[data-theme="light"] .offer-store-logo { border-color:#fff !important; background:#f4f6f9 !important; box-shadow:0 4px 14px rgba(16,32,57,.12); }
+html[data-theme="light"] .offer-store-logo > div { color:#526174 !important; }
+html[data-theme="light"] .surface-card h2,html[data-theme="light"] .surface-card h3 { color:#102039 !important; }
+html[data-theme="light"] .surface-card p { color:#667085 !important; }
+html[data-theme="light"] .surface-card > span { background:#fff3e9 !important; }
+
 @media (max-width: 640px) {
   .site-container { width: min(100% - 1.25rem, 1320px); }
   .global-card { border-radius: 18px; }

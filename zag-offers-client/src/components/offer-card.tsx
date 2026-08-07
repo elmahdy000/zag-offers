@@ -79,6 +79,8 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
 export function OfferCard({ offer, priority = false }: OfferCardProps) {
   const router = useRouter();
   const [isFav, setIsFav] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
+  const [logoFailed, setLogoFailed] = useState(false);
 
   useEffect(() => {
     if (!offer?.id) return;
@@ -103,7 +105,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
   const daysLeft = calculateDaysLeft(offer.endDate);
 
-  const logoUrl = resolveImageUrl(offer.store?.logo);
+  const logoUrl = !logoFailed ? resolveImageUrl(offer.store?.logo) : null;
   const catName = offer.store?.category?.name || '';
   const catIcon = CAT_ICONS[catName] || CAT_ICONS.default;
 
@@ -158,7 +160,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     }
   };
 
-  const offerImage = offer.images && offer.images.length > 0
+  const offerImage = !imageFailed && offer.images && offer.images.length > 0
     ? resolveImageUrl(offer.images[0])
     : null;
 
@@ -166,11 +168,11 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
   return (
     <div
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:border-[#FF8A32]/55 hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)]
+      className="offer-card global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:border-[#FF8A32]/55 hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)]
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className="relative h-[240px] bg-[#18253A] overflow-hidden flex-shrink-0">
+      <div className="offer-card-media relative h-[240px] bg-[#18253A] overflow-hidden flex-shrink-0">
 
         {offerImage && (
           <Image
@@ -180,12 +182,12 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
             sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
             {...(priority ? { preload: true } : { loading: 'lazy' as const })}
-            onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+            onError={() => setImageFailed(true)}
           />
         )}
 
         {!offerImage && (
-          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[#708198]">
+          <div className="offer-image-fallback absolute inset-0 flex flex-col items-center justify-center gap-2 text-[#708198]">
             <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#354761] bg-[#1B2A42]">{catIcon}</span>
             <span className="text-xs font-medium">صورة العرض غير متاحة</span>
           </div>
@@ -214,7 +216,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
           <RiHeartFill size={16} className={isFav ? 'text-red-500' : 'text-white/70'} />
         </button>
 
-        <div className="absolute bottom-3 right-3 z-20
+        <div className="offer-store-logo absolute bottom-3 right-3 z-20
                         w-10 h-10 rounded-xl border-2 border-white/80
                         bg-[#0F1A2B] overflow-hidden shadow-lg
                         flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
@@ -225,7 +227,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
                 width={40}
                 height={40}
                 className="w-full h-full object-cover"
-                onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
+                onError={() => setLogoFailed(true)}
               />
             : <div className="text-sm font-bold text-white">{offer.store.name.trim().charAt(0)}</div>
           }
@@ -233,7 +235,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-5 pt-5 pb-5 gap-3">
+      <div className="offer-card-body flex flex-col flex-1 px-5 pt-5 pb-5 gap-3">
 
         {catName && (
           <span className="text-[13px] font-semibold text-[#FF8A3D] flex items-center gap-1.5">
