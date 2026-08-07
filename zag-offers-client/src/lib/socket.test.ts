@@ -32,7 +32,7 @@ describe('useSocket', () => {
       expect.any(String),
       expect.objectContaining({
         auth: undefined,
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
       }),
     );
     expect(result.current.socket).toBeNull();
@@ -48,7 +48,7 @@ describe('useSocket', () => {
       expect.any(String),
       expect.objectContaining({
         auth: { token },
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
         reconnection: true,
         reconnectionDelay: 5000,
         reconnectionAttempts: 10,

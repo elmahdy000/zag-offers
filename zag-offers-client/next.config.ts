@@ -45,19 +45,6 @@ const withPWA = withPWAInit({
         },
       },
       {
-        // Offers API
-        urlPattern: /^https:\/\/api\.zagoffers\.online\/api\/offers.*/i,
-        handler: "NetworkFirst",
-        options: {
-          cacheName: "offers-api-cache",
-          networkTimeoutSeconds: 10,
-          expiration: {
-            maxEntries: 32,
-            maxAgeSeconds: 24 * 60 * 60, // 24 hours
-          },
-        },
-      },
-      {
         // Pages / Navigation
         urlPattern: ({ request }) => request.mode === 'navigate',
         handler: "NetworkFirst",
@@ -81,6 +68,9 @@ const withPWA = withPWAInit({
 const nextConfig: NextConfig = {
   turbopack: {},
   images: {
+    // Uploaded offer images are already WebP and are served by our API CDN.
+    // Serving them directly avoids intermittent optimizer 502s.
+    unoptimized: true,
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2_592_000,
     remotePatterns: [

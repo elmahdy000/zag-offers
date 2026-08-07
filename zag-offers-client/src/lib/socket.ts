@@ -18,7 +18,8 @@ export const useSocket = (token?: string | null) => {
 
     const newSocket = io(SOCKET_URL, {
       auth: token ? { token } : undefined,
-      transports: ['websocket', 'polling'],
+      transports: ['polling', 'websocket'],
+      upgrade: true,
       reconnection: true,
       reconnectionDelay: RECONNECT_INTERVAL,
       reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
@@ -97,7 +98,8 @@ export const usePublicSocket = () => {
   useEffect(() => {
     if (!sharedPublicSocket) {
       sharedPublicSocket = io(SOCKET_URL, {
-        transports: ['websocket', 'polling'],
+        transports: ['polling', 'websocket'],
+        upgrade: true,
         reconnection: true,
         reconnectionDelay: RECONNECT_INTERVAL,
         reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
