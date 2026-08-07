@@ -31,6 +31,7 @@ import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 import { CategoryImageCard } from '@/components/category-image-card';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
+const getBannerTitle = (title: string) => title.trim() === 'اكل المطاعم بانتظاركم' ? 'أشهى الأكلات مستنياك' : title;
 
 const CACHE_KEY = 'zag_offers_home_cache_v4';
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -511,7 +512,7 @@ function HomePageContent() {
                 {banners[safeActiveBanner].image ? (
                   <Image
                     src={resolveImageUrl(banners[safeActiveBanner].image) ?? '/placeholder-offer.jpg'}
-                    alt={banners[safeActiveBanner].title}
+                    alt={getBannerTitle(banners[safeActiveBanner].title)}
                     fill
                     className="object-cover transition-transform duration-1000 group-hover:scale-[1.025]"
                     sizes="(max-width: 768px) 100vw, 950px"
@@ -522,7 +523,7 @@ function HomePageContent() {
                 <span className="ad-carousel-shade" aria-hidden="true" />
                 <div className="ad-carousel-copy">
                   {banners[safeActiveBanner].tag && <span className="ad-carousel-tag">{banners[safeActiveBanner].tag}</span>}
-                  <h3>{banners[safeActiveBanner].title}</h3>
+                  <h3>{getBannerTitle(banners[safeActiveBanner].title)}</h3>
                   {banners[safeActiveBanner].subtitle && <p>{banners[safeActiveBanner].subtitle}</p>}
                   {banners[safeActiveBanner].actionUrl && <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>}
                 </div>
@@ -537,7 +538,7 @@ function HomePageContent() {
                 )}
                 <span className="ad-carousel-preview-shade" />
                 <span className="ad-carousel-preview-label">التالي</span>
-                <strong>{banners[(safeActiveBanner + 1) % banners.length].title}</strong>
+                <strong>{getBannerTitle(banners[(safeActiveBanner + 1) % banners.length].title)}</strong>
                 <RiArrowLeftSLine className="ad-carousel-preview-arrow" />
               </button>
             )}
