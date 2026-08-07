@@ -29,7 +29,6 @@ import { normalizeCategories } from '@/lib/category-utils';
 import { useNotifications } from '@/components/notification-provider';
 import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 import { CategoryImageCard } from '@/components/category-image-card';
-import { BrandMark } from '@/components/brand-mark';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
@@ -378,16 +377,44 @@ function HomePageContent() {
 
           <motion.div
             initial={false}
-            animate={{ opacity: 1, scale: 1, rotate: 0 }}
+            animate={{ opacity: 1, y: 0 }}
             transition={{ duration: 0.65, ease: 'easeOut' }}
-            className="brand-hero-mark relative mx-auto hidden h-[250px] w-full max-w-[330px] lg:block"
+            className="hero-offers-visual relative mx-auto hidden h-[270px] w-full max-w-[350px] lg:block"
           >
-            <span className="brand-orbit brand-orbit-one" />
-            <span className="brand-orbit brand-orbit-two" />
-            <BrandMark priority className="relative z-10 h-full w-full p-3 drop-shadow-[0_24px_30px_rgba(0,0,0,.3)]" />
-            <span className="absolute bottom-3 left-1/2 z-20 -translate-x-1/2 whitespace-nowrap rounded-full border border-white/10 bg-[#071426]/80 px-5 py-2 text-xs font-bold text-white shadow-xl backdrop-blur-md">
-              <span className="text-[#FF6500]">zag offers</span> · عروض قريبة منك
-            </span>
+            <div className="hero-offers-photo">
+              <Image
+                src="/categories/all.png"
+                alt="متاجر وعروض محلية قريبة منك"
+                fill
+                priority
+                sizes="350px"
+                className="object-cover"
+              />
+              <span className="hero-offers-photo-shade" aria-hidden="true" />
+              <span className="hero-offers-location">
+                <RiMapPin2Fill aria-hidden="true" />
+                من قلب الزقازيق
+              </span>
+            </div>
+
+            <div className="hero-offers-ticket" aria-label="خصومات تصل إلى خمسين بالمائة">
+              <span className="hero-offers-ticket-label">خصومات حقيقية</span>
+              <strong>حتى 50%</strong>
+              <span>في متاجر قريبة منك</span>
+            </div>
+
+            <div className="hero-offers-categories" aria-label="فئات عروض رائجة">
+              <span className="hero-offers-thumb">
+                <Image src="/categories/food.png" alt="عروض المطاعم" fill sizes="46px" className="object-cover" />
+              </span>
+              <span className="hero-offers-thumb">
+                <Image src="/categories/tech.png" alt="عروض الإلكترونيات" fill sizes="46px" className="object-cover" />
+              </span>
+              <span className="hero-offers-category-copy">
+                <strong>عروض بتتجدد</strong>
+                <small>كل يوم، في كل الفئات</small>
+              </span>
+            </div>
           </motion.div>
         </div>
       </section>
