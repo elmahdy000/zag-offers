@@ -387,11 +387,11 @@ html[data-theme="light"] .auth-benefit, html[data-theme="light"] .auth-consent {
 /* Coupon wallet */
 .coupon-wallet-page { min-height:72vh; padding-bottom:72px; background:#071426; }
 .coupon-wallet-hero { overflow:hidden; border-bottom:1px solid #25344a; background:#09172a; }
-.coupon-wallet-hero-inner { min-height:300px; display:grid; grid-template-columns:1.35fr .65fr; align-items:center; gap:60px; padding-block:38px; }
+.coupon-wallet-hero-inner { min-height:250px; display:grid; grid-template-columns:1.35fr .65fr; align-items:center; gap:48px; padding-block:32px; }
 .coupon-wallet-kicker { display:inline-flex; align-items:center; gap:7px; margin-bottom:14px; padding:7px 11px; border:1px solid rgba(255,101,0,.3); border-radius:999px; background:rgba(255,101,0,.07); color:#ff8a32; font-size:11px; font-weight:900; }
-.coupon-wallet-copy h1 { color:#fff; font-size:clamp(2.3rem,5vw,4.1rem); line-height:1.15; font-weight:950; letter-spacing:-.045em; }
+.coupon-wallet-copy h1 { color:#fff; font-size:clamp(2rem,3.3vw,3rem); line-height:1.25; font-weight:900; letter-spacing:-.025em; }
 .coupon-wallet-copy p { max-width:660px; margin-top:12px; color:#a8b4c5; font-size:15px; line-height:1.9; font-weight:600; }
-.coupon-wallet-visual { justify-self:end; display:flex; width:250px; height:180px; flex-direction:column; align-items:center; justify-content:center; border:1px solid #34445b; border-radius:28px; background:#101f34; color:#ff7620; box-shadow:18px 20px 0 #0b1322; transform:rotate(-3deg); }
+.coupon-wallet-visual { justify-self:end; display:flex; width:220px; height:155px; flex-direction:column; align-items:center; justify-content:center; border:1px solid #34445b; border-radius:24px; background:#101f34; color:#ff7620; box-shadow:14px 16px 0 #0b1322; transform:rotate(-2deg); }
 .coupon-wallet-visual > span { margin-top:7px; color:#7e8da2; font-size:9px; font-weight:900; letter-spacing:.18em; }
 .coupon-wallet-visual b { margin-top:5px; color:#fff; font-size:26px; font-weight:950; }
 .coupon-wallet-visual small { color:#929fb1; font-size:10px; font-weight:800; }
