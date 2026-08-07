@@ -26,11 +26,18 @@
 
 * { box-sizing: border-box; }
 
+html {
+  -webkit-text-size-adjust: 100%;
+  text-size-adjust: 100%;
+  overflow-x: clip;
+}
+
 body {
   background-color: var(--color-bg);
   color: var(--color-text);
   font-family: var(--font-cairo);
   overflow-x: hidden;
+  min-width: 0;
 }
 
 html { color-scheme: dark; }
@@ -761,7 +768,7 @@ html[data-theme="light"] .coupon-ticket-card::before,html[data-theme="light"] .c
 /* Distinct mobile navigation dock */
 .mobile-dock {
   position: fixed; z-index: 70; right: 10px; left: 10px; bottom: 10px;
-  padding-bottom: env(safe-area-inset-bottom);
+  padding-bottom: max(env(safe-area-inset-bottom), 0px);
 }
 .mobile-dock-inner {
   position: relative; display: grid; grid-template-columns: repeat(5, 1fr); align-items: center;
@@ -779,6 +786,56 @@ html[data-theme="light"] .coupon-ticket-card::before,html[data-theme="light"] .c
 .mobile-dock-item.is-active::before { content:""; position:absolute; top:2px; width:22px; height:3px; border-radius:999px; background:#ff6500; box-shadow:0 2px 8px rgba(255,101,0,.45); }
 .mobile-dock-item.is-active .mobile-dock-icon { color:#ff7620; transform:translateY(-1px); }
 html[data-theme="light"] .mobile-dock-inner { background: #fff; border-color: #d9e0e8; box-shadow: 0 16px 42px rgba(16,32,57,.18); }
+
+@media (max-width: 767px) {
+  body { padding-bottom: calc(92px + env(safe-area-inset-bottom)); }
+  .site-footer { padding-bottom: calc(110px + env(safe-area-inset-bottom)); }
+}
+
+@media (max-width: 360px) {
+  .site-container { width:min(100% - 16px,1320px); }
+  .mobile-dock { right:7px; left:7px; bottom:max(7px,env(safe-area-inset-bottom)); padding-bottom:0; }
+  .mobile-dock-inner { min-height:62px; padding:4px; border-radius:17px; }
+  .mobile-dock-item { height:52px; gap:3px; border-radius:13px; }
+  .mobile-dock-icon { width:27px; height:25px; }
+  .mobile-dock-icon svg { width:19px; height:19px; }
+  .mobile-dock-label { font-size:8px; }
+
+  .brand-hero-market { min-height:0; padding:14px 8px 18px; }
+  .brand-hero-market > .site-container { min-height:0; width:100%; }
+  .brand-hero-market-copy { padding:16px 12px; border-radius:15px 22px 15px 22px; }
+  .brand-hero-market-copy h1 { font-size:27px !important; line-height:1.28 !important; }
+  .brand-hero-market-copy p { font-size:12px !important; line-height:1.8 !important; }
+  .brand-hero-market-copy form { gap:2px; padding:4px; }
+  .brand-hero-market-copy form > div { width:32px; height:36px; margin-inline:0; }
+  .brand-hero-market-copy form input { min-width:0; width:0; padding-inline:5px; font-size:11px; }
+  .brand-hero-market-copy form button[type="submit"] { min-width:58px; padding:9px 12px; font-size:11px; }
+  .brand-hero-market-copy > div:last-child { gap:8px; }
+  .brand-hero-market-copy > div:last-child a { padding:9px 13px; font-size:11px; }
+
+  .coupon-wallet-hero-inner { min-height:0; padding-block:18px 25px; }
+  .coupon-wallet-kicker { margin-bottom:10px; padding:6px 9px; font-size:9px; }
+  .coupon-wallet-copy h1 { font-size:1.65rem; line-height:1.3; }
+  .coupon-wallet-copy p { margin-top:8px; font-size:10px; line-height:1.75; }
+  .coupon-wallet-content { padding-bottom:32px; }
+  .coupon-stats { margin-top:-18px; }
+  .coupon-toolbar { gap:10px; }
+  .coupon-toolbar h2 { font-size:17px; }
+  .coupon-tabs { padding:4px; }
+  .coupon-tabs button { min-width:0; padding:8px 4px; font-size:9px; white-space:nowrap; }
+  .coupon-ticket-top { padding:12px 12px 0; }
+  .coupon-status { padding:6px 8px; font-size:8px; }
+  .coupon-ticket-offer { grid-template-columns:62px minmax(0,1fr); gap:10px; min-height:116px; padding:10px 12px 14px; }
+  .coupon-discount { width:62px; height:62px; }
+  .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
+  .coupon-ticket-code-row { grid-template-columns:52px minmax(0,1fr) auto; gap:6px; padding:12px; }
+  .coupon-mini-qr { width:50px; height:50px; }
+  .coupon-mini-qr svg { width:43px; height:43px; }
+  .coupon-code-copy { min-width:0; }
+  .coupon-code-copy strong { display:block; overflow:hidden; font-size:11px; letter-spacing:0; text-overflow:ellipsis; white-space:nowrap; }
+  .coupon-copy-button { gap:3px; padding:7px; font-size:8px; }
+  .coupon-ticket-footer { padding:9px 12px; font-size:7px; }
+}
 html[data-theme="light"] .mobile-dock-item { color: #667085; }
 html[data-theme="light"] .mobile-dock-item.is-active { color:#102039; background:#fff2e9; }
 
@@ -1141,4 +1198,33 @@ html[data-theme="light"] .surface-card > span { background:#fff3e9 !important; }
 @media (max-width: 640px) {
   .site-container { width: min(100% - 1.25rem, 1320px); }
   .global-card { border-radius: 18px; }
+}
+
+/* Narrow Android / ColorOS final overrides (must follow general mobile rules). */
+@media (max-width: 360px) {
+  .site-container { width:min(100% - 16px,1320px); }
+  .brand-hero-market { min-height:0; padding:14px 8px 18px; }
+  .brand-hero-market > .site-container { min-height:0; width:100%; }
+  .brand-hero-market-copy { padding:16px 12px; border-radius:15px 22px 15px 22px; }
+  .brand-hero-market-copy h1 { font-size:27px!important; line-height:1.28!important; }
+  .brand-hero-market-copy p { font-size:12px!important; line-height:1.8!important; }
+  .brand-hero-market-copy form { gap:2px; padding:4px; }
+  .brand-hero-market-copy form input { min-width:0; width:0; padding-inline:5px; font-size:11px; }
+  .brand-hero-market-copy form button[type="submit"] { min-width:58px; padding:9px 12px; font-size:11px; }
+
+  .coupon-wallet-page { padding-bottom:calc(110px + env(safe-area-inset-bottom)); }
+  .coupon-wallet-hero-inner { min-height:0; padding-block:18px 25px; }
+  .coupon-wallet-copy h1 { font-size:1.65rem; line-height:1.3; }
+  .coupon-wallet-copy p { margin-top:8px; font-size:10px; line-height:1.75; }
+  .coupon-tabs button { min-width:0; padding:8px 4px; font-size:9px; white-space:nowrap; }
+  .coupon-ticket-card:last-child { margin-bottom:24px; }
+  .coupon-ticket-offer { grid-template-columns:62px minmax(0,1fr); gap:10px; min-height:116px; padding:10px 12px 14px; }
+  .coupon-discount { width:62px; height:62px; }
+  .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
+  .coupon-ticket-code-row { grid-template-columns:52px minmax(0,1fr) auto; gap:6px; padding:12px; }
+  .coupon-mini-qr { width:50px; height:50px; }
+  .coupon-mini-qr svg { width:43px; height:43px; }
+  .coupon-code-copy strong { display:block; overflow:hidden; font-size:11px; letter-spacing:0; text-overflow:ellipsis; white-space:nowrap; }
+  .coupon-copy-button { gap:3px; padding:7px; font-size:8px; }
+  .site-footer { padding-bottom:calc(110px + env(safe-area-inset-bottom)); }
 }
