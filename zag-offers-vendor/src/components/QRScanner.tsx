@@ -2,7 +2,7 @@
 import { useEffect, useRef, useState } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
 import { X, Camera, RefreshCcw, AlertTriangle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion } from 'framer-motion';
 
 interface QRScannerProps {
   onScan: (decodedText: string) => void;
@@ -55,7 +55,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
         const scanner = new Html5Qrcode("qr-reader");
         html5QrCode.current = scanner;
 
-        setDebug(`جاري تشغيل: ${cameras.find(c => c.id === cameraId)?.label || 'الكاميرا'}`);
+        setDebug('جاري تشغيل الكاميرا...');
 
         await scanner.start(
           cameraId,
@@ -72,29 +72,29 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
       }
     };
 
-    const switchCamera = async (id: string) => {
-      setActiveCam(id);
-      if (html5QrCode.current) {
-        try {
-          if (html5QrCode.current.isScanning) await html5QrCode.current.stop();
-          const scanner = new Html5Qrcode("qr-reader");
-          html5QrCode.current = scanner;
-          await scanner.start(id, { fps: 15, qrbox: { width: 250, height: 250 } }, (text) => {
-            scanner.stop().then(() => onScan(text));
-          }, () => {});
-        } catch (e) { setError("تعذر التبديل لهذه الكاميرا"); }
-      }
-    };
-
     const timer = setTimeout(initScanner, 1000);
 
     return () => {
       clearTimeout(timer);
       if (html5QrCode.current && html5QrCode.current.isScanning) {
-        html5QrCode.current.stop().catch(e => console.error(e));
+        html5QrCode.current.stop().catch((stopError) => console.error(stopError));
       }
     };
-  }, []);
+  }, [onScan]);
+
+  const switchCamera = async (id: string) => {
+    try {
+      if (html5QrCode.current?.isScanning) await html5QrCode.current.stop();
+      const scanner = new Html5Qrcode('qr-reader');
+      html5QrCode.current = scanner;
+      setActiveCam(id);
+      await scanner.start(id, { fps: 15, qrbox: { width: 250, height: 250 } }, (text) => {
+        void scanner.stop().then(() => onScan(text));
+      }, () => {});
+    } catch {
+      setError('تعذر التبديل لهذه الكاميرا');
+    }
+  };
 
   return (
     <motion.div 
@@ -147,10 +147,7 @@ export default function QRScanner({ onScan, onClose }: QRScannerProps) {
               <button 
                 key={cam.id} 
                 onClick={() => {
-                  const currentIndex = cameras.findIndex(c => c.id === activeCam);
-                  const nextIndex = (currentIndex + 1) % cameras.length;
-                  const nextCam = cameras[nextIndex];
-                  setActiveCam(nextCam.id);
+                  void switchCamera(cam.id);
                 }}
                 className={`px-4 py-2 rounded-xl text-[10px] font-black transition-all border ${activeCam === cam.id ? 'bg-primary text-white border-primary' : 'bg-glass-heavy text-text-dim border-glass-border'}`}
               >

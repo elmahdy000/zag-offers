@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { optimizeUploadFormData } from './image-upload';
 
 function resolveApiUrl() {
   const envBase = process.env.NEXT_PUBLIC_API_URL?.trim();
@@ -59,12 +60,15 @@ const _axiosInstance = axios.create({
   timeout: 15000,
 });
 
-_axiosInstance.interceptors.request.use((config) => {
+_axiosInstance.interceptors.request.use(async (config) => {
   const token = getCookie('admin_token');
   if (token) {
     config.headers.Authorization = `Bearer ${token}`;
   } else {
     delete config.headers.Authorization;
+  }
+  if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+    config.data = await optimizeUploadFormData(config.data);
   }
   return config;
 });

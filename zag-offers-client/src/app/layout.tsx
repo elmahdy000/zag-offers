@@ -1,18 +1,10 @@
-import type { Metadata, Viewport } from "next";
-import { Cairo } from "next/font/google";
+import type { Metadata } from "next";
+import "@fontsource-variable/cairo";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
 import BottomNav from "@/components/bottom-nav";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
-import OnlineStatusBanner from "@/components/online-status-banner";
-
-const cairo = Cairo({
-  subsets: ["latin", "arabic"],
-  weight: ["400", "500", "600", "700", "800", "900"],
-  variable: "--font-cairo",
-  display: "swap",
-});
 
 export const metadata: Metadata = {
   metadataBase: new URL('https://zagoffers.online'),
@@ -38,7 +30,7 @@ export const viewport = {
   width: "device-width",
   initialScale: 1,
   maximumScale: 1,
-  themeColor: "#1A1A1A",
+  themeColor: "#071426",
 };
 
 import ClientInit from "@/components/client-init";
@@ -49,23 +41,24 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="ar" dir="rtl" className={cairo.variable}>
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
       <head>
+        <script dangerouslySetInnerHTML={{ __html: `(function(){try{var t=localStorage.getItem('zag-theme');if(!t)t=window.matchMedia('(prefers-color-scheme: light)').matches?'light':'dark';document.documentElement.dataset.theme=t}catch(e){document.documentElement.dataset.theme='dark'}})()` }} />
         <link rel="manifest" href="/manifest.json" />
         <link rel="preconnect" href="https://api.zagoffers.online" />
         <link rel="dns-prefetch" href="https://api.zagoffers.online" />
-        <meta name="theme-color" content="#FF6B00" />
+        <meta name="theme-color" content="#071426" />
         <meta name="mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-capable" content="yes" />
         <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-        <link rel="apple-touch-icon" href="/icon-192.svg" />
+        <link rel="apple-touch-icon" href="/brand/zag-app-icon.png" />
       </head>
       <body className="antialiased">
         <ClientInit />
         <ReactQueryProvider>
           <NotificationProvider>
             <Navbar />
-            <main className="min-h-screen pt-20 pb-32 md:pb-0">
+            <main className="min-h-screen pt-[72px] pb-32 md:pb-0">
               {children}
             </main>
             <Footer />

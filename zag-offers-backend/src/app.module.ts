@@ -68,8 +68,11 @@ import { redisStore } from 'cache-manager-redis-yet';
       { name: 'short', ttl: 1000, limit: 30 },
       { name: 'medium', ttl: 10000, limit: 100 },
       { name: 'long', ttl: 60000, limit: 500 },
-      { name: 'strict', ttl: 60000, limit: 10 },
-      { name: 'hourly', ttl: 3600000, limit: 100 },
+      // These named buckets are intentionally permissive by default. Routes
+      // such as registration and offer creation override them with strict
+      // limits through @Throttle; low defaults here would throttle every API.
+      { name: 'strict', ttl: 60000, limit: 1000 },
+      { name: 'hourly', ttl: 3600000, limit: 10000 },
     ]),
     PrismaModule,
     AuthModule,

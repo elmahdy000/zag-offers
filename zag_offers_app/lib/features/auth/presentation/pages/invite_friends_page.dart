@@ -20,7 +20,8 @@ class InviteFriendsPage extends StatelessWidget {
   void _shareCode() {
     SharePlus.instance.share(
       ShareParams(
-        text: 'انضم إلي في تطبيق Zag Offers واستخدم كود الدعوة الخاص بي: $referralCode\n'
+        text:
+            'انضم إلي في تطبيق Zag Offers واستخدم كود الدعوة الخاص بي: $referralCode\n'
             'احصل على خصومات حصرية، واجمع نقاط لتحصل على مكافآت رائعة!\n\n'
             'حمل التطبيق من هنا: https://zagoffers.online',
       ),
@@ -142,13 +143,13 @@ class InviteFriendsPage extends StatelessWidget {
                   label: const Text(
                     'مشاركة الكود',
                     style: TextStyle(
-                      fontSize: 18,
+                      fontSize: 14,
                       fontWeight: FontWeight.w800,
                       color: Colors.white,
                     ),
                   ),
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 18),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
                     backgroundColor: AppColors.primary,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(16),

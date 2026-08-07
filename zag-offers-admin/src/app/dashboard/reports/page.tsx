@@ -27,16 +27,32 @@ interface PeriodStats {
   engagement: { totalFavorites: number; totalReviews: number };
 }
 
+interface PeriodDelta {
+  newUsers: number;
+  newStores: number;
+  newOffers: number;
+  newCoupons: number;
+}
+
+interface GlobalStats {
+  users: { totalUsers: number; totalMerchants: number };
+  stores: { totalStores: number; pendingStores: number };
+  offers: { totalOffers: number; activeOffers: number };
+  coupons: { totalCouponsGenerated: number; totalCouponsUsed: number; couponConversionRate: string };
+  engagement: { totalFavorites: number; totalReviews: number };
+}
+
 interface TopStore {
   id: string;
   name: string;
-  category: string;
-  _count: { offers: number; coupons: number };
+  category?: { name?: string };
+  _count?: { offers?: number; reviews?: number };
 }
 
 interface TopCategory {
   name: string;
-  _count: { stores: number; offers: number };
+  storeCount?: number;
+  totalOffers?: number;
 }
 
 function StatCard({
@@ -61,7 +77,7 @@ function StatCard({
     <motion.div
       initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="admin-panel p-6"
+      className="admin-panel p-4 sm:p-6"
     >
       <div className="mb-4 flex items-center justify-between">
         <div className={`h-11 w-11 rounded-xl border flex items-center justify-center ${tones[tone]}`}>
@@ -109,7 +125,7 @@ function ErrorPanel({ message, onRetry }: { message: string; onRetry?: () => voi
 }
 
 export default function ReportsPage() {
-  const [period, setPeriod] = useState<'week' | 'month' | 'year'>('week');
+  const [period, setPeriod] = useState<'today' | 'week' | 'month'>('week');
 
   const {
     data: stats,
@@ -120,11 +136,22 @@ export default function ReportsPage() {
   } = useQuery({
     queryKey: ['admin-stats-period', period],
     queryFn: async () => {
-      const response = await adminApi().get<PeriodStats>('/admin/stats/period', { params: { period } });
-      if (!response.data || typeof response.data !== 'object') {
+      const [periodResponse, globalResponse] = await Promise.all([
+        adminApi().get<PeriodDelta>('/admin/stats/period', { params: { period } }),
+        adminApi().get<GlobalStats>('/admin/stats/global'),
+      ]);
+      const delta = periodResponse.data;
+      const global = globalResponse.data;
+      if (!delta || !global?.users || !global.stores || !global.offers || !global.coupons) {
         throw new Error('تنسيق استجابة غير صالح');
       }
-      return response.data;
+      return {
+        users: { ...global.users, newUsers: delta.newUsers ?? 0 },
+        stores: { ...global.stores, newStores: delta.newStores ?? 0 },
+        offers: { ...global.offers, newOffers: delta.newOffers ?? 0 },
+        coupons: global.coupons,
+        engagement: global.engagement,
+      } satisfies PeriodStats;
     },
     staleTime: 120000,
     refetchOnWindowFocus: false,
@@ -170,9 +197,9 @@ export default function ReportsPage() {
   });
 
   const periodLabel = useMemo(() => {
+    if (period === 'today') return 'اليوم';
     if (period === 'week') return 'آخر أسبوع';
-    if (period === 'month') return 'آخر شهر';
-    return 'آخر سنة';
+    return 'آخر شهر';
   }, [period]);
 
   if (statsError && !storesError && !categoriesError) {
@@ -196,7 +223,7 @@ export default function ReportsPage() {
         />
 
         <div className="flex flex-wrap items-center gap-2">
-          {(['week', 'month', 'year'] as const).map((p) => (
+          {(['today', 'week', 'month'] as const).map((p) => (
             <button
               key={p}
               onClick={() => setPeriod(p)}
@@ -206,7 +233,7 @@ export default function ReportsPage() {
                   : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
               }`}
             >
-              {p === 'week' ? 'أسبوع' : p === 'month' ? 'شهر' : 'سنة'}
+              {p === 'today' ? 'اليوم' : p === 'week' ? 'أسبوع' : 'شهر'}
             </button>
           ))}
 
@@ -220,7 +247,7 @@ export default function ReportsPage() {
         </div>
       </div>
 
-      <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-6 lg:grid-cols-4">
         <StatCard label="المستخدمون الجدد" value={stats?.users.newUsers ?? 0} icon={Users} tone="blue" />
         <StatCard label="المتاجر الجديدة" value={stats?.stores.newStores ?? 0} icon={Store} tone="orange" />
         <StatCard label="العروض الجديدة" value={stats?.offers.newOffers ?? 0} icon={Tag} tone="emerald" />
@@ -250,7 +277,7 @@ export default function ReportsPage() {
                   </div>
                   <div className="flex-1 min-w-0">
                     <p className="text-sm font-bold text-slate-900 truncate">{store.name}</p>
-                    <p className="text-[11px] text-slate-500 truncate">{store.category}</p>
+                    <p className="text-[11px] text-slate-500 truncate">{store.category?.name || 'بدون تصنيف'}</p>
                   </div>
                   <div className="text-left">
                     <p className="text-sm font-bold text-slate-900 tabular-nums">{store._count?.offers ?? 0}</p>
@@ -288,7 +315,7 @@ export default function ReportsPage() {
                     <p className="text-sm font-bold text-slate-900 truncate">{category.name}</p>
                   </div>
                   <div className="text-left">
-                    <p className="text-sm font-bold text-slate-900 tabular-nums">{category._count?.stores ?? 0}</p>
+                    <p className="text-sm font-bold text-slate-900 tabular-nums">{category.storeCount ?? 0}</p>
                     <p className="text-xs text-slate-500">متجر</p>
                   </div>
                 </div>

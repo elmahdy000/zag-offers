@@ -1,18 +1,19 @@
 'use client';
 
-import { Bell, Search, User, Inbox, AlertCircle } from 'lucide-react';
-import { useState, useEffect } from 'react';
+import { Bell, User } from 'lucide-react';
+import { useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import { useSocketContext } from '@/components/SocketProvider';
 import { useToast } from './shared/Toast';
+import AdminThemeToggle from './AdminThemeToggle';
 
 async function fetchPendingCount() {
   try {
     const [storesResult, offersResult] = await Promise.allSettled([
-      adminApi().get<any[]>('/admin/stores/pending'),
-      adminApi().get<any[]>('/admin/offers/pending'),
+      adminApi().get<unknown[]>('/admin/stores/pending'),
+      adminApi().get<unknown[]>('/admin/offers/pending'),
     ]);
     const sc = storesResult.status === 'fulfilled' ? storesResult.value.data.length : 0;
     const oc = offersResult.status === 'fulfilled' ? offersResult.value.data.length : 0;
@@ -24,8 +25,6 @@ export default function DashboardHeader() {
   const router = useRouter();
   const queryClient = useQueryClient();
   const { showToast } = useToast();
-  const [search, setSearch] = useState('');
-
   const { data: pendingCount = 0 } = useQuery<number>({
     queryKey: ['pending-count'],
     queryFn: fetchPendingCount,
@@ -37,7 +36,7 @@ export default function DashboardHeader() {
   useEffect(() => {
     if (!socket) return;
 
-    const handleAdminNotification = (data: any) => {
+    const handleAdminNotification = (data: Record<string, unknown>) => {
       console.log('Received admin notification:', data);
       
       // Safety check: if data is null/undefined or not an object, ignore
@@ -52,8 +51,8 @@ export default function DashboardHeader() {
       queryClient.invalidateQueries({ queryKey: ['global-stats'] });
 
       // Show Toast with fallback values
-      const title = data.title || 'إشعار جديد';
-      const body = data.body || '';
+      const title = typeof data.title === 'string' ? data.title : 'إشعار جديد';
+      const body = typeof data.body === 'string' ? data.body : '';
       const message = body ? `${title}: ${body}` : title;
       
       showToast(
@@ -70,16 +69,21 @@ export default function DashboardHeader() {
   }, [socket, queryClient, showToast]);
 
   return (
-    <header className="sticky top-0 z-30 flex h-20 items-center justify-between border-b border-slate-200 bg-white/80 px-6 backdrop-blur-md lg:px-10">
-      {/* Global Actions Container (formerly search was here) */}
-      <div className="flex-1" />
+    <header className="admin-header sticky top-0 z-30 flex h-[72px] items-center justify-between px-5 lg:px-8">
+      <div className="admin-header-brand mr-14 flex items-center gap-2 lg:mr-0">
+        <span className="text-sm font-black">لوحة الإدارة</span>
+        <span className="admin-header-dot" />
+        <span className="hidden text-[10px] font-bold sm:inline">Zag Offers</span>
+      </div>
 
       {/* Actions */}
-      <div className="flex items-center gap-4 mr-4">
+      <div className="flex items-center gap-2">
+        <AdminThemeToggle compact />
         <button 
           onClick={() => router.push('/dashboard/approvals')}
-          className="relative flex h-[44px] w-[44px] items-center justify-center rounded-2xl border border-slate-200 bg-white text-slate-500 hover:bg-slate-50 hover:border-orange-500 hover:text-orange-600 transition-all shadow-sm"
+          className="admin-icon-button relative"
           title="التنبيهات ومركز الموافقات"
+          aria-label="التنبيهات ومركز الموافقات"
         >
           <Bell size={20} />
           {pendingCount > 0 && (
@@ -89,18 +93,18 @@ export default function DashboardHeader() {
           )}
         </button>
 
-        <div className="h-8 w-px bg-slate-200 mx-2 hidden sm:block" />
+        <div className="admin-header-divider hidden h-8 w-px sm:block" />
 
         <button 
           onClick={() => router.push('/dashboard/settings')}
-          className="flex items-center gap-3 pl-1 pr-4 py-1.5 rounded-2xl hover:bg-slate-50 transition-all border border-transparent hover:border-slate-100 group"
+          className="admin-profile-button group flex items-center gap-3 rounded-2xl py-1.5 pl-2 pr-1.5"
         >
-          <div className="h-9 w-9 rounded-xl bg-orange-100 text-orange-600 flex items-center justify-center group-hover:scale-110 transition-transform shadow-sm">
+          <div className="admin-profile-icon flex h-9 w-9 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
             <User size={18} />
           </div>
           <div className="flex flex-col items-start hidden sm:flex">
-             <span className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1">Administrator</span>
-             <span className="text-xs font-bold text-slate-900">المدير العام</span>
+             <span className="admin-profile-kicker mb-1 text-[9px] font-black uppercase tracking-widest leading-none">Administrator</span>
+             <span className="admin-profile-name text-xs font-black">المدير العام</span>
           </div>
         </button>
       </div>

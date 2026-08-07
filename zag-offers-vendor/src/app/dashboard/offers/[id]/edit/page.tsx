@@ -1,12 +1,13 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, LayoutDashboard, Sparkles, Image as ImageIcon, ChevronLeft, ShieldCheck } from 'lucide-react';
+import { Upload, ArrowRight, Save, Info, Calendar, Percent, Loader2, Tag, Sparkles, Image as ImageIcon } from 'lucide-react';
 import { useRouter, useParams } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { vendorApi, resolveImageUrl } from '@/lib/api';
-import { useUpdateOffer, useDeleteOffer } from '@/hooks/use-vendor-api';
+import { useUpdateOffer } from '@/hooks/use-vendor-api';
 import { compressImage } from '@/lib/image-utils';
 import { DashboardSkeleton } from '@/components/Skeleton';
+import { validateFile, validateImageDimensions } from '@/lib/validation';
 
 export default function EditOfferPage() {
   const router = useRouter();
@@ -20,12 +21,12 @@ export default function EditOfferPage() {
   });
   const [offerImages, setOfferImages] = useState<{ url: string; file?: File }[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
+  const [loadingOffer, setLoadingOffer] = useState(true);
 
   // React Query hooks
   const { mutate: updateOffer, isPending: submittingQuery } = useUpdateOffer();
   const [isUploading, setIsUploading] = useState(false);
   const submitting = submittingQuery || isUploading;
-  const { mutate: deleteOffer } = useDeleteOffer();
 
   useEffect(() => {
     if (!id) return;
@@ -46,10 +47,11 @@ export default function EditOfferPage() {
       .catch(err => {
         console.error(err);
         setSubmitError('تعذر تحميل بيانات العرض');
-      });
+      })
+      .finally(() => setLoadingOffer(false));
   }, [id]);
 
-  const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleImageChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const files = Array.from(e.target.files || []);
     if (offerImages.length + files.length > 5) {
       setSubmitError('الحد الأقصى هو 5 صور فقط');
@@ -57,7 +59,17 @@ export default function EditOfferPage() {
     }
 
     if (files.length > 0) {
-      files.forEach((file) => {
+      for (const file of files) {
+        const fileValidation = validateFile(file);
+        if (!fileValidation.valid) {
+          setSubmitError(fileValidation.error || 'ملف الصورة غير صالح');
+          return;
+        }
+        const dimensions = await validateImageDimensions(file);
+        if (!dimensions.valid) {
+          setSubmitError(dimensions.error || 'أبعاد الصورة غير صالحة');
+          return;
+        }
         const reader = new FileReader();
         reader.onloadend = () => {
           if (typeof reader.result === 'string') {
@@ -66,7 +78,7 @@ export default function EditOfferPage() {
           }
         };
         reader.readAsDataURL(file);
-      });
+      }
     }
   };
 
@@ -214,7 +226,14 @@ export default function EditOfferPage() {
   };
 
   if (!id) return <div className="p-8 text-center text-text-dim">لم يتم تحديد العرض.</div>;
-  if (submitError && !formData.title) return <DashboardSkeleton />;
+  if (loadingOffer) return <DashboardSkeleton />;
+  if (submitError && !formData.title) return (
+    <div className="min-h-[60vh] flex flex-col items-center justify-center gap-4 p-6 text-center">
+      <div className="rounded-2xl border border-red-500/20 bg-red-500/10 p-4 text-red-500"><Info size={28} /></div>
+      <p className="text-sm font-black text-text">{submitError}</p>
+      <button onClick={() => router.push('/dashboard/offers')} className="rounded-xl bg-primary px-5 py-3 text-xs font-black text-white">العودة إلى العروض</button>
+    </div>
+  );
 
   const isNumericDiscount = /^\d+(\.\d+)?%?$/.test(formData.discount);
   const discountValue = parseFloat(formData.discount) || 0;
@@ -223,17 +242,15 @@ export default function EditOfferPage() {
 
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -z-10" />
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex min-w-0 items-start sm:items-center gap-3 sm:gap-5">
           <button
             onClick={() => router.back()}
-            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all border border-glass-border"
+            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all border border-glass-border"
           >
             <ArrowRight size={24} />
           </button>
-          <div>
+          <div className="min-w-0">
             <h1 className="text-3xl font-black text-text tracking-tight flex items-center gap-3">
                تعديل العرض <Sparkles className="text-primary" size={24} />
             </h1>
@@ -247,7 +264,7 @@ export default function EditOfferPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-[2.5rem] border border-glass-border p-8 sm:p-10 inner-shadow relative overflow-hidden"
+            className="glass rounded-[1.25rem] border border-glass-border p-5 sm:p-8 relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             
@@ -386,7 +403,7 @@ export default function EditOfferPage() {
           </motion.div>
         </div>
 
-        <div className="xl:col-span-4 space-y-8">
+        <div className="hidden xl:block xl:col-span-4 space-y-8">
            <div className="flex items-center gap-2 text-text-dimmer text-[11px] font-black uppercase tracking-widest px-2">
              <Info size={14} className="text-primary" /> معاينة العرض
            </div>
@@ -410,7 +427,7 @@ export default function EditOfferPage() {
                 <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {offerImages.map((img, i) => (
                     <div key={i} className={`w-12 h-12 rounded-xl border-2 shrink-0 overflow-hidden ${i === 0 ? 'border-primary' : 'border-glass-border'}`}>
-                      <img src={img.url} className="w-full h-full object-cover" />
+                      <img src={img.url} className="w-full h-full object-cover" alt={`صورة العرض ${i + 1}`} />
                     </div>
                   ))}
                 </div>

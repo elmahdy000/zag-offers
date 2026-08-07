@@ -55,7 +55,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   @override
   void initState() {
     super.initState();
-    _reviewsBloc = sl<ReviewsBloc>()..add(FetchStoreReviews(widget.offer.store.id));
+    _reviewsBloc = sl<ReviewsBloc>()
+      ..add(FetchStoreReviews(widget.offer.store.id));
     _couponsBloc = sl<CouponsBloc>();
     _commentController = TextEditingController();
     _canGenerateCouponFuture = _canGenerateCoupon();
@@ -64,8 +65,11 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       final reviewId = data['reviewId']?.toString();
       final merchantReply = data['merchantReply']?.toString();
       final replyCreatedAtStr = data['replyCreatedAt']?.toString();
-      if (reviewId != null && merchantReply != null && replyCreatedAtStr != null) {
-        final replyCreatedAt = DateTime.tryParse(replyCreatedAtStr) ?? DateTime.now();
+      if (reviewId != null &&
+          merchantReply != null &&
+          replyCreatedAtStr != null) {
+        final replyCreatedAt =
+            DateTime.tryParse(replyCreatedAtStr) ?? DateTime.now();
         _reviewsBloc.add(ReviewReplyReceived(
           reviewId: reviewId,
           merchantReply: merchantReply,
@@ -150,15 +154,18 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       child: MultiBlocListener(
         listeners: [
           BlocListener<CouponsBloc, CouponsState>(
-            listenWhen: (_, current) => current is CouponsError || current is CouponGeneratedSuccess,
+            listenWhen: (_, current) =>
+                current is CouponsError || current is CouponGeneratedSuccess,
             listener: _onCouponStateChange,
           ),
           BlocListener<ReviewsBloc, ReviewsState>(
-            listenWhen: (_, current) => current is ReviewActionSuccess || current is ReviewsError,
+            listenWhen: (_, current) =>
+                current is ReviewActionSuccess || current is ReviewsError,
             listener: (context, state) {
               if (state is ReviewActionSuccess) {
                 _reviewsBloc.add(FetchStoreReviews(widget.offer.store.id));
-                SnackBarUtils.showSuccess(context, AppStrings.reviewAddedSuccess);
+                SnackBarUtils.showSuccess(
+                    context, AppStrings.reviewAddedSuccess);
               }
               if (state is ReviewsError) {
                 SnackBarUtils.showError(context, state.message);
@@ -276,11 +283,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                           imageUrl: images[index],
                           fit: BoxFit.cover,
                         ),
-                  if (widget.offer.isFlashSale && widget.offer.flashSaleEndsAt != null)
+                  if (widget.offer.isFlashSale &&
+                      widget.offer.flashSaleEndsAt != null)
                     Positioned(
                       bottom: 16,
                       left: 16,
-                      child: FlashSaleBadge(endsAt: widget.offer.flashSaleEndsAt!),
+                      child:
+                          FlashSaleBadge(endsAt: widget.offer.flashSaleEndsAt!),
                     ),
                 ],
               ),
@@ -315,7 +324,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   height: 6,
                   width: _selectedImageIndex == index ? 24 : 6,
                   decoration: BoxDecoration(
-                    color: _selectedImageIndex == index ? AppColors.primary : Colors.white60,
+                    color: _selectedImageIndex == index
+                        ? AppColors.primary
+                        : Colors.white60,
                     borderRadius: BorderRadius.circular(3),
                   ),
                 ),
@@ -326,7 +337,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  void _showFullScreenImage(BuildContext context, List<String> images, int initialIndex) {
+  void _showFullScreenImage(
+      BuildContext context, List<String> images, int initialIndex) {
     Navigator.push(
       context,
       MaterialPageRoute(
@@ -376,7 +388,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               _buildStoreCard(),
               const SizedBox(height: 32),
               _buildDescriptionSection(),
-              if (widget.offer.terms != null && widget.offer.terms!.isNotEmpty) ...[
+              if (widget.offer.terms != null &&
+                  widget.offer.terms!.isNotEmpty) ...[
                 const SizedBox(height: 24),
                 _buildTermsSection(),
               ],
@@ -411,8 +424,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             ],
           ),
           child: Text(
-            widget.offer.discount.isNotEmpty 
-                ? (widget.offer.discount.contains('%') ? widget.offer.discount : '${widget.offer.discount}%') 
+            widget.offer.discount.isNotEmpty
+                ? (widget.offer.discount.contains('%')
+                    ? widget.offer.discount
+                    : '${widget.offer.discount}%')
                 : 'عرض مميز',
             style: textTheme.labelMedium?.copyWith(
               color: Colors.white,
@@ -424,7 +439,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           children: [
             Row(
               children: [
-                Icon(Icons.remove_red_eye_outlined, color: theme.hintColor, size: 18),
+                Icon(Icons.remove_red_eye_outlined,
+                    color: theme.hintColor, size: 18),
                 const SizedBox(width: 4),
                 Text(
                   '${widget.offer.viewCount} مشاهدة',
@@ -438,7 +454,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             const SizedBox(width: 16),
             Row(
               children: [
-                const Icon(Icons.flash_on_rounded, color: Colors.orange, size: 18),
+                const Icon(Icons.flash_on_rounded,
+                    color: Colors.orange, size: 18),
                 const SizedBox(width: 4),
                 Text(
                   usageCount,
@@ -459,15 +476,21 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     double? displayNewPrice = widget.offer.newPrice;
     double? displayOldPrice = widget.offer.oldPrice;
 
-    if (displayOldPrice == null && displayNewPrice != null && widget.offer.discountPercentage > 0) {
+    if (displayOldPrice == null &&
+        displayNewPrice != null &&
+        widget.offer.discountPercentage > 0) {
       if (widget.offer.discount.contains('%')) {
-        displayOldPrice = displayNewPrice / (1 - (widget.offer.discountPercentage / 100));
+        displayOldPrice =
+            displayNewPrice / (1 - (widget.offer.discountPercentage / 100));
       } else {
         displayOldPrice = displayNewPrice + widget.offer.discountPercentage;
       }
-    } else if (displayNewPrice == null && displayOldPrice != null && widget.offer.discountPercentage > 0) {
+    } else if (displayNewPrice == null &&
+        displayOldPrice != null &&
+        widget.offer.discountPercentage > 0) {
       if (widget.offer.discount.contains('%')) {
-        displayNewPrice = displayOldPrice * (1 - (widget.offer.discountPercentage / 100));
+        displayNewPrice =
+            displayOldPrice * (1 - (widget.offer.discountPercentage / 100));
       } else {
         displayNewPrice = displayOldPrice - widget.offer.discountPercentage;
       }
@@ -541,7 +564,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               decoration: BoxDecoration(
                 color: theme.scaffoldBackgroundColor,
                 shape: BoxShape.circle,
-                border: Border.all(color: theme.dividerColor.withValues(alpha: 0.05)),
+                border: Border.all(
+                    color: theme.dividerColor.withValues(alpha: 0.05)),
               ),
               child: Icon(
                 CategoryUtils.getIcon(widget.offer.store.category ?? ''),
@@ -603,11 +627,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.info_outline_rounded, size: 20, color: AppColors.primary),
+            const Icon(Icons.info_outline_rounded,
+                size: 20, color: AppColors.primary),
             const SizedBox(width: 8),
             Text(
               'الشروط والأحكام',
-              style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style:
+                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
           ],
         ),
@@ -618,7 +644,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+            border: Border.all(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
           ),
           child: Text(
             widget.offer.terms!,
@@ -667,25 +694,32 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         builder: (context, snapshot) {
           final canGenerate = snapshot.data ?? false;
           return BlocBuilder<CouponsBloc, CouponsState>(
-            buildWhen: (prev, next) => next is CouponsLoading || next is CouponGeneratedSuccess || next is CouponsError,
+            buildWhen: (prev, next) =>
+                next is CouponsLoading ||
+                next is CouponGeneratedSuccess ||
+                next is CouponsError,
             builder: (context, state) {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Container(
-                    height: 64,
+                    height: 48,
                     width: double.infinity,
                     decoration: BoxDecoration(
                       boxShadow: [
                         BoxShadow(
-                          color: (canGenerate ? AppColors.primary : Colors.black).withValues(alpha: 0.2),
+                          color:
+                              (canGenerate ? AppColors.primary : Colors.black)
+                                  .withValues(alpha: 0.2),
                           blurRadius: 20,
                           offset: const Offset(0, 10),
                         ),
                       ],
                     ),
                     child: ElevatedButton(
-                      onPressed: (state is CouponsLoading || !canGenerate || _isFlashSaleFinished())
+                      onPressed: (state is CouponsLoading ||
+                              !canGenerate ||
+                              _isFlashSaleFinished())
                           ? null
                           : () {
                               HapticFeedback.lightImpact();
@@ -696,14 +730,16 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        disabledBackgroundColor: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white10 
-                            : Colors.grey.shade200,
-                        disabledForegroundColor: Theme.of(context).brightness == Brightness.dark 
-                            ? Colors.white54 
-                            : Colors.grey.shade600,
+                        disabledBackgroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white10
+                                : Colors.grey.shade200,
+                        disabledForegroundColor:
+                            Theme.of(context).brightness == Brightness.dark
+                                ? Colors.white54
+                                : Colors.grey.shade600,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 0,
                       ),
@@ -718,7 +754,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                 const SizedBox(width: 12),
                                 Text(
                                   _getButtonText(canGenerate),
-                                  style: textTheme.titleMedium?.copyWith(
+                                  style: textTheme.labelLarge?.copyWith(
                                     fontWeight: FontWeight.bold,
                                   ),
                                 ),
@@ -806,7 +842,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         '${widget.offer.oldPrice!.toStringAsFixed(0)} ج.م',
                         style: theme.textTheme.bodySmall?.copyWith(
                           decoration: TextDecoration.lineThrough,
-                          color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                          color: theme.textTheme.bodySmall?.color
+                              ?.withValues(alpha: 0.6),
                         ),
                       ),
                     ],
@@ -822,7 +859,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               const SizedBox(height: 20),
               Text(
                 'تم الحصول على العرض بنجاح',
-                style: theme.textTheme.titleLarge?.copyWith(fontWeight: FontWeight.bold),
+                style: theme.textTheme.titleLarge
+                    ?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
@@ -861,7 +899,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.2)),
                 ),
                 child: Text(
                   code,
@@ -920,7 +959,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               decoration: BoxDecoration(
                 borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                  color: isSelected ? AppColors.primary : theme.dividerColor.withValues(alpha: 0.15),
+                  color: isSelected
+                      ? AppColors.primary
+                      : theme.dividerColor.withValues(alpha: 0.15),
                   width: 2,
                 ),
               ),
@@ -946,7 +987,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           children: [
             Text(
               'آراء العملاء',
-              style: theme.textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: theme.textTheme.titleMedium
+                  ?.copyWith(fontWeight: FontWeight.bold),
             ),
             TextButton(
               onPressed: _showAddReviewBottomSheet,
@@ -962,7 +1004,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         ),
         const SizedBox(height: 12),
         BlocBuilder<ReviewsBloc, ReviewsState>(
-          buildWhen: (prev, next) => next is ReviewsLoaded || next is ReviewsLoading,
+          buildWhen: (prev, next) =>
+              next is ReviewsLoaded || next is ReviewsLoading,
           builder: (context, state) {
             if (state is ReviewsLoading) {
               return const Center(child: CircularProgressIndicator());
@@ -992,7 +1035,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     decoration: BoxDecoration(
                       color: theme.cardColor,
                       borderRadius: BorderRadius.circular(16),
-                      border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+                      border: Border.all(
+                          color: theme.dividerColor.withValues(alpha: 0.1)),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1016,7 +1060,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                   size: 16,
                                   color: i < review.rating
                                       ? Colors.amber
-                                      : theme.disabledColor.withValues(alpha: 0.3),
+                                      : theme.disabledColor
+                                          .withValues(alpha: 0.3),
                                 ),
                               ),
                             ),
@@ -1027,7 +1072,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                           const SizedBox(height: 10),
                           Text(
                             review.comment!,
-                            style: theme.textTheme.bodySmall?.copyWith(height: 1.5),
+                            style: theme.textTheme.bodySmall
+                                ?.copyWith(height: 1.5),
                           ),
                         ],
                         if (review.merchantReply != null) ...[
@@ -1037,18 +1083,22 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.05),
                               borderRadius: BorderRadius.circular(12),
-                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.15)),
+                              border: Border.all(
+                                  color: AppColors.primary
+                                      .withValues(alpha: 0.15)),
                             ),
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.store_rounded, size: 14, color: AppColors.primary),
+                                    Icon(Icons.store_rounded,
+                                        size: 14, color: AppColors.primary),
                                     const SizedBox(width: 6),
                                     Text(
                                       'رد المتجر',
-                                      style: theme.textTheme.labelSmall?.copyWith(
+                                      style:
+                                          theme.textTheme.labelSmall?.copyWith(
                                         color: AppColors.primary,
                                         fontWeight: FontWeight.bold,
                                       ),
@@ -1078,7 +1128,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               child: Center(
                 child: Text(
                   'تعذر تحميل التقييمات',
-                  style: theme.textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+                  style: theme.textTheme.bodyMedium
+                      ?.copyWith(color: AppColors.textSecondary),
                 ),
               ),
             );
@@ -1135,7 +1186,7 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    
+
     return Padding(
       padding: EdgeInsets.fromLTRB(
         24,
@@ -1148,7 +1199,8 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
         children: [
           Text(
             'ما رأيك في هذا العرض؟',
-            style: theme.textTheme.headlineSmall?.copyWith(fontWeight: FontWeight.bold),
+            style: theme.textTheme.headlineSmall
+                ?.copyWith(fontWeight: FontWeight.bold),
           ),
           const SizedBox(height: 16),
           Row(
@@ -1160,7 +1212,9 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
                 icon: Icon(
                   Icons.star_rounded,
                   size: 36,
-                  color: i < _selectedRating ? Colors.amber : theme.disabledColor.withValues(alpha: 0.3),
+                  color: i < _selectedRating
+                      ? Colors.amber
+                      : theme.disabledColor.withValues(alpha: 0.3),
                 ),
               ),
             ),
@@ -1185,35 +1239,35 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
           const SizedBox(height: 24),
           SizedBox(
             width: double.infinity,
-            height: 56,
+            height: 48,
             child: ElevatedButton(
               onPressed: () {
                 // Focus out to close keyboard before popping
                 FocusManager.instance.primaryFocus?.unfocus();
                 HapticFeedback.mediumImpact();
                 context.read<ReviewsBloc>().add(
-                  AddReviewRequested(
-                    storeId: widget.storeId,
-                    offerId: widget.offerId,
-                    rating: _selectedRating,
-                    comment: widget.commentController.text.trim().isEmpty 
-                        ? null 
-                        : widget.commentController.text.trim(),
-                  ),
-                );
+                      AddReviewRequested(
+                        storeId: widget.storeId,
+                        offerId: widget.offerId,
+                        rating: _selectedRating,
+                        comment: widget.commentController.text.trim().isEmpty
+                            ? null
+                            : widget.commentController.text.trim(),
+                      ),
+                    );
                 Navigator.pop(context);
               },
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
                 shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                 ),
                 elevation: 0,
               ),
               child: const Text(
                 'إرسال التقييم',
-                style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 14, fontWeight: FontWeight.bold),
               ),
             ),
           ),

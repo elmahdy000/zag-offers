@@ -3,12 +3,13 @@ import { vendorApi } from './api';
 interface SyncTask {
   id: string;
   type: 'REDEEM_COUPON';
-  data: any;
+  data: { code: string };
   timestamp: number;
   retryCount: number;
 }
 
 const STORAGE_KEY = 'zag_offline_sync_queue';
+let processingPromise: Promise<void> | null = null;
 
 import { secureStorage } from './crypto';
 
@@ -18,10 +19,12 @@ import { secureStorage } from './crypto';
  */
 export const OfflineSync = {
   /** إضافة مهمة للطابور */
-  async addToQueue(type: 'REDEEM_COUPON', data: any) {
+  async addToQueue(type: 'REDEEM_COUPON', data: { code: string }) {
     const queue = this.getQueue();
+    const duplicate = queue.find((task) => task.type === type && task.data.code === data.code);
+    if (duplicate) return duplicate.id;
     const newTask: SyncTask = {
-      id: Math.random().toString(36).substr(2, 9),
+      id: crypto.randomUUID(),
       type,
       data,
       timestamp: Date.now(),
@@ -48,30 +51,34 @@ export const OfflineSync = {
 
   /** معالجة الطابور بالكامل */
   async processQueue() {
-    const queue = this.getQueue();
-    if (queue.length === 0) return;
+    if (processingPromise) return processingPromise;
+    processingPromise = (async () => {
+      const queue = this.getQueue();
+      if (queue.length === 0) return;
 
-    console.log(`[OfflineSync] Processing ${queue.length} tasks...`);
-    const remainingTasks: SyncTask[] = [];
+      console.log(`[OfflineSync] Processing ${queue.length} tasks...`);
+      const remainingTasks: SyncTask[] = [];
 
-    for (const task of queue) {
-      try {
-        await this.executeTask(task);
-        console.log(`[OfflineSync] Task ${task.id} synced successfully`);
-      } catch (error) {
-        console.error(`[OfflineSync] Task ${task.id} failed, will retry later`, error);
-        if (task.retryCount < 5) {
-          remainingTasks.push({ ...task, retryCount: task.retryCount + 1 });
+      for (const task of queue) {
+        try {
+          await this.executeTask(task);
+          console.log(`[OfflineSync] Task ${task.id} synced successfully`);
+        } catch (error) {
+          console.error(`[OfflineSync] Task ${task.id} failed, will retry later`, error);
+          if (task.retryCount < 5) remainingTasks.push({ ...task, retryCount: task.retryCount + 1 });
         }
       }
-    }
 
-    this.saveQueue(remainingTasks);
-    
-    // إرسال حدث مخصص لتحديث الواجهة إذا لزم الأمر
-    window.dispatchEvent(new CustomEvent('offline-sync-completed', { 
-      detail: { syncedCount: queue.length - remainingTasks.length } 
-    }));
+      this.saveQueue(remainingTasks);
+      window.dispatchEvent(new CustomEvent('offline-sync-completed', {
+        detail: { syncedCount: queue.length - remainingTasks.length }
+      }));
+    })();
+    try {
+      await processingPromise;
+    } finally {
+      processingPromise = null;
+    }
   },
 
   /** تنفيذ مهمة محددة */
@@ -88,15 +95,17 @@ export const OfflineSync = {
   /** بدء مراقبة الاتصال */
   init() {
     if (typeof window === 'undefined') return;
-
-    window.addEventListener('online', () => {
+    const handleOnline = () => {
       console.log('[OfflineSync] Connection restored. Processing queue...');
-      this.processQueue();
-    });
+      void this.processQueue();
+    };
+    window.addEventListener('online', handleOnline);
 
     // المحاولة عند التحميل أيضاً في حالة كان الإنترنت متاحاً بالفعل
     if (navigator.onLine) {
-      this.processQueue();
+      void this.processQueue();
     }
+
+    return () => window.removeEventListener('online', handleOnline);
   }
 };

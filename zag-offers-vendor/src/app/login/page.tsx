@@ -1,14 +1,15 @@
 'use client';
 
-import { useState } from 'react';
-import { Smartphone, Lock, Eye, EyeOff, Loader2, LogIn, ChevronLeft } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ArrowLeft, BadgePercent, Eye, EyeOff, Loader2, Lock, ScanLine, ShieldCheck, Smartphone, Store, Sun, Moon } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
 import { validateEgyptianPhone, validatePassword } from '@/lib/validation';
 import { handleApiError, logError } from '@/lib/errorHandler';
-import { secureStorage, secureUserData, secureStoreData } from '@/lib/crypto';
+import { secureUserData, secureStoreData } from '@/lib/crypto';
 import { setCookie } from '@/lib/cookie-utils';
+import BrandMark from '@/components/BrandMark';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
 
@@ -19,64 +20,59 @@ export default function LoginPage() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [theme, setTheme] = useState<'dark' | 'light'>('dark');
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  useEffect(() => {
+    const active = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    const timer = window.setTimeout(() => setTheme(active), 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  const toggleTheme = () => {
+    const next = theme === 'dark' ? 'light' : 'dark';
+    setTheme(next);
+    document.documentElement.dataset.theme = next;
+    localStorage.setItem('zag-vendor-theme', next);
+  };
+
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
     setLoading(true);
     setError(null);
-
-    // تحقق من صيغة رقم الموبايل المصري
     if (!validateEgyptianPhone(phone.trim())) {
       setError('يرجى إدخال رقم موبايل مصري صحيح');
       setLoading(false);
       return;
     }
-
-    // تحقق من قوة كلمة المرور
     const passwordValidation = validatePassword(password);
     if (!passwordValidation.valid) {
       setError(passwordValidation.error!);
       setLoading(false);
       return;
     }
-
     try {
-      const res = await axios.post(`${API_URL}/auth/login`, { phone, password });
-      const { access_token, user } = res.data as {
-        access_token: string;
-        user: { id: string; name: string; role: string };
-      };
-
+      const response = await axios.post(`${API_URL}/auth/login`, { phone: phone.trim(), password });
+      const { access_token, user } = response.data as { access_token: string; user: { id: string; name: string; role: string } };
+      if (!access_token || !user?.id || !user?.role) {
+        throw new Error('استجابة تسجيل الدخول غير مكتملة. حاول مرة أخرى.');
+      }
       if (user.role !== 'MERCHANT' && user.role !== 'ADMIN') {
-        setError('هذا الحساب ليس حساب تاجر. استخدم تطبيق الموبايل.');
+        setError('هذا الحساب ليس حساب تاجر. استخدم تطبيق العملاء.');
         setLoading(false);
         return;
       }
-
-      // حفظ التوكن بشكل آمن
       setCookie('auth_token', access_token, 7);
-      
-      // حفظ بيانات المستخدم بشكل مشفر
       secureUserData.save(user);
-
       try {
-        const statsRes = await axios.get(`${API_URL}/stores/my-dashboard`, {
-          headers: { Authorization: `Bearer ${access_token}` },
-        });
-        const stats = statsRes.data as { storeId: string };
-        if (stats.storeId) {
-          // حفظ معرف المتجر بشكل مشفر
-          secureStoreData.save(stats.storeId);
-        }
-      } catch (error) {
-        // تسجيل الخطأ ولكن لا نوقف عملية الدخول
-        const apiError = handleApiError(error);
-        logError(apiError, 'Store ID Fetch');
+        const statsResponse = await axios.get(`${API_URL}/stores/my-dashboard`, { headers: { Authorization: `Bearer ${access_token}` } });
+        const stats = statsResponse.data as { storeId: string };
+        if (stats.storeId) secureStoreData.save(stats.storeId);
+      } catch (storeError) {
+        logError(handleApiError(storeError), 'Store ID Fetch');
       }
-
       router.push('/dashboard');
-    } catch (error: unknown) {
-      const apiError = handleApiError(error);
+    } catch (loginError: unknown) {
+      const apiError = handleApiError(loginError);
       logError(apiError, 'Login');
       setError(apiError.message);
     } finally {
@@ -85,95 +81,49 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-bg" dir="rtl">
-      {/* Background Accents */}
-      <div className="absolute top-0 inset-x-0 h-[50vh] bg-gradient-to-b from-primary/10 to-transparent -z-10" />
-      <div className="absolute -bottom-20 -left-20 w-80 h-80 bg-primary/5 blur-[100px] rounded-full -z-10" />
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[380px]"
-      >
-        <div className="text-center mb-8">
-          <div className="inline-flex p-3 rounded-2xl bg-primary/10 border border-primary/20 mb-4 inner-shadow">
-            <LogIn className="text-primary" size={28} />
+    <main className="vendor-auth-page" dir="rtl">
+      <div className="vendor-auth-frame">
+        <section className="vendor-auth-form-panel">
+          <div className="vendor-auth-topbar">
+            <div className="flex items-center gap-2 text-xs font-black text-text"><BrandMark priority className="h-9 w-9" /> Zag Offers</div>
+            <button className="icon-button" onClick={toggleTheme} aria-label="تغيير المظهر">{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</button>
           </div>
-          <h1 className="text-2xl font-black text-text tracking-tight">بوابة التُجار</h1>
-          <p className="text-text-dim text-[13px] font-bold mt-1">Zag Offers Merchant Hub</p>
-        </div>
 
-        <div className="glass p-8 rounded-[2.5rem] relative overflow-hidden border border-glass-border inner-shadow">
-          <form onSubmit={handleLogin} className="space-y-4">
-            {error && (
-              <motion.div 
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                className="p-4 bg-red-500/10 border border-red-500/20 rounded-xl text-red-500 text-xs font-black text-center"
-              >
-                {error}
-              </motion.div>
-            )}
+          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[430px]">
+            <span className="vendor-auth-kicker">بوابة شركاء Zag Offers</span>
+            <h1 className="vendor-auth-title">أهلًا بعودتك</h1>
+            <p className="vendor-auth-subtitle">أدر عروضك، تابع الكوبونات، وراقب أداء متجرك من مكان واحد.</p>
 
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">رقم الموبايل</label>
-              <div className="relative group">
-                <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={16} />
-                <input 
-                  type="tel" 
-                  autoFocus
-                  placeholder="01xxxxxxxxx"
-                  className="w-full bg-card border border-border rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  required
-                />
+            <form onSubmit={handleLogin} className="mt-8 space-y-5">
+              {error && <div className="vendor-auth-error" role="alert">{error}</div>}
+              <div>
+                <label className="vendor-auth-label" htmlFor="phone">رقم الموبايل</label>
+                <div className="vendor-auth-input-wrap"><Smartphone size={18} /><input id="phone" type="tel" inputMode="tel" autoComplete="tel" autoFocus placeholder="01xxxxxxxxx" value={phone} onChange={(event) => setPhone(event.target.value)} required /></div>
               </div>
-            </div>
-
-            <div className="space-y-1.5">
-              <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">كلمة المرور</label>
-              <div className="relative group">
-                <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={16} />
-                <input 
-                  type={showPassword ? 'text' : 'password'} 
-                  placeholder="••••••••"
-                  className="w-full bg-card border border-border rounded-xl px-12 py-3 text-sm font-bold text-text focus:border-primary outline-none transition-all placeholder:text-text-dimmer"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                />
-                <button 
-                  type="button" 
-                  className="absolute left-4 top-1/2 -translate-y-1/2 text-text-dim hover:text-text transition-colors"
-                  onClick={() => setShowPassword(!showPassword)}
-                >
-                  {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
-                </button>
+              <div>
+                <label className="vendor-auth-label" htmlFor="password">كلمة المرور</label>
+                <div className="vendor-auth-input-wrap"><Lock size={18} /><input id="password" type={showPassword ? 'text' : 'password'} autoComplete="current-password" placeholder="أدخل كلمة المرور" value={password} onChange={(event) => setPassword(event.target.value)} required /><button type="button" onClick={() => setShowPassword((value) => !value)} aria-label="إظهار كلمة المرور">{showPassword ? <EyeOff size={17} /> : <Eye size={17} />}</button></div>
               </div>
-            </div>
+              <button className="vendor-auth-submit" type="submit" disabled={loading}>{loading ? <Loader2 className="animate-spin" size={20} /> : <><span>دخول لوحة التحكم</span><ArrowLeft size={18} /></>}</button>
+            </form>
+            <p className="vendor-auth-security"><ShieldCheck size={16} /> اتصال مشفر وآمن لحماية بيانات متجرك</p>
+          </motion.div>
+        </section>
 
-            <button 
-              type="submit" 
-              disabled={loading}
-              className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-lg shadow-primary/20 hover:bg-primary-lt active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-[15px] mt-4"
-            >
-              {loading ? <Loader2 className="animate-spin" size={20} /> : (
-                <>
-                  تسجيل الدخول
-                  <ChevronLeft size={18} />
-                </>
-              )}
-            </button>
-          </form>
-        </div>
-
-        <p className="text-center mt-8 text-[11px] text-text-dim font-bold uppercase tracking-[0.2em]">
-          Zag Offers © 2024
-        </p>
-      </motion.div>
-    </div>
+        <aside className="vendor-auth-brand-panel">
+          <div className="vendor-auth-brand-copy">
+            <BrandMark priority className="h-28 w-28" />
+            <span className="vendor-auth-eyebrow"><Store size={15} /> صُممت للتاجر</span>
+            <h2>كل ما يحتاجه متجرك للنمو.</h2>
+            <p>تجربة إدارة واضحة وسريعة تمنحك صورة كاملة عن عروضك وعملائك لحظة بلحظة.</p>
+          </div>
+          <div className="vendor-auth-features">
+            <div><BadgePercent size={21} /><b>عروضك</b><span>إنشاء وإدارة فورية</span></div>
+            <div><ScanLine size={21} /><b>كوبوناتك</b><span>تفعيل آمن وسريع</span></div>
+            <div><ShieldCheck size={21} /><b>بياناتك</b><span>متابعة موثوقة</span></div>
+          </div>
+        </aside>
+      </div>
+    </main>
   );
 }
-

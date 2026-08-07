@@ -23,17 +23,57 @@ class OffersPage extends StatefulWidget {
 
 class _OffersPageState extends State<OffersPage> {
   static const _cairoFamily = 'Cairo';
-  static final _c11Secondary = GoogleFonts.cairo(fontSize: 11, color: AppColors.textSecondary);
-  static final _c12w700 = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
-  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
-  static final _c13w700Primary = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.primary);
-  static final _c14w700Primary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
-  static final _c14w700Secondary = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
-  static final _c16w700Primary = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary);
-  static final _c18w700 = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold);
-  static final _c18w700Primary = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
-  static final _c20w700Error = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error);
-  static final _c22w700Primary = GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c11Secondary = GoogleFonts.cairo(
+    fontSize: 11,
+    color: AppColors.textSecondary,
+  );
+  static final _c12w700 = GoogleFonts.cairo(
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+  );
+  static final _c13Secondary = GoogleFonts.cairo(
+    fontSize: 13,
+    color: AppColors.textSecondary,
+  );
+  static final _c13w700Primary = GoogleFonts.cairo(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primary,
+  );
+  static final _c14w700Primary = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+  static final _c14w700Secondary = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textSecondary,
+  );
+  static final _c16w700Primary = GoogleFonts.cairo(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+    color: AppColors.primary,
+  );
+  static final _c18w700 = GoogleFonts.cairo(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+  );
+  static final _c18w700Primary = GoogleFonts.cairo(
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+  static final _c20w700Error = GoogleFonts.cairo(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: AppColors.error,
+  );
+  static final _c22w700Primary = GoogleFonts.cairo(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
   static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
   String? _selectedStatus;
   String? _selectedMerchantId;
@@ -43,7 +83,9 @@ class _OffersPageState extends State<OffersPage> {
   void initState() {
     super.initState();
     context.read<OffersBloc>().add(const LoadOffersEvent());
-    context.read<MerchantsBloc>().add(const LoadMerchantsEvent(status: 'APPROVED'));
+    context.read<MerchantsBloc>().add(
+      const LoadMerchantsEvent(status: 'APPROVED'),
+    );
   }
 
   @override
@@ -52,10 +94,9 @@ class _OffersPageState extends State<OffersPage> {
   }
 
   void _onFilterChanged() {
-    context.read<OffersBloc>().add(LoadOffersEvent(
-          status: _selectedStatus,
-          merchantId: _selectedMerchantId,
-        ));
+    context.read<OffersBloc>().add(
+      LoadOffersEvent(status: _selectedStatus, merchantId: _selectedMerchantId),
+    );
   }
 
   @override
@@ -83,7 +124,10 @@ class _OffersPageState extends State<OffersPage> {
             children: [
               const SizedBox(height: 8),
               Padding(
-                padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16.0,
+                  vertical: 8.0,
+                ),
                 child: SingleChildScrollView(
                   scrollDirection: Axis.horizontal,
                   child: Row(
@@ -116,7 +160,11 @@ class _OffersPageState extends State<OffersPage> {
               color: AppColors.primary.withValues(alpha: 0.05),
               child: Row(
                 children: [
-                  const Icon(Icons.store_rounded, size: 16, color: AppColors.primary),
+                  const Icon(
+                    Icons.store_rounded,
+                    size: 16,
+                    color: AppColors.primary,
+                  ),
                   const SizedBox(width: 8),
                   Text(
                     'تصفية حسب: $_selectedMerchantName',
@@ -131,24 +179,38 @@ class _OffersPageState extends State<OffersPage> {
                       });
                       _onFilterChanged();
                     },
-                    child: const Icon(Icons.close_rounded, size: 18, color: AppColors.error),
+                    child: const Icon(
+                      Icons.close_rounded,
+                      size: 18,
+                      color: AppColors.error,
+                    ),
                   ),
                 ],
               ),
             ),
           Expanded(
             child: BlocConsumer<OffersBloc, OffersState>(
-              listenWhen: (_, state) => state is OfferStatusUpdated || state is OfferDeleted || state is OffersError,
+              listenWhen: (_, state) =>
+                  state is OfferStatusUpdated ||
+                  state is OfferDeleted ||
+                  state is OffersError,
               listener: (context, state) {
                 if (state is OfferStatusUpdated) {
-                  SnackBarUtils.showSuccess(context, 'تم تحديث حالة العرض بنجاح');
+                  SnackBarUtils.showSuccess(
+                    context,
+                    'تم تحديث حالة العرض بنجاح',
+                  );
                 } else if (state is OfferDeleted) {
                   SnackBarUtils.showSuccess(context, 'تم حذف العرض بنجاح');
                 } else if (state is OffersError) {
                   SnackBarUtils.showError(context, state.message);
                 }
               },
-              buildWhen: (_, state) => state is OffersInitial || state is OffersLoading || state is OffersLoaded || state is OffersError,
+              buildWhen: (_, state) =>
+                  state is OffersInitial ||
+                  state is OffersLoading ||
+                  state is OffersLoaded ||
+                  state is OffersError,
               builder: (context, state) {
                 if (state is OffersLoading) {
                   return const ListSkeleton(itemCount: 5);
@@ -164,13 +226,23 @@ class _OffersPageState extends State<OffersPage> {
                           children: [
                             Container(
                               padding: const EdgeInsets.all(24),
-                              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-                              child: Icon(Icons.local_offer_rounded, size: 64, color: AppColors.primary.withValues(alpha: 0.7)),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Icon(
+                                Icons.local_offer_rounded,
+                                size: 64,
+                                color: AppColors.primary.withValues(alpha: 0.7),
+                              ),
                             ),
                             const SizedBox(height: 24),
                             Text('لا توجد عروض مطابقة', style: _c18w700Primary),
                             const SizedBox(height: 8),
-                            Text('جرب تغيير الفلاتر أو كلمة البحث', style: _cSecondary),
+                            Text(
+                              'جرب تغيير الفلاتر أو كلمة البحث',
+                              style: _cSecondary,
+                            ),
                           ],
                         ),
                       ),
@@ -182,14 +254,19 @@ class _OffersPageState extends State<OffersPage> {
                       _onFilterChanged();
                     },
                     child: ListView.builder(
-                      keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                      keyboardDismissBehavior:
+                          ScrollViewKeyboardDismissBehavior.onDrag,
                       padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
                       itemCount: filtered.length,
                       itemBuilder: (context, index) {
                         return OfferCard(
-                          offer: filtered[index],
-                          onTap: () => _showOfferDetails(context, filtered[index]),
-                        ).animate().fadeIn(delay: (index * 50).ms).slideY(begin: 0.1);
+                              offer: filtered[index],
+                              onTap: () =>
+                                  _showOfferDetails(context, filtered[index]),
+                            )
+                            .animate()
+                            .fadeIn(delay: (index * 50).ms)
+                            .slideY(begin: 0.1);
                       },
                     ),
                   );
@@ -219,11 +296,21 @@ class _OffersPageState extends State<OffersPage> {
               minChildSize: 0.5,
               maxChildSize: 0.9,
               builder: (_, scrollController) => Container(
-                decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
                 child: Column(
                   children: [
                     const SizedBox(height: 12),
-                    Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10))),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(24),
                       child: Column(
@@ -235,13 +322,21 @@ class _OffersPageState extends State<OffersPage> {
                             controller: searchController,
                             decoration: InputDecoration(
                               hintText: 'ابحث عن متجر...',
-                              prefixIcon: const Icon(IconlyLight.search, size: 20),
+                              prefixIcon: const Icon(
+                                IconlyLight.search,
+                                size: 20,
+                              ),
                               filled: true,
                               fillColor: AppColors.background,
-                              border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                              border: OutlineInputBorder(
+                                borderRadius: BorderRadius.circular(16),
+                                borderSide: BorderSide.none,
+                              ),
                             ),
-                            onChanged: (v) => setModalState(() => query = v.toLowerCase()),
-                            onSubmitted: (_) => FocusScope.of(context).unfocus(),
+                            onChanged: (v) =>
+                                setModalState(() => query = v.toLowerCase()),
+                            onSubmitted: (_) =>
+                                FocusScope.of(context).unfocus(),
                             textInputAction: TextInputAction.search,
                           ),
                         ],
@@ -249,41 +344,88 @@ class _OffersPageState extends State<OffersPage> {
                     ),
                     Expanded(
                       child: BlocBuilder<MerchantsBloc, MerchantsState>(
-                        buildWhen: (prev, next) => next is MerchantsLoading || next is MerchantsLoaded || next is MerchantsError,
+                        buildWhen: (prev, next) =>
+                            next is MerchantsLoading ||
+                            next is MerchantsLoaded ||
+                            next is MerchantsError,
                         builder: (context, state) {
                           if (state is MerchantsLoading) {
-                            return const Center(child: CircularProgressIndicator());
+                            return const Center(
+                              child: CircularProgressIndicator(),
+                            );
                           } else if (state is MerchantsLoaded) {
-                            final filteredMerchants = state.merchants.where((m) => m.storeName.toLowerCase().contains(query)).toList();
+                            final filteredMerchants = state.merchants
+                                .where(
+                                  (m) =>
+                                      m.storeName.toLowerCase().contains(query),
+                                )
+                                .toList();
 
                             if (filteredMerchants.isEmpty) {
-                              return Center(child: Text('لا يوجد متاجر مطابقة', style: _cSecondary));
+                              return Center(
+                                child: Text(
+                                  'لا يوجد متاجر مطابقة',
+                                  style: _cSecondary,
+                                ),
+                              );
                             }
 
                             return ListView.builder(
-                              keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+                              keyboardDismissBehavior:
+                                  ScrollViewKeyboardDismissBehavior.onDrag,
                               controller: scrollController,
-                              padding: const EdgeInsets.symmetric(horizontal: 16),
+                              padding: const EdgeInsets.symmetric(
+                                horizontal: 16,
+                              ),
                               itemCount: filteredMerchants.length,
                               itemBuilder: (context, index) {
                                 final merchant = filteredMerchants[index];
-                                final isSelected = _selectedMerchantId == merchant.id;
+                                final isSelected =
+                                    _selectedMerchantId == merchant.id;
                                 return ListTile(
-                                  contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                                  contentPadding: const EdgeInsets.symmetric(
+                                    horizontal: 16,
+                                    vertical: 4,
+                                  ),
                                   leading: Container(
                                     width: 40,
                                     height: 40,
-                                    decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(10)),
+                                    decoration: BoxDecoration(
+                                      color: AppColors.primary.withValues(
+                                        alpha: 0.1,
+                                      ),
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
                                     child: Center(
-                                      child: Text(merchant.storeName[0], style: const TextStyle(color: AppColors.primary, fontWeight: FontWeight.bold)),
+                                      child: Text(
+                                        merchant.storeName[0],
+                                        style: const TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                        ),
+                                      ),
                                     ),
                                   ),
-                                  title: Text(merchant.storeName, style: isSelected ? _c14w700Primary : GoogleFonts.cairo(color: AppColors.textPrimary)),
-                                  trailing: isSelected ? const Icon(IconlyBold.tickSquare, color: AppColors.primary, size: 20) : null,
+                                  title: Text(
+                                    merchant.storeName,
+                                    style: isSelected
+                                        ? _c14w700Primary
+                                        : GoogleFonts.cairo(
+                                            color: AppColors.textPrimary,
+                                          ),
+                                  ),
+                                  trailing: isSelected
+                                      ? const Icon(
+                                          IconlyBold.tickSquare,
+                                          color: AppColors.primary,
+                                          size: 20,
+                                        )
+                                      : null,
                                   onTap: () {
                                     setState(() {
                                       _selectedMerchantId = merchant.id;
-                                      _selectedMerchantName = merchant.storeName;
+                                      _selectedMerchantName =
+                                          merchant.storeName;
                                     });
                                     Navigator.pop(context);
                                     _onFilterChanged();
@@ -316,13 +458,20 @@ class _OffersPageState extends State<OffersPage> {
       ),
       label: Text(isSelected ? _selectedMerchantName! : 'كل المتاجر'),
       onPressed: _showMerchantPicker,
-      backgroundColor: isSelected ? AppColors.primary.withValues(alpha: 0.1) : AppColors.white,
+      backgroundColor: isSelected
+          ? AppColors.primary.withValues(alpha: 0.1)
+          : AppColors.white,
       labelStyle: TextStyle(
         color: isSelected ? AppColors.primary : AppColors.textSecondary,
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontFamily: _cairoFamily,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? AppColors.primary : Colors.grey.shade200,
+        ),
+      ),
     );
   }
 
@@ -343,7 +492,12 @@ class _OffersPageState extends State<OffersPage> {
         fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
         fontFamily: _cairoFamily,
       ),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? AppColors.primary : Colors.grey.shade200,
+        ),
+      ),
       showCheckmark: false,
     );
   }
@@ -358,21 +512,28 @@ class _OffersPageState extends State<OffersPage> {
         minChildSize: 0.5,
         maxChildSize: 0.95,
         builder: (_, scrollController) => Container(
-          decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
           padding: const EdgeInsets.all(24),
           child: ListView(
             controller: scrollController,
             children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10)))),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               Row(
                 children: [
-                  Expanded(
-                    child: Text(
-                      offer.title,
-                      style: _c22w700Primary,
-                    ),
-                  ),
+                  Expanded(child: Text(offer.title, style: _c22w700Primary)),
                   _buildStatusBadge(offer.status),
                 ],
               ),
@@ -380,17 +541,45 @@ class _OffersPageState extends State<OffersPage> {
               Text(offer.storeName, style: _c16w700Primary),
               const SizedBox(height: 24),
               _buildDetailSection('تفاصيل العرض', [
-                _buildInfoItem(Icons.description_outlined, 'الوصف', offer.description),
+                _buildInfoItem(
+                  Icons.description_outlined,
+                  'الوصف',
+                  offer.description,
+                ),
                 Row(
                   children: [
-                    Expanded(child: _buildInfoItem(Icons.calendar_today_rounded, 'البداية', DateFormat('yyyy/MM/dd', 'ar').format(offer.startDate))),
-                    Expanded(child: _buildInfoItem(Icons.event_busy_rounded, 'النهاية', DateFormat('yyyy/MM/dd', 'ar').format(offer.endDate))),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.calendar_today_rounded,
+                        'البداية',
+                        DateFormat('yyyy/MM/dd', 'ar').format(offer.startDate),
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.event_busy_rounded,
+                        'النهاية',
+                        DateFormat('yyyy/MM/dd', 'ar').format(offer.endDate),
+                      ),
+                    ),
                   ],
                 ),
                 Row(
                   children: [
-                    Expanded(child: _buildInfoItem(Icons.money_off_rounded, 'السعر القديم', '${offer.oldPrice ?? '-'} ج.م')),
-                    Expanded(child: _buildInfoItem(Icons.attach_money_rounded, 'السعر الجديد', '${offer.newPrice ?? '-'} ج.م')),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.money_off_rounded,
+                        'السعر القديم',
+                        '${offer.oldPrice ?? '-'} ج.م',
+                      ),
+                    ),
+                    Expanded(
+                      child: _buildInfoItem(
+                        Icons.attach_money_rounded,
+                        'السعر الجديد',
+                        '${offer.newPrice ?? '-'} ج.م',
+                      ),
+                    ),
                   ],
                 ),
               ]),
@@ -407,7 +596,7 @@ class _OffersPageState extends State<OffersPage> {
                         style: OutlinedButton.styleFrom(
                           foregroundColor: AppColors.error,
                           side: const BorderSide(color: AppColors.error),
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                         ),
                         child: const Text('رفض'),
                       ),
@@ -416,10 +605,17 @@ class _OffersPageState extends State<OffersPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<OffersBloc>().add(UpdateOfferStatusEvent(id: offer.id, status: 'ACTIVE'));
+                          context.read<OffersBloc>().add(
+                            UpdateOfferStatusEvent(
+                              id: offer.id,
+                              status: 'ACTIVE',
+                            ),
+                          );
                           Navigator.pop(context);
                         },
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
                         child: const Text('قبول العرض'),
                       ),
                     ),
@@ -434,14 +630,15 @@ class _OffersPageState extends State<OffersPage> {
                       Navigator.push(
                         context,
                         MaterialPageRoute(
-                          builder: (context) => AddOfferPage(initialOffer: offer),
+                          builder: (context) =>
+                              AddOfferPage(initialOffer: offer),
                         ),
                       ).then((_) => _onFilterChanged());
                     },
                     icon: const Icon(Icons.edit_outlined),
                     label: const Text('تعديل بيانات العرض'),
                     style: OutlinedButton.styleFrom(
-                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      padding: const EdgeInsets.symmetric(vertical: 10),
                       side: const BorderSide(color: AppColors.primary),
                       foregroundColor: AppColors.primary,
                     ),
@@ -452,7 +649,9 @@ class _OffersPageState extends State<OffersPage> {
                   width: double.infinity,
                   child: ElevatedButton(
                     onPressed: () => Navigator.pop(context),
-                    style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 10),
+                    ),
                     child: const Text('إغلاق'),
                   ),
                 ),
@@ -465,10 +664,20 @@ class _OffersPageState extends State<OffersPage> {
                     Navigator.pop(context);
                     _showDeleteConfirmation(context, offer);
                   },
-                  icon: const Icon(Icons.delete_outline_rounded, color: AppColors.error, size: 20),
-                  label: const Text('حذف العرض نهائياً', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                  icon: const Icon(
+                    Icons.delete_outline_rounded,
+                    color: AppColors.error,
+                    size: 20,
+                  ),
+                  label: const Text(
+                    'حذف العرض نهائياً',
+                    style: TextStyle(
+                      color: AppColors.error,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                   style: OutlinedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
                     side: const BorderSide(color: AppColors.error),
                     backgroundColor: AppColors.error.withValues(alpha: 0.05),
                   ),
@@ -489,7 +698,11 @@ class _OffersPageState extends State<OffersPage> {
         const SizedBox(height: 16),
         Container(
           padding: const EdgeInsets.all(20),
-          decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(20), border: Border.all(color: Colors.grey.shade100)),
+          decoration: BoxDecoration(
+            color: AppColors.background,
+            borderRadius: BorderRadius.circular(20),
+            border: Border.all(color: Colors.grey.shade100),
+          ),
           child: Column(children: children),
         ),
       ],
@@ -526,46 +739,61 @@ class _OffersPageState extends State<OffersPage> {
     final color = _statusColor(status);
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
-      child: Text(
-        _statusLabel(status),
-        style: _c12w700.copyWith(color: color),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
       ),
+      child: Text(_statusLabel(status), style: _c12w700.copyWith(color: color)),
     );
   }
 
   String _statusLabel(String status) {
     switch (status) {
-      case 'ACTIVE': return 'مقبول';
-      case 'PENDING': return 'قيد الانتظار';
-      case 'REJECTED': return 'مرفوض';
-      case 'EXPIRED': return 'منتهي';
-      default: return status;
+      case 'ACTIVE':
+        return 'مقبول';
+      case 'PENDING':
+        return 'قيد الانتظار';
+      case 'REJECTED':
+        return 'مرفوض';
+      case 'EXPIRED':
+        return 'منتهي';
+      default:
+        return status;
     }
   }
 
   Color _statusColor(String status) {
     switch (status) {
-      case 'ACTIVE': return AppColors.success;
-      case 'PENDING': return AppColors.primary;
-      case 'REJECTED': return AppColors.error;
-      case 'EXPIRED': return AppColors.textSecondary;
-      default: return AppColors.textSecondary;
+      case 'ACTIVE':
+        return AppColors.success;
+      case 'PENDING':
+        return AppColors.primary;
+      case 'REJECTED':
+        return AppColors.error;
+      case 'EXPIRED':
+        return AppColors.textSecondary;
+      default:
+        return AppColors.textSecondary;
     }
   }
 
   void _showRejectionDialog(BuildContext context, Offer offer) {
     final reasonController = TextEditingController();
     final bloc = context.read<OffersBloc>();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Container(
-          decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -573,7 +801,10 @@ class _OffersPageState extends State<OffersPage> {
             children: [
               Text('رفض العرض', style: _c20w700Error),
               const SizedBox(height: 8),
-              Text('يرجى توضيح سبب رفض العرض " ${offer.title} " ليصل إشعار للتاجر بالسبب.', style: _c13Secondary),
+              Text(
+                'يرجى توضيح سبب رفض العرض " ${offer.title} " ليصل إشعار للتاجر بالسبب.',
+                style: _c13Secondary,
+              ),
               const SizedBox(height: 24),
               TextField(
                 controller: reasonController,
@@ -590,14 +821,20 @@ class _OffersPageState extends State<OffersPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    bloc.add(UpdateOfferStatusEvent(
-                      id: offer.id,
-                      status: 'REJECTED',
-                      reason: reasonController.text.trim().isEmpty ? null : reasonController.text.trim(),
-                    ));
+                    bloc.add(
+                      UpdateOfferStatusEvent(
+                        id: offer.id,
+                        status: 'REJECTED',
+                        reason: reasonController.text.trim().isEmpty
+                            ? null
+                            : reasonController.text.trim(),
+                      ),
+                    );
                     Navigator.pop(context);
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                  ),
                   child: const Text('تأكيد الرفض وإرسال السبب'),
                 ),
               ),
@@ -612,11 +849,12 @@ class _OffersPageState extends State<OffersPage> {
     final confirmed = await CustomDialogs.showConfirmDialog(
       context: context,
       title: 'حذف العرض نهائياً',
-      message: 'هل أنت متأكد من حذف عرض "${offer.title}"؟ سيتم حذف جميع البيانات المرتبطة بالعرض من السجل ولا يمكن استعادتها.',
+      message:
+          'هل أنت متأكد من حذف عرض "${offer.title}"؟ سيتم حذف جميع البيانات المرتبطة بالعرض من السجل ولا يمكن استعادتها.',
       isDestructive: true,
       confirmText: 'حذف نهائي',
     );
-    
+
     if (confirmed == true) {
       if (!context.mounted) return;
       context.read<OffersBloc>().add(DeleteOfferEvent(id: offer.id));

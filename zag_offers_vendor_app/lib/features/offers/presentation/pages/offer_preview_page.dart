@@ -24,18 +24,67 @@ class OfferPreviewPage extends StatefulWidget {
 }
 
 class _OfferPreviewPageState extends State<OfferPreviewPage> {
-  static final _pagingIndicator = GoogleFonts.cairo(color: Colors.white, fontSize: 10, fontWeight: FontWeight.bold);
-  static final _previewBadge = GoogleFonts.cairo(fontSize: 11, color: AppColors.primary, fontWeight: FontWeight.w900);
-  static final _offerTitle = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textPrimary, height: 1.2);
-  static final _offerDesc = GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.6, fontSize: 13);
-  static final _termsText = GoogleFonts.cairo(color: AppColors.textTertiary, height: 1.6, fontSize: 12);
-  static final _discountBadge = GoogleFonts.cairo(color: AppColors.accent, fontWeight: FontWeight.w900, fontSize: 11);
-  static final _newPrice = GoogleFonts.cairo(fontSize: 22, color: AppColors.primary, fontWeight: FontWeight.w900);
-  static final _oldPrice = GoogleFonts.cairo(fontSize: 13, color: AppColors.textTertiary, decoration: TextDecoration.lineThrough);
-  static final _sectionHeader = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: 0.5);
-  static final _infoLabel = GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary, fontWeight: FontWeight.bold);
-  static final _infoValue = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w900, color: AppColors.textPrimary);
-  static final _actionBtnText = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900);
+  static final _pagingIndicator = GoogleFonts.cairo(
+    color: Colors.white,
+    fontSize: 10,
+    fontWeight: FontWeight.bold,
+  );
+  static final _previewBadge = GoogleFonts.cairo(
+    fontSize: 11,
+    color: AppColors.primary,
+    fontWeight: FontWeight.w900,
+  );
+  static final _offerTitle = GoogleFonts.cairo(
+    fontSize: 20,
+    fontWeight: FontWeight.w900,
+    color: AppColors.textPrimary,
+    height: 1.2,
+  );
+  static final _offerDesc = GoogleFonts.cairo(
+    color: AppColors.textSecondary,
+    height: 1.6,
+    fontSize: 13,
+  );
+  static final _termsText = GoogleFonts.cairo(
+    color: AppColors.textTertiary,
+    height: 1.6,
+    fontSize: 12,
+  );
+  static final _discountBadge = GoogleFonts.cairo(
+    color: AppColors.accent,
+    fontWeight: FontWeight.w900,
+    fontSize: 11,
+  );
+  static final _newPrice = GoogleFonts.cairo(
+    fontSize: 22,
+    color: AppColors.primary,
+    fontWeight: FontWeight.w900,
+  );
+  static final _oldPrice = GoogleFonts.cairo(
+    fontSize: 13,
+    color: AppColors.textTertiary,
+    decoration: TextDecoration.lineThrough,
+  );
+  static final _sectionHeader = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.w900,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.5,
+  );
+  static final _infoLabel = GoogleFonts.cairo(
+    fontSize: 10,
+    color: AppColors.textTertiary,
+    fontWeight: FontWeight.bold,
+  );
+  static final _infoValue = GoogleFonts.cairo(
+    fontSize: 13,
+    fontWeight: FontWeight.w900,
+    color: AppColors.textPrimary,
+  );
+  static final _actionBtnText = GoogleFonts.cairo(
+    fontSize: 15,
+    fontWeight: FontWeight.w900,
+  );
 
   int _selectedImageIndex = 0;
 
@@ -44,7 +93,8 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
     return Scaffold(
       backgroundColor: AppColors.background,
       body: BlocListener<OffersBloc, OffersState>(
-        listenWhen: (_, next) => next is OfferActionSuccess || next is OffersError,
+        listenWhen: (_, next) =>
+            next is OfferActionSuccess || next is OffersError,
         listener: (context, state) {
           if (state is OfferActionSuccess) {
             SnackBarUtils.showSuccess(context, state.message);
@@ -58,10 +108,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
           children: [
             CustomScrollView(
               physics: const BouncingScrollPhysics(),
-              slivers: [
-                _buildSliverAppBar(),
-                _buildContentSection(),
-              ],
+              slivers: [_buildSliverAppBar(), _buildContentSection()],
             ),
             _buildFloatingAction(),
           ],
@@ -82,7 +129,11 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
         child: CircleAvatar(
           backgroundColor: Colors.black26,
           child: IconButton(
-            icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 16, color: Colors.white),
+            icon: const Icon(
+              Icons.arrow_back_ios_new_rounded,
+              size: 16,
+              color: Colors.white,
+            ),
             onPressed: () => Navigator.pop(context),
           ),
         ),
@@ -99,7 +150,11 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
             else
               Container(
                 color: AppColors.surface,
-                child: const Icon(Icons.local_offer_rounded, size: 60, color: AppColors.textTertiary),
+                child: const Icon(
+                  Icons.local_offer_rounded,
+                  size: 60,
+                  color: AppColors.textTertiary,
+                ),
               ),
             // Gradient Overlay
             const DecoratedBox(
@@ -108,18 +163,25 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                   begin: Alignment.topCenter,
                   end: Alignment.bottomCenter,
                   stops: [0.0, 0.6, 1.0],
-                  colors: [Colors.black26, Colors.transparent, AppColors.background],
+                  colors: [
+                    Colors.black26,
+                    Colors.transparent,
+                    AppColors.background,
+                  ],
                 ),
               ),
             ),
-            
+
             // Image Paging Indicator
             if (images.length > 1)
               Positioned(
                 bottom: 30,
                 right: 20,
                 child: Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 10,
+                    vertical: 4,
+                  ),
                   decoration: BoxDecoration(
                     color: Colors.black45,
                     borderRadius: BorderRadius.circular(20),
@@ -147,21 +209,27 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
             Center(
               child: Container(
                 margin: const EdgeInsets.only(bottom: 24),
-                padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 16,
+                  vertical: 6,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.primary.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(30),
-                  border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.2),
+                  ),
                 ),
                 child: Row(
                   mainAxisSize: MainAxisSize.min,
                   children: [
-                    const Icon(Icons.auto_awesome_rounded, color: AppColors.primary, size: 14),
-                    const SizedBox(width: 8),
-                    Text(
-                      'وضع المعاينة المباشرة',
-                      style: _previewBadge,
+                    const Icon(
+                      Icons.auto_awesome_rounded,
+                      color: AppColors.primary,
+                      size: 14,
                     ),
+                    const SizedBox(width: 8),
+                    Text('وضع المعاينة المباشرة', style: _previewBadge),
                   ],
                 ),
               ),
@@ -180,10 +248,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        widget.offer.title,
-                        style: _offerTitle,
-                      ),
+                      Text(widget.offer.title, style: _offerTitle),
                       const SizedBox(height: 8),
                       _buildDiscountBadge(),
                     ],
@@ -196,15 +261,13 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
             const SizedBox(height: 32),
             _buildSectionHeader('تفاصيل العرض'),
             const SizedBox(height: 8),
-            Text(
-              widget.offer.description,
-              style: _offerDesc,
-            ),
+            Text(widget.offer.description, style: _offerDesc),
 
             const SizedBox(height: 32),
             _buildInfoGrid(),
 
-            if (widget.offer.terms != null && widget.offer.terms!.isNotEmpty) ...[
+            if (widget.offer.terms != null &&
+                widget.offer.terms!.isNotEmpty) ...[
               const SizedBox(height: 32),
               _buildSectionHeader('الشروط والأحكام'),
               const SizedBox(height: 8),
@@ -215,10 +278,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
                   borderRadius: BorderRadius.circular(12),
                   border: Border.all(color: AppColors.border),
                 ),
-                child: Text(
-                  widget.offer.terms!,
-                  style: _termsText,
-                ),
+                child: Text(widget.offer.terms!, style: _termsText),
               ),
             ],
           ],
@@ -234,10 +294,7 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
         color: AppColors.accent.withValues(alpha: 0.1),
         borderRadius: BorderRadius.circular(6),
       ),
-      child: Text(
-        'خصم ${widget.offer.discount}',
-        style: _discountBadge,
-      ),
+      child: Text('خصم ${widget.offer.discount}', style: _discountBadge),
     );
   }
 
@@ -246,24 +303,15 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
       crossAxisAlignment: CrossAxisAlignment.end,
       children: [
         if (widget.offer.newPrice != null)
-          Text(
-            '${widget.offer.newPrice} ج.م',
-            style: _newPrice,
-          ),
+          Text('${widget.offer.newPrice} ج.م', style: _newPrice),
         if (widget.offer.oldPrice != null)
-          Text(
-            '${widget.offer.oldPrice} ج.م',
-            style: _oldPrice,
-          ),
+          Text('${widget.offer.oldPrice} ج.م', style: _oldPrice),
       ],
     );
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: _sectionHeader,
-    );
+    return Text(title, style: _sectionHeader);
   }
 
   Widget _buildInfoGrid() {
@@ -301,14 +349,8 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
         children: [
           Icon(icon, color: AppColors.primary, size: 18),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: _infoLabel,
-          ),
-          Text(
-            value,
-            style: _infoValue,
-          ),
+          Text(label, style: _infoLabel),
+          Text(value, style: _infoValue),
         ],
       ),
     );
@@ -355,7 +397,10 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
       left: 20,
       right: 20,
       child: BlocBuilder<OffersBloc, OffersState>(
-        buildWhen: (prev, next) => next is OffersLoading || next is OffersError || next is OfferActionSuccess,
+        buildWhen: (prev, next) =>
+            next is OffersLoading ||
+            next is OffersError ||
+            next is OfferActionSuccess,
         builder: (context, state) {
           final isLoading = state is OffersLoading;
           return Container(
@@ -374,19 +419,35 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
               style: ElevatedButton.styleFrom(
                 backgroundColor: AppColors.primary,
                 foregroundColor: Colors.white,
-                padding: const EdgeInsets.symmetric(vertical: 16),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                padding: const EdgeInsets.symmetric(vertical: 11),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 elevation: 0,
               ),
               child: isLoading
-                  ? const SizedBox(height: 24, width: 24, child: CircularProgressIndicator(color: Colors.white, strokeWidth: 2))
+                  ? const SizedBox(
+                      height: 24,
+                      width: 24,
+                      child: CircularProgressIndicator(
+                        color: Colors.white,
+                        strokeWidth: 2,
+                      ),
+                    )
                   : Row(
                       mainAxisAlignment: MainAxisAlignment.center,
                       children: [
-                        Icon(widget.isEdit ? Icons.check_circle_rounded : Icons.rocket_launch_rounded, size: 20),
+                        Icon(
+                          widget.isEdit
+                              ? Icons.check_circle_rounded
+                              : Icons.rocket_launch_rounded,
+                          size: 20,
+                        ),
                         const SizedBox(width: 12),
                         Text(
-                          widget.isEdit ? 'حفظ التعديلات النهائية' : 'نشر العرض للعالم الآن',
+                          widget.isEdit
+                              ? 'حفظ التعديلات النهائية'
+                              : 'نشر العرض للعالم الآن',
                           style: _actionBtnText,
                         ),
                       ],

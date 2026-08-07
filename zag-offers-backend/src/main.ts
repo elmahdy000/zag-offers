@@ -9,18 +9,27 @@ import * as express from 'express';
 import { RedisIoAdapter } from './common/adapters/redis-io.adapter';
 
 function getAllowedOrigins(): string[] {
-  const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGINS;
-  if (rawOrigins) {
-    return rawOrigins
-      .split(',')
-      .map((origin) => origin.trim())
-      .filter(Boolean);
-  }
-
-  return [
+  const localOrigins = [
     'http://localhost:3000',
     'http://localhost:3001',
     'http://localhost:3002',
+    'http://localhost:3003',
+    'http://localhost:3004',
+    'http://localhost:3020',
+  ];
+  const rawOrigins = process.env.ALLOWED_ORIGINS || process.env.CORS_ORIGINS;
+  if (rawOrigins) {
+    const configuredOrigins = rawOrigins
+      .split(',')
+      .map((origin) => origin.trim())
+      .filter(Boolean);
+    return process.env.NODE_ENV === 'production'
+      ? configuredOrigins
+      : [...new Set([...configuredOrigins, ...localOrigins])];
+  }
+
+  return [
+    ...localOrigins,
     'https://zagoffers.online',
     'https://www.zagoffers.online',
     'https://vendor.zagoffers.online',
@@ -79,7 +88,19 @@ async function bootstrap() {
   );
   app.useGlobalFilters(new GlobalExceptionFilter());
 
-  app.use('/uploads', express.static(join(process.cwd(), 'uploads')));
+  app.use(
+    '/uploads',
+    express.static(join(process.cwd(), 'uploads'), {
+      etag: true,
+      immutable: true,
+      lastModified: true,
+      maxAge: '1y',
+      setHeaders: (res) => {
+        res.setHeader('Cache-Control', 'public, max-age=31536000, immutable');
+        res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
+      },
+    }),
+  );
 
   const config = new DocumentBuilder()
     .setTitle('Zag Offers API')

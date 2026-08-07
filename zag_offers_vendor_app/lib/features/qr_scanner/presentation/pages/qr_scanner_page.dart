@@ -18,12 +18,27 @@ class _QRScannerPageState extends State<QRScannerPage> {
   bool _isScanned = false;
   final MobileScannerController _controller = MobileScannerController();
 
-  static final _dialogTitleStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold);
+  static final _dialogTitleStyle = GoogleFonts.cairo(
+    fontWeight: FontWeight.bold,
+  );
   static final _dialogBodyStyle = GoogleFonts.cairo(fontSize: 14);
-  static final _dialogBtnStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white);
-  static final _resultTitleStyle = GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold);
-  static final _resultDescStyle = GoogleFonts.cairo(fontSize: 16, color: AppColors.textSecondary);
-  static final _resultBtnStyle = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white);
+  static final _dialogBtnStyle = GoogleFonts.cairo(
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  );
+  static final _resultTitleStyle = GoogleFonts.cairo(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+  );
+  static final _resultDescStyle = GoogleFonts.cairo(
+    fontSize: 16,
+    color: AppColors.textSecondary,
+  );
+  static final _resultBtnStyle = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  );
 
   @override
   void dispose() {
@@ -34,7 +49,8 @@ class _QRScannerPageState extends State<QRScannerPage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<QRScannerBloc, QRScannerState>(
-      listenWhen: (_, next) => next is QRScannerSuccess || next is QRScannerError,
+      listenWhen: (_, next) =>
+          next is QRScannerSuccess || next is QRScannerError,
       listener: (context, state) {
         if (state is QRScannerSuccess) {
           _showResultDialog(context, true, state.message);
@@ -56,7 +72,9 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   final String? code = barcodes.first.rawValue;
                   if (code != null) {
                     setState(() => _isScanned = true);
-                    context.read<QRScannerBloc>().add(CouponScanned(code, storeId: widget.storeId));
+                    context.read<QRScannerBloc>().add(
+                      CouponScanned(code, storeId: widget.storeId),
+                    );
                   }
                 }
               },
@@ -78,7 +96,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
               left: 48,
               child: IconButton(
                 onPressed: () => _controller.toggleTorch(),
-                icon: const Icon(Icons.flash_on_rounded, color: Colors.white, size: 32),
+                icon: const Icon(
+                  Icons.flash_on_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
               ),
             ),
 
@@ -87,7 +109,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
               right: 48,
               child: IconButton(
                 onPressed: () => _showManualInputDialog(context),
-                icon: const Icon(Icons.keyboard_rounded, color: Colors.white, size: 32),
+                icon: const Icon(
+                  Icons.keyboard_rounded,
+                  color: Colors.white,
+                  size: 32,
+                ),
               ),
             ),
           ],
@@ -102,7 +128,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
       context: context,
       builder: (context) => AlertDialog(
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(24)),
-        title: Text('إدخال الكود يدوياً', style: _dialogTitleStyle, textAlign: TextAlign.center),
+        title: Text(
+          'إدخال الكود يدوياً',
+          style: _dialogTitleStyle,
+          textAlign: TextAlign.center,
+        ),
         content: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
@@ -113,10 +143,16 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 hintStyle: _dialogBodyStyle,
                 filled: true,
                 fillColor: AppColors.surface,
-                border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(16),
+                  borderSide: BorderSide.none,
+                ),
               ),
               textAlign: TextAlign.center,
-              style: const TextStyle(fontWeight: FontWeight.bold, letterSpacing: 2),
+              style: const TextStyle(
+                fontWeight: FontWeight.bold,
+                letterSpacing: 2,
+              ),
             ),
             const SizedBox(height: 24),
             SizedBox(
@@ -127,13 +163,17 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   if (code.isNotEmpty) {
                     Navigator.pop(context);
                     setState(() => _isScanned = true);
-                    context.read<QRScannerBloc>().add(CouponScanned(code, storeId: widget.storeId));
+                    context.read<QRScannerBloc>().add(
+                      CouponScanned(code, storeId: widget.storeId),
+                    );
                   }
                 },
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(16),
+                  ),
                 ),
                 child: Text('تفعيل الكوبون', style: _dialogBtnStyle),
               ),
@@ -161,11 +201,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               style: _resultTitleStyle,
             ),
             const SizedBox(height: 12),
-            Text(
-              message,
-              textAlign: TextAlign.center,
-              style: _resultDescStyle,
-            ),
+            Text(message, textAlign: TextAlign.center, style: _resultDescStyle),
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
@@ -180,9 +216,13 @@ class _QRScannerPageState extends State<QRScannerPage> {
                   }
                 },
                 style: ElevatedButton.styleFrom(
-                  backgroundColor: success ? AppColors.success : AppColors.primary,
-                  padding: const EdgeInsets.symmetric(vertical: 16),
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  backgroundColor: success
+                      ? AppColors.success
+                      : AppColors.primary,
+                  padding: const EdgeInsets.symmetric(vertical: 11),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                 ),
                 child: Text(
                   success ? 'حسناً' : 'إعادة المحاولة',
@@ -200,7 +240,11 @@ class _QRScannerPageState extends State<QRScannerPage> {
 class _ScannerOverlay extends StatelessWidget {
   const _ScannerOverlay();
 
-  static final _overlayTitleStyle = GoogleFonts.cairo(color: Colors.white, fontSize: 18, fontWeight: FontWeight.bold);
+  static final _overlayTitleStyle = GoogleFonts.cairo(
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: FontWeight.bold,
+  );
 
   @override
   Widget build(BuildContext context) {
@@ -245,10 +289,7 @@ class _ScannerOverlay extends StatelessWidget {
                 ),
               ),
               const SizedBox(height: 32),
-              Text(
-                'ضع كود الكوبون داخل المربع',
-                style: _overlayTitleStyle,
-              ),
+              Text('ضع كود الكوبون داخل المربع', style: _overlayTitleStyle),
             ],
           ),
         ),
@@ -271,7 +312,8 @@ class AnimatedCheckmark extends StatefulWidget {
   State<AnimatedCheckmark> createState() => _AnimatedCheckmarkState();
 }
 
-class _AnimatedCheckmarkState extends State<AnimatedCheckmark> with SingleTickerProviderStateMixin {
+class _AnimatedCheckmarkState extends State<AnimatedCheckmark>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _circleAnimation;
   late final Animation<double> _checkAnimation;
@@ -403,7 +445,8 @@ class AnimatedCross extends StatefulWidget {
   State<AnimatedCross> createState() => _AnimatedCrossState();
 }
 
-class _AnimatedCrossState extends State<AnimatedCross> with SingleTickerProviderStateMixin {
+class _AnimatedCrossState extends State<AnimatedCross>
+    with SingleTickerProviderStateMixin {
   late final AnimationController _controller;
   late final Animation<double> _circleAnimation;
   late final Animation<double> _cross1Animation;

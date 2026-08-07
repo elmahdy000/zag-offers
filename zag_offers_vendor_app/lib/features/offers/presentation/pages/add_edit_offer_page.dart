@@ -30,16 +30,52 @@ class AddEditOfferPage extends StatefulWidget {
 }
 
 class _AddEditOfferPageState extends State<AddEditOfferPage> {
-  static final _appBarStyle = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18);
-  static final _buttonStyle = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w900, letterSpacing: 0.5);
-  static final _sectionTitleStyle = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary);
-  static final _textBtnStyle = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
-  static final _hintStyle = GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 12);
-  static final _fieldLabelStyle = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
-  static final _fieldValueStyle = GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary, fontWeight: FontWeight.bold);
-  static final _fieldHintStyle = GoogleFonts.cairo(fontSize: 13, color: AppColors.textTertiary);
-  static final _dateLabelStyle = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
-  static final _dateValueStyle = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _appBarStyle = GoogleFonts.cairo(
+    fontWeight: FontWeight.w900,
+    fontSize: 18,
+  );
+  static final _buttonStyle = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.w800,
+    letterSpacing: 0.3,
+  );
+  static final _sectionTitleStyle = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.w900,
+    color: AppColors.primary,
+  );
+  static final _textBtnStyle = GoogleFonts.cairo(
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+  );
+  static final _hintStyle = GoogleFonts.cairo(
+    color: AppColors.textTertiary,
+    fontSize: 12,
+  );
+  static final _fieldLabelStyle = GoogleFonts.cairo(
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textSecondary,
+  );
+  static final _fieldValueStyle = GoogleFonts.cairo(
+    fontSize: 14,
+    color: AppColors.textPrimary,
+    fontWeight: FontWeight.bold,
+  );
+  static final _fieldHintStyle = GoogleFonts.cairo(
+    fontSize: 13,
+    color: AppColors.textTertiary,
+  );
+  static final _dateLabelStyle = GoogleFonts.cairo(
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textSecondary,
+  );
+  static final _dateValueStyle = GoogleFonts.cairo(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
 
   final _darkTheme = ThemeData.dark().copyWith(
     colorScheme: const ColorScheme.dark(
@@ -73,20 +109,27 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     _descController = TextEditingController(text: widget.offer?.description);
     _discountController = TextEditingController(text: widget.offer?.discount);
     _termsController = TextEditingController(text: widget.offer?.terms);
-    _oldPriceController = TextEditingController(text: widget.offer?.oldPrice?.toString());
-    _newPriceController = TextEditingController(text: widget.offer?.newPrice?.toString());
+    _oldPriceController = TextEditingController(
+      text: widget.offer?.oldPrice?.toString(),
+    );
+    _newPriceController = TextEditingController(
+      text: widget.offer?.newPrice?.toString(),
+    );
     _startDate = widget.offer?.startDate ?? DateTime.now();
-    _endDate = widget.offer?.endDate ?? DateTime.now().add(const Duration(days: 30));
+    _endDate =
+        widget.offer?.endDate ?? DateTime.now().add(const Duration(days: 30));
     _usageLimit = widget.offer?.usageLimit;
     if (widget.offer?.images != null) {
       _imageUrls.addAll(widget.offer!.images);
     }
     _isFlashSale = widget.offer?.isFlashSale ?? false;
     if (_isFlashSale && widget.offer?.flashSaleEndsAt != null) {
-      final diff = widget.offer!.flashSaleEndsAt!.difference(DateTime.now()).inHours;
+      final diff = widget.offer!.flashSaleEndsAt!
+          .difference(DateTime.now())
+          .inHours;
       _flashSaleHours = diff > 0 ? diff : 2;
     }
-    
+
     _oldPriceController.addListener(_calculateDiscount);
     _newPriceController.addListener(_calculateDiscount);
   }
@@ -131,7 +174,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
       setState(() => _isUploading = true);
       try {
         final uploadUseCase = sl<UploadUseCase>();
-        
+
         // Only take what fits in the remaining slots
         final remainingSlots = 5 - _imageUrls.length;
         final imagesToUpload = pickedFiles.take(remainingSlots).toList();
@@ -142,12 +185,15 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
             _imageUrls.add(url);
           });
         }
-        
+
         setState(() => _isUploading = false);
-        
+
         if (pickedFiles.length > remainingSlots) {
           if (!mounted) return;
-          SnackBarUtils.showInfo(context, 'تم رفع $remainingSlots صور فقط (الحد الأقصى 5)');
+          SnackBarUtils.showInfo(
+            context,
+            'تم رفع $remainingSlots صور فقط (الحد الأقصى 5)',
+          );
         }
       } catch (e) {
         setState(() => _isUploading = false);
@@ -178,10 +224,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
       firstDate: DateTime.now().subtract(const Duration(days: 365 * 2)),
       lastDate: DateTime.now().add(const Duration(days: 365 * 5)),
       builder: (context, child) {
-        return Theme(
-          data: _darkTheme,
-          child: child!,
-        );
+        return Theme(data: _darkTheme, child: child!);
       },
     );
     if (picked != null) {
@@ -198,15 +241,21 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   void _onPreview() {
     HapticFeedback.mediumImpact();
     if (_formKey.currentState!.validate()) {
-      if (_endDate.isBefore(_startDate) || _endDate.isAtSameMomentAs(_startDate)) {
+      if (_endDate.isBefore(_startDate) ||
+          _endDate.isAtSameMomentAs(_startDate)) {
         ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(content: Text('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية')),
+          const SnackBar(
+            content: Text('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية'),
+          ),
         );
         return;
       }
 
       if (_imageUrls.isEmpty) {
-        SnackBarUtils.showError(context, 'الرجاء إضافة صورة واحدة على الأقل للعرض');
+        SnackBarUtils.showError(
+          context,
+          'الرجاء إضافة صورة واحدة على الأقل للعرض',
+        );
         return;
       }
 
@@ -233,16 +282,16 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
         oldPrice: double.tryParse(_oldPriceController.text),
         newPrice: double.tryParse(_newPriceController.text),
         isFlashSale: _isFlashSale,
-        flashSaleEndsAt: _isFlashSale ? DateTime.now().add(Duration(hours: _flashSaleHours)) : null,
+        flashSaleEndsAt: _isFlashSale
+            ? DateTime.now().add(Duration(hours: _flashSaleHours))
+            : null,
       );
 
       Navigator.push(
         context,
         MaterialPageRoute(
-          builder: (context) => OfferPreviewPage(
-            offer: offer,
-            isEdit: widget.offer != null,
-          ),
+          builder: (context) =>
+              OfferPreviewPage(offer: offer, isEdit: widget.offer != null),
         ),
       );
     }
@@ -276,7 +325,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
             children: [
               _buildImagePicker(),
               const SizedBox(height: 24),
-              
+
               // Basic Info Section
               _buildSectionTitle('المعلومات الأساسية'),
               const SizedBox(height: 12),
@@ -296,7 +345,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                 maxLines: 3,
                 validator: (v) => v!.isEmpty ? 'الرجاء إدخال الوصف' : null,
               ),
-              
+
               const SizedBox(height: 24),
               _buildSectionTitle('الأسعار والخصومات'),
               const SizedBox(height: 12),
@@ -308,9 +357,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       label: 'السعر قبل',
                       hint: '0.0',
                       icon: Icons.money_off_rounded,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       validator: (v) {
-                        if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+                        if (v != null &&
+                            v.isNotEmpty &&
+                            double.tryParse(v) == null) {
                           return 'رقم غير صحيح';
                         }
                         return null;
@@ -324,9 +377,13 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       label: 'السعر بعد',
                       hint: '0.0',
                       icon: Icons.attach_money_rounded,
-                      keyboardType: const TextInputType.numberWithOptions(decimal: true),
+                      keyboardType: const TextInputType.numberWithOptions(
+                        decimal: true,
+                      ),
                       validator: (v) {
-                        if (v != null && v.isNotEmpty && double.tryParse(v) == null) {
+                        if (v != null &&
+                            v.isNotEmpty &&
+                            double.tryParse(v) == null) {
                           return 'رقم غير صحيح';
                         }
                         return null;
@@ -362,7 +419,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
               _buildSectionTitle('فترة الصلاحية'),
               const SizedBox(height: 12),
@@ -385,7 +442,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                   ),
                 ],
               ),
-              
+
               const SizedBox(height: 24),
               _buildSectionTitle('عروض حرق الأسعار (Flash Sales)'),
               const SizedBox(height: 12),
@@ -394,7 +451,9 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                 decoration: BoxDecoration(
                   color: AppColors.card,
                   borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: _isFlashSale ? AppColors.error : AppColors.border),
+                  border: Border.all(
+                    color: _isFlashSale ? AppColors.error : AppColors.border,
+                  ),
                 ),
                 child: Column(
                   children: [
@@ -403,9 +462,21 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                       children: [
                         Row(
                           children: [
-                            Icon(Icons.flash_on_rounded, color: _isFlashSale ? AppColors.error : AppColors.textTertiary),
+                            Icon(
+                              Icons.flash_on_rounded,
+                              color: _isFlashSale
+                                  ? AppColors.error
+                                  : AppColors.textTertiary,
+                            ),
                             const SizedBox(width: 8),
-                            Text('تفعيل كعرض فلاش', style: _fieldLabelStyle.copyWith(color: _isFlashSale ? AppColors.error : AppColors.textSecondary)),
+                            Text(
+                              'تفعيل كعرض فلاش',
+                              style: _fieldLabelStyle.copyWith(
+                                color: _isFlashSale
+                                    ? AppColors.error
+                                    : AppColors.textSecondary,
+                              ),
+                            ),
                           ],
                         ),
                         Switch(
@@ -421,7 +492,12 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text('مدة العرض بالساعات', style: _fieldLabelStyle),
-                          Text('$_flashSaleHours ساعات', style: _fieldValueStyle.copyWith(color: AppColors.error)),
+                          Text(
+                            '$_flashSaleHours ساعات',
+                            style: _fieldValueStyle.copyWith(
+                              color: AppColors.error,
+                            ),
+                          ),
                         ],
                       ),
                       Slider(
@@ -431,7 +507,8 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                         divisions: 47,
                         activeColor: AppColors.error,
                         label: '$_flashSaleHours',
-                        onChanged: (v) => setState(() => _flashSaleHours = v.toInt()),
+                        onChanged: (v) =>
+                            setState(() => _flashSaleHours = v.toInt()),
                       ),
                     ],
                   ],
@@ -448,7 +525,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                 icon: Icons.gavel_rounded,
                 maxLines: 2,
               ),
-              
+
               const SizedBox(height: 40),
               Container(
                 decoration: BoxDecoration(
@@ -468,18 +545,17 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                     backgroundColor: Colors.transparent,
                     foregroundColor: Colors.white,
                     shadowColor: Colors.transparent,
-                    padding: const EdgeInsets.symmetric(vertical: 18),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(32)),
+                    padding: const EdgeInsets.symmetric(vertical: 11),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(14),
+                    ),
                   ),
                   child: Row(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
                       const Icon(Icons.remove_red_eye_rounded, size: 22),
                       const SizedBox(width: 12),
-                      Text(
-                        'معاينة العرض',
-                        style: _buttonStyle,
-                      ),
+                      Text('معاينة العرض', style: _buttonStyle),
                     ],
                   ),
                 ),
@@ -493,10 +569,7 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: _sectionTitleStyle,
-    );
+    return Text(title, style: _sectionTitleStyle);
   }
 
   Widget _buildImagePicker() {
@@ -520,8 +593,15 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
           Container(
             height: 120,
             alignment: Alignment.center,
-            decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(16), border: Border.all(color: AppColors.border)),
-            child: const CircularProgressIndicator(color: AppColors.primary, strokeWidth: 2),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(color: AppColors.border),
+            ),
+            child: const CircularProgressIndicator(
+              color: AppColors.primary,
+              strokeWidth: 2,
+            ),
           )
         else if (_imageUrls.isEmpty)
           InkWell(
@@ -531,12 +611,18 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
               decoration: BoxDecoration(
                 color: AppColors.card,
                 borderRadius: BorderRadius.circular(16),
-                border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.2),
+                ),
               ),
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_photo_alternate_rounded, size: 40, color: AppColors.primary.withValues(alpha: 0.5)),
+                  Icon(
+                    Icons.add_photo_alternate_rounded,
+                    size: 40,
+                    color: AppColors.primary.withValues(alpha: 0.5),
+                  ),
                   const SizedBox(height: 8),
                   Text('اضغط لإضافة صور العرض', style: _hintStyle),
                 ],
@@ -565,7 +651,10 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                           width: 140,
                           height: 120,
                           color: AppColors.surface,
-                          child: const Icon(Icons.broken_image_rounded, color: AppColors.textTertiary),
+                          child: const Icon(
+                            Icons.broken_image_rounded,
+                            color: AppColors.textTertiary,
+                          ),
                         ),
                       ),
                     ),
@@ -579,8 +668,15 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                         },
                         child: Container(
                           padding: const EdgeInsets.all(4),
-                          decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
-                          child: const Icon(Icons.close_rounded, color: Colors.white, size: 16),
+                          decoration: const BoxDecoration(
+                            color: Colors.black54,
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.close_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
                         ),
                       ),
                     ),
@@ -625,11 +721,26 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
             prefixIcon: Icon(icon, color: AppColors.primary, size: 20),
             filled: true,
             fillColor: AppColors.card,
-            contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            border: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            enabledBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: BorderSide.none),
-            focusedBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.primary, width: 1)),
-            errorBorder: OutlineInputBorder(borderRadius: BorderRadius.circular(12), borderSide: const BorderSide(color: AppColors.error, width: 1)),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 16,
+              vertical: 12,
+            ),
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            enabledBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: BorderSide.none,
+            ),
+            focusedBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.primary, width: 1),
+            ),
+            errorBorder: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(12),
+              borderSide: const BorderSide(color: AppColors.error, width: 1),
+            ),
           ),
         ),
       ],
@@ -651,10 +762,17 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-            decoration: BoxDecoration(color: AppColors.card, borderRadius: BorderRadius.circular(12)),
+            decoration: BoxDecoration(
+              color: AppColors.card,
+              borderRadius: BorderRadius.circular(12),
+            ),
             child: Row(
               children: [
-                const Icon(Icons.calendar_today_rounded, color: AppColors.primary, size: 18),
+                const Icon(
+                  Icons.calendar_today_rounded,
+                  color: AppColors.primary,
+                  size: 18,
+                ),
                 const SizedBox(width: 10),
                 Text(
                   DateFormat('yyyy/MM/dd').format(date),

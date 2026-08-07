@@ -1,7 +1,7 @@
 'use client';
 
 import { useState } from 'react';
-import { Star, Camera, CheckCircle2, User, Image as ImageIcon, Send, Loader2, Sparkles, X } from 'lucide-react';
+import { Star, Camera, CheckCircle2, User, Send, Loader2, Sparkles, X } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { resolveImageUrl } from '@/lib/utils';
 import { API_URL } from '@/lib/constants';
@@ -27,7 +27,7 @@ interface ReviewSectionProps {
   isVerifiedUser: boolean; // Based on coupon generation/usage
 }
 
-export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser }: ReviewSectionProps) {
+export function ReviewSection({ offerId, reviews, onReviewAdded }: ReviewSectionProps) {
   const [isWriting, setIsWriting] = useState(false);
   const [rating, setRating] = useState(5);
   const [comment, setComment] = useState('');
@@ -118,7 +118,7 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
         const data = await res.json();
         setError(data.message || 'فشل في إضافة التقييم');
       }
-    } catch (err) {
+    } catch {
       setError('حدث خطأ في الاتصال');
     } finally {
       setSubmitting(false);
@@ -179,7 +179,8 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
               <div className="flex flex-wrap gap-4">
                 {images.map((img, i) => (
                   <div key={i} className="relative w-20 h-20 rounded-xl overflow-hidden border border-white/10">
-                    <img src={img.preview} className="w-full h-full object-cover" />
+                    {/* eslint-disable-next-line @next/next/no-img-element */}
+                    <img src={img.preview} alt="معاينة صورة التقييم" className="w-full h-full object-cover" />
                     <button 
                       onClick={() => removeImage(i)}
                       className="absolute top-1 left-1 bg-black/60 text-white rounded-full p-1"
@@ -233,7 +234,8 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
                 <div className="flex items-center gap-4">
                   <div className="h-12 w-12 rounded-2xl bg-white/5 flex items-center justify-center border border-white/5">
                     {review.customer.avatar ? (
-                      <img src={resolveImageUrl(review.customer.avatar)} className="h-full w-full object-cover rounded-2xl" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      /* eslint-disable-next-line @next/next/no-img-element -- remote customer image */
+                      <img src={resolveImageUrl(review.customer.avatar)} alt={`صورة ${review.customer.name}`} className="h-full w-full object-cover rounded-2xl" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     ) : (
                       <User className="text-white/20" size={20} />
                     )}
@@ -272,7 +274,8 @@ export function ReviewSection({ offerId, reviews, onReviewAdded, isVerifiedUser 
                 <div className="flex gap-3 overflow-x-auto pb-2 scrollbar-hide pr-2">
                   {review.images.map((img, i) => (
                     <div key={i} className="w-24 h-24 rounded-2xl overflow-hidden border border-white/5 shrink-0 bg-white/5">
-                      <img src={resolveImageUrl(img)} className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-zoom-in" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
+                      {/* eslint-disable-next-line @next/next/no-img-element */}
+                      <img src={resolveImageUrl(img)} alt="صورة مرفقة بالتقييم" className="w-full h-full object-cover hover:scale-110 transition-transform duration-500 cursor-zoom-in" onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }} />
                     </div>
                   ))}
                 </div>

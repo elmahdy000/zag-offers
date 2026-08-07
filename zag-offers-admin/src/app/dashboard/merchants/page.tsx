@@ -67,6 +67,20 @@ interface Category {
   name: string;
 }
 
+type UpdateMerchantPayload = { id: string; data: Record<string, FormDataEntryValue> };
+
+function apiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === 'string') return response.data.message;
+  }
+  return fallback;
+}
+
+function errorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 export default function MerchantsPage() {
   const queryClient = useQueryClient();
   const { socket } = useSocketContext();
@@ -147,14 +161,14 @@ export default function MerchantsPage() {
   });
 
   const updateMerchantMutation = useMutation({
-    mutationFn: async (payload: any) => adminApi().patch(`/admin/stores/${payload.id}`, payload.data),
+    mutationFn: async (payload: UpdateMerchantPayload) => adminApi().patch(`/admin/stores/${payload.id}`, payload.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-merchants'] });
       showToast('تم تحديث المتجر بنجاح');
       setIsEditing(false);
     },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل تحديث المتجر', 'error');
+    onError: (err: unknown) => {
+      showToast(apiErrorMessage(err, 'فشل تحديث المتجر'), 'error');
     }
   });
 
@@ -188,8 +202,8 @@ export default function MerchantsPage() {
     <div className="p-6 lg:p-10 space-y-8">
 
       <PageHeader 
-        title="إدارة المتاجر" 
-        description="متابعة وتنظيم كافة المتاجر المسجلة في المنصة، والتحكم في حالات النشاط والبيانات" 
+        title="إدارة التجار"
+        description="متابعة حسابات التجار وصلاحياتهم وربطهم بالمتاجر المسجلة على المنصة"
         icon={Store}
       />
 
@@ -199,7 +213,7 @@ export default function MerchantsPage() {
               <Store size={20} />
            </div>
            <div>
-              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">إجمالي المتاجر</p>
+              <p className="text-xs font-bold text-slate-400 uppercase tracking-widest leading-none mb-1.5">إجمالي التجار</p>
               <p className="text-xl font-bold text-slate-900 leading-none">{data?.meta.total ?? 0}</p>
            </div>
         </div>
@@ -235,7 +249,7 @@ export default function MerchantsPage() {
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-2xl border border-dashed border-red-200 text-slate-400">
           <AlertTriangle size={48} className="mb-4 text-red-400" />
           <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل البيانات</h3>
-          <p className="text-sm font-medium mt-1 text-slate-500">{(error as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+          <p className="text-sm font-medium mt-1 text-slate-500">{errorMessage(error, 'يرجى المحاولة مرة أخرى')}</p>
           <button onClick={() => refetch()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
             <RefreshCw size={16} /> إعادة المحاولة
           </button>
@@ -295,7 +309,7 @@ export default function MerchantsPage() {
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <AlertTriangle size={48} className="mb-4 text-red-400" />
                   <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل التفاصيل</h3>
-                  <p className="text-sm font-medium mt-1 text-slate-500">{(detailsError as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+                  <p className="text-sm font-medium mt-1 text-slate-500">{errorMessage(detailsError, 'يرجى المحاولة مرة أخرى')}</p>
                   <button onClick={() => refetchDetails()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
                     <RefreshCw size={16} /> إعادة المحاولة
                   </button>
@@ -496,7 +510,7 @@ export default function MerchantsPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><Trash2 size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">حذف المتجر نهائياً؟</h3>
-              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">هل أنت متأكد من حذف "{deleteModal.name}"؟ لا يمكن التراجع عن هذا الإجراء.</p>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">هل أنت متأكد من حذف «{deleteModal.name}»؟ لا يمكن التراجع عن هذا الإجراء.</p>
               <div className="mt-8 flex gap-4">
                 <button onClick={() => { setBusyId(deleteModal.id); deleteMerchantMutation.mutate(deleteModal.id); }} disabled={!!busyId} className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10">
                   {busyId === deleteModal.id ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'نعم، احذف'}

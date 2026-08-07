@@ -11,10 +11,10 @@ describe('AdminService', () => {
   let service: AdminService;
 
   const mockPrisma = {
-    user: { count: jest.fn() },
+    user: { count: jest.fn(), aggregate: jest.fn() },
     store: { count: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
     offer: { count: jest.fn(), findUnique: jest.fn(), update: jest.fn() },
-    coupon: { count: jest.fn() },
+    coupon: { count: jest.fn(), aggregate: jest.fn() },
     review: { count: jest.fn() },
     favorite: { count: jest.fn() },
   };
@@ -31,6 +31,8 @@ describe('AdminService', () => {
     notifyOfferApproved: jest.fn(),
     notifyStoreApproved: jest.fn(),
     sendToUserId: jest.fn(),
+    notifyNewOfferInArea: jest.fn(),
+    notifyStoreFans: jest.fn(),
   };
 
   const mockAuditLog = {
@@ -72,6 +74,8 @@ describe('AdminService', () => {
       mockPrisma.coupon.count.mockResolvedValue(100);
       mockPrisma.review.count.mockResolvedValue(50);
       mockPrisma.favorite.count.mockResolvedValue(30);
+      mockPrisma.user.aggregate.mockResolvedValue({ _sum: { points: 0 } });
+      mockPrisma.coupon.aggregate.mockResolvedValue({ _sum: { commissionAmount: 0 } });
 
       const stats = await service.getGlobalStats();
 

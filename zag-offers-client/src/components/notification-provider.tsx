@@ -28,12 +28,15 @@ interface CouponUpdateEvent {
 
 const NotificationContext = createContext<{
   addNotification: (title: string, body: string, type?: string, data?: { url?: string }) => void;
+  socket: ReturnType<typeof useSocket>['socket'];
+  isConnected: boolean;
+  connectionStatus: ReturnType<typeof useSocket>['connectionStatus'];
 } | null>(null);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [token, setToken] = useState<string | null>(null);
-  const { socket, connectionStatus } = useSocket(token);
+  const { socket, isConnected, connectionStatus } = useSocket(token);
   const router = useRouter();
 
   // Read token from localStorage
@@ -67,7 +70,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
     socket.on('new_offer', (data: NewOfferEvent) => {
       addNotification(
-        `🔥 عرض جديد!`,
+        `عرض جديد`,
         `${data.storeName}: ${data.title}`,
         'NEW_OFFER',
         { url: `/offers/${data.offerId}` }
@@ -77,7 +80,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
     socket.on('coupon_update', (data: CouponUpdateEvent) => {
       const statusText = data.status === 'USED' ? 'تم تفعيله بنجاح' : 'انتهت صلاحيته';
       addNotification(
-        `🎫 تحديث للكوبون`,
+        `تحديث للكوبون`,
         `كوبون العرض "${data.offerTitle}" ${statusText}`,
         'COUPON_UPDATE',
         { url: '/coupons' }
@@ -98,7 +101,7 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
   };
 
   return (
-    <NotificationContext.Provider value={{ addNotification }}>
+    <NotificationContext.Provider value={{ addNotification, socket, isConnected, connectionStatus }}>
       {/* Connection Error - Subtle & Temporary */}
       <AnimatePresence>
         {connectionStatus === 'error' && (

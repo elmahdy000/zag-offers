@@ -9,10 +9,19 @@ import { compressImage } from '@/lib/image-utils';
 import { validateFile, validateImageDimensions, offerSchema, sanitizeInput } from '@/lib/validation';
 import { handleApiError, logError } from '@/lib/errorHandler';
 import { secureStorage } from '@/lib/crypto';
+import { ZodError } from 'zod';
+
+interface OfferDraft {
+  title: string;
+  description: string;
+  discount: string;
+  originalPrice: string;
+  expiryDate: string;
+}
 
 export default function NewOfferPage() {
   const router = useRouter();
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<OfferDraft>({
     title: '',
     description: '',
     discount: '',
@@ -21,17 +30,10 @@ export default function NewOfferPage() {
   });
   const [offerImages, setOfferImages] = useState<{ url: string; file?: File }[]>([]);
   const [submitError, setSubmitError] = useState<string | null>(null);
-  const [showDraftPrompt, setShowDraftPrompt] = useState(false);
-
-  // تحميل المسودة عند فتح الصفحة
-  useEffect(() => {
-    const savedDraft = secureStorage.get<any>('cache_new_offer_draft');
-    if (savedDraft) {
-      if (savedDraft.title || savedDraft.description) {
-        setShowDraftPrompt(true);
-      }
-    }
-  }, []);
+  const [showDraftPrompt, setShowDraftPrompt] = useState(() => {
+    const savedDraft = secureStorage.get<OfferDraft>('cache_new_offer_draft');
+    return Boolean(savedDraft?.title || savedDraft?.description);
+  });
 
   // حفظ المسودة تلقائياً
   useEffect(() => {
@@ -41,7 +43,7 @@ export default function NewOfferPage() {
   }, [formData]);
 
   const restoreDraft = () => {
-    const savedDraft = secureStorage.get<any>('cache_new_offer_draft');
+    const savedDraft = secureStorage.get<OfferDraft>('cache_new_offer_draft');
     if (savedDraft) {
       setFormData({
         title: savedDraft.title || '',
@@ -123,8 +125,8 @@ export default function NewOfferPage() {
       title: sanitizeInput(formData.title.trim()),
       description: sanitizeInput(formData.description.trim()),
       discount: formData.discount.trim(),
-      originalPrice: formData.originalPrice.trim(),
-      expiryDate: formData.expiryDate
+      originalPrice: formData.originalPrice.trim() || undefined,
+      endDate: formData.expiryDate
     };
 
     // التحقق من صحة البيانات باستخدام Zod
@@ -176,7 +178,7 @@ export default function NewOfferPage() {
           }
         }
         imageUrls = uploadResults.filter(Boolean) as string[];
-      } catch (error: any) {
+      } catch (error: unknown) {
         setIsUploading(false);
         const apiError = handleApiError(error);
         logError(apiError, 'Image Upload');
@@ -214,13 +216,11 @@ export default function NewOfferPage() {
           },
         }
       );
-    } catch (validationError: any) {
-      // Zod validation errors
-      if (validationError.errors) {
-        const firstError = validationError.errors[0];
-        setSubmitError(firstError.message);
+    } catch (validationError: unknown) {
+      if (validationError instanceof ZodError) {
+        setSubmitError(validationError.issues[0]?.message || 'بيانات العرض غير صحيحة');
       } else {
-        setSubmitError(validationError.message || 'بيانات غير صحيحة');
+        setSubmitError(validationError instanceof Error ? validationError.message : 'بيانات غير صحيحة');
       }
     }
   };
@@ -232,21 +232,19 @@ export default function NewOfferPage() {
 
   return (
     <div className="min-h-screen bg-bg p-4 sm:p-8 dir-rtl animate-in max-w-7xl mx-auto relative">
-      <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary/5 blur-[120px] rounded-full -z-10" />
-
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-6 mb-12">
-        <div className="flex items-center gap-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+        <div className="flex min-w-0 items-start sm:items-center gap-3 sm:gap-5">
           <button
             onClick={() => router.back()}
-            className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all border border-glass-border"
+            className="w-10 h-10 sm:w-12 sm:h-12 shrink-0 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary hover:border-primary/30 transition-all border border-glass-border"
           >
             <ArrowRight size={24} />
           </button>
-          <div>
-            <h1 className="text-3xl font-black text-text tracking-tight flex items-center gap-3">
+          <div className="min-w-0">
+            <h1 className="text-2xl sm:text-3xl font-black text-text tracking-tight flex flex-wrap items-center gap-2 sm:gap-3">
                إضافة عرض مميز <Sparkles className="text-primary" size={24} />
             </h1>
-            <p className="text-text-dim mt-1 font-bold text-sm">قم بتجهيز عرضك الجديد ليصل لآلاف العملاء في الزقازيق</p>
+            <p className="text-text-dim mt-1 font-bold text-xs sm:text-sm leading-6">قم بتجهيز عرضك الجديد ليصل لآلاف العملاء في الزقازيق</p>
           </div>
         </div>
       </div>
@@ -281,12 +279,12 @@ export default function NewOfferPage() {
           <motion.div 
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="glass rounded-[2.5rem] border border-glass-border p-8 sm:p-10 inner-shadow relative overflow-hidden"
+            className="glass rounded-[1.25rem] border border-glass-border p-5 sm:p-8 relative overflow-hidden"
           >
             <div className="absolute top-0 left-0 w-full h-1 bg-gradient-to-r from-transparent via-primary/40 to-transparent" />
             
-            <div className="space-y-10">
-                <div className="flex items-center justify-between px-2">
+            <div className="space-y-7">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 px-1">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] flex items-center gap-2">
                     <ImageIcon size={14} /> صور العرض (الصورة الأولى هي الرئيسية)
                   </label>
@@ -294,7 +292,7 @@ export default function NewOfferPage() {
                 </div>
                 
                 <div
-                  className="relative min-h-[200px] rounded-[2rem] border-2 border-dashed border-glass-border bg-glass p-4 flex flex-wrap gap-4 items-center justify-center cursor-pointer group transition-all hover:border-primary/30"
+                  className="relative min-h-[180px] rounded-2xl border-2 border-dashed border-glass-border bg-bg p-4 flex flex-wrap gap-4 items-center justify-center cursor-pointer group transition-all hover:border-primary/40"
                   onClick={() => document.getElementById('imageInput')?.click()}
                 >
                   <AnimatePresence mode="popLayout">
@@ -343,7 +341,7 @@ export default function NewOfferPage() {
                   <input id="imageInput" type="file" className="hidden" onChange={handleImageChange} accept="image/*" multiple />
                 </div>
 
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-5 sm:gap-6">
                 <div className="space-y-3">
                   <label className="text-[11px] font-black text-text-dim uppercase tracking-[0.2em] mr-2">عنوان العرض</label>
                   <div className="relative group">
@@ -430,7 +428,7 @@ export default function NewOfferPage() {
           </motion.div>
         </div>
 
-        <div className="xl:col-span-4 space-y-8">
+        <div className="hidden xl:block xl:col-span-4 space-y-8">
            <div className="flex items-center gap-2 text-text-dimmer text-[11px] font-black uppercase tracking-widest px-2">
              <Info size={14} className="text-primary" /> معاينة مباشرة (موبايل)
            </div>
@@ -455,7 +453,7 @@ export default function NewOfferPage() {
                 <div className="mt-4 flex gap-2 overflow-x-auto pb-2 scrollbar-hide">
                   {offerImages.map((img, i) => (
                     <div key={i} className={`w-12 h-12 rounded-xl border-2 shrink-0 overflow-hidden ${i === 0 ? 'border-primary' : 'border-glass-border'}`}>
-                      <img src={img.url} className="w-full h-full object-cover" />
+                      <img src={img.url} className="w-full h-full object-cover" alt={`صورة العرض ${i + 1}`} />
                     </div>
                   ))}
                 </div>

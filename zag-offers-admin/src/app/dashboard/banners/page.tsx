@@ -23,6 +23,18 @@ type BannerItem = {
   store?: { id: string; name: string } | null;
 };
 
+type BannerLinkType = 'none' | 'offer' | 'store' | 'url';
+type OfferOption = { id: string; title: string; store?: { name?: string } };
+type StoreOption = { id: string; name: string; area?: string };
+
+function apiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === 'string') return response.data.message;
+  }
+  return fallback;
+}
+
 const initialForm = {
   title: '',
   subtitle: '',
@@ -44,7 +56,7 @@ export default function BannersPage() {
   const [form, setForm] = useState(initialForm);
 
   // حقول ربط البانر بعرض أو متجر أو رابط خارجي
-  const [linkType, setLinkType] = useState<'none' | 'offer' | 'store' | 'url'>('none');
+  const [linkType, setLinkType] = useState<BannerLinkType>('none');
   const [selectedOfferId, setSelectedOfferId] = useState('');
   const [selectedStoreId, setSelectedStoreId] = useState('');
   const [externalUrl, setExternalUrl] = useState('');
@@ -54,7 +66,7 @@ export default function BannersPage() {
     queryKey: ['all-offers-list'],
     queryFn: async () => {
       const res = await adminApi().get('/admin/offers', { params: { limit: 100 } });
-      return Array.isArray(res.data.items) ? res.data.items : [];
+      return (Array.isArray(res.data.items) ? res.data.items : []) as OfferOption[];
     },
     enabled: isOpen,
   });
@@ -63,7 +75,7 @@ export default function BannersPage() {
     queryKey: ['all-stores-list'],
     queryFn: async () => {
       const res = await adminApi().get('/admin/stores', { params: { limit: 100 } });
-      return Array.isArray(res.data.items) ? res.data.items : [];
+      return (Array.isArray(res.data.items) ? res.data.items : []) as StoreOption[];
     },
     enabled: isOpen,
   });
@@ -122,8 +134,8 @@ export default function BannersPage() {
       setEditing(null);
       setForm(initialForm);
     },
-    onError: (err: any) => {
-      showToast(err?.response?.data?.message || 'فشل حفظ البانر', 'error');
+    onError: (err: unknown) => {
+      showToast(apiErrorMessage(err, 'فشل حفظ البانر'), 'error');
     },
   });
 
@@ -133,8 +145,8 @@ export default function BannersPage() {
       queryClient.invalidateQueries({ queryKey: ['admin-banners'] });
       showToast('تم حذف البانر');
     },
-    onError: (err: any) => {
-      showToast(err?.response?.data?.message || 'فشل حذف البانر', 'error');
+    onError: (err: unknown) => {
+      showToast(apiErrorMessage(err, 'فشل حذف البانر'), 'error');
     },
   });
 
@@ -231,7 +243,7 @@ export default function BannersPage() {
             ))
           : banners.map((banner) => (
               <div key={banner.id} className="rounded-3xl border border-slate-100 bg-white p-4 shadow-sm">
-                <div className="h-32 overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-900 to-slate-900">
+                <div className="h-32 overflow-hidden rounded-xl bg-[#071426]">
                   {banner.image ? (
                     <img src={resolveImageUrl(banner.image)} alt={banner.title} className="h-full w-full object-contain" />
                   ) : (
@@ -248,7 +260,7 @@ export default function BannersPage() {
                     {banner.offer ? (
                       <Link 
                         href={`/dashboard/offers/${banner.offer.id}`}
-                        className="inline-flex items-center gap-1 font-bold text-indigo-600 hover:underline"
+                        className="inline-flex items-center gap-1 font-bold text-orange-600 hover:underline"
                       >
                         <Tag size={12} />
                         <span>عرض: {banner.offer.title}</span>
@@ -305,7 +317,7 @@ export default function BannersPage() {
                 <select 
                   className="w-full rounded-xl border px-3 py-2" 
                   value={linkType} 
-                  onChange={(e) => setLinkType(e.target.value as any)}
+                  onChange={(e) => setLinkType(e.target.value as BannerLinkType)}
                 >
                   <option value="none">لا يوجد رابط</option>
                   <option value="offer">ربط بعرض (شاشة تفاصيل العرض)</option>
@@ -323,7 +335,7 @@ export default function BannersPage() {
                     onChange={(e) => setSelectedOfferId(e.target.value)}
                   >
                     <option value="">اختر عرض...</option>
-                    {offersData.map((off: any) => (
+                    {offersData.map((off) => (
                       <option key={off.id} value={off.id}>
                         {off.title} {off.store?.name ? `(${off.store.name})` : ''}
                       </option>
@@ -341,7 +353,7 @@ export default function BannersPage() {
                     onChange={(e) => setSelectedStoreId(e.target.value)}
                   >
                     <option value="">اختر متجر...</option>
-                    {storesData.map((st: any) => (
+                    {storesData.map((st) => (
                       <option key={st.id} value={st.id}>
                         {st.name} {st.area ? `(${st.area})` : ''}
                       </option>
@@ -368,7 +380,7 @@ export default function BannersPage() {
               <input type="file" accept="image/*" onChange={uploadImage} />
               {isUploading && <Loader2 className="animate-spin text-orange-600" size={16} />}
               {form.image ? (
-                <div className="h-24 w-full rounded-xl bg-gradient-to-br from-indigo-900 to-slate-900 overflow-hidden">
+                <div className="h-24 w-full rounded-xl bg-[#071426] overflow-hidden">
                   <img src={resolveImageUrl(form.image)} alt="preview" className="h-full w-full object-contain" />
                 </div>
               ) : null}

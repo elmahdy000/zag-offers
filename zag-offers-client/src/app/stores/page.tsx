@@ -2,15 +2,16 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion } from 'framer-motion';
-import { Store as StoreIcon, MapPin, Tag, ArrowLeft, Search, X } from 'lucide-react';
+import { MapPin, ArrowLeft, Search, X } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
 import { resolveImageUrl } from '@/lib/utils';
 import { ErrorDisplay } from '@/components/error-display';
 
-import { API_URL, BASE_URL } from '@/lib/constants';
+import { API_URL } from '@/lib/constants';
 
 import { Store } from '@/lib/types';
+import { extractItems, filterStores } from '@/lib/catalog-utils';
 
 function useDebounce<T>(value: T, delay: number): T {
   const [debouncedValue, setDebouncedValue] = useState<T>(value);
@@ -20,17 +21,6 @@ function useDebounce<T>(value: T, delay: number): T {
   }, [value, delay]);
   return debouncedValue;
 }
-
-const normalizeArabic = (str: string) => {
-  if (!str) return '';
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/[ى]/g, 'ي')
-    .replace(/[\u064B-\u0652]/g, '');
-};
 
 export default function StoresListPage() {
   const [stores, setStores] = useState<Store[]>([]);
@@ -60,7 +50,7 @@ export default function StoresListPage() {
       const res = await fetch(`${API_URL}/stores?limit=100`, { cache: 'no-store' });
       if (res.ok) {
         const data = await res.json();
-        const storesData = Array.isArray(data) ? data : (data.items || []);
+        const storesData = extractItems<Store>(data);
         const validStores = storesData.filter((s: Store) => s && s.id && s.name);
         setStores(validStores);
         localStorage.setItem('cache_stores_list', JSON.stringify(validStores));
@@ -78,34 +68,31 @@ export default function StoresListPage() {
   }, [stores.length]);
 
   useEffect(() => {
-    fetchStores();
+    const timer = window.setTimeout(() => fetchStores(), 0);
 
     const handleOnline = () => fetchStores();
     window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
+    return () => {
+      window.clearTimeout(timer);
+      window.removeEventListener('online', handleOnline);
+    };
   }, [fetchStores]);
 
-  const filteredStores = stores.filter(s => {
-    if (!s || !s.name || !s.area) return false;
-    const q = normalizeArabic(debouncedSearch);
-    return normalizeArabic(s.name).includes(q)
-      || normalizeArabic(s.area).includes(q)
-      || normalizeArabic(s.category?.name || '').includes(q);
-  });
+  const filteredStores = filterStores(stores, debouncedSearch);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-8" dir="rtl">
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-12">
+    <div className="max-w-7xl mx-auto px-4 py-8 sm:py-12" dir="rtl">
+      <div className="flex flex-col md:flex-row md:items-end justify-between gap-6 mb-8">
         <div>
-          <h1 className="text-3xl sm:text-4xl font-black mb-3 text-[#F0F0F0]">شركاء النجاح</h1>
-          <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold">اكتشف أفضل المحلات والخدمات في الزقازيق</p>
+          <h1 className="text-[32px] font-bold mb-3 text-[#F0F0F0]">شركاء النجاح</h1>
+          <p className="text-[#AAB7C9] text-[15px] font-normal">اكتشف أفضل المحلات والخدمات في الزقازيق</p>
         </div>
         <div className="relative w-full md:w-80">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-[#9A9A9A]" size={18} />
           <input 
             type="text"
             placeholder="ابحث باسم المحل أو المنطقة أو الصنف..."
-            className="w-full bg-[#252525] border border-white/[0.08] rounded-xl px-12 py-3.5 text-sm font-bold text-[#F0F0F0] focus:border-[#FF6B00] outline-none transition-all shadow-lg"
+            className="w-full bg-[#0F1A2B] border border-[#2A3A52] rounded-xl px-12 py-3.5 text-sm font-normal text-[#F0F0F0] focus:border-[#FF6B00] outline-none transition-all"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
           />
@@ -126,39 +113,56 @@ export default function StoresListPage() {
         </div>
       ) : error ? (
         <ErrorDisplay message={error} onRetry={fetchStores} />
+      ) : filteredStores.length === 0 ? (
+        <div className="text-center py-16 sm:py-24 bg-[#252525]/50 rounded-[2rem] border border-white/[0.05]">
+          <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/5 rounded-full flex items-center justify-center mx-auto mb-6 text-white/10">
+            <Search size={32} />
+          </div>
+          <h3 className="text-lg sm:text-xl font-black mb-2 text-white">لا توجد نتائج</h3>
+          <p className="text-[#9A9A9A] text-xs sm:text-sm font-bold mb-8 max-w-xs mx-auto">لم نجد متاجر تطابق &ldquo;{search}&rdquo;. جرّب كلمات بحث مختلفة.</p>
+          <button
+            onClick={() => setSearch('')}
+            className="px-8 py-3.5 bg-[#FF6B00] text-white font-black rounded-xl shadow-lg hover:scale-[1.02] transition-all inline-flex items-center gap-2 text-sm"
+          >
+            مسح البحث
+          </button>
+        </div>
       ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {filteredStores.map((store) => {
             const logoUrl = resolveImageUrl(store.logo);
             return (
               <Link key={store.id} href={`/stores/${store.id}`}>
-                <motion.div 
+                <motion.div
                   whileHover={{ y: -5 }}
-                  className="bg-[#252525] border border-white/[0.05] p-4 sm:p-6 rounded-2xl sm:rounded-[32px] flex flex-col items-center text-center hover:border-[#FF6B00]/50 transition-all cursor-pointer group shadow-xl"
+                  className="global-card min-h-[300px] bg-[#0F1A2B] border border-[#2A3A52] p-6 rounded-[20px] flex flex-col items-center text-center hover:border-[#FF6B00]/50 hover:bg-[#162338] transition-all cursor-pointer group h-full"
                 >
-                  <div className="w-16 h-16 sm:w-20 sm:h-20 bg-black/40 rounded-xl sm:rounded-[24px] border border-white/5 flex items-center justify-center overflow-hidden mb-3 sm:mb-4">
+                  <div className="w-24 h-24 bg-[#162338] rounded-[22px] border border-[#2A3A52] flex items-center justify-center overflow-hidden mb-5">
                     {logoUrl ? 
                       <Image
                         src={logoUrl}
                         alt={store.name || 'Store Logo'}
-                        width={80}
-                        height={80}
+                        width={96}
+                        height={96}
                         className="w-full h-full object-cover"
                         loading="lazy"
-                        sizes="80px"
+                        sizes="96px"
                         quality={80}
                         placeholder="blur"
                         blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iODAiIGhlaWdodD0iODAiIHhtbG5zPSJodHRwOi8vd3d3LnczLm9yZy8yMDAwL3N2ZyI+PHJlY3Qgd2lkdGg9IjgwIiBoZWlnaHQ9IjgwIiBmaWxsPSIjMUVFMUUxIi8+PC9zdmc+"
                       /> : 
-                      <StoreIcon size={32} className="text-white/10" />
+                      <span className="text-3xl font-bold text-[#8FA0B8]">{store.name.trim().charAt(0)}</span>
                     }
                   </div>
-                  <h3 className="font-black text-lg mb-1 group-hover:text-[#FF6B00] transition-colors">{store.name}</h3>
-                  <p className="text-[10px] font-black text-[#FF6B00] bg-[#FF6B00]/10 px-3 py-1 rounded-full mb-4 uppercase tracking-widest">
+                  <h3 className="font-bold text-lg mb-2 group-hover:text-[#FF7A1A] transition-colors">{store.name}</h3>
+                  <p className="text-sm font-semibold text-[#FF8A3D] bg-[#FF6B00]/10 px-4 py-1.5 rounded-full mb-4">
                     {store.category?.name || 'متجر'}
                   </p>
-                  <div className="flex items-center gap-1.5 text-white/40 text-xs font-bold">
-                    <MapPin size={14} className="text-[#FF6B00]" /> {store.area}
+                  <div className="flex items-center gap-2 text-[#8FA0B8] text-sm font-normal mb-5">
+                    <MapPin size={16} className="text-[#FF6B00]" /> {store.area}
+                  </div>
+                  <div className="mt-auto w-full border-t border-[#2A3A52]/70 pt-4 flex items-center justify-center gap-2 text-base font-bold text-[#FF7A1A]">
+                    عرض المتجر <ArrowLeft size={15} />
                   </div>
                 </motion.div>
               </Link>

@@ -13,16 +13,11 @@ export const useSocket = (token?: string | null) => {
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
-    if (!token) {
-      setTimeout(() => setConnectionStatus('disconnected'), 0);
-      return;
-    }
-
     setTimeout(() => setConnectionStatus('connecting'), 0);
     reconnectAttempts.current = 0;
 
     const newSocket = io(SOCKET_URL, {
-      auth: { token },
+      auth: token ? { token } : undefined,
       transports: ['websocket', 'polling'],
       reconnection: true,
       reconnectionDelay: RECONNECT_INTERVAL,
@@ -34,7 +29,7 @@ export const useSocket = (token?: string | null) => {
       setIsConnected(true);
       setConnectionStatus('connected');
       reconnectAttempts.current = 0;
-      newSocket.emit('join_room', { token });
+      if (token) newSocket.emit('join_room', { token });
     });
 
     newSocket.on('disconnect', (reason) => {
@@ -123,9 +118,9 @@ export const usePublicSocket = () => {
     s.on('disconnect', handleDisconnect);
 
     if (s.connected) {
-      setIsConnected(true);
+      setTimeout(() => setIsConnected(true), 0);
     }
-    setSocket(s);
+    setTimeout(() => setSocket(s), 0);
 
     return () => {
       s.off('connect', handleConnect);

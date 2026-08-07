@@ -4,7 +4,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiTicket2Fill, RiTimeLine, RiCheckboxCircleFill, 
   RiShoppingBag3Fill, RiArrowRightLine, RiCloseLine, 
-  RiQrCodeLine, RiWhatsappFill, RiShareLine 
+  RiQrCodeLine, RiShareLine 
 } from 'react-icons/ri';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
@@ -13,6 +13,7 @@ import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { useNotifications } from '@/components/notification-provider';
 import { API_URL } from '@/lib/constants';
 import { QRCodeSVG } from 'qrcode.react';
+import { BadgePercent, ShieldCheck, Sparkles, WalletCards, Copy, ArrowLeft } from 'lucide-react';
 
 interface Coupon {
   id: string;
@@ -39,8 +40,8 @@ export default function MyCouponsPage() {
   const [error, setError] = useState<string | null>(null);
   const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
   const [selectedCoupon, setSelectedCoupon] = useState<Coupon | null>(null);
-
-  const [isOffline, setIsOffline] = useState(false);
+  const [activeFilter, setActiveFilter] = useState<'all' | 'active' | 'used'>('all');
+  const [copiedCode, setCopiedCode] = useState<string | null>(null);
 
   useEffect(() => {
     const fetchCoupons = async () => {
@@ -52,7 +53,7 @@ export default function MyCouponsPage() {
       }
 
       const cached = safeJsonParse<Coupon[]>(localStorage.getItem('cache_my_coupons'), []);
-      if (cached.length > 0 && coupons.length === 0) {
+      if (cached.length > 0) {
         setCoupons(cached);
         setLoading(false);
       }
@@ -63,11 +64,9 @@ export default function MyCouponsPage() {
         });
         setCoupons(res.data);
         localStorage.setItem('cache_my_coupons', JSON.stringify(res.data));
-        setIsOffline(false);
         setError(null);
       } catch (e) { 
         console.error('Offline or server error:', e); 
-        setIsOffline(true);
         if (!cached.length) {
           setError('فشل تحميل الكوبونات. يرجى التأكد من اتصالك بالإنترنت.');
         }
@@ -78,8 +77,8 @@ export default function MyCouponsPage() {
     fetchCoupons();
 
     // Re-fetch when coming back online
-    const handleOnline = () => { setIsOffline(false); fetchCoupons(); };
-    const handleOffline = () => setIsOffline(true);
+    const handleOnline = () => fetchCoupons();
+    const handleOffline = () => undefined;
     window.addEventListener('online', handleOnline);
     window.addEventListener('offline', handleOffline);
     return () => {
@@ -88,104 +87,108 @@ export default function MyCouponsPage() {
     };
   }, []);
 
+  const activeCoupons = coupons.filter(coupon => !coupon.isRedeemed);
+  const usedCoupons = coupons.filter(coupon => coupon.isRedeemed);
+  const visibleCoupons = activeFilter === 'active' ? activeCoupons : activeFilter === 'used' ? usedCoupons : coupons;
+
+  const copyCouponCode = async (code: string) => {
+    await navigator.clipboard.writeText(code);
+    setCopiedCode(code);
+    addNotification('تم النسخ', 'تم نسخ كود الكوبون بنجاح');
+    window.setTimeout(() => setCopiedCode(null), 1800);
+  };
+
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
-      <div className="flex items-center justify-between mb-10">
-        <div>
-          <h1 className="text-3xl font-black mb-2">كوبوناتي</h1>
-          <p className="text-white/40 text-sm font-bold">هنا تجد جميع الكوبونات التي حصلت عليها</p>
+    <div className="coupon-wallet-page" dir="rtl">
+      <section className="coupon-wallet-hero">
+        <div className="site-container coupon-wallet-hero-inner">
+          <div className="coupon-wallet-copy">
+            <span className="coupon-wallet-kicker"><Sparkles size={14}/> محفظة التوفير الخاصة بك</span>
+            <h1>كوبوناتك في مكان واحد</h1>
+            <p>احتفظ بكل خصوماتك، اعرض رمز QR للتاجر، واستمتع بتجربة استخدام أسرع.</p>
+          </div>
+          <div className="coupon-wallet-visual" aria-hidden="true"><WalletCards size={52}/><span>MY WALLET</span><b>{activeCoupons.length}</b><small>كوبون جاهز</small></div>
         </div>
-        <div className="w-12 h-12 bg-white/5 rounded-2xl flex items-center justify-center text-[#FF6B00] border border-white/10">
-          <RiTicket2Fill size={24} />
-        </div>
-      </div>
+      </section>
+
+      <div className="site-container coupon-wallet-content">
+        {isLoggedIn && !loading && (
+          <div className="coupon-stats">
+            <div><span className="coupon-stat-icon"><RiTicket2Fill/></span><p><small>كل الكوبونات</small><strong>{coupons.length}</strong></p></div>
+            <div><span className="coupon-stat-icon is-active"><BadgePercent/></span><p><small>جاهزة للاستخدام</small><strong>{activeCoupons.length}</strong></p></div>
+            <div><span className="coupon-stat-icon is-used"><RiCheckboxCircleFill/></span><p><small>تم استخدامها</small><strong>{usedCoupons.length}</strong></p></div>
+            <div className="coupon-trust"><ShieldCheck/><span><b>استخدام آمن</b><small>كود فريد لكل كوبون</small></span></div>
+          </div>
+        )}
 
       {loading ? (
-        <div className="space-y-4">
-          {[1,2,3].map(i => <div key={i} className="h-32 bg-white/5 rounded-[24px] animate-pulse" />)}
+        <div className="coupon-grid">
+          {[1,2,3,4].map(i => <div key={i} className="h-72 bg-white/5 rounded-[24px] animate-pulse" />)}
         </div>
       ) : error ? (
         <ErrorDisplay message={error} onRetry={() => window.location.reload()} />
       ) : isLoggedIn === false ? (
-        <div className="text-center py-20 glass rounded-[32px]">
-          <RiTicket2Fill className="mx-auto text-white/10 mb-4" size={64} />
+        <div className="coupon-empty-state">
+          <div className="coupon-empty-icon"><RiTicket2Fill size={42} /></div>
           <h3 className="text-xl font-black mb-2">يرجى تسجيل الدخول</h3>
           <p className="text-white/40 text-sm font-bold mb-8">سجّل دخولك لترى كوبوناتك وخصوماتك</p>
-          <Link href="/login" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
+          <Link href="/login" className="coupon-primary-link">
             تسجيل الدخول
           </Link>
         </div>
       ) : coupons.length === 0 ? (
-        <div className="text-center py-20 glass rounded-[32px]">
-          <RiShoppingBag3Fill className="mx-auto text-white/10 mb-4" size={64} />
+        <div className="coupon-empty-state">
+          <div className="coupon-empty-icon"><RiShoppingBag3Fill size={42} /></div>
           <h3 className="text-xl font-black mb-2">لا توجد كوبونات بعد</h3>
           <p className="text-white/40 text-sm font-bold mb-8">ابدأ بتصفح العروض واحصل على خصوماتك الأولى</p>
-          <Link href="/" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
-            تصفح العروض
+          <Link href="/offers" className="coupon-primary-link">
+            اكتشف العروض <ArrowLeft size={17}/>
           </Link>
         </div>
       ) : (
-        <div className="grid gap-6">
-          {coupons.map((coupon) => (
+        <div>
+          <div className="coupon-toolbar">
+            <div><h2>محفظة الكوبونات</h2><p>اختر كوبونًا لعرض رمز التفعيل</p></div>
+            <div className="coupon-tabs">
+              <button className={activeFilter === 'all' ? 'is-active' : ''} onClick={() => setActiveFilter('all')}>الكل <span>{coupons.length}</span></button>
+              <button className={activeFilter === 'active' ? 'is-active' : ''} onClick={() => setActiveFilter('active')}>الجاهزة <span>{activeCoupons.length}</span></button>
+              <button className={activeFilter === 'used' ? 'is-active' : ''} onClick={() => setActiveFilter('used')}>المستخدمة <span>{usedCoupons.length}</span></button>
+            </div>
+          </div>
+          {visibleCoupons.length === 0 ? <div className="coupon-filter-empty">لا توجد كوبونات في هذا القسم</div> : <div className="coupon-grid">
+          {visibleCoupons.map((coupon) => (
             <motion.div 
               key={coupon.id}
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
-              className="group relative glass p-6 rounded-[24px] overflow-hidden border-r-4 border-r-[#FF6B00] cursor-pointer"
+              className={`coupon-ticket-card ${coupon.isRedeemed ? 'is-redeemed' : ''}`}
               onClick={() => setSelectedCoupon(coupon)}
             >
-              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-6">
-                <div className="flex items-center gap-4">
-                  <div className="w-16 h-16 bg-black/40 rounded-2xl flex flex-col items-center justify-center border border-white/5">
-                    <span className="text-[10px] font-black text-[#FF6B00] uppercase">خصم</span>
-                    <span className="text-lg font-black">{coupon.offer?.discount || '%'}</span>
-                  </div>
-                  <div>
-                    <h4 className="font-black text-white group-hover:text-[#FF6B00] transition-colors">{coupon.offer?.title}</h4>
-                    <p className="text-xs font-bold text-white/40 mt-1">🏪 {coupon.offer?.store?.name}</p>
-                  </div>
-                </div>
+              <div className="coupon-ticket-top">
+                <span className="coupon-status">{coupon.isRedeemed ? <><RiCheckboxCircleFill/> تم الاستخدام</> : <><RiTimeLine/> جاهز للاستخدام</>}</span>
+                <button aria-label="فتح تفاصيل العرض" onClick={(e) => { e.stopPropagation(); if (coupon.offer?.id) router.push(`/offers/${coupon.offer.id}`); }}><RiArrowRightLine/></button>
+              </div>
+              <div className="coupon-ticket-offer">
+                <div className="coupon-discount"><small>خصم</small><strong>{coupon.offer?.discount || '%'}</strong></div>
+                <div><p>{coupon.offer?.store?.name || 'Zag Offers'}</p><h3>{coupon.offer?.title || 'كوبون خصم مميز'}</h3></div>
+              </div>
 
-                <div className="flex flex-row items-center gap-4">
-                  {/* Small QR Preview */}
+                <div className="coupon-ticket-code-row">
                   {!coupon.isRedeemed && (
-                    <div className="hidden sm:block p-2 bg-white rounded-xl">
-                      <QRCodeSVG value={coupon.code} size={40} fgColor="#FF6B00" />
+                    <div className="coupon-mini-qr">
+                      <QRCodeSVG value={coupon.code} size={54} fgColor="#071426" />
                     </div>
                   )}
-                  
-                  <div className="flex flex-col items-end gap-2">
-                    <div className="flex items-center gap-2 px-3 py-1 bg-white/5 rounded-lg border border-white/5">
-                      <RiTicket2Fill size={14} className="text-[#FF6B00]" />
-                      <span className="text-sm font-black tracking-widest">{coupon.code}</span>
-                    </div>
-                    <div className="flex items-center gap-2">
-                      {coupon.isRedeemed ? (
-                        <span className="text-[10px] font-black text-green-500 bg-green-500/10 px-2 py-1 rounded-md flex items-center gap-1">
-                          <RiCheckboxCircleFill size={10} /> تم الاستخدام
-                        </span>
-                      ) : (
-                        <span className="text-[10px] font-black text-blue-400 bg-blue-400/10 px-2 py-1 rounded-md flex items-center gap-1">
-                          <RiTimeLine size={10} /> صالح للاستخدام (اضغط للمسح)
-                        </span>
-                      )}
-                    </div>
-                  </div>
+                  <div className="coupon-code-copy"><small>كود الكوبون</small><strong>{coupon.code}</strong></div>
+                  <button className="coupon-copy-button" onClick={(e) => { e.stopPropagation(); copyCouponCode(coupon.code); }}><Copy size={16}/>{copiedCode === coupon.code ? 'تم النسخ' : 'نسخ'}</button>
                 </div>
-              </div>
-
-              {/* Detail Link - Prevent trigger selectedCoupon */}
-              <div 
-                className="absolute top-4 left-4 p-2 text-white/20 hover:text-white transition-colors"
-                onClick={(e) => {
-                  e.stopPropagation();
-                  if (coupon.offer?.id) router.push(`/offers/${coupon.offer.id}`);
-                }}
-              >
-                <RiArrowRightLine size={18} />
-              </div>
+                <div className="coupon-ticket-footer">
+                  <span><RiQrCodeLine/> اضغط لعرض QR</span>
+                  <span>صالح لمرة واحدة</span>
+                </div>
             </motion.div>
           ))}
+          </div>}
         </div>
       )}
 
@@ -204,7 +207,7 @@ export default function MyCouponsPage() {
               initial={{ scale: 0.9, opacity: 0, y: 20 }}
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
-              className="relative bg-[#1A1A1A] border border-white/10 rounded-[40px] p-8 w-full max-w-sm text-center shadow-2xl overflow-hidden"
+              className="coupon-redeem-modal"
             >
               {/* Background Glow */}
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#FF6B00]/10 blur-[80px] -z-10" />
@@ -216,29 +219,27 @@ export default function MyCouponsPage() {
                 <RiCloseLine size={20} />
               </button>
 
-              <div className="mt-4 mb-8">
-                <div className="w-20 h-20 bg-[#FF6B00]/10 rounded-[28px] flex items-center justify-center text-[#FF6B00] mx-auto mb-5 shadow-2xl shadow-orange-900/20">
+              <div className="coupon-modal-heading">
+                <div className="coupon-modal-icon">
                   <RiQrCodeLine size={40} />
                 </div>
                 <h3 className="text-2xl font-black text-white">كود التفعيل</h3>
-                <p className="text-white/40 text-sm font-bold mt-1 uppercase tracking-wider">Show to merchant to redeem</p>
+                <p className="text-white/40 text-sm font-bold mt-1">اعرض الكود للتاجر لتفعيل الخصم</p>
               </div>
 
-              <div className="bg-white p-6 rounded-[32px] shadow-[0_20px_50px_rgba(255,107,0,0.15)] inline-block mb-8 border-4 border-[#FF6B00]/10">
-                <QRCodeSVG value={selectedCoupon.code} size={200} includeMargin={true} fgColor="#FF6B00" />
+              <div className="coupon-modal-ticket">
+                <span>امسح الكود لدى التاجر</span>
+                <div className="coupon-modal-qr"><QRCodeSVG value={selectedCoupon.code} size={190} includeMargin={true} fgColor="#071426" /></div>
+                <strong>{selectedCoupon.code}</strong>
+                <small>{selectedCoupon.offer?.store?.name}</small>
               </div>
 
               <div className="space-y-4">
-                <div className="bg-white/5 py-5 rounded-2xl relative group border border-white/5">
-                  <span className="text-3xl font-black tracking-[0.25em] text-white">{selectedCoupon.code}</span>
-                  <p className="text-[10px] font-black text-white/20 mt-1.5 uppercase tracking-widest">كود الكوبون الرقمي</p>
-                </div>
-                
                 <div className="grid grid-cols-2 gap-3">
                   <button 
                     onClick={async () => {
                       if (!selectedCoupon) return;
-                      const text = `مرحباً، أود تفعيل كوبون خصم تطبيق عروض الزقازيق:\n\n🏷️ العرض: ${selectedCoupon.offer?.title}\n🏪 المحل: ${selectedCoupon.offer?.store?.name}\n🔑 الكود: ${selectedCoupon.code}\n\nشكراً لكم!`;
+                      const text = `مرحباً، أود تفعيل كوبون خصم تطبيق عروض الزقازيق:\n\nالعرض: ${selectedCoupon.offer?.title}\nالمحل: ${selectedCoupon.offer?.store?.name}\nالكود: ${selectedCoupon.code}\n\nشكراً لكم!`;
                       let p = selectedCoupon.offer?.store?.whatsapp || selectedCoupon.offer?.store?.phone || '';
                       p = p.replace(/\D/g, '');
                       let phone = '';
@@ -275,7 +276,7 @@ export default function MyCouponsPage() {
                         });
                       } else {
                         navigator.clipboard.writeText(selectedCoupon.code);
-                        addNotification('✅ تم النسخ', 'تم نسخ كود الكوبون بنجاح');
+                        addNotification('تم النسخ', 'تم نسخ كود الكوبون بنجاح');
                       }
                     }}
                     className="flex items-center justify-center gap-2 py-4 bg-black text-white font-black rounded-2xl hover:scale-[1.02] transition-all shadow-lg shadow-black/10"
@@ -296,6 +297,7 @@ export default function MyCouponsPage() {
           </div>
         )}
       </AnimatePresence>
+      </div>
     </div>
   );
 }

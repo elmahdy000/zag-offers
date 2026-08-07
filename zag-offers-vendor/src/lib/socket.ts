@@ -11,10 +11,6 @@ export const useSocket = (token?: string | null) => {
   useEffect(() => {
     const activeToken = token || getCookie('auth_token');
     if (!activeToken) {
-      if (socket) {
-        socket.disconnect();
-        setSocket(null);
-      }
       return;
     }
 
@@ -25,20 +21,20 @@ export const useSocket = (token?: string | null) => {
     });
 
     newSocket.on('connect', () => {
+      setSocket(newSocket);
       setConnectionStatus('connected');
       console.log('Vendor Socket Connected');
       newSocket.emit('join_room', { token: activeToken });
     });
 
     newSocket.on('disconnect', () => {
+      setSocket(null);
       setConnectionStatus('disconnected');
     });
 
     newSocket.on('connect_error', () => {
       setConnectionStatus('error');
     });
-
-    setSocket(newSocket);
 
     return () => {
       newSocket.close();

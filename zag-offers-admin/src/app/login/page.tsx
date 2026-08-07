@@ -1,11 +1,12 @@
 'use client';
 
 import { useState } from 'react';
-import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, AlertCircle } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, BarChart3, Users2, Store } from 'lucide-react';
+import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
+import Image from 'next/image';
 import { api } from '@/lib/api';
+import AdminThemeToggle from '@/components/AdminThemeToggle';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function AdminLoginPage() {
       localStorage.setItem('admin_user', JSON.stringify(user));
 
       router.replace('/dashboard');
-    } catch (err: any) {
+    } catch {
       setError('بيانات الدخول غير صحيحة أو توجد مشكلة في الاتصال');
     } finally {
       setLoading(false);
@@ -58,99 +59,75 @@ export default function AdminLoginPage() {
   };
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 relative overflow-hidden bg-[#0A0A0A]" dir="rtl">
-      <style jsx global>{`
-        @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap');
-        body { font-family: 'Cairo', sans-serif; }
-        .glass {
-          background: rgba(25, 25, 25, 0.7);
-          backdrop-filter: blur(20px);
-          -webkit-backdrop-filter: blur(20px);
-          border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-      `}</style>
-
-      {/* Client-style top gradient */}
-      <div className="absolute top-0 inset-x-0 h-96 bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
-      
-      <motion.div
-        initial={{ opacity: 0, scale: 0.95 }}
-        animate={{ opacity: 1, scale: 1 }}
-        className="w-full max-w-[400px] glass p-8 sm:p-9 rounded-[32px] shadow-2xl relative overflow-hidden border border-white/5"
-      >
-        {/* Glow effect */}
-        <div className="absolute -top-20 -right-20 w-40 h-40 bg-[#FF6B00]/20 blur-[60px] rounded-full" />
-        
-        {/* Logo & Heading */}
-        <div className="text-center mb-8">
-          <div className="w-12 h-12 bg-[#FF6B00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20 mx-auto mb-5">
-            <ShieldCheck className="text-white" size={24} />
-          </div>
-          <h1 className="text-xl font-bold text-white mb-2">لوحة الإدارة المركزية</h1>
-          <p className="text-white/40 text-xs font-bold uppercase tracking-widest">Zag Offers Admin</p>
-        </div>
-
-        <form onSubmit={handleLogin} className="space-y-5">
-          {error && (
-            <div className="p-3.5 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-bold text-center">
-              {error}
-            </div>
-          )}
-
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 mr-2 uppercase tracking-widest">رقم الموبايل</label>
-            <div className="relative group">
-              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={16} />
-              <input
-                type="tel"
-                value={phone}
-                onChange={(e) => setPhone(e.target.value)}
-                placeholder="01xxxxxxxxx"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
-                required
-              />
-            </div>
+    <main className="admin-auth-page" dir="rtl">
+      <div className="admin-auth-frame">
+        <section className="admin-auth-brand-panel">
+          <div className="admin-auth-brand-top">
+            <span className="flex items-center gap-3">
+              <span className="relative block h-12 w-12 overflow-hidden rounded-2xl">
+                <Image src="/icon-192.svg" alt="" fill priority className="object-cover" sizes="48px" />
+              </span>
+              <span>
+                <b className="block text-base font-black text-white">Zag Offers</b>
+                <small className="text-[10px] font-black text-orange-400">بوابة الإدارة المركزية</small>
+              </span>
+            </span>
           </div>
 
-          <div className="space-y-2">
-            <label className="text-xs font-bold text-white/50 mr-2 uppercase tracking-widest">كلمة المرور</label>
-            <div className="relative group">
-              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={16} />
-              <input
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-3.5 text-sm font-bold text-white focus:border-[#FF6B00] outline-none transition-all placeholder:text-white/5"
-                required
-              />
-              <button 
-                type="button"
-                onClick={() => setShowPassword(!showPassword)}
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-white transition-colors"
-              >
-                {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+          <div className="admin-auth-brand-copy">
+            <span className="admin-auth-eyebrow"><ShieldCheck size={15} /> تحكم آمن وموحّد</span>
+            <h2>كل أدوات إدارة المنصة في مكان واحد.</h2>
+            <p>راجع التجار والعروض والمستخدمين، وتابع أداء Zag Offers بتجربة متناسقة مع بوابتي العميل والتاجر.</p>
+          </div>
+
+          <div className="admin-auth-features">
+            <div><BarChart3 size={18} /><b>متابعة الأداء</b><span>إحصائيات مباشرة وواضحة</span></div>
+            <div><Users2 size={18} /><b>إدارة المستخدمين</b><span>صلاحيات ومراجعات مركزية</span></div>
+            <div><Store size={18} /><b>إدارة المتاجر</b><span>اعتمادات وعروض من مكان واحد</span></div>
+          </div>
+        </section>
+
+        <section className="admin-auth-form-panel">
+          <div className="admin-auth-topbar"><AdminThemeToggle compact /></div>
+          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[430px]">
+            <div className="mb-8">
+              <span className="admin-auth-kicker">بوابة المسؤولين</span>
+              <h1 className="admin-auth-title">مرحبًا بعودتك</h1>
+              <p className="admin-auth-subtitle">أدخل بيانات حساب الإدارة للمتابعة.</p>
+            </div>
+
+            <form onSubmit={handleLogin} className="space-y-5">
+              {error && <div className="admin-auth-error" role="alert">{error}</div>}
+
+              <div>
+                <label htmlFor="admin-phone" className="admin-auth-label">رقم الموبايل</label>
+                <div className="admin-auth-input-wrap">
+                  <Smartphone size={17} />
+                  <input id="admin-phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="01xxxxxxxxx" autoComplete="tel" required />
+                </div>
+              </div>
+
+              <div>
+                <label htmlFor="admin-password" className="admin-auth-label">كلمة المرور</label>
+                <div className="admin-auth-input-wrap">
+                  <Lock size={17} />
+                  <input id="admin-password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} placeholder="••••••••" autoComplete="current-password" required />
+                  <button type="button" onClick={() => setShowPassword((value) => !value)} aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}>
+                    {showPassword ? <EyeOff size={17} /> : <Eye size={17} />}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" disabled={loading} className="admin-auth-submit">
+                {loading ? <Loader2 className="animate-spin" size={20} /> : <><span>دخول النظام</span><ArrowRight size={19} /></>}
               </button>
-            </div>
-          </div>
+            </form>
 
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full py-3.5 bg-[#FF6B00] text-white font-bold rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-[1.01] active:scale-[0.99] transition-all flex items-center justify-center gap-2 text-sm mt-2"
-          >
-            {loading ? <Loader2 className="animate-spin" size={20} /> : (
-              <>
-                <span>دخول النظام</span>
-                <ArrowRight size={20} />
-              </>
-            )}
-          </button>
-        </form>
-
-
-      </motion.div>
-    </div>
+            <p className="admin-auth-security"><Lock size={13} /> جلسة آمنة ومخصصة لحسابات الإدارة فقط</p>
+          </motion.div>
+        </section>
+      </div>
+    </main>
   );
 }
 

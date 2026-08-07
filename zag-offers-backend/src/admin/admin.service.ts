@@ -919,7 +919,7 @@ export class AdminService {
       ];
     }
 
-    const [items, total] = await Promise.all([
+    const [items, total, roleCounts] = await Promise.all([
       this.prisma.user.findMany({
         where,
         select: {
@@ -940,7 +940,19 @@ export class AdminService {
         take: limit,
       }),
       this.prisma.user.count({ where }),
+      this.prisma.user.groupBy({
+        by: ['role'],
+        _count: { _all: true },
+      }),
     ]);
+
+    const summary = roleCounts.reduce(
+      (counts, item) => {
+        counts[item.role.toLowerCase() as 'customer' | 'merchant' | 'admin'] = item._count._all;
+        return counts;
+      },
+      { customer: 0, merchant: 0, admin: 0 },
+    );
 
     return {
       items,
@@ -949,6 +961,7 @@ export class AdminService {
         page,
         lastPage: Math.ceil(total / limit),
         limit,
+        summary,
       },
     };
   }

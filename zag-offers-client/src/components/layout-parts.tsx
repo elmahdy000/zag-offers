@@ -1,19 +1,18 @@
 "use client";
 
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { createPortal } from 'react-dom';
 import Link from 'next/link';
 import { 
-  RiShoppingBag3Fill, RiUser3Fill, RiHeart3Fill, RiMenu3Line, RiCloseLine, 
-  RiNotification3Fill, RiCheckDoubleLine, RiTicket2Fill, RiPhoneFill, 
-  RiShieldCheckFill, RiFileTextFill, RiPriceTag3Fill, RiBuilding2Fill, 
-  RiDashboardFill, RiCheckboxCircleFill, RiCustomerService2Fill, RiStore3Fill, 
-  RiMailFill, RiLink, RiArrowLeftSLine, RiMapPin2Fill, RiSparkling2Fill,
-  RiSearch2Line, RiFireFill
+  RiUser3Fill, RiHeart3Fill, RiMenu3Line, RiCloseLine,
+  RiNotification3Fill, RiCheckDoubleLine, RiSearch2Line, RiMapPin2Line,
+  RiHome4Line, RiSunLine, RiMoonClearLine, RiArrowLeftLine,
+  RiPriceTag3Line, RiShieldCheckLine, RiCustomerService2Line, RiMapPin2Fill
 } from 'react-icons/ri';
 import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
+import { BrandMark } from '@/components/brand-mark';
 
 interface ClientNotification {
   id: string;
@@ -30,9 +29,15 @@ interface ClientNotification {
 }
 
 function getNotifRoute(n: ClientNotification): string {
-  let d: any = n.data || {};
-  if (typeof d === 'string') {
-    try { d = JSON.parse(d); } catch { d = {}; }
+  const raw: unknown = n.data;
+  let d: NonNullable<ClientNotification['data']> = {};
+  if (typeof raw === 'string') {
+    try {
+      const parsed: unknown = JSON.parse(raw);
+      if (parsed && typeof parsed === 'object') d = parsed as NonNullable<ClientNotification['data']>;
+    } catch { d = {}; }
+  } else if (raw && typeof raw === 'object') {
+    d = raw as NonNullable<ClientNotification['data']>;
   }
   
   switch (n.type) {
@@ -165,16 +170,10 @@ const NavLink = ({ href, label, active }: { href: string; label: string; active:
   return (
     <Link
       href={href}
-      className={`relative text-sm font-bold transition-colors
-        ${active ? 'text-[#FF6B00]' : 'text-[#9A9A9A] hover:text-[#F0F0F0]'}`}
+      className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors
+        ${active ? 'nav-link-active bg-[#162238] text-white' : 'text-[#AAB5C6] hover:bg-[#101B2D] hover:text-white'}`}
     >
       {label}
-      {active && (
-        <motion.div
-          layoutId="nav-underline"
-          className="absolute -bottom-1 right-0 left-0 h-[2px] bg-[#FF6B00] rounded-full"
-        />
-      )}
     </Link>
   );
 };
@@ -183,16 +182,30 @@ const NavLink = ({ href, label, active }: { href: string; label: string; active:
 export function Navbar() {
   const pathname = usePathname();
   const router = useRouter();
-  const [isScrolled,       setIsScrolled]       = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [navSearch,        setNavSearch]        = useState('');
   const [isLoggedIn,       setIsLoggedIn]       = useState(false);
   const [notifications,    setNotifications]    = useState<ClientNotification[]>([]);
   const [showBell,         setShowBell]         = useState(false);
   const [mounted,          setMounted]          = useState(false);
+  const [theme,            setTheme]            = useState<'light' | 'dark'>('dark');
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
 
-  useEffect(() => { setTimeout(() => setMounted(true), 0); }, []);
+  useEffect(() => {
+    const current = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
+    setTimeout(() => {
+      setTheme(current);
+      setMounted(true);
+    }, 0);
+  }, []);
+
+  const toggleTheme = () => {
+    const nextTheme = theme === 'dark' ? 'light' : 'dark';
+    setTheme(nextTheme);
+    document.documentElement.dataset.theme = nextTheme;
+    localStorage.setItem('zag-theme', nextTheme);
+  };
 
   const fetchNotifications = useCallback(async () => {
     try {
@@ -265,12 +278,6 @@ export function Navbar() {
     return () => clearInterval(interval);
   }, [isLoggedIn, fetchNotifications]);
 
-  useEffect(() => {
-    const onScroll = () => setIsScrolled(window.scrollY > 20);
-    window.addEventListener('scroll', onScroll);
-    return () => window.removeEventListener('scroll', onScroll);
-  }, []);
-
   useEffect(() => { 
     setTimeout(() => setIsMobileMenuOpen(false), 0); 
   }, [pathname]);
@@ -292,48 +299,68 @@ export function Navbar() {
         />
       )}
 
-      <nav
-        className={`fixed top-0 inset-x-0 z-50 transition-all duration-300
-          ${isScrolled
-            ? 'bg-[rgba(26,26,26,0.9)] backdrop-blur-[20px] border-b border-white/[0.07] shadow-[0_4px_24px_rgba(0,0,0,0.3)] h-16'
-            : 'bg-transparent h-20'}`}
-      >
-        <div className="max-w-7xl mx-auto h-full px-4 sm:px-6 flex items-center justify-between" dir="rtl">
+      <nav className="fixed inset-x-0 top-0 z-50 h-[72px] border-b border-[#25344A] bg-[#0A1324]/95 backdrop-blur-xl">
+        <div className="site-container flex h-full items-center gap-4" dir="rtl">
           {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5 group flex-shrink-0">
-            <div className="w-9 h-9 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-xl
-                            flex items-center justify-center shadow-[0_4px_12px_rgba(255,107,0,0.35)]
-                            group-hover:scale-105 transition-transform">
-              <RiShoppingBag3Fill className="text-white" size={18} />
-            </div>
-            <span className="text-lg font-black tracking-tight">
-              Zag<span className="text-[#FF6B00]">Offers</span>
+          <Link href="/" className="group flex flex-shrink-0 items-center gap-2.5" aria-label="Zag Offers - الرئيسية">
+            <span className="relative block h-12 w-14 transition-transform group-hover:-translate-y-0.5">
+              <BrandMark priority className="h-full w-full drop-shadow-[0_6px_9px_rgba(0,0,0,.25)]" />
+            </span>
+            <span className="hidden leading-tight xl:block">
+              <b className="block text-sm tracking-tight text-white"><span className="text-[#FF6500]">Zag</span> Offers</b>
+              <small className="text-[9px] text-[#93A1B7]">عروض قريبة منك</small>
             </span>
           </Link>
 
           {/* Desktop Links */}
-          <div className="hidden md:flex items-center gap-8">
+          <div className="hidden items-center gap-1 lg:flex">
             <NavLink href="/"           label="الرئيسية" active={pathname === "/"} />
+            <NavLink href="/offers"     label="العروض" active={pathname === "/offers"} />
+            <NavLink href="/stores"     label="المتاجر"  active={pathname === "/stores"} />
             <NavLink href="/categories" label="الأقسام"  active={pathname === "/categories"} />
-            <NavLink href="/stores"     label="المحلات"  active={pathname === "/stores"} />
-            <NavLink href="/offers"     label="أقوى العروض" active={pathname === "/offers"} />
-            <Link 
-              href="https://vendor.zagoffers.online" 
-              target="_blank"
-              className="text-[10px] font-black text-[#FF6B00]/70 hover:text-[#FF6B00] transition-colors border border-[#FF6B00]/20 px-3 py-1 rounded-full uppercase tracking-widest"
-            >
-              لوحة التاجر
-            </Link>
+            <NavLink href="/coupons" label="المحفظة" active={pathname === "/coupons"} />
+            <NavLink href="/favorites" label="المفضلة" active={pathname === "/favorites"} />
+            <NavLink href="/contact" label="تواصل معنا" active={pathname === "/contact"} />
           </div>
 
+          <form
+            onSubmit={(event) => {
+              event.preventDefault();
+              if (navSearch.trim()) router.push(`/offers?q=${encodeURIComponent(navSearch.trim())}`);
+            }}
+            className="relative hidden min-w-0 flex-1 xl:block"
+          >
+            <RiSearch2Line className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8795AA]" size={18} />
+            <input
+              value={navSearch}
+              onChange={(event) => setNavSearch(event.target.value)}
+              placeholder="ابحث عن متجر، منتج أو عرض"
+              className="no-focus-ring h-10 w-full rounded-xl border border-[#25344A] bg-[#0C1627] pr-11 pl-4 text-sm font-normal text-white placeholder:text-[#74839A]"
+            />
+          </form>
+
           {/* Actions */}
-          <div className="flex items-center gap-2 sm:gap-3">
+          <div className="mr-auto flex flex-shrink-0 items-center gap-1 sm:gap-2">
+            <span className="hidden items-center gap-1.5 px-2 text-xs font-semibold text-[#D3DAE5] xl:flex">
+              <RiMapPin2Line className="text-[#FF8A32]" size={17} /> كل المناطق
+            </span>
             <Link
               href="/favorites"
-              className="p-2 text-[#9A9A9A] hover:text-[#F0F0F0] transition-colors rounded-lg hover:bg-white/5"
+              aria-label="المفضلة"
+              className="rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
             >
               <RiHeart3Fill size={19} />
             </Link>
+
+            <button
+              type="button"
+              onClick={toggleTheme}
+              className="theme-toggle rounded-lg p-2 transition-colors"
+              aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
+              title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
+            >
+              {mounted && theme === 'light' ? <RiMoonClearLine size={19} /> : <RiSunLine size={19} />}
+            </button>
 
             {isLoggedIn && (
               <button
@@ -351,8 +378,6 @@ export function Navbar() {
               </button>
             )}
 
-            <div className="h-5 w-px bg-white/[0.08] hidden sm:block" />
-
             {isLoggedIn ? (
               <Link
                 href="/profile"
@@ -367,17 +392,24 @@ export function Navbar() {
             ) : (
               <Link
                 href="/login"
-                className="px-5 py-2 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] text-white
-                           text-sm font-black rounded-full shadow-[0_4px_12px_rgba(255,107,0,0.35)]
-                           hover:scale-105 active:scale-95 transition-all"
+                aria-label="تسجيل الدخول"
+                className="rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
               >
-                دخول
+                <RiUser3Fill size={19} />
               </Link>
             )}
 
+            <Link
+              href="https://vendor.zagoffers.online"
+              target="_blank"
+              className="hidden h-10 items-center gap-2 rounded-xl border border-[#34445B] px-3 text-xs font-bold text-white hover:border-[#FF8A32] sm:flex"
+            >
+              <RiHome4Line size={16} /> أضف متجرك
+            </Link>
+
             {/* Hamburger */}
             <button
-              className="md:hidden p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5"
+              className="p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5 lg:hidden"
               onClick={() => setIsMobileMenuOpen(v => !v)}
             >
               {isMobileMenuOpen ? <RiCloseLine size={22} /> : <RiMenu3Line size={22} />}
@@ -392,7 +424,7 @@ export function Navbar() {
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
-              className="md:hidden bg-[#1E1E1E] border-t border-white/[0.07] overflow-hidden"
+              className="overflow-hidden border-t border-[#25344A] bg-[#0A1324] lg:hidden"
             >
               <div className="px-5 py-5 flex flex-col gap-1" dir="rtl">
                 {[
@@ -400,7 +432,10 @@ export function Navbar() {
                   { href: '/categories', label: 'الأقسام' },
                   { href: '/stores',     label: 'المحلات' },
                   { href: '/offers',     label: 'أقوى العروض' },
+                  { href: '/coupons',    label: 'المحفظة والكوبونات' },
                   { href: '/favorites',  label: 'المفضلة' },
+                  { href: '/contact',    label: 'تواصل معنا' },
+                  ...(isLoggedIn ? [{ href: '/notifications', label: 'الإشعارات' }, { href: '/profile', label: 'حسابي' }] : []),
                 ].map(({ href, label }) => (
                   <Link
                     key={href}
@@ -416,7 +451,7 @@ export function Navbar() {
                 {!isLoggedIn && (
                   <Link
                     href="/login"
-                    className="mt-3 py-3 text-center bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
+                    className="mt-3 py-3 text-center bg-[#FF6B00]
                                text-white font-black rounded-xl shadow-[0_4px_12px_rgba(255,107,0,0.3)]"
                   >
                     تسجيل الدخول
@@ -439,150 +474,41 @@ export function Footer() {
   if (isAuthPage) return null;
 
   return (
-    <footer className="relative bg-[#121212] border-t border-white/5 pt-20 pb-32 sm:pb-20 overflow-hidden">
-      <div className="container mx-auto px-6 relative z-10">
-        {/* Marketing Banner */}
-        <div className="mb-20">
-          <Link 
-            href="/offers" 
-            className="group relative block p-8 sm:p-12 rounded-[32px] overflow-hidden bg-gradient-to-br from-[#FF6B00] to-[#D95A00] hover:shadow-[0_20px_50px_rgba(255,107,0,0.3)] transition-all duration-500"
-          >
-            <div className="absolute inset-0 bg-[url('https://www.transparenttextures.com/patterns/carbon-fibre.png')] opacity-10" />
-            <div className="absolute -right-10 -top-10 w-40 h-40 bg-white/10 rounded-full blur-3xl group-hover:scale-150 transition-transform duration-700" />
-            
-            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-8 text-right sm:text-right">
-              <div className="flex flex-col sm:flex-row items-center gap-6 text-right">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-white/20 backdrop-blur-md rounded-2xl flex items-center justify-center border border-white/20 group-hover:rotate-12 transition-all duration-500 shadow-2xl">
-                  <RiTicket2Fill className="text-white" size={32} />
-                </div>
-                <div className="text-center sm:text-right">
-                  <h2 className="text-2xl sm:text-4xl font-black text-white tracking-tight mb-2">
-                    عروض حصرية بانتظارك!
-                  </h2>
-                  <p className="text-white/80 font-bold text-sm sm:text-lg">تصفح أقوى الكوبونات ووفر فلوسك دلوقتي</p>
-                </div>
-              </div>
-              <div className="px-8 py-3 bg-white text-[#FF6B00] font-black rounded-full shadow-xl group-hover:scale-105 transition-transform">
-                اكتشف الآن
-              </div>
-            </div>
+    <footer className="site-footer">
+      <div className="site-container footer-cta">
+        <div className="footer-cta-icon"><RiPriceTag3Line size={28} /></div>
+        <div><span>اختيارات جديدة كل يوم</span><h3>أفضل العروض أقرب إليك مما تتخيل</h3></div>
+        <Link href="/offers">اكتشف العروض <RiArrowLeftLine size={18} /></Link>
+      </div>
+      <div className="site-container footer-main">
+        <div className="footer-brand">
+          <Link href="/" className="footer-logo" aria-label="Zag Offers - الرئيسية">
+            <span className="relative block h-16 w-20"><BrandMark className="h-full w-full" /></span>
+            <span><b><span>Zag</span> Offers</b><small>عروض قريبة منك</small></span>
           </Link>
-        </div>
-
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 lg:gap-16">
-          {/* Brand Info */}
-          <div className="space-y-8 flex flex-col items-start text-right">
-            <Link href="/" className="flex items-center gap-3">
-              <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-2xl flex items-center justify-center shadow-xl shadow-orange-950/20">
-                <RiShoppingBag3Fill className="text-white" size={24} />
-              </div>
-              <span className="text-3xl font-black text-white tracking-tighter">Zag<span className="text-[#FF6B00]">Offers</span></span>
-            </Link>
-            <p className="text-[#9A9A9A] text-sm leading-relaxed font-bold max-w-xs text-justify">
-              المنصة رقم #1 في الزقازيق لاكتشاف أفضل العروض. بنجمعلك كل الخصومات في مكان واحد عشان نسهل عليك حياتك.
-            </p>
-            <div className="flex gap-4 justify-start">
-              {[
-                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><path d="M18 2h-3a5 5 0 0 0-5 5v3H7v4h3v8h4v-8h3l1-4h-4V7a1 1 0 0 1 1-1h3z"/></svg>, href: '#' },
-                { icon: <XIcon size={20} />, href: '#' },
-                { icon: <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><rect width="20" height="20" x="2" y="2" rx="5" ry="5"/><path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z"/><line x1="17.5" x2="17.51" y1="6.5" y2="6.5"/></svg>, href: '#' }
-              ].map((s, i) => (
-                <Link key={i} href={s.href} className="w-11 h-11 rounded-2xl bg-white/5 border border-white/5 flex items-center justify-center text-[#9A9A9A] hover:text-white hover:bg-[#FF6B00] hover:border-[#FF6B00] transition-all duration-300">
-                  {s.icon}
-                </Link>
-              ))}
-            </div>
-          </div>
-
-          {/* Links Grid */}
-          <div className="grid grid-cols-2 gap-8 md:col-span-2 lg:col-span-2">
-            <div className="text-right flex flex-col items-start">
-              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2">
-                روابط هامة
-                <span className="w-1.5 h-4 bg-[#FF6B00] rounded-full" />
-              </h4>
-              <ul className="space-y-4 w-full">
-                {[
-                  { label: 'أحدث العروض', href: '/offers' },
-                  { label: 'المتاجر', href: '/stores' },
-                  { label: 'تواصل معنا', href: '/contact' },
-                  { label: 'من نحن', href: '/about' }
-                ].map((l, i) => (
-                  <li key={i}>
-                    <Link href={l.href} className="text-[#9A9A9A] hover:text-[#FF6B00] font-bold text-sm transition-colors flex items-center justify-center sm:justify-start gap-2 group">
-                      <RiArrowLeftSLine size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-            <div className="text-right flex flex-col items-start">
-              <h4 className="text-base font-black text-white mb-8 flex items-center gap-2">
-                للتجار
-                <span className="w-1.5 h-4 bg-blue-500 rounded-full" />
-              </h4>
-              <ul className="space-y-4 w-full">
-                {[
-                  { label: 'سجل محلك', href: '/contact' },
-                  { label: 'لوحة التحكم', href: 'https://vendor.zagoffers.online' },
-                  { label: 'الأسئلة الشائعة', href: '/faq' },
-                  { label: 'الدعم الفني', href: '/support' }
-                ].map((l, i) => (
-                  <li key={i}>
-                    <Link href={l.href} className="text-[#9A9A9A] hover:text-blue-500 font-bold text-sm transition-colors flex items-center justify-center sm:justify-start gap-2 group">
-                      <RiArrowLeftSLine size={14} className="opacity-0 translate-x-2 group-hover:opacity-100 group-hover:translate-x-0 transition-all hidden sm:block" />
-                      {l.label}
-                    </Link>
-                  </li>
-                ))}
-              </ul>
-            </div>
-          </div>
-
-          {/* Subscription */}
-          <div className="space-y-6 flex flex-col items-start text-right">
-            <h4 className="text-base font-black text-white flex items-center gap-2">
-              النشرة البريدية
-              <span className="w-1.5 h-4 bg-emerald-500 rounded-full" />
-            </h4>
-            <p className="text-[#9A9A9A] text-xs font-bold leading-relaxed max-w-[200px] sm:text-right">
-              اشترك عشان نبعتلك أقوى العروض الحصرية أول بأول على إيميلك.
-            </p>
-            <div className="space-y-3 w-full max-w-xs">
-              <div className="relative">
-                <RiMailFill className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20" size={18} />
-                <input 
-                  type="email" 
-                  placeholder="بريدك الإلكتروني"
-                  className="w-full bg-[#1A1A1A] border border-white/5 rounded-2xl py-4 pr-12 pl-4 text-xs font-bold text-white focus:outline-none focus:border-[#FF6B00]/50 transition-all text-right"
-                />
-              </div>
-              <button className="w-full py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-lg shadow-orange-950/20 hover:scale-[1.02] active:scale-95 transition-all text-xs">
-                اشترك الآن
-              </button>
-            </div>
+          <p>منصتك لاكتشاف أفضل العروض والخصومات الموثوقة في الزقازيق، بسهولة وفي مكان واحد.</p>
+          <div className="footer-badges">
+            <span><RiShieldCheckLine /> عروض موثوقة</span>
+            <span><RiMapPin2Fill /> داخل الزقازيق</span>
           </div>
         </div>
-
-        {/* Bottom Section */}
-        <div className="mt-20 pt-10 border-t border-white/[0.05] flex flex-col md:flex-row justify-between items-center gap-6">
-          <p className="text-xs font-bold text-[#9A9A9A]">
-            © 2026 <span className="text-white">ZagOffers</span>. صنع بكل ❤️ في الزقازيق.
-          </p>
-          <div className="flex gap-6 text-[10px] sm:text-xs font-black text-[#9A9A9A] uppercase tracking-widest">
-            <Link href="/privacy" className="hover:text-white transition-colors">الخصوصية</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">الشروط</Link>
-            <Link href="/cookies" className="hover:text-white transition-colors">الكوكيز</Link>
+        {[
+          { title: 'استكشف', links: [['تصفح العروض', '/offers'], ['المتاجر', '/stores'], ['الأقسام', '/categories']] },
+          { title: 'المساعدة', links: [['تواصل معنا', '/contact'], ['الخصوصية', '/privacy'], ['الشروط', '/terms']] },
+          { title: 'للتجار', links: [['أضف متجرك', 'https://vendor.zagoffers.online'], ['لوحة التحكم', 'https://vendor.zagoffers.online']] },
+        ].map((column) => (
+          <div key={column.title} className="footer-column">
+            <h4>{column.title}</h4>
+            <ul>
+              {column.links.map(([label, href]) => <li key={label}><Link href={href}><RiArrowLeftLine />{label}</Link></li>)}
+            </ul>
           </div>
-        </div>
+        ))}
+      </div>
+      <div className="site-container footer-bottom">
+        <span>© 2026 ZagOffers. جميع الحقوق محفوظة.</span>
+        <span><RiCustomerService2Line /> نحن هنا لمساعدتك</span>
       </div>
     </footer>
   );
 }
-
-const XIcon = ({ size }: { size: number }) => (
-  <svg width={size} height={size} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M18.901 1.153h3.68l-8.04 9.19L24 22.846h-7.406l-5.8-7.584-6.638 7.584H.474l8.6-9.83L0 1.154h7.594l5.243 6.932 6.064-6.933zm-1.292 19.49h2.039L6.486 3.24H4.298l13.311 17.403z" />
-  </svg>
-);

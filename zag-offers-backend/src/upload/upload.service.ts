@@ -52,15 +52,20 @@ export class UploadService {
 
     // Process image with security constraints
     try {
-      await sharp(file.buffer)
+      await sharp(file.buffer, {
+        failOn: 'error',
+        limitInputPixels: 40_000_000,
+      })
+        .rotate()
         .resize(1200, 1200, {
           fit: 'inside',
           withoutEnlargement: true,
           background: { r: 255, g: 255, b: 255, alpha: 1 },
         })
         .webp({
-          quality: 85,
-          effort: 4,
+          quality: 82,
+          effort: 3,
+          smartSubsample: true,
         })
         .toFile(path);
     } catch (e) {

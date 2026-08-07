@@ -15,7 +15,7 @@ export const MAX_IMAGE_DIMENSION = 2048; // 2048px
  */
 export const validateFile = (file: File): { valid: boolean; error?: string } => {
   // التحقق من نوع الملف
-  if (!ALLOWED_IMAGE_TYPES.includes(file.type as any)) {
+  if (!ALLOWED_IMAGE_TYPES.some((type) => type === file.type)) {
     return {
       valid: false,
       error: 'نوع الملف غير مدعوم. يرجى استخدام صور من نوع JPG, PNG, أو WebP'

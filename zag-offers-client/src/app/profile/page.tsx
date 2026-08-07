@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronLeft, Shield, MessageCircle } from 'lucide-react';
+import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronRight, Shield, MessageCircle, Award } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -18,19 +18,19 @@ export default function ProfilePage() {
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    try {
-      const savedUser = localStorage.getItem('user');
-      if (savedUser) {
-        setUser(JSON.parse(savedUser));
-      } else {
+    const loadUser = window.setTimeout(() => {
+      try {
+        const savedUser = localStorage.getItem('user');
+        if (savedUser) setUser(JSON.parse(savedUser));
+        else router.replace('/login');
+      } catch (error) {
+        console.error('Error parsing user data:', error);
         router.replace('/login');
+      } finally {
+        setLoading(false);
       }
-    } catch (error) {
-      console.error('Error parsing user data:', error);
-      router.replace('/login');
-    } finally {
-      setLoading(false);
-    }
+    }, 0);
+    return () => window.clearTimeout(loadUser);
   }, [router]);
 
   const handleLogout = async () => {
@@ -103,7 +103,7 @@ export default function ProfilePage() {
                 <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">تاريخ الخصومات</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
+            <ChevronRight className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
           </Link>
 
           <Link href="/favorites" className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[28px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group min-h-[90px]">
@@ -114,7 +114,7 @@ export default function ProfilePage() {
                 <p className="text-[10px] font-bold text-white/30 uppercase tracking-widest mt-0.5">العروض المحفوظة</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20 group-hover:text-red-500 group-hover:translate-x-[-4px] transition-all" />
+            <ChevronRight className="text-white/20 group-hover:text-red-500 group-hover:translate-x-[-4px] transition-all" />
           </Link>
         </div>
 
@@ -130,7 +130,7 @@ export default function ProfilePage() {
                 <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-0.5">تحديث الملف الشخصي</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
+            <ChevronRight className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
           </Link>
 
           <Link href="/contact" className="flex items-center justify-between p-5 bg-white/5 border border-white/5 rounded-[28px] hover:border-[#FF6B00]/40 hover:bg-white/10 transition-all group min-h-[90px]">
@@ -141,18 +141,18 @@ export default function ProfilePage() {
                 <p className="text-[10px] font-bold text-white/50 uppercase tracking-widest mt-0.5">الدعم الفني والمساعدة</p>
               </div>
             </div>
-            <ChevronLeft className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
+            <ChevronRight className="text-white/20 group-hover:text-[#FF6B00] group-hover:translate-x-[-4px] transition-all" />
           </Link>
         </div>
 
         {/* Loyalty Banner - Spans Full Width */}
         <div className="col-span-full mt-2">
-          <div className="relative overflow-hidden p-8 bg-gradient-to-br from-orange-600/20 via-orange-900/10 to-transparent border border-[#FF6B00]/20 rounded-[32px] group">
+          <div className="relative overflow-hidden p-8 bg-[#161D29] border border-[#FF6B00]/20 rounded-[32px] group">
             <div className="absolute top-0 left-0 w-32 h-32 bg-[#FF6B00]/10 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
             <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6">
               <div className="text-center sm:text-right">
                 <h4 className="text-xl font-black text-white mb-2 flex items-center justify-center sm:justify-start gap-2">
-                  برنامج الولاء <span className="text-2xl">🌟</span>
+                  برنامج الولاء <Award size={22} className="text-[#FF6B00]" aria-hidden="true" />
                 </h4>
                 <p className="text-sm font-bold text-white/50 leading-relaxed max-w-md">
                   قريباً ستتمكن من جمع النقاط مع كل كوبون تستخدمه واستبدالها بهدايا قيمة وحصرية.

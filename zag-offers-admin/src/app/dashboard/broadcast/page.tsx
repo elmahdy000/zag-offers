@@ -23,6 +23,14 @@ import { adminApi, resolveImageUrl } from '@/lib/api';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/components/shared/Toast';
 
+function apiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === 'string') return response.data.message;
+  }
+  return fallback;
+}
+
 export default function BroadcastPage() {
   const { showToast } = useToast();
   const [title, setTitle] = useState('');
@@ -46,8 +54,8 @@ export default function BroadcastPage() {
       setActionType('ANNOUNCEMENT');
       setActionValue('');
     },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل إرسال الإشعار الجماعي', 'error');
+    onError: (err: unknown) => {
+      showToast(apiErrorMessage(err, 'فشل إرسال الإشعار الجماعي'), 'error');
     },
   });
 
@@ -78,8 +86,8 @@ export default function BroadcastPage() {
       // Store the raw relative path; resolve only at display/send time to avoid double-prefixing
       setImageUrl(response.data.url);
       showToast('تم رفع الصورة بنجاح');
-    } catch (error: any) {
-      showToast(error.response?.data?.message || 'فشل رفع الصورة', 'error');
+    } catch (error: unknown) {
+      showToast(apiErrorMessage(error, 'فشل رفع الصورة'), 'error');
     } finally {
       setIsUploading(false);
     }
@@ -287,7 +295,7 @@ export default function BroadcastPage() {
               </div>
 
               {/* Wallpaper / Background */}
-              <div className="absolute inset-0 bg-gradient-to-b from-indigo-500 via-purple-500 to-pink-500 opacity-90" />
+              <div className="absolute inset-0 bg-[#071426]" />
 
               {/* Status Bar */}
               <div className="relative z-10 flex justify-between px-6 pt-4 text-white/90 font-bold text-xs">

@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Send, MessageSquare, CheckCheck, Loader2, ChevronRight } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { vendorApi, getCookie } from '@/lib/api';
 import { io, Socket } from 'socket.io-client';
@@ -84,19 +83,13 @@ export default function VendorChatPage() {
   const [conversationId, setConversationId] = useState<string | null>(null);
   const [messages, setMessages] = useState<Message[]>([]);
   const [loading, setLoading] = useState(true);
-  const [userId, setUserId] = useState('');
+  const [userId] = useState(() => {
+    try { return secureUserData.load()?.id || ''; }
+    catch { return ''; }
+  });
   const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const { addError } = useNotifications();
-
-  useEffect(() => {
-    try {
-      const user = secureUserData.load();
-      if (user) setUserId(user.id || '');
-    } catch (e) {
-      console.error('Failed to load user from secure storage:', e);
-    }
-  }, []);
 
   useEffect(() => {
     if (!userId) return;
@@ -115,7 +108,7 @@ export default function VendorChatPage() {
       } catch (e) { console.error('Failed to init chat:', e); addError('فشل تحميل المحادثة'); } finally { setLoading(false); }
     };
     initChat();
-  }, [userId]);
+  }, [addError, userId]);
 
   useEffect(() => {
     if (!userId) return;
@@ -149,7 +142,7 @@ export default function VendorChatPage() {
       });
     });
     return () => { s.disconnect(); };
-  }, [userId]);
+  }, [addError, userId]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -175,16 +168,16 @@ export default function VendorChatPage() {
         text: msgText,
       });
       setMessages(prev => prev.map(m => m.id === tmpId ? res.data : m));
-    } catch (e) {
+    } catch {
       setMessages(prev => prev.filter(m => m.id !== tmpId));
       addError('فشل إرسال الرسالة');
     }
-  }, [userId, conversationId]);
+  }, [addError, userId, conversationId]);
 
   return (
     <div className="fixed inset-0 bg-bg z-[100] flex flex-col overflow-hidden" dir="rtl">
       {/* Header */}
-      <div className="px-5 py-4 flex items-center gap-4 z-10 border-b border-glass-border bg-bg/80 backdrop-blur-xl shrink-0">
+      <div className="px-5 py-4 flex items-center gap-4 z-10 border-b border-glass-border bg-bg shrink-0">
         <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-glass-border">
           <ChevronRight size={20} />
         </button>

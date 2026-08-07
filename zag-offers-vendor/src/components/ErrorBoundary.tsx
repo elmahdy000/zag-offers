@@ -38,7 +38,7 @@ class ErrorBoundary extends Component<Props, State> {
               <AlertCircle size={40} className="text-red-500" />
             </div>
             
-            <h1 className="text-2xl font-black text-white mb-4">عذراً، حدث خطأ غير متوقع</h1>
+            <h1 className="text-2xl font-black text-text mb-4">عذراً، حدث خطأ غير متوقع</h1>
             <p className="text-text-dim font-bold text-sm leading-relaxed mb-10">
               واجه التطبيق مشكلة تقنية. لا تقلق، بياناتك في أمان. يمكنك محاولة إعادة تحميل الصفحة.
             </p>

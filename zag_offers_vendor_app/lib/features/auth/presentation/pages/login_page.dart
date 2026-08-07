@@ -13,9 +13,19 @@ class LoginPage extends StatefulWidget {
 }
 
 class _LoginPageState extends State<LoginPage> {
-  static final _loginTitle = GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
-  static final _loginSubtitle = GoogleFonts.cairo(fontSize: 16, color: AppColors.textSecondary);
-  static final _loginBtn = GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.bold);
+  static final _loginTitle = GoogleFonts.cairo(
+    fontSize: 32,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+  static final _loginSubtitle = GoogleFonts.cairo(
+    fontSize: 16,
+    color: AppColors.textSecondary,
+  );
+  static final _loginBtn = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+  );
 
   final _identifierController = TextEditingController();
   final _passwordController = TextEditingController();
@@ -162,9 +172,9 @@ class _LoginPageState extends State<LoginPage> {
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
                         foregroundColor: Colors.white,
-                        padding: const EdgeInsets.symmetric(vertical: 20),
+                        padding: const EdgeInsets.symmetric(vertical: 11),
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(14),
                         ),
                         elevation: 0,
                       ),
@@ -177,10 +187,7 @@ class _LoginPageState extends State<LoginPage> {
                                 strokeWidth: 2,
                               ),
                             )
-                          : Text(
-                              'تسجيل الدخول',
-                              style: _loginBtn,
-                            ),
+                          : Text('تسجيل الدخول', style: _loginBtn),
                     ),
                   ],
                 ),

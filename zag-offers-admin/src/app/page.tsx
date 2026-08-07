@@ -167,7 +167,7 @@ export default function HomePage() {
         /* Compact Card Styling */
         .offer-card-mini { background: var(--card); border: 1px solid var(--border); border-radius: var(--radius); overflow: hidden; cursor: pointer; transition: 0.2s; position: relative; }
         .offer-card-mini:hover { transform: translateY(-3px); border-color: var(--primary); }
-        .card-image-wrap { height: 100px; background: linear-gradient(45deg, #1e1e1e, #2a2a2a); position: relative; }
+        .card-image-wrap { height: 100px; background: #172033; position: relative; }
         .discount-tag { position: absolute; top: 8px; right: 8px; background: var(--primary); color: white; padding: 2px 8px; border-radius: 6px; font-weight: 800; font-size: 14px; z-index: 2; box-shadow: 0 4px 10px rgba(0,0,0,0.3); }
         .featured-tag { position: absolute; top: 8px; left: 8px; font-size: 12px; z-index: 2; }
         

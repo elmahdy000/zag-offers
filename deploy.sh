@@ -19,11 +19,10 @@ echo "🔧 Building Backend..."
 cd zag-offers-backend
 npm install
 npx prisma generate
-npx prisma db push --accept-data-loss
+npx prisma migrate deploy
 npm run build
-NODE_ENV=production npx prisma db seed
 pm2 restart zag-backend || pm2 start dist/src/main.js --name zag-backend
-echo "✅ Backend deployed and seeded successfully"
+echo "✅ Backend deployed successfully"
 
 # تحديث و بناء Client
 echo "🎨 Building Client..."

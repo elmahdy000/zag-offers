@@ -1,6 +1,6 @@
 'use client';
-import React, { useState, useEffect, useRef } from 'react';
-import { motion, useScroll, useTransform, useSpring } from 'framer-motion';
+import React, { useState, useRef } from 'react';
+import { motion } from 'framer-motion';
 import { RefreshCw } from 'lucide-react';
 
 interface PullToRefreshProps {

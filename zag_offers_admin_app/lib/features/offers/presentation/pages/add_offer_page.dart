@@ -31,11 +31,11 @@ class _AddOfferPageState extends State<AddOfferPage> {
   final _discountController = TextEditingController();
   final _termsController = TextEditingController();
   final _originalPriceController = TextEditingController();
-  
+
   DateTime _startDate = DateTime.now();
   DateTime _endDate = DateTime.now().add(const Duration(days: 30));
   int? _usageLimit;
-  
+
   String? _selectedMerchantId;
   String? _selectedMerchantName;
 
@@ -78,17 +78,17 @@ class _AddOfferPageState extends State<AddOfferPage> {
       // Use pickMultiImage to allow selecting multiple images at once
       final List<XFile> pickedFiles = await picker.pickMultiImage(
         imageQuality: 70, // Reduce quality to fix 413 error
-        maxWidth: 1440,   // Limit dimensions to fix 413 error
+        maxWidth: 1440, // Limit dimensions to fix 413 error
         maxHeight: 1440,
       );
 
       if (pickedFiles.isNotEmpty) {
         setState(() => _isUploading = true);
         final uploadUseCase = sl<UploadUseCase>();
-        
+
         for (final file in pickedFiles) {
           if (_imageUrls.length >= 5) break; // Limit to 5 images
-          
+
           final result = await uploadUseCase(File(file.path));
           result.fold(
             (failure) => _showError('فشل رفع إحدى الصور: ${failure.message}'),
@@ -152,18 +152,29 @@ class _AddOfferPageState extends State<AddOfferPage> {
             mainAxisSize: MainAxisSize.min,
             children: [
               Container(
-                width: 100,
-                height: 100,
-                decoration: BoxDecoration(
-                  color: AppColors.success.withValues(alpha: 0.1),
-                  shape: BoxShape.circle,
-                ),
-                child: const Icon(IconlyBold.tickSquare, color: AppColors.success, size: 50),
-              ).animate().scale(duration: 400.ms, curve: Curves.easeOutBack).rotate(begin: -0.5, end: 0),
+                    width: 100,
+                    height: 100,
+                    decoration: BoxDecoration(
+                      color: AppColors.success.withValues(alpha: 0.1),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      IconlyBold.tickSquare,
+                      color: AppColors.success,
+                      size: 50,
+                    ),
+                  )
+                  .animate()
+                  .scale(duration: 400.ms, curve: Curves.easeOutBack)
+                  .rotate(begin: -0.5, end: 0),
               const SizedBox(height: 24),
               Text(
                 'تم بنجاح!',
-                style: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                style: GoogleFonts.cairo(
+                  fontSize: 24,
+                  fontWeight: FontWeight.bold,
+                  color: AppColors.textPrimary,
+                ),
               ).animate().fadeIn(delay: 200.ms),
               const SizedBox(height: 8),
               Text(
@@ -171,7 +182,10 @@ class _AddOfferPageState extends State<AddOfferPage> {
                     ? 'تم تحديث العرض بنجاح لمتجر\n$_selectedMerchantName'
                     : 'تم إنشاء العرض ونشره بنجاح لمتجر\n$_selectedMerchantName',
                 textAlign: TextAlign.center,
-                style: GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary),
+                style: GoogleFonts.cairo(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                ),
               ).animate().fadeIn(delay: 400.ms),
               const SizedBox(height: 32),
               SizedBox(
@@ -182,8 +196,10 @@ class _AddOfferPageState extends State<AddOfferPage> {
                     Navigator.pop(this.context); // Close page
                   },
                   style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(16),
+                    ),
                   ),
                   child: const Text('رجوع للعروض'),
                 ),
@@ -204,8 +220,10 @@ class _AddOfferPageState extends State<AddOfferPage> {
     );
     if (picked != null) {
       setState(() {
-        if (isStart) _startDate = picked;
-        else _endDate = picked;
+        if (isStart)
+          _startDate = picked;
+        else
+          _endDate = picked;
       });
     }
   }
@@ -232,12 +250,16 @@ class _AddOfferPageState extends State<AddOfferPage> {
         'usageLimit': _usageLimit,
         'storeId': _selectedMerchantId,
         'originalPrice': double.tryParse(_originalPriceController.text),
-        'newPrice': _calculateNewPrice() != null ? double.tryParse(_calculateNewPrice()!) : null,
+        'newPrice': _calculateNewPrice() != null
+            ? double.tryParse(_calculateNewPrice()!)
+            : null,
         'status': widget.initialOffer?.status ?? 'APPROVED',
       };
 
       if (widget.initialOffer != null) {
-        context.read<OffersBloc>().add(UpdateOfferEvent(id: widget.initialOffer!.id, offerData: data));
+        context.read<OffersBloc>().add(
+          UpdateOfferEvent(id: widget.initialOffer!.id, offerData: data),
+        );
       } else {
         context.read<OffersBloc>().add(CreateOfferEvent(offerData: data));
       }
@@ -247,7 +269,10 @@ class _AddOfferPageState extends State<AddOfferPage> {
   @override
   Widget build(BuildContext context) {
     return BlocListener<OffersBloc, OffersState>(
-      listenWhen: (_, state) => state is OfferCreated || state is OfferUpdated || state is OffersError,
+      listenWhen: (_, state) =>
+          state is OfferCreated ||
+          state is OfferUpdated ||
+          state is OffersError,
       listener: (context, state) {
         if (state is OfferCreated || state is OfferUpdated) {
           _showSuccessDialog();
@@ -258,7 +283,9 @@ class _AddOfferPageState extends State<AddOfferPage> {
       child: Scaffold(
         backgroundColor: AppColors.background,
         appBar: AppBar(
-          title: Text(widget.initialOffer != null ? 'تعديل العرض' : 'إضافة عرض جديد'),
+          title: Text(
+            widget.initialOffer != null ? 'تعديل العرض' : 'إضافة عرض جديد',
+          ),
           centerTitle: true,
         ),
         body: SingleChildScrollView(
@@ -327,15 +354,27 @@ class _AddOfferPageState extends State<AddOfferPage> {
                     ),
                     child: Row(
                       children: [
-                        const Icon(IconlyBold.discount, color: AppColors.success, size: 18),
+                        const Icon(
+                          IconlyBold.discount,
+                          color: AppColors.success,
+                          size: 18,
+                        ),
                         const SizedBox(width: 8),
                         Text(
                           'السعر بعد الخصم (تقريبي): ',
-                          style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+                          style: GoogleFonts.cairo(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: AppColors.textSecondary,
+                          ),
                         ),
                         Text(
                           '${_calculateNewPrice()} ج.م',
-                          style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.success),
+                          style: GoogleFonts.cairo(
+                            fontSize: 14,
+                            fontWeight: FontWeight.w900,
+                            color: AppColors.success,
+                          ),
                         ),
                       ],
                     ),
@@ -347,11 +386,19 @@ class _AddOfferPageState extends State<AddOfferPage> {
                 Row(
                   children: [
                     Expanded(
-                      child: _buildDatePicker('تاريخ البدء', _startDate, () => _selectDate(context, true)),
+                      child: _buildDatePicker(
+                        'تاريخ البدء',
+                        _startDate,
+                        () => _selectDate(context, true),
+                      ),
                     ),
                     const SizedBox(width: 16),
                     Expanded(
-                      child: _buildDatePicker('تاريخ الانتهاء', _endDate, () => _selectDate(context, false)),
+                      child: _buildDatePicker(
+                        'تاريخ الانتهاء',
+                        _endDate,
+                        () => _selectDate(context, false),
+                      ),
                     ),
                   ],
                 ),
@@ -361,7 +408,8 @@ class _AddOfferPageState extends State<AddOfferPage> {
                   hint: 'أقصى عدد لاستخدام العرض',
                   icon: IconlyLight.profile,
                   keyboardType: TextInputType.number,
-                  onChanged: (v) => setState(() => _usageLimit = int.tryParse(v)),
+                  onChanged: (v) =>
+                      setState(() => _usageLimit = int.tryParse(v)),
                 ),
                 const SizedBox(height: 40),
                 BlocBuilder<OffersBloc, OffersState>(
@@ -370,15 +418,25 @@ class _AddOfferPageState extends State<AddOfferPage> {
                     final isLoading = state is OfferActionLoading;
                     return SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 48,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text('إنشاء العرض الآن', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold)),
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                'إنشاء العرض الآن',
+                                style: GoogleFonts.cairo(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
                       ),
                     );
                   },
@@ -395,7 +453,11 @@ class _AddOfferPageState extends State<AddOfferPage> {
   Widget _buildSectionTitle(String title) {
     return Text(
       title,
-      style: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold, color: AppColors.textSecondary),
+      style: GoogleFonts.cairo(
+        fontSize: 14,
+        fontWeight: FontWeight.bold,
+        color: AppColors.textSecondary,
+      ),
     );
   }
 
@@ -414,23 +476,44 @@ class _AddOfferPageState extends State<AddOfferPage> {
           children: [
             Container(
               padding: const EdgeInsets.all(10),
-              decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.1), shape: BoxShape.circle),
-              child: const Icon(IconlyBold.buy, color: AppColors.primary, size: 24),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                IconlyBold.buy,
+                color: AppColors.primary,
+                size: 24,
+              ),
             ),
             const SizedBox(width: 16),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text('المتجر المستهدف', style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary)),
+                  Text(
+                    'المتجر المستهدف',
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      color: AppColors.textSecondary,
+                    ),
+                  ),
                   Text(
                     _selectedMerchantName ?? 'اضغط لاختيار المتجر',
-                    style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: AppColors.primary),
+                    style: GoogleFonts.cairo(
+                      fontSize: 16,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
             ),
-            const Icon(IconlyLight.arrowLeft2, size: 20, color: AppColors.primary),
+            const Icon(
+              IconlyLight.arrowLeft2,
+              size: 20,
+              color: AppColors.primary,
+            ),
           ],
         ),
       ),
@@ -453,11 +536,21 @@ class _AddOfferPageState extends State<AddOfferPage> {
               minChildSize: 0.5,
               maxChildSize: 0.9,
               builder: (_, scrollController) => Container(
-                decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+                decoration: const BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+                ),
                 child: Column(
                   children: [
                     const SizedBox(height: 12),
-                    Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10))),
+                    Container(
+                      width: 40,
+                      height: 4,
+                      decoration: BoxDecoration(
+                        color: Colors.grey.shade200,
+                        borderRadius: BorderRadius.circular(10),
+                      ),
+                    ),
                     Padding(
                       padding: const EdgeInsets.all(24),
                       child: TextField(
@@ -467,25 +560,44 @@ class _AddOfferPageState extends State<AddOfferPage> {
                           prefixIcon: const Icon(IconlyLight.search, size: 20),
                           filled: true,
                           fillColor: AppColors.background,
-                          border: OutlineInputBorder(borderRadius: BorderRadius.circular(16), borderSide: BorderSide.none),
+                          border: OutlineInputBorder(
+                            borderRadius: BorderRadius.circular(16),
+                            borderSide: BorderSide.none,
+                          ),
                         ),
-                        onChanged: (v) => setModalState(() => query = v.toLowerCase()),
+                        onChanged: (v) =>
+                            setModalState(() => query = v.toLowerCase()),
                       ),
                     ),
                     Expanded(
                       child: BlocBuilder<MerchantsBloc, MerchantsState>(
-                        buildWhen: (_, state) => state is MerchantsLoaded || state is MerchantsError,
+                        buildWhen: (_, state) =>
+                            state is MerchantsLoaded || state is MerchantsError,
                         builder: (context, state) {
                           if (state is MerchantsLoaded) {
-                            final filtered = state.merchants.where((m) => m.storeName.toLowerCase().contains(query)).toList();
+                            final filtered = state.merchants
+                                .where(
+                                  (m) =>
+                                      m.storeName.toLowerCase().contains(query),
+                                )
+                                .toList();
                             return ListView.builder(
                               controller: scrollController,
                               itemCount: filtered.length,
                               itemBuilder: (context, index) {
                                 final m = filtered[index];
                                 return ListTile(
-                                  leading: CircleAvatar(backgroundColor: AppColors.primary.withValues(alpha: 0.1), child: Text(m.storeName[0])),
-                                  title: Text(m.storeName, style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                                  leading: CircleAvatar(
+                                    backgroundColor: AppColors.primary
+                                        .withValues(alpha: 0.1),
+                                    child: Text(m.storeName[0]),
+                                  ),
+                                  title: Text(
+                                    m.storeName,
+                                    style: GoogleFonts.cairo(
+                                      fontWeight: FontWeight.bold,
+                                    ),
+                                  ),
                                   onTap: () {
                                     setState(() {
                                       _selectedMerchantId = m.id;
@@ -497,7 +609,9 @@ class _AddOfferPageState extends State<AddOfferPage> {
                               },
                             );
                           }
-                          return const Center(child: CircularProgressIndicator());
+                          return const Center(
+                            child: CircularProgressIndicator(),
+                          );
                         },
                       ),
                     ),
@@ -519,7 +633,13 @@ class _AddOfferPageState extends State<AddOfferPage> {
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
             _buildSectionTitle('صور العرض'),
-            Text('${_imageUrls.length} / 5', style: GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary)),
+            Text(
+              '${_imageUrls.length} / 5',
+              style: GoogleFonts.cairo(
+                fontSize: 12,
+                color: AppColors.textSecondary,
+              ),
+            ),
           ],
         ),
         const SizedBox(height: 12),
@@ -564,7 +684,10 @@ class _AddOfferPageState extends State<AddOfferPage> {
                 onTap: () => setState(() => _imageUrls.remove(url)),
                 child: Container(
                   padding: const EdgeInsets.all(4),
-                  decoration: const BoxDecoration(color: Colors.black54, shape: BoxShape.circle),
+                  decoration: const BoxDecoration(
+                    color: Colors.black54,
+                    shape: BoxShape.circle,
+                  ),
                   child: const Icon(Icons.close, color: Colors.white, size: 16),
                 ),
               ),
@@ -621,7 +744,14 @@ class _AddOfferPageState extends State<AddOfferPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: GoogleFonts.cairo(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 8),
         TextFormField(
           controller: controller,
@@ -644,19 +774,37 @@ class _AddOfferPageState extends State<AddOfferPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(label, style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textSecondary)),
+        Text(
+          label,
+          style: GoogleFonts.cairo(
+            fontSize: 12,
+            fontWeight: FontWeight.bold,
+            color: AppColors.textSecondary,
+          ),
+        ),
         const SizedBox(height: 8),
         InkWell(
           onTap: onTap,
           borderRadius: BorderRadius.circular(12),
           child: Container(
             padding: const EdgeInsets.all(16),
-            decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(12), border: Border.all(color: Colors.grey.shade200)),
+            decoration: BoxDecoration(
+              color: AppColors.white,
+              borderRadius: BorderRadius.circular(12),
+              border: Border.all(color: Colors.grey.shade200),
+            ),
             child: Row(
               children: [
-                const Icon(IconlyLight.calendar, size: 18, color: AppColors.primary),
+                const Icon(
+                  IconlyLight.calendar,
+                  size: 18,
+                  color: AppColors.primary,
+                ),
                 const SizedBox(width: 8),
-                Text(DateFormat('yyyy/MM/dd').format(date), style: GoogleFonts.cairo(fontWeight: FontWeight.bold)),
+                Text(
+                  DateFormat('yyyy/MM/dd').format(date),
+                  style: GoogleFonts.cairo(fontWeight: FontWeight.bold),
+                ),
               ],
             ),
           ),

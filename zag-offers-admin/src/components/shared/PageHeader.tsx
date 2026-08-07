@@ -22,18 +22,18 @@ export function PageHeader({
   const displaySubtitle = subtitle || description;
   
   return (
-    <div className="mb-8 flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-      <div className="flex items-center gap-4">
-        <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-white text-orange-600 border border-slate-100 shadow-sm transition-all hover:bg-orange-50 hover:border-orange-200">
-          <Icon size={24} strokeWidth={2} />
+    <div className="admin-page-header mb-7 flex flex-col gap-4 border-b border-slate-200 pb-6 lg:flex-row lg:items-end lg:justify-between">
+      <div className="flex min-w-0 items-center gap-4">
+        <div className="admin-page-header-icon flex h-11 w-11 shrink-0 items-center justify-center rounded-xl border border-orange-200 bg-orange-50 text-orange-600">
+          <Icon size={20} strokeWidth={2.2} />
         </div>
-        <div>
-          <h1 className="text-2xl font-bold tracking-tight text-slate-900 leading-tight">{title}</h1>
-          {displaySubtitle && <p className="text-sm font-medium text-slate-500 mt-1.5">{displaySubtitle}</p>}
+        <div className="min-w-0">
+          <h1 className="truncate text-[26px] font-black tracking-tight text-slate-900 leading-tight">{title}</h1>
+          {displaySubtitle && <p className="mt-1 max-w-3xl text-xs font-semibold leading-6 text-slate-500">{displaySubtitle}</p>}
         </div>
       </div>
       {(actions || children) && (
-        <div className="flex items-center gap-3">
+        <div className="flex flex-wrap items-center gap-2 lg:justify-end">
           {actions}
           {children}
         </div>

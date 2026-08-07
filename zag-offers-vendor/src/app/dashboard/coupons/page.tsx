@@ -1,10 +1,10 @@
 'use client';
 import { useState, useEffect } from 'react';
-import { Download, Clock, Tag, Search, Filter, Calendar, ChevronLeft, User, AlertCircle, RefreshCw } from 'lucide-react';
-import { vendorApi } from '@/lib/api';
+import { Download, Search, User, RefreshCw, ScanLine, SearchX, TicketCheck } from 'lucide-react';
 import { useVendorCoupons } from '@/hooks/use-vendor-api';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
+import EmptyState from '@/components/EmptyState';
 
 import { secureStorage } from '@/lib/crypto';
 
@@ -20,24 +20,14 @@ interface CouponLog {
 
 export default function CouponsLogPage() {
   const [searchTerm, setSearchTerm] = useState('');
-  const [cachedLogs, setCachedLogs] = useState<CouponLog[]>([]);
+  const [cachedLogs] = useState<CouponLog[]>(() => secureStorage.get<CouponLog[]>('cache_vendor_coupons') || []);
 
   // React Query hook
   const { data: logs, isLoading, refetch } = useVendorCoupons();
-  const [fetchError, setFetchError] = useState(false);
-
-  // تحسين: منطق الكاش للأوفلاين باستخدام التخزين الآمن
-  useEffect(() => {
-    const cached = secureStorage.get<CouponLog[]>('cache_vendor_coupons');
-    if (cached) setCachedLogs(cached);
-  }, []);
-
   // تحديث الكاش عند النجاح
   useEffect(() => {
     if (logs) {
       secureStorage.set('cache_vendor_coupons', logs);
-      setCachedLogs(logs);
-      setFetchError(false);
     }
   }, [logs]);
 
@@ -120,20 +110,7 @@ export default function CouponsLogPage() {
         </div>
       </div>
 
-      {fetchError && !displayLogs?.length && (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="p-8 glass rounded-[2.5rem] border border-red-500/20 flex flex-col items-center text-center mb-8">
-          <div className="w-14 h-14 bg-red-500/10 rounded-2xl flex items-center justify-center text-red-500 mb-4">
-            <AlertCircle size={28} />
-          </div>
-          <h3 className="text-sm font-black text-text mb-2">فشل تحميل الكوبونات</h3>
-          <p className="text-[11px] text-text-dim mb-6 max-w-xs">تأكد من اتصالك بالإنترنت أو حاول مرة أخرى</p>
-          <button onClick={() => refetch()} className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg shadow-primary/20 flex items-center gap-2">
-            <RefreshCw size={14} /> إعادة المحاولة
-          </button>
-        </motion.div>
-      )}
-
-      <div className="glass rounded-[2.5rem] overflow-hidden border border-glass-border inner-shadow bg-glass">
+      <div className="glass rounded-[1.25rem] overflow-hidden border border-glass-border bg-glass">
         {/* Search & Filter Bar */}
         <div className="p-5 border-b border-glass-border flex flex-col md:flex-row gap-4 items-center bg-glass">
            <div className="flex-1 relative w-full">
@@ -146,22 +123,24 @@ export default function CouponsLogPage() {
                 onChange={(e) => setSearchTerm(e.target.value)}
               />
            </div>
-           <div className="flex gap-3 w-full md:w-auto">
-             <button onClick={exportToCSV} className="flex-1 md:flex-none glass px-5 py-3.5 rounded-xl flex items-center justify-center gap-2 text-text font-black text-[11px] uppercase tracking-wider hover:bg-glass-heavy transition-all">
-               <Download size={16} className="text-primary" /> تصدير CSV
-             </button>
-           </div>
         </div>
 
         {/* Table Content */}
         <div className="overflow-x-auto">
           {filteredLogs.length === 0 ? (
-            <div className="py-24 text-center">
-              <div className="w-16 h-16 bg-glass-heavy rounded-[2rem] flex items-center justify-center mx-auto mb-5 border border-glass-border">
-                <Tag size={28} className="text-text-tertiary" />
-              </div>
-              <h3 className="text-base font-black text-text">لا توجد سجلات مطابقة</h3>
-              <p className="text-text-dim mt-2 font-bold text-[11px]">حاول استخدام كلمات بحث أخرى أو قم بتغيير الفلاتر</p>
+            <div className="p-4 sm:p-5">
+              <EmptyState
+                compact
+                icon={searchTerm ? <SearchX size={28} /> : <TicketCheck size={28} />}
+                title={searchTerm ? 'لا توجد نتائج مطابقة' : 'لا توجد عمليات كوبونات بعد'}
+                description={searchTerm
+                  ? `لم نعثر على عميل أو عرض أو كوبون يطابق “${searchTerm}”.`
+                  : 'ستظهر هنا كل عمليات إصدار واستخدام الكوبونات فور تسجيلها.'}
+                actionText={searchTerm ? 'مسح البحث' : 'مسح كوبون'}
+                actionIcon={searchTerm ? <RefreshCw size={16} /> : <ScanLine size={16} />}
+                actionHref={searchTerm ? undefined : '/dashboard/scan'}
+                onAction={searchTerm ? () => setSearchTerm('') : undefined}
+              />
             </div>
           ) : (
             <table className="w-full text-right border-collapse">

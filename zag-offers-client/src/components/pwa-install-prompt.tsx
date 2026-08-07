@@ -4,17 +4,30 @@ import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Share } from 'lucide-react';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed'; platform: string }>;
+}
+
+function detectPlatform(): 'android' | 'ios' | 'other' {
+  if (typeof navigator === 'undefined') return 'other';
+  const ua = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+  if (/android/.test(ua)) return 'android';
+  return 'other';
+}
+
 export default function PWAInstallPrompt() {
   const [show, setShow] = useState(false);
-  const [platform, setPlatform] = useState<'android' | 'ios' | 'other'>('other');
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [platform] = useState<'android' | 'ios' | 'other'>(detectPlatform);
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   const [showIOSInstructions, setShowIOSInstructions] = useState(false);
 
   useEffect(() => {
     // 1. Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-                         || (window.navigator as any).standalone 
+                         || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone)
                          || document.referrer.includes('android-app://');
     
     if (isStandalone) return;
@@ -28,18 +41,12 @@ export default function PWAInstallPrompt() {
       if (daysPassed < 3) return; // Show every 3 days if not installed
     }
 
-    // 3. Detect Platform
     const ua = window.navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(ua)) {
-      setPlatform('ios');
-    } else if (/android/.test(ua)) {
-      setPlatform('android');
-    }
 
     // 4. Listen for Android Install Prompt
-    const handler = (e: any) => {
-      e.preventDefault();
-      setDeferredPrompt(e);
+    const handler = (event: Event) => {
+      event.preventDefault();
+      setDeferredPrompt(event as BeforeInstallPromptEvent);
       setTimeout(() => setShow(true), 3000);
     };
 
@@ -80,7 +87,7 @@ export default function PWAInstallPrompt() {
           >
             <div className="bg-[#1E1E1E]/95 backdrop-blur-2xl border border-white/10 p-4 rounded-[2.5rem] shadow-[0_20px_60px_rgba(0,0,0,0.6)] flex items-center justify-between gap-4">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20">
+                <div className="w-12 h-12 bg-[#FF6500] rounded-2xl flex items-center justify-center shadow-lg shadow-orange-950/20">
                   <Download className="text-white" size={24} />
                 </div>
                 <div>
@@ -122,7 +129,7 @@ export default function PWAInstallPrompt() {
               exit={{ y: 200, opacity: 0 }}
               className="relative w-full max-w-sm bg-[#1E1E1E] border border-white/10 rounded-[3rem] p-8 pb-10 shadow-2xl text-center"
             >
-              <div className="w-20 h-20 bg-gradient-to-br from-[#FF6B00] to-[#D95A00] rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-orange-950/40">
+              <div className="w-20 h-20 bg-[#FF6500] rounded-[2rem] flex items-center justify-center mx-auto mb-6 shadow-2xl shadow-orange-950/40">
                 <Download className="text-white" size={40} />
               </div>
               <h3 className="text-xl font-black text-white mb-4">ثبت التطبيق على الآيفون</h3>

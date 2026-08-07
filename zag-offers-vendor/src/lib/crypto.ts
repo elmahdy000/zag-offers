@@ -76,7 +76,7 @@ export const secureStorage = {
   /**
    * حفظ قيمة مشفرة
    */
-  set: (key: string, value: any): void => {
+  set: (key: string, value: unknown): void => {
     if (typeof window === 'undefined') return;
     
     try {

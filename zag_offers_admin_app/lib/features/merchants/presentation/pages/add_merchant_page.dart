@@ -25,7 +25,7 @@ class AddMerchantPage extends StatefulWidget {
 
 class _AddMerchantPageState extends State<AddMerchantPage> {
   final _formKey = GlobalKey<FormState>();
-  
+
   final _ownerNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _emailController = TextEditingController();
@@ -33,7 +33,7 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
   final _storeNameController = TextEditingController();
   final _areaController = TextEditingController();
   final _addressController = TextEditingController();
-  
+
   String? _selectedCategoryId;
   File? _selectedImage;
   bool _isUploadingImage = false;
@@ -73,10 +73,18 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
         title: Text(isEdit ? 'تعديل بيانات المتجر' : 'إضافة تاجر جديد'),
       ),
       body: BlocListener<MerchantsBloc, MerchantsState>(
-        listenWhen: (_, state) => state is MerchantCreated || state is MerchantStatusUpdated || state is MerchantsError,
+        listenWhen: (_, state) =>
+            state is MerchantCreated ||
+            state is MerchantStatusUpdated ||
+            state is MerchantsError,
         listener: (context, state) {
           if (state is MerchantCreated || state is MerchantStatusUpdated) {
-            SnackBarUtils.showSuccess(context, isEdit ? 'تم تحديث المتجر بنجاح' : 'تم إنشاء التاجر والمتجر بنجاح');
+            SnackBarUtils.showSuccess(
+              context,
+              isEdit
+                  ? 'تم تحديث المتجر بنجاح'
+                  : 'تم إنشاء التاجر والمتجر بنجاح',
+            );
             Navigator.pop(context);
           } else if (state is MerchantsError) {
             SnackBarUtils.showError(context, state.message);
@@ -95,7 +103,8 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                   controller: _ownerNameController,
                   label: 'اسم المالك',
                   icon: IconlyLight.user2,
-                  validator: (v) => v?.isEmpty ?? true ? 'الرجاء إدخال اسم المالك' : null,
+                  validator: (v) =>
+                      v?.isEmpty ?? true ? 'الرجاء إدخال اسم المالك' : null,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -103,7 +112,8 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                   label: 'رقم التليفون',
                   icon: IconlyLight.call,
                   keyboardType: TextInputType.phone,
-                  validator: (v) => v?.isEmpty ?? true ? 'الرجاء إدخال رقم التليفون' : null,
+                  validator: (v) =>
+                      v?.isEmpty ?? true ? 'الرجاء إدخال رقم التليفون' : null,
                 ),
                 const SizedBox(height: 16),
                 _buildTextField(
@@ -118,9 +128,11 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                   label: 'كلمة المرور',
                   icon: IconlyLight.lock,
                   obscureText: true,
-                  validator: (v) => (v?.length ?? 0) < 6 ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل' : null,
+                  validator: (v) => (v?.length ?? 0) < 6
+                      ? 'كلمة المرور يجب أن تكون 6 أحرف على الأقل'
+                      : null,
                 ),
-                
+
                 const SizedBox(height: 32),
                 _buildSectionTitle('بيانات المتجر'),
                 const SizedBox(height: 16),
@@ -130,7 +142,8 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                   controller: _storeNameController,
                   label: 'اسم المتجر',
                   icon: IconlyLight.buy,
-                  validator: (v) => v?.isEmpty ?? true ? 'الرجاء إدخال اسم المتجر' : null,
+                  validator: (v) =>
+                      v?.isEmpty ?? true ? 'الرجاء إدخال اسم المتجر' : null,
                 ),
                 const SizedBox(height: 16),
                 _buildCategoryDropdown(),
@@ -146,24 +159,40 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                   label: 'العنوان بالتفصيل',
                   icon: IconlyLight.home,
                 ),
-                
+
                 const SizedBox(height: 40),
                 BlocBuilder<MerchantsBloc, MerchantsState>(
-                  buildWhen: (prev, next) => next is MerchantActionLoading || next is MerchantCreated || next is MerchantStatusUpdated || next is MerchantsError,
+                  buildWhen: (prev, next) =>
+                      next is MerchantActionLoading ||
+                      next is MerchantCreated ||
+                      next is MerchantStatusUpdated ||
+                      next is MerchantsError,
                   builder: (context, state) {
-                    final isLoading = state is MerchantActionLoading || _isUploadingImage;
+                    final isLoading =
+                        state is MerchantActionLoading || _isUploadingImage;
                     return SizedBox(
                       width: double.infinity,
-                      height: 56,
+                      height: 48,
                       child: ElevatedButton(
                         onPressed: isLoading ? null : _submit,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: AppColors.primary,
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(14),
+                          ),
                         ),
                         child: isLoading
-                            ? const CircularProgressIndicator(color: Colors.white)
-                            : Text(isEdit ? 'حفظ التعديلات' : 'إنشاء حساب التاجر', style: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold, color: Colors.white)),
+                            ? const CircularProgressIndicator(
+                                color: Colors.white,
+                              )
+                            : Text(
+                                isEdit ? 'حفظ التعديلات' : 'إنشاء حساب التاجر',
+                                style: GoogleFonts.cairo(
+                                  fontSize: 14,
+                                  fontWeight: FontWeight.bold,
+                                  color: Colors.white,
+                                ),
+                              ),
                       ),
                     );
                   },
@@ -224,26 +253,39 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
 
   Widget _buildCategoryDropdown() {
     return BlocBuilder<CategoriesBloc, CategoriesState>(
-      buildWhen: (prev, next) => next is CategoriesLoaded || next is CategoriesLoading || next is CategoriesError,
+      buildWhen: (prev, next) =>
+          next is CategoriesLoaded ||
+          next is CategoriesLoading ||
+          next is CategoriesError,
       builder: (context, state) {
         List<Category> categories = [];
         if (state is CategoriesLoaded) {
           categories = state.categories;
         }
-        
-        final hasValidSelection = categories.any((c) => c.id == _selectedCategoryId);
-        
+
+        final hasValidSelection = categories.any(
+          (c) => c.id == _selectedCategoryId,
+        );
+
         return DropdownButtonFormField<String>(
           value: hasValidSelection ? _selectedCategoryId : null,
-          items: categories.map((c) => DropdownMenuItem(
-            value: c.id,
-            child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
-          )).toList(),
+          items: categories
+              .map(
+                (c) => DropdownMenuItem(
+                  value: c.id,
+                  child: Text(c.name, style: GoogleFonts.cairo(fontSize: 14)),
+                ),
+              )
+              .toList(),
           onChanged: (v) => setState(() => _selectedCategoryId = v),
           validator: (v) => v == null ? 'الرجاء اختيار القسم' : null,
           decoration: InputDecoration(
             labelText: 'القسم',
-            prefixIcon: const Icon(IconlyLight.category, color: AppColors.primary, size: 20),
+            prefixIcon: const Icon(
+              IconlyLight.category,
+              color: AppColors.primary,
+              size: 20,
+            ),
             filled: true,
             fillColor: AppColors.white,
             border: OutlineInputBorder(
@@ -280,7 +322,10 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
           decoration: BoxDecoration(
             color: AppColors.white,
             shape: BoxShape.circle,
-            border: Border.all(color: AppColors.primary.withValues(alpha: 0.3), width: 2),
+            border: Border.all(
+              color: AppColors.primary.withValues(alpha: 0.3),
+              width: 2,
+            ),
             boxShadow: [
               BoxShadow(
                 color: Colors.black.withValues(alpha: 0.05),
@@ -294,12 +339,26 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
             children: [
               ClipOval(
                 child: _selectedImage != null
-                    ? Image.file(_selectedImage!, width: 120, height: 120, fit: BoxFit.cover)
+                    ? Image.file(
+                        _selectedImage!,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      )
                     : (isEdit && widget.merchant!.logoUrl != null)
-                        ? NetworkImageWithPlaceholder(imageUrl: widget.merchant!.logoUrl!, width: 120, height: 120, fit: BoxFit.cover)
-                        : const Center(
-                            child: Icon(IconlyLight.image, size: 40, color: AppColors.textSecondary),
-                          ),
+                    ? NetworkImageWithPlaceholder(
+                        imageUrl: widget.merchant!.logoUrl!,
+                        width: 120,
+                        height: 120,
+                        fit: BoxFit.cover,
+                      )
+                    : const Center(
+                        child: Icon(
+                          IconlyLight.image,
+                          size: 40,
+                          color: AppColors.textSecondary,
+                        ),
+                      ),
               ),
               Positioned(
                 bottom: 0,
@@ -310,7 +369,11 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
                     color: AppColors.primary,
                     shape: BoxShape.circle,
                   ),
-                  child: const Icon(IconlyBold.camera, size: 20, color: Colors.white),
+                  child: const Icon(
+                    IconlyBold.camera,
+                    size: 20,
+                    color: Colors.white,
+                  ),
                 ),
               ),
             ],
@@ -361,12 +424,18 @@ class _AddMerchantPageState extends State<AddMerchantPage> {
           CreateMerchantEvent(
             ownerName: _ownerNameController.text.trim(),
             phone: _phoneController.text.trim(),
-            email: _emailController.text.trim().isEmpty ? null : _emailController.text.trim(),
+            email: _emailController.text.trim().isEmpty
+                ? null
+                : _emailController.text.trim(),
             password: _passwordController.text.trim(),
             storeName: _storeNameController.text.trim(),
             categoryId: _selectedCategoryId!,
-            area: _areaController.text.trim().isEmpty ? null : _areaController.text.trim(),
-            address: _addressController.text.trim().isEmpty ? null : _addressController.text.trim(),
+            area: _areaController.text.trim().isEmpty
+                ? null
+                : _areaController.text.trim(),
+            address: _addressController.text.trim().isEmpty
+                ? null
+                : _addressController.text.trim(),
           ),
         );
       }

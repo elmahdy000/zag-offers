@@ -31,7 +31,7 @@ interface OfferCardProps {
   index: number;
 }
 
-export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
+export function OfferCard({ offer, onEdit, index }: OfferCardProps) {
   const status = statusLabels[offer.status] || { label: offer.status, classes: 'bg-slate-500/10 text-slate-500 border-slate-500/20' };
   const router = useRouter();
 
@@ -41,23 +41,23 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ delay: index * 0.03 }}
       onClick={() => router.push(`/dashboard/offers/${offer.id}`)}
-      className="group relative bg-white border border-slate-200 rounded-2xl p-4 transition-all duration-300 hover:shadow-[0_8px_30px_rgb(0,0,0,0.04)] hover:border-indigo-200 cursor-pointer overflow-hidden"
+      className="group relative bg-white border border-slate-200 rounded-xl p-4 transition-all duration-300 hover:shadow-md hover:border-orange-200 cursor-pointer overflow-hidden"
     >
       {/* Status Badge - Floating */}
       <div className="absolute top-3 left-3 z-10">
-         <span className={`inline-flex items-center px-2 py-0.5 rounded-lg border text-[9px] font-bold uppercase tracking-wider ${status.classes}`}>
+         <span className={`inline-flex items-center px-1.5 py-0.5 rounded-md border text-[8px] font-black ${status.classes}`}>
            {status.label}
          </span>
       </div>
 
       <div className="flex items-start gap-4">
         {/* Compact Icon */}
-        <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-indigo-600 group-hover:text-white group-hover:border-indigo-600 transition-all duration-500">
+        <div className="h-10 w-10 shrink-0 flex items-center justify-center rounded-xl bg-slate-50 text-slate-400 border border-slate-100 group-hover:bg-orange-600 group-hover:text-white group-hover:border-orange-600 transition-all duration-500">
           <Tag size={18} strokeWidth={2.5} />
         </div>
 
         <div className="flex-1 min-w-0">
-          <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-indigo-600 transition-colors truncate leading-tight mb-1">
+          <h3 className="text-[13px] font-bold text-slate-900 group-hover:text-orange-600 transition-colors truncate leading-tight mb-1">
             {offer.title}
           </h3>
           <div className="flex items-center gap-2">
@@ -97,7 +97,7 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
           >
             <Pencil size={14} />
           </button>
-          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-indigo-50 text-indigo-600">
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-600">
             <ChevronLeft size={16} />
           </div>
         </div>
@@ -108,7 +108,7 @@ export function OfferCard({ offer, onView, onEdit, index }: OfferCardProps) {
          <motion.div 
            initial={{ width: 0 }}
            animate={{ width: `${Math.min(offer._count.coupons * 2, 100)}%` }}
-           className="h-full bg-indigo-500/20"
+           className="h-full bg-orange-500/20"
          />
       </div>
     </motion.div>

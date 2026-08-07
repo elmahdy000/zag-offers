@@ -23,15 +23,44 @@ class MerchantsPage extends StatefulWidget {
 
 class _MerchantsPageState extends State<MerchantsPage> {
   static const _cairoFamily = 'Cairo';
-  static final _c10w700Secondary = GoogleFonts.cairo(fontSize: 10, color: AppColors.textSecondary, fontWeight: FontWeight.bold);
-  static final _c12Secondary = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
-  static final _c12w700 = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold);
-  static final _c13Secondary = GoogleFonts.cairo(fontSize: 13, color: AppColors.textSecondary);
-  static final _c15w700Primary = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
-  static final _c20w700Error = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.error);
-  static final _c22w700Primary = GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _c10w700Secondary = GoogleFonts.cairo(
+    fontSize: 10,
+    color: AppColors.textSecondary,
+    fontWeight: FontWeight.bold,
+  );
+  static final _c12Secondary = GoogleFonts.cairo(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+  static final _c12w700 = GoogleFonts.cairo(
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+  );
+  static final _c13Secondary = GoogleFonts.cairo(
+    fontSize: 13,
+    color: AppColors.textSecondary,
+  );
+  static final _c15w700Primary = GoogleFonts.cairo(
+    fontSize: 15,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+  static final _c20w700Error = GoogleFonts.cairo(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: AppColors.error,
+  );
+  static final _c22w700Primary = GoogleFonts.cairo(
+    fontSize: 22,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
   static final _cSecondary = GoogleFonts.cairo(color: AppColors.textSecondary);
-  static final _i20w700Primary = GoogleFonts.inter(fontSize: 20, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
+  static final _i20w700Primary = GoogleFonts.inter(
+    fontSize: 20,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
   String? _selectedStatus;
   String _searchQuery = '';
   final _searchController = TextEditingController();
@@ -52,9 +81,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      appBar: AppBar(
-        title: const Text('إدارة الشركاء والتجار'),
-      ),
+      appBar: AppBar(title: const Text('إدارة الشركاء والتجار')),
       floatingActionButton: FloatingActionButton(
         onPressed: () => Navigator.push(
           context,
@@ -64,8 +91,14 @@ class _MerchantsPageState extends State<MerchantsPage> {
         child: const Icon(IconlyBold.plus, color: Colors.white),
       ),
       body: BlocConsumer<MerchantsBloc, MerchantsState>(
-        listenWhen: (_, state) => state is MerchantStatusUpdated || state is MerchantDeleted || state is MerchantsError,
-        buildWhen: (_, state) => state is MerchantsLoading || state is MerchantsLoaded || state is MerchantsError,
+        listenWhen: (_, state) =>
+            state is MerchantStatusUpdated ||
+            state is MerchantDeleted ||
+            state is MerchantsError,
+        buildWhen: (_, state) =>
+            state is MerchantsLoading ||
+            state is MerchantsLoaded ||
+            state is MerchantsError,
         listener: (context, state) {
           if (state is MerchantStatusUpdated) {
             SnackBarUtils.showSuccess(context, 'تم تحديث حالة التاجر بنجاح');
@@ -84,9 +117,7 @@ class _MerchantsPageState extends State<MerchantsPage> {
               // --- Search and Filters ---
               _buildSearchAndFilters(),
 
-              Expanded(
-                child: _buildBody(state),
-              ),
+              Expanded(child: _buildBody(state)),
             ],
           );
         },
@@ -110,15 +141,34 @@ class _MerchantsPageState extends State<MerchantsPage> {
       ),
       child: Row(
         children: [
-          Expanded(child: _buildSummaryCard('إجمالي التجار', total.toString(), IconlyBold.buy, AppColors.primary)),
+          Expanded(
+            child: _buildSummaryCard(
+              'إجمالي التجار',
+              total.toString(),
+              IconlyBold.buy,
+              AppColors.primary,
+            ),
+          ),
           const SizedBox(width: 12),
-          Expanded(child: _buildSummaryCard('طلبات معلقة', pending.toString(), IconlyBold.timeCircle, Colors.orange)),
+          Expanded(
+            child: _buildSummaryCard(
+              'طلبات معلقة',
+              pending.toString(),
+              IconlyBold.timeCircle,
+              Colors.orange,
+            ),
+          ),
         ],
       ),
     );
   }
 
-  Widget _buildSummaryCard(String label, String value, IconData icon, Color color) {
+  Widget _buildSummaryCard(
+    String label,
+    String value,
+    IconData icon,
+    Color color,
+  ) {
     return Container(
       padding: const EdgeInsets.all(16),
       decoration: BoxDecoration(
@@ -147,7 +197,10 @@ class _MerchantsPageState extends State<MerchantsPage> {
             controller: _searchController,
             decoration: InputDecoration(
               hintText: 'ابحث عن تاجر أو محل...',
-              prefixIcon: const Icon(IconlyLight.search, color: AppColors.primary),
+              prefixIcon: const Icon(
+                IconlyLight.search,
+                color: AppColors.primary,
+              ),
               filled: true,
               fillColor: AppColors.white,
             ),
@@ -180,14 +233,19 @@ class _MerchantsPageState extends State<MerchantsPage> {
     if (state is MerchantsError) return _buildErrorState(state.message);
     if (state is MerchantsLoaded) {
       final filtered = state.merchants.where((m) {
-        final matchesSearch = m.storeName.toLowerCase().contains(_searchQuery) || m.ownerName.toLowerCase().contains(_searchQuery) || m.phone.contains(_searchQuery);
+        final matchesSearch =
+            m.storeName.toLowerCase().contains(_searchQuery) ||
+            m.ownerName.toLowerCase().contains(_searchQuery) ||
+            m.phone.contains(_searchQuery);
         return matchesSearch;
       }).toList();
 
       if (filtered.isEmpty) return _buildEmptyState();
 
       return RefreshIndicator(
-        onRefresh: () async => context.read<MerchantsBloc>().add(LoadMerchantsEvent(status: _selectedStatus)),
+        onRefresh: () async => context.read<MerchantsBloc>().add(
+          LoadMerchantsEvent(status: _selectedStatus),
+        ),
         child: ListView.builder(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
           padding: const EdgeInsets.fromLTRB(16, 16, 16, 100),
@@ -214,10 +272,18 @@ class _MerchantsPageState extends State<MerchantsPage> {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          const Icon(Icons.error_outline_rounded, color: AppColors.error, size: 40),
+          const Icon(
+            Icons.error_outline_rounded,
+            color: AppColors.error,
+            size: 40,
+          ),
           const SizedBox(height: 16),
           Text(msg, style: _cSecondary),
-          TextButton(onPressed: () => context.read<MerchantsBloc>().add(const LoadMerchantsEvent()), child: const Text('إعادة المحاولة')),
+          TextButton(
+            onPressed: () =>
+                context.read<MerchantsBloc>().add(const LoadMerchantsEvent()),
+            child: const Text('إعادة المحاولة'),
+          ),
         ],
       ),
     );
@@ -228,7 +294,9 @@ class _MerchantsPageState extends State<MerchantsPage> {
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.white,
-      shape: const RoundedRectangleBorder(borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+      ),
       builder: (sheetContext) => DraggableScrollableSheet(
         initialChildSize: 0.7,
         maxChildSize: 0.95,
@@ -239,16 +307,42 @@ class _MerchantsPageState extends State<MerchantsPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Center(child: Container(width: 40, height: 4, decoration: BoxDecoration(color: Colors.grey.shade200, borderRadius: BorderRadius.circular(10)))),
+              Center(
+                child: Container(
+                  width: 40,
+                  height: 4,
+                  decoration: BoxDecoration(
+                    color: Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                ),
+              ),
               const SizedBox(height: 24),
               Center(
                 child: Container(
                   width: 90,
                   height: 90,
-                  decoration: BoxDecoration(color: AppColors.primary.withValues(alpha: 0.05), shape: BoxShape.circle, border: Border.all(color: AppColors.primary.withValues(alpha: 0.1), width: 4)),
-                  child: (merchant.logoUrl != null && merchant.logoUrl!.isNotEmpty)
-                      ? ClipOval(child: NetworkImageWithPlaceholder(imageUrl: merchant.logoUrl!, fit: BoxFit.cover))
-                      : const Icon(IconlyBold.buy, size: 40, color: AppColors.primary),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.05),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      width: 4,
+                    ),
+                  ),
+                  child:
+                      (merchant.logoUrl != null && merchant.logoUrl!.isNotEmpty)
+                      ? ClipOval(
+                          child: NetworkImageWithPlaceholder(
+                            imageUrl: merchant.logoUrl!,
+                            fit: BoxFit.cover,
+                          ),
+                        )
+                      : const Icon(
+                          IconlyBold.buy,
+                          size: 40,
+                          color: AppColors.primary,
+                        ),
                 ),
               ),
               const SizedBox(height: 16),
@@ -271,15 +365,33 @@ class _MerchantsPageState extends State<MerchantsPage> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(12),
+                    ),
                   ),
                 ),
               ),
               const SizedBox(height: 32),
-              _buildDetailItem('اسم المالك', merchant.ownerName, IconlyLight.profile),
+              _buildDetailItem(
+                'اسم المالك',
+                merchant.ownerName,
+                IconlyLight.profile,
+              ),
               _buildDetailItem('رقم الهاتف', merchant.phone, IconlyLight.call),
-              if (merchant.category != null) _buildDetailItem('تصنيف المتجر', merchant.category!, IconlyLight.category),
-              _buildDetailItem('تاريخ التسجيل', DateFormat('yyyy/MM/dd hh:mm a', 'ar').format(merchant.createdAt), IconlyLight.calendar),
+              if (merchant.category != null)
+                _buildDetailItem(
+                  'تصنيف المتجر',
+                  merchant.category!,
+                  IconlyLight.category,
+                ),
+              _buildDetailItem(
+                'تاريخ التسجيل',
+                DateFormat(
+                  'yyyy/MM/dd hh:mm a',
+                  'ar',
+                ).format(merchant.createdAt),
+                IconlyLight.calendar,
+              ),
               const SizedBox(height: 40),
               if (merchant.status == 'PENDING') ...[
                 Row(
@@ -290,7 +402,11 @@ class _MerchantsPageState extends State<MerchantsPage> {
                           Navigator.pop(sheetContext);
                           _showRejectionDialog(context, merchant);
                         },
-                        style: OutlinedButton.styleFrom(foregroundColor: AppColors.error, side: const BorderSide(color: AppColors.error), padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: OutlinedButton.styleFrom(
+                          foregroundColor: AppColors.error,
+                          side: const BorderSide(color: AppColors.error),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
                         child: const Text('رفض الطلب'),
                       ),
                     ),
@@ -298,10 +414,17 @@ class _MerchantsPageState extends State<MerchantsPage> {
                     Expanded(
                       child: ElevatedButton(
                         onPressed: () {
-                          context.read<MerchantsBloc>().add(UpdateMerchantStatusEvent(id: merchant.id, status: 'APPROVED'));
+                          context.read<MerchantsBloc>().add(
+                            UpdateMerchantStatusEvent(
+                              id: merchant.id,
+                              status: 'APPROVED',
+                            ),
+                          );
                           Navigator.pop(sheetContext);
                         },
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
                         child: const Text('تفعيل الحساب'),
                       ),
                     ),
@@ -314,7 +437,9 @@ class _MerchantsPageState extends State<MerchantsPage> {
                       width: double.infinity,
                       child: ElevatedButton(
                         onPressed: () => Navigator.pop(sheetContext),
-                        style: ElevatedButton.styleFrom(padding: const EdgeInsets.symmetric(vertical: 16)),
+                        style: ElevatedButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                        ),
                         child: const Text('إغلاق'),
                       ),
                     ),
@@ -323,12 +448,24 @@ class _MerchantsPageState extends State<MerchantsPage> {
                       width: double.infinity,
                       child: OutlinedButton.icon(
                         onPressed: () => _confirmDelete(context, merchant),
-                        icon: const Icon(IconlyLight.delete, color: AppColors.error, size: 20),
-                        label: const Text('حذف الحساب نهائياً', style: TextStyle(color: AppColors.error, fontWeight: FontWeight.bold)),
+                        icon: const Icon(
+                          IconlyLight.delete,
+                          color: AppColors.error,
+                          size: 20,
+                        ),
+                        label: const Text(
+                          'حذف الحساب نهائياً',
+                          style: TextStyle(
+                            color: AppColors.error,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
                         style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(vertical: 16),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
                           side: const BorderSide(color: AppColors.error),
-                          backgroundColor: AppColors.error.withValues(alpha: 0.05),
+                          backgroundColor: AppColors.error.withValues(
+                            alpha: 0.05,
+                          ),
                         ),
                       ),
                     ),
@@ -342,12 +479,19 @@ class _MerchantsPageState extends State<MerchantsPage> {
   }
 
   Widget _buildStatusBadge(String status) {
-    final color = status == 'APPROVED' ? AppColors.success : (status == 'PENDING' ? Colors.orange : AppColors.error);
-    final label = status == 'APPROVED' ? 'حساب نشط' : (status == 'PENDING' ? 'قيد المراجعة' : 'حساب مرفوض');
+    final color = status == 'APPROVED'
+        ? AppColors.success
+        : (status == 'PENDING' ? Colors.orange : AppColors.error);
+    final label = status == 'APPROVED'
+        ? 'حساب نشط'
+        : (status == 'PENDING' ? 'قيد المراجعة' : 'حساب مرفوض');
     return Container(
       margin: const EdgeInsets.only(top: 8),
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 4),
-      decoration: BoxDecoration(color: color.withValues(alpha: 0.1), borderRadius: BorderRadius.circular(12)),
+      decoration: BoxDecoration(
+        color: color.withValues(alpha: 0.1),
+        borderRadius: BorderRadius.circular(12),
+      ),
       child: Text(label, style: _c12w700.copyWith(color: color)),
     );
   }
@@ -357,14 +501,26 @@ class _MerchantsPageState extends State<MerchantsPage> {
       padding: const EdgeInsets.only(bottom: 20),
       child: Row(
         children: [
-          Container(padding: const EdgeInsets.all(10), decoration: BoxDecoration(color: AppColors.background, borderRadius: BorderRadius.circular(12)), child: Icon(icon, size: 20, color: AppColors.primary)),
+          Container(
+            padding: const EdgeInsets.all(10),
+            decoration: BoxDecoration(
+              color: AppColors.background,
+              borderRadius: BorderRadius.circular(12),
+            ),
+            child: Icon(icon, size: 20, color: AppColors.primary),
+          ),
           const SizedBox(width: 16),
           Expanded(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
                 Text(label, style: _c12Secondary),
-                Text(value, style: _c15w700Primary, maxLines: 1, overflow: TextOverflow.ellipsis),
+                Text(
+                  value,
+                  style: _c15w700Primary,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
               ],
             ),
           ),
@@ -385,8 +541,17 @@ class _MerchantsPageState extends State<MerchantsPage> {
         }
       },
       selectedColor: AppColors.primary.withValues(alpha: 0.15),
-      labelStyle: TextStyle(color: isSelected ? AppColors.primary : AppColors.textSecondary, fontWeight: isSelected ? FontWeight.bold : FontWeight.normal, fontFamily: _cairoFamily),
-      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12), side: BorderSide(color: isSelected ? AppColors.primary : Colors.grey.shade200)),
+      labelStyle: TextStyle(
+        color: isSelected ? AppColors.primary : AppColors.textSecondary,
+        fontWeight: isSelected ? FontWeight.bold : FontWeight.normal,
+        fontFamily: _cairoFamily,
+      ),
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(12),
+        side: BorderSide(
+          color: isSelected ? AppColors.primary : Colors.grey.shade200,
+        ),
+      ),
       showCheckmark: false,
     );
   }
@@ -394,15 +559,20 @@ class _MerchantsPageState extends State<MerchantsPage> {
   void _showRejectionDialog(BuildContext context, Merchant merchant) {
     final reasonController = TextEditingController();
     final bloc = context.read<MerchantsBloc>();
-    
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
       backgroundColor: Colors.transparent,
       builder: (context) => Padding(
-        padding: EdgeInsets.only(bottom: MediaQuery.of(context).viewInsets.bottom),
+        padding: EdgeInsets.only(
+          bottom: MediaQuery.of(context).viewInsets.bottom,
+        ),
         child: Container(
-          decoration: const BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.vertical(top: Radius.circular(32))),
+          decoration: const BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(32)),
+          ),
           padding: const EdgeInsets.all(32),
           child: Column(
             mainAxisSize: MainAxisSize.min,
@@ -410,7 +580,10 @@ class _MerchantsPageState extends State<MerchantsPage> {
             children: [
               Text('رفض طلب التاجر', style: _c20w700Error),
               const SizedBox(height: 8),
-              Text('يرجى توضيح سبب رفض طلب التاجر " ${merchant.storeName} " ليصل إشعار لصاحب الطلب بالسبب.', style: _c13Secondary),
+              Text(
+                'يرجى توضيح سبب رفض طلب التاجر " ${merchant.storeName} " ليصل إشعار لصاحب الطلب بالسبب.',
+                style: _c13Secondary,
+              ),
               const SizedBox(height: 24),
               TextField(
                 controller: reasonController,
@@ -427,14 +600,20 @@ class _MerchantsPageState extends State<MerchantsPage> {
                 width: double.infinity,
                 child: ElevatedButton(
                   onPressed: () {
-                    bloc.add(UpdateMerchantStatusEvent(
-                      id: merchant.id,
-                      status: 'REJECTED',
-                      reason: reasonController.text.trim().isEmpty ? null : reasonController.text.trim(),
-                    ));
+                    bloc.add(
+                      UpdateMerchantStatusEvent(
+                        id: merchant.id,
+                        status: 'REJECTED',
+                        reason: reasonController.text.trim().isEmpty
+                            ? null
+                            : reasonController.text.trim(),
+                      ),
+                    );
                     Navigator.pop(context);
                   },
-                  style: ElevatedButton.styleFrom(backgroundColor: AppColors.error),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.error,
+                  ),
                   child: const Text('تأكيد الرفض وإرسال السبب'),
                 ),
               ),
@@ -449,11 +628,12 @@ class _MerchantsPageState extends State<MerchantsPage> {
     final confirmed = await CustomDialogs.showConfirmDialog(
       context: context,
       title: 'حذف حساب التاجر',
-      message: 'هل أنت متأكد من حذف حساب "${merchant.storeName}"؟ سيتم حذف جميع بيانات التاجر والعروض التابعة له نهائياً.',
+      message:
+          'هل أنت متأكد من حذف حساب "${merchant.storeName}"؟ سيتم حذف جميع بيانات التاجر والعروض التابعة له نهائياً.',
       isDestructive: true,
       confirmText: 'حذف نهائي',
     );
-    
+
     if (confirmed == true) {
       if (!context.mounted) return;
       context.read<MerchantsBloc>().add(DeleteMerchantEvent(id: merchant.id));

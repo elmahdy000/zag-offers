@@ -4,6 +4,7 @@ import { Lock, ShieldCheck, ArrowRight, Loader2, CheckCircle2, AlertCircle } fro
 import { useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useChangePassword } from '@/hooks/use-vendor-api';
+import { handleApiError } from '@/lib/errorHandler';
 
 export default function SecurityPage() {
   const router = useRouter();
@@ -38,7 +39,7 @@ export default function SecurityPage() {
 
     changePassword(
       {
-        oldPassword: formData.currentPassword,
+        currentPassword: formData.currentPassword,
         newPassword: formData.newPassword,
       },
       {
@@ -47,18 +48,20 @@ export default function SecurityPage() {
           setFormData({ currentPassword: '', newPassword: '', confirmPassword: '' });
           setTimeout(() => setSuccess(false), 5000);
         },
-        onError: (err: any) => {
-          setError(err.message || 'فشل تغيير كلمة المرور. تأكد من كلمة المرور الحالية.');
+        onError: (err: unknown) => {
+          setError(handleApiError(err).message || 'فشل تغيير كلمة المرور. تأكد من كلمة المرور الحالية.');
         },
       }
     );
   };
 
   return (
-    <div className="p-4 sm:p-8 dir-rtl max-w-2xl mx-auto animate-in">
-      <div className="flex items-center gap-6 mb-12">
+    <div className="vendor-security-page p-4 sm:p-8 dir-rtl max-w-2xl mx-auto animate-in">
+      <div className="vendor-security-header flex items-center gap-5 mb-6">
         <button
+          type="button"
           onClick={() => router.back()}
+          aria-label="العودة إلى الإعدادات"
           className="w-12 h-12 glass rounded-2xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-glass-border"
         >
           <ArrowRight size={24} />
@@ -72,7 +75,7 @@ export default function SecurityPage() {
       </div>
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="glass p-8 sm:p-10 rounded-[3rem] border border-glass-border space-y-8 inner-shadow bg-glass">
+        <div className="vendor-security-card glass p-7 sm:p-8 rounded-[3rem] border border-glass-border space-y-7 inner-shadow bg-glass">
           <div className="space-y-6">
             <div className="space-y-2.5">
               <label className="text-[10px] font-black text-text-dim mr-1 uppercase tracking-widest">كلمة المرور الحالية</label>
@@ -80,6 +83,7 @@ export default function SecurityPage() {
                 <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-primary transition-colors" size={18} />
                 <input 
                   type="password" 
+                  autoComplete="current-password"
                   value={formData.currentPassword}
                   onChange={e => setFormData({ ...formData, currentPassword: e.target.value })}
                   className="w-full bg-bg border border-glass-border rounded-2xl py-4 pr-12 focus:border-primary outline-none transition-all text-sm font-bold text-text shadow-inner" 
@@ -96,6 +100,7 @@ export default function SecurityPage() {
                 <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-blue-500 transition-colors" size={18} />
                 <input 
                   type="password" 
+                  autoComplete="new-password"
                   value={formData.newPassword}
                   onChange={e => setFormData({ ...formData, newPassword: e.target.value })}
                   className="w-full bg-bg border border-glass-border rounded-2xl py-4 pr-12 focus:border-blue-500 outline-none transition-all text-sm font-bold text-text shadow-inner" 
@@ -110,6 +115,7 @@ export default function SecurityPage() {
                 <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dim group-focus-within:text-blue-500 transition-colors" size={18} />
                 <input 
                   type="password" 
+                  autoComplete="new-password"
                   value={formData.confirmPassword}
                   onChange={e => setFormData({ ...formData, confirmPassword: e.target.value })}
                   className="w-full bg-bg border border-glass-border rounded-2xl py-4 pr-12 focus:border-blue-500 outline-none transition-all text-sm font-bold text-text shadow-inner" 
@@ -148,7 +154,7 @@ export default function SecurityPage() {
           <button 
             type="submit"
             disabled={isPending}
-            className="w-full bg-blue-600 text-white py-5 rounded-[2rem] font-black text-lg shadow-2xl shadow-blue-600/30 hover:bg-blue-500 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
+            className="w-full bg-primary text-white py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/25 hover:bg-primary-lt active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50"
           >
             {isPending ? <Loader2 className="animate-spin" size={24} /> : <ShieldCheck size={24} />}
             تحديث كلمة المرور
@@ -156,10 +162,11 @@ export default function SecurityPage() {
         </div>
       </form>
 
-      <div className="mt-12 p-8 glass rounded-[2.5rem] border border-dashed border-glass-border text-center">
-        <p className="text-[10px] font-bold text-text-dimmer leading-relaxed">
-          في حال نسيان كلمة المرور الحالية، يرجى التواصل مع إدارة <span className="text-primary font-black">Zag Offers</span> لإعادة تعيين حسابك يدوياً لضمان أعلى مستويات الأمان.
+      <div className="vendor-security-help mt-5 p-5 glass rounded-[2.5rem] border border-glass-border text-center">
+        <p className="text-xs font-bold text-text-dimmer leading-relaxed">
+          نسيت كلمة المرور الحالية؟ تواصل مع إدارة <span className="text-primary font-black">Zag Offers</span> لإعادة تعيين حسابك بأمان.
         </p>
+        <a href="/dashboard/chat" className="mt-3 inline-flex text-xs font-black text-primary hover:underline">التواصل مع الدعم</a>
       </div>
     </div>
   );

@@ -4,18 +4,20 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
-  RiTimeLine, RiMapPin2Fill, RiShareLine, RiHeartFill, RiHeartLine, 
-  RiArrowRightLine, RiShieldCheckFill, RiTicket2Fill, RiStore3Fill, 
+  RiTimeLine, RiMapPin2Fill, RiShareLine, RiHeartFill, RiPhoneFill,
+  RiShieldCheckFill, RiTicket2Fill, RiStore3Fill,
   RiArrowLeftSLine, RiFileCopyLine, RiCheckboxCircleFill, RiCloseCircleFill, 
-  RiErrorWarningFill, RiWhatsappFill, RiStarFill, RiBuilding2Fill,
+  RiErrorWarningFill, RiWhatsappFill, RiBuilding2Fill,
   RiArrowRightSLine
 } from 'react-icons/ri';
 import { ReviewSection } from '@/components/ReviewSection';
+import { ErrorDisplay } from '@/components/error-display';
 import Link from 'next/link';
 import Image from 'next/image';
-import { API_URL, BASE_URL } from '@/lib/constants';
+import { API_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
 import { QRCodeSVG } from 'qrcode.react';
+import { Lightbulb, Loader2 } from 'lucide-react';
 
 interface Offer {
   id: string;
@@ -25,6 +27,7 @@ interface Offer {
   endDate: string;
   images: string[];
   originalPrice?: number;
+  discountedPrice?: number;
   status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | string;
   store: {
     id: string;
@@ -112,7 +115,7 @@ export default function OfferDetailsPage() {
         if (age > 5 * 60 * 1000) {
           localStorage.removeItem(cacheKey);
           localStorage.removeItem(cacheTsKey);
-        } else if (!offer) {
+        } else {
           setOffer(JSON.parse(cached));
           setLoading(false);
         }
@@ -184,7 +187,7 @@ export default function OfferDetailsPage() {
     const handleOnline = () => fetchOffer();
     window.addEventListener('online', handleOnline);
     return () => window.removeEventListener('online', handleOnline);
-  }, [id, router]);
+  }, [id]);
 
   const toggleFav = async () => {
     if (!navigator.onLine) {
@@ -203,7 +206,7 @@ export default function OfferDetailsPage() {
         if (res.ok) {
           const data = await res.json();
           setIsFav(data.favorited);
-          showToast(data.favorited ? 'تم إضافة العرض للمفضلة ❤️' : 'تم إزالة العرض من المفضلة', data.favorited ? 'success' : 'info');
+          showToast(data.favorited ? 'تم إضافة العرض للمفضلة' : 'تم إزالة العرض من المفضلة', data.favorited ? 'success' : 'info');
         }
       } catch {
         showToast('حدث خطأ أثناء تحديث المفضلة', 'error');
@@ -214,7 +217,7 @@ export default function OfferDetailsPage() {
       const updated = isFav ? favs.filter((f: { id: string }) => f.id !== offer?.id) : [...favs, offer];
       localStorage.setItem('favorites', JSON.stringify(updated));
       setIsFav(!isFav);
-      showToast(isFav ? 'تم إزالة العرض من المفضلة' : 'تم إضافة العرض للمفضلة ❤️', isFav ? 'info' : 'success');
+      showToast(isFav ? 'تم إزالة العرض من المفضلة' : 'تم إضافة العرض للمفضلة', isFav ? 'info' : 'success');
     }
   };
 
@@ -267,7 +270,7 @@ export default function OfferDetailsPage() {
 
         setCouponCode(data.code);
         setShowCoupon(true);
-        showToast('تم إنشاء الكوبون بنجاح! 🎉', 'success');
+        showToast('تم إنشاء الكوبون بنجاح', 'success');
       } else {
         const err = await res.json();
         const status = res.status;
@@ -293,12 +296,34 @@ export default function OfferDetailsPage() {
   const handleCopy = () => {
     navigator.clipboard.writeText(couponCode);
     setCopied(true);
-    showToast('تم نسخ كود الخصم! 📋', 'success');
+    showToast('تم نسخ كود الخصم', 'success');
     setTimeout(() => setCopied(false), 2000);
   };
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل العرض...</div>;
-  if (error) return <div className="min-h-screen flex items-center justify-center text-red-500 font-black">{error}</div>;
+  if (loading) return (
+    <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
+      <div className="h-6 w-48 bg-white/5 rounded-lg animate-pulse mb-8" />
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <div className="lg:col-span-2 space-y-6">
+          <div className="aspect-video bg-white/5 rounded-[32px] animate-pulse" />
+          <div className="space-y-3 px-2">
+            <div className="h-5 w-32 bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-4 w-full bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-4 w-3/4 bg-white/5 rounded-lg animate-pulse" />
+          </div>
+        </div>
+        <div className="space-y-6">
+          <div className="h-40 bg-white/5 rounded-[24px] animate-pulse" />
+          <div className="h-48 bg-white/5 rounded-[24px] animate-pulse" />
+        </div>
+      </div>
+    </div>
+  );
+  if (error) return (
+    <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
+      <ErrorDisplay message={error} onRetry={() => window.location.reload()} />
+    </div>
+  );
   if (!offer) return null;
 
   // eslint-disable-next-line react-hooks/purity
@@ -306,11 +331,13 @@ export default function OfferDetailsPage() {
   const logoUrl = resolveImageUrl(offer.store?.logo);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 py-10" dir="rtl">
+    <div className="offer-detail-page" dir="rtl">
       <ToastContainer toasts={toasts} />
 
+      <div className="site-container offer-detail-container">
+
       {/* Breadcrumbs */}
-      <div className="flex items-center gap-2 text-xs font-bold text-white/30 mb-8 overflow-hidden whitespace-nowrap">
+      <div className="offer-breadcrumbs">
         <Link href="/" className="hover:text-white transition-colors">الرئيسية</Link>
         <RiArrowLeftSLine size={14} />
         <Link href="/offers" className="hover:text-white transition-colors">العروض</Link>
@@ -318,11 +345,11 @@ export default function OfferDetailsPage() {
         <span className="text-white/60 truncate">{offer.title}</span>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      <div className="offer-detail-grid">
         {/* Main Content */}
-        <div className="lg:col-span-2 space-y-6">
-          <div className="bg-[#1A1A1A] border border-white/5 rounded-[32px] overflow-hidden">
-            <div className="relative aspect-video sm:aspect-square lg:aspect-video bg-zinc-900 overflow-hidden group">
+        <div className="offer-detail-main">
+          <div className="offer-detail-card">
+            <div className="offer-media group">
                <AnimatePresence mode="wait">
                   <motion.img
                     key={activeImg}
@@ -337,19 +364,19 @@ export default function OfferDetailsPage() {
                   />
                </AnimatePresence>
                
-               <div className="absolute inset-0 bg-gradient-to-t from-black/80 via-black/20 to-transparent pointer-events-none" />
+               <div className="absolute inset-0 bg-black/35 pointer-events-none" />
 
                {offer.images && offer.images.length > 1 && (
                  <>
                    <button 
                      onClick={() => setActiveImg(prev => (prev + 1) % offer.images.length)}
-                     className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                     className="absolute left-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                    >
                      <RiArrowLeftSLine size={20} />
                    </button>
                    <button 
                      onClick={() => setActiveImg(prev => (prev - 1 + offer.images.length) % offer.images.length)}
-                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-0 group-hover:opacity-100 transition-opacity"
+                     className="absolute right-4 top-1/2 -translate-y-1/2 w-10 h-10 rounded-full bg-black/40 backdrop-blur-md flex items-center justify-center text-white border border-white/10 opacity-100 md:opacity-0 md:group-hover:opacity-100 transition-opacity"
                    >
                      <RiArrowRightSLine size={20} />
                    </button>
@@ -368,9 +395,6 @@ export default function OfferDetailsPage() {
                   )}
                </div>
 
-               <div className="absolute bottom-6 right-8 left-8 pointer-events-none">
-                  <h1 className="text-xl sm:text-2xl font-black text-white leading-tight drop-shadow-lg">{offer.title}</h1>
-               </div>
             </div>
             
             {/* Gallery Thumbnails */}
@@ -395,7 +419,24 @@ export default function OfferDetailsPage() {
               </div>
             )}
             
-            <div className="p-8">
+            <div className="offer-detail-body">
+               <div className="offer-title-row">
+                 <div>
+                   <span className="offer-category-label">{offer.store?.category?.name || 'عرض مميز'}</span>
+                   <h1>{offer.title}</h1>
+                 </div>
+                 <div className="offer-actions">
+                   <button aria-label="مشاركة العرض" onClick={() => { navigator.share?.({ title: offer.title, url: window.location.href }); }}><RiShareLine /></button>
+                   <button aria-label="إضافة للمفضلة" onClick={toggleFav} className={isFav ? 'is-favorite' : ''}><RiHeartFill /></button>
+                 </div>
+               </div>
+               {(offer.discountedPrice || offer.originalPrice) && (
+                 <div className="offer-price-panel" dir="ltr">
+                   {offer.discountedPrice && <strong>{offer.discountedPrice} <small>ج.م</small></strong>}
+                   {offer.originalPrice && <span>{offer.originalPrice} ج.م</span>}
+                   {offer.originalPrice && offer.discountedPrice && <b>وفّر {Math.max(0, offer.originalPrice - offer.discountedPrice)} ج.م</b>}
+                 </div>
+               )}
                <div className="flex flex-wrap gap-4 mb-8">
                   <div className="flex items-center gap-2 px-4 py-2 bg-white/5 rounded-xl border border-white/5">
                     <RiTimeLine size={16} className="text-[#FF6B00]" />
@@ -407,18 +448,6 @@ export default function OfferDetailsPage() {
                   >
                     <RiMapPin2Fill size={16} className="text-[#FF6B00]" />
                     <span className="text-xs font-bold">{offer.store?.area}</span>
-                  </button>
-                  <button
-                    onClick={() => { navigator.share?.({ title: offer.title, url: window.location.href }); }}
-                    className="mr-auto p-2 text-white/40 hover:text-white transition-colors"
-                  >
-                    <RiShareLine size={20} />
-                  </button>
-                  <button 
-                    onClick={toggleFav}
-                    className={`p-2 transition-all ${isFav ? 'text-red-500' : 'text-white/40 hover:text-red-500'}`}
-                  >
-                    <RiHeartFill size={20} className={isFav ? 'text-red-500' : ''} />
                   </button>
                </div>
 
@@ -436,9 +465,9 @@ export default function OfferDetailsPage() {
         </div>
 
         {/* Sidebar / CTA */}
-        <div className="space-y-6">
+        <aside className="offer-detail-sidebar">
           {/* Store Card */}
-          <div className="glass p-6 rounded-[24px]">
+          <div className="offer-store-card">
             <div className="flex items-center gap-4 mb-6">
                <div className="w-14 h-14 bg-white/5 rounded-2xl border border-white/10 flex items-center justify-center overflow-hidden">
                   {logoUrl ? 
@@ -462,24 +491,29 @@ export default function OfferDetailsPage() {
                   <p className="text-[10px] font-black text-[#FF6B00] uppercase tracking-wider">{offer.store?.category?.name || 'تصنيف عام'}</p>
                </div>
             </div>
+            <div className="store-detail-list">
+              <div><RiMapPin2Fill /><span><small>العنوان</small>{offer.store?.address || offer.store?.area}</span></div>
+              {offer.store?.phone && <a href={`tel:${offer.store.phone}`}><RiPhoneFill /><span><small>اتصل بالمتجر</small>{offer.store.phone}</span></a>}
+              {offer.store?.whatsapp && <a href={`https://wa.me/${offer.store.whatsapp.replace(/\D/g, '')}`} target="_blank" rel="noopener noreferrer"><RiWhatsappFill /><span><small>واتساب</small>تواصل مباشرة</span></a>}
+            </div>
             <Link href={`/stores/${offer.store?.id}`} className="w-full py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl text-xs font-black flex items-center justify-center gap-2 transition-all">
               عرض المتجر <RiArrowLeftSLine size={14} />
             </Link>
           </div>
 
           {/* Coupon Action */}
-          <div className="bg-[#FF6B00] p-6 rounded-[24px] shadow-xl shadow-orange-900/30">
-            <h4 className="text-white font-black text-center mb-4">احصل على الخصم الآن</h4>
+          <div className="offer-coupon-card">
+            <div className="coupon-card-heading"><RiTicket2Fill size={22}/><div><span>كوبون العرض</span><h4>فعّل خصمك الآن</h4></div></div>
             <AnimatePresence mode="wait">
               {!showCoupon ? (
                 <motion.button 
                   initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
                   onClick={handleGetCoupon}
                   disabled={isCouponLoading}
-                  className="w-full py-4 bg-white text-[#FF6B00] font-black rounded-2xl shadow-xl hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 disabled:opacity-70 disabled:cursor-not-allowed"
+                  className="coupon-reveal-button"
                 >
                   {isCouponLoading ? (
-                    <span className="animate-spin text-xl">⏳</span>
+                    <Loader2 className="animate-spin" size={20} aria-hidden="true" />
                   ) : (
                     <><RiTicket2Fill size={20} /> عرض الكوبون</>
                   )}
@@ -490,15 +524,15 @@ export default function OfferDetailsPage() {
                   animate={{ opacity: 1, y: 0 }}
                   className="space-y-4"
                 >
-                  <div className="bg-white/10 rounded-2xl p-4 text-center border border-white/10 animate-in fade-in zoom-in duration-300">
+                  <div className="coupon-success-message">
                     <RiCheckboxCircleFill className="text-white mx-auto mb-2" size={24} />
                     <p className="text-white font-black text-sm">مبروك! تم حفظ الكوبون في حسابك</p>
                   </div>
 
-                  <div className="flex flex-col sm:flex-row gap-4">
+                  <div className="redeem-ticket">
                     <button
                       onClick={handleCopy}
-                      className="flex-1 bg-black/20 border-2 border-dashed border-white/40 rounded-2xl p-6 text-center hover:bg-black/30 transition-all group"
+                      className="redeem-ticket-code"
                     >
                       <span className="text-[10px] font-black text-white/40 mb-3 block tracking-widest uppercase">كود الخصم — اضغط للنسخ</span>
                       <span className="text-3xl font-black text-white tracking-[4px]">{couponCode}</span>
@@ -507,20 +541,21 @@ export default function OfferDetailsPage() {
                       </div>
                     </button>
 
-                    <div className="bg-white p-4 rounded-2xl flex items-center justify-center shadow-xl self-center sm:self-stretch aspect-square min-w-[140px]">
+                    <div className="redeem-ticket-qr">
                       <QRCodeSVG 
                         value={couponCode} 
                         size={110}
                         level="H"
                         includeMargin={false}
-                        fgColor="#FF6B00"
+                        fgColor="#071426"
                       />
                     </div>
                   </div>
 
-                  <div className="bg-white/5 rounded-2xl p-4 border border-white/5 text-center space-y-3">
-                    <p className="text-[11px] text-white/70 font-bold leading-relaxed">
-                      💡 يمكنك العثور على <span className="text-white">الـ QR Code</span> الخاص بهذا العرض في صفحة كوبوناتي لإظهاره للتاجر.
+                  <div className="coupon-wallet-note">
+                    <p className="flex items-start gap-2 text-[11px] text-white/70 font-bold leading-relaxed">
+                      <Lightbulb size={15} className="mt-1 shrink-0 text-[#ff7620]" aria-hidden="true" />
+                      <span>يمكنك العثور على <span className="text-white">الـ QR Code</span> الخاص بهذا العرض في صفحة كوبوناتي لإظهاره للتاجر.</span>
                     </p>
                     <Link 
                       href="/coupons" 
@@ -548,7 +583,7 @@ export default function OfferDetailsPage() {
               )}
             </AnimatePresence>
           </div>
-        </div>
+        </aside>
       </div>
 
       {/* Review Section */}
@@ -563,6 +598,7 @@ export default function OfferDetailsPage() {
             .then(data => setReviews(data));
         }}
       />
+      </div>
 
       {/* ─── Locations Modal ─────────────────────────────────── */}
       <AnimatePresence>
@@ -611,7 +647,7 @@ export default function OfferDetailsPage() {
                       href={offer.store.locationUrl}
                       target="_blank"
                       rel="noopener noreferrer"
-                      className="w-full py-4 bg-gradient-to-r from-[#FF6B00] to-[#D95A00] text-white font-black rounded-xl shadow-lg shadow-[#FF6B00]/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
+                      className="w-full py-4 bg-[#FF6500] text-white font-black rounded-xl shadow-lg shadow-[#FF6B00]/20 hover:bg-[#E85C00] hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3"
                     >
                       <RiMapPin2Fill size={18} />
                       فتح في خرائط جوجل

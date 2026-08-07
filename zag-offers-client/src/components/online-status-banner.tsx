@@ -8,8 +8,7 @@ export default function OnlineStatusBanner() {
   const [isOffline, setIsOffline] = useState(false);
 
   useEffect(() => {
-    // Set initial state
-    setIsOffline(!navigator.onLine);
+    const initialCheck = window.setTimeout(() => setIsOffline(!navigator.onLine), 0);
 
     const handleOnline = () => setIsOffline(false);
     const handleOffline = () => setIsOffline(true);
@@ -18,6 +17,7 @@ export default function OnlineStatusBanner() {
     window.addEventListener('offline', handleOffline);
 
     return () => {
+      window.clearTimeout(initialCheck);
       window.removeEventListener('online', handleOnline);
       window.removeEventListener('offline', handleOffline);
     };

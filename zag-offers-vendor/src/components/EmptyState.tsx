@@ -1,36 +1,67 @@
-import React from 'react';
-import { Tag, Plus } from 'lucide-react';
+'use client';
+
+import type { ReactNode } from 'react';
+import Link from 'next/link';
+import { Inbox, Plus } from 'lucide-react';
 import { motion } from 'framer-motion';
 
 interface EmptyStateProps {
   title: string;
   description: string;
+  icon?: ReactNode;
   actionText?: string;
+  actionIcon?: ReactNode;
+  actionHref?: string;
   onAction?: () => void;
+  secondaryText?: string;
+  secondaryHref?: string;
+  compact?: boolean;
 }
 
-export default function EmptyState({ title, description, actionText, onAction }: EmptyStateProps) {
+export default function EmptyState({
+  title,
+  description,
+  icon,
+  actionText,
+  actionIcon,
+  actionHref,
+  onAction,
+  secondaryText,
+  secondaryHref,
+  compact = false,
+}: EmptyStateProps) {
+  const actionContent = (
+    <>
+      {actionIcon ?? <Plus size={16} aria-hidden="true" />}
+      {actionText}
+    </>
+  );
+
   return (
-    <motion.div 
-      initial={{ opacity: 0, y: 20 }}
+    <motion.section
+      initial={{ opacity: 0, y: 12 }}
       animate={{ opacity: 1, y: 0 }}
-      className="flex flex-col items-center justify-center p-12 text-center glass rounded-[2.5rem] border-2 border-dashed border-glass-border bg-glass"
+      className={`vendor-empty-state ${compact ? 'is-compact' : ''}`}
+      aria-label={title}
     >
-      <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-6 border border-primary/20">
-        <Tag className="text-primary" size={32} />
+      <div className="vendor-empty-state-icon" aria-hidden="true">
+        {icon ?? <Inbox size={28} />}
       </div>
-      <h3 className="text-lg font-black text-text mb-2">{title}</h3>
-      <p className="text-[13px] text-text-dim max-w-xs mb-8 leading-relaxed">{description}</p>
-      
-      {actionText && (
-        <button 
-          onClick={onAction}
-          className="bg-primary text-white px-6 py-3 rounded-2xl font-black text-[13px] shadow-lg shadow-primary/20 hover:bg-primary-lt transition-all flex items-center gap-2 group"
-        >
-          {actionText}
-          <Plus size={16} className="group-hover:rotate-90 transition-transform" />
-        </button>
+      <h3>{title}</h3>
+      <p>{description}</p>
+
+      {(actionText || (secondaryText && secondaryHref)) && (
+        <div className="vendor-empty-state-actions">
+          {actionText && actionHref ? (
+            <Link href={actionHref} className="vendor-empty-primary">{actionContent}</Link>
+          ) : actionText ? (
+            <button type="button" onClick={onAction} className="vendor-empty-primary">{actionContent}</button>
+          ) : null}
+          {secondaryText && secondaryHref ? (
+            <Link href={secondaryHref} className="vendor-empty-secondary">{secondaryText}</Link>
+          ) : null}
+        </div>
       )}
-    </motion.div>
+    </motion.section>
   );
 }

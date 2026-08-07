@@ -41,8 +41,10 @@ class _AllOffersPageState extends State<AllOffersPage> {
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (!mounted) return;
       context.read<OffersBloc>().add(FetchAllOffers(
-        categoryId: _selectedCategory == 'الكل' ? null : getBackendCategoryName(_selectedCategory),
-      ));
+            categoryId: _selectedCategory == 'الكل'
+                ? null
+                : getBackendCategoryName(_selectedCategory),
+          ));
     });
   }
 
@@ -68,7 +70,6 @@ class _AllOffersPageState extends State<AllOffersPage> {
       }
     });
   }
-
 
   void _resetAllFilters(BuildContext context) {
     setState(() {
@@ -125,177 +126,213 @@ class _AllOffersPageState extends State<AllOffersPage> {
     final theme = Theme.of(context);
     return Scaffold(
       body: BlocListener<OffersBloc, OffersState>(
-        listenWhen: (_, current) => current is OffersLoaded && current.categories.isNotEmpty,
+        listenWhen: (_, current) =>
+            current is OffersLoaded && current.categories.isNotEmpty,
         listener: (_, state) {
-          if (state is OffersLoaded) _scrollToSelectedCategory(state.categories);
+          if (state is OffersLoaded) {
+            _scrollToSelectedCategory(state.categories);
+          }
         },
         child: BlocBuilder<OffersBloc, OffersState>(
-        buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading || next is OffersError,
-        builder: (context, state) {
-          final dynamicCategories = state is OffersLoaded ? state.categories : const <CategoryEntity>[];
-          final hasBackendCategories = dynamicCategories.isNotEmpty;
-          final categoryCount = hasBackendCategories ? dynamicCategories.length + 1 : 1; // + "الكل"
-          return CustomScrollView(
-            slivers: [
-              SliverAppBar(
-                expandedHeight: 140,
-                pinned: true,
-                backgroundColor: AppColors.primary,
-                flexibleSpace: FlexibleSpaceBar(
-                  titlePadding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 16,
-                  ),
-                  centerTitle: false,
-                  title: Text(
-                    AppStrings.exploreOffers,
-                    style: theme.textTheme.titleLarge?.copyWith(
-                          fontWeight: FontWeight.bold,
-                          color: Colors.white,
-                        ),
-                  ),
-                ),
-                actions: [
-                  Stack(
-                    children: [
-                      IconButton(
-                        icon: const Icon(
-                          Icons.tune_rounded,
-                          color: Colors.white,
-                        ),
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          _showFilterSheet();
-                        },
+          buildWhen: (prev, next) =>
+              next is OffersLoaded ||
+              next is OffersLoading ||
+              next is OffersError,
+          builder: (context, state) {
+            final dynamicCategories = state is OffersLoaded
+                ? state.categories
+                : const <CategoryEntity>[];
+            final hasBackendCategories = dynamicCategories.isNotEmpty;
+            final categoryCount = hasBackendCategories
+                ? dynamicCategories.length + 1
+                : 1; // + "الكل"
+            return CustomScrollView(
+              slivers: [
+                SliverAppBar(
+                  expandedHeight: 140,
+                  pinned: true,
+                  backgroundColor: AppColors.primary,
+                  flexibleSpace: FlexibleSpaceBar(
+                    titlePadding: const EdgeInsets.symmetric(
+                      horizontal: 16,
+                      vertical: 16,
+                    ),
+                    centerTitle: false,
+                    title: Text(
+                      AppStrings.exploreOffers,
+                      style: theme.textTheme.titleLarge?.copyWith(
+                        fontWeight: FontWeight.bold,
+                        color: Colors.white,
                       ),
-                      if (_currentArea != 'الكل' ||
-                          _minDiscount > 0 ||
-                          _sortBy != 'newest')
-                        Positioned(
-                          right: 12,
-                          top: 12,
-                          child: Container(
-                            width: 8,
-                            height: 8,
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
-                            ),
-                          ),
-                        ),
-                    ],
+                    ),
                   ),
-                  const SizedBox(width: 8),
-                ],
-              ),
-              SliverToBoxAdapter(
-                child: Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
-                  child: Column(
-                    children: [
-                      const SizedBox(height: 8),
-                      SizedBox(
-                        height: 90,
-                        child: ListView.builder(
-                          controller: _categoryScrollController,
-                          scrollDirection: Axis.horizontal,
-                          physics: const BouncingScrollPhysics(),
-                          itemCount: categoryCount,
-                          itemBuilder: (context, index) {
-                            final bool isAll = index == 0;
-                            final categoryBackendName = isAll ? 'الكل' : dynamicCategories[index - 1].name;
-                            final categoryDisplayName = isAll
-                                ? 'الكل'
-                                : CategoryUtils.getDisplayName(dynamicCategories[index - 1].name);
-                            final categoryImage = isAll ? null : dynamicCategories[index - 1].image;
-                            final isSelected = _selectedCategory == categoryBackendName;
-                            return Padding(
-                              padding: const EdgeInsets.only(right: 16),
-                              child: GestureDetector(
-                                onTap: () {
-                                  HapticFeedback.lightImpact();
-                                  setState(() => _selectedCategory = categoryBackendName);
-                                  if (!isAll && _categoryScrollController.hasClients) {
-                                    _categoryScrollController.animateTo(
-                                      index * 76.0,
-                                      duration: const Duration(milliseconds: 300),
-                                      curve: Curves.easeOut,
-                                    );
-                                  }
-                                  context.read<OffersBloc>().add(FetchAllOffers(
-                                    categoryId: categoryBackendName == 'الكل' ? null : categoryBackendName,
-                                  ));
-                                },
-                                child: Column(
-                                  children: [
-                                    Container(
-                                      width: 60,
-                                      height: 60,
-                                      padding: const EdgeInsets.all(2),
-                                      decoration: BoxDecoration(
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: isSelected ? AppColors.primary : Colors.transparent,
-                                          width: 2,
-                                        ),
-                                      ),
-                                      child: ClipOval(
-                                        child: categoryImage != null
-                                            ? NetworkImageWidget(
-                                                imageUrl: categoryImage,
-                                                fit: BoxFit.cover,
-                                              )
-                                            : Container(
-                                                color: AppColors.primary.withValues(alpha: 0.1),
-                                                child: Icon(
-                                                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(categoryBackendName),
-                                                  color: AppColors.primary,
-                                                  size: 20,
-                                                ),
-                                              ),
-                                      ),
-                                    ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      categoryDisplayName,
-                                      style: theme.textTheme.labelSmall?.copyWith(
-                                            color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                                            fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
-                                            fontSize: 12,
-                                          ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            );
+                  actions: [
+                    Stack(
+                      children: [
+                        IconButton(
+                          icon: const Icon(
+                            Icons.tune_rounded,
+                            color: Colors.white,
+                          ),
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            _showFilterSheet();
                           },
                         ),
-                      ),
-                    ],
+                        if (_currentArea != 'الكل' ||
+                            _minDiscount > 0 ||
+                            _sortBy != 'newest')
+                          Positioned(
+                            right: 12,
+                            top: 12,
+                            child: Container(
+                              width: 8,
+                              height: 8,
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(width: 8),
+                  ],
+                ),
+                SliverToBoxAdapter(
+                  child: Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 24, 16, 8),
+                    child: Column(
+                      children: [
+                        const SizedBox(height: 8),
+                        SizedBox(
+                          height: 90,
+                          child: ListView.builder(
+                            controller: _categoryScrollController,
+                            scrollDirection: Axis.horizontal,
+                            physics: const BouncingScrollPhysics(),
+                            itemCount: categoryCount,
+                            itemBuilder: (context, index) {
+                              final bool isAll = index == 0;
+                              final categoryBackendName = isAll
+                                  ? 'الكل'
+                                  : dynamicCategories[index - 1].name;
+                              final categoryDisplayName = isAll
+                                  ? 'الكل'
+                                  : CategoryUtils.getDisplayName(
+                                      dynamicCategories[index - 1].name);
+                              final categoryImage = isAll
+                                  ? null
+                                  : dynamicCategories[index - 1].image;
+                              final isSelected =
+                                  _selectedCategory == categoryBackendName;
+                              return Padding(
+                                padding: const EdgeInsets.only(right: 16),
+                                child: GestureDetector(
+                                  onTap: () {
+                                    HapticFeedback.lightImpact();
+                                    setState(() => _selectedCategory =
+                                        categoryBackendName);
+                                    if (!isAll &&
+                                        _categoryScrollController.hasClients) {
+                                      _categoryScrollController.animateTo(
+                                        index * 76.0,
+                                        duration:
+                                            const Duration(milliseconds: 300),
+                                        curve: Curves.easeOut,
+                                      );
+                                    }
+                                    context
+                                        .read<OffersBloc>()
+                                        .add(FetchAllOffers(
+                                          categoryId:
+                                              categoryBackendName == 'الكل'
+                                                  ? null
+                                                  : categoryBackendName,
+                                        ));
+                                  },
+                                  child: Column(
+                                    children: [
+                                      Container(
+                                        width: 60,
+                                        height: 60,
+                                        padding: const EdgeInsets.all(2),
+                                        decoration: BoxDecoration(
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: isSelected
+                                                ? AppColors.primary
+                                                : Colors.transparent,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: ClipOval(
+                                          child: categoryImage != null
+                                              ? NetworkImageWidget(
+                                                  imageUrl: categoryImage,
+                                                  fit: BoxFit.cover,
+                                                )
+                                              : Container(
+                                                  color: AppColors.primary
+                                                      .withValues(alpha: 0.1),
+                                                  child: Icon(
+                                                    isAll
+                                                        ? Icons
+                                                            .grid_view_rounded
+                                                        : CategoryUtils.getIcon(
+                                                            categoryBackendName),
+                                                    color: AppColors.primary,
+                                                    size: 20,
+                                                  ),
+                                                ),
+                                        ),
+                                      ),
+                                      const SizedBox(height: 2),
+                                      Text(
+                                        categoryDisplayName,
+                                        style: theme.textTheme.labelSmall
+                                            ?.copyWith(
+                                          color: isSelected
+                                              ? AppColors.primary
+                                              : AppColors.textSecondary,
+                                          fontWeight: isSelected
+                                              ? FontWeight.bold
+                                              : FontWeight.w600,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
-              ),
-              if (state is OffersLoaded)
-                _buildOffersGrid(context, state)
-              else if (state is OffersLoading)
-                const SliverFillRemaining(
-                  child: Center(child: CircularProgressIndicator()),
-                )
-              else if (state is OffersError)
-                _buildErrorState(context, state.message)
-            ],
-          );
-        },
-      ),
+                if (state is OffersLoaded)
+                  _buildOffersGrid(context, state)
+                else if (state is OffersLoading)
+                  const SliverFillRemaining(
+                    child: Center(child: CircularProgressIndicator()),
+                  )
+                else if (state is OffersError)
+                  _buildErrorState(context, state.message)
+              ],
+            );
+          },
+        ),
       ),
     );
   }
 
   Widget _buildErrorState(BuildContext context, String message) {
     final theme = Theme.of(context);
-    final isConnectionError = message.toLowerCase().contains('connection') || 
-                             message.toLowerCase().contains('network') ||
-                             message.toLowerCase().contains('socket');
+    final isConnectionError = message.toLowerCase().contains('connection') ||
+        message.toLowerCase().contains('network') ||
+        message.toLowerCase().contains('socket');
 
     return SliverFillRemaining(
       hasScrollBody: false,
@@ -312,14 +349,18 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   shape: BoxShape.circle,
                 ),
                 child: Icon(
-                  isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
+                  isConnectionError
+                      ? Icons.wifi_off_rounded
+                      : Icons.error_outline_rounded,
                   size: 64,
                   color: AppColors.error,
                 ),
               ),
               const SizedBox(height: 24),
               Text(
-                isConnectionError ? AppStrings.connectionErrorTitle : AppStrings.errorLoadingTitle,
+                isConnectionError
+                    ? AppStrings.connectionErrorTitle
+                    : AppStrings.errorLoadingTitle,
                 style: theme.textTheme.headlineSmall,
               ),
               const SizedBox(height: 32),
@@ -327,7 +368,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 width: 200,
                 height: 50,
                 child: ElevatedButton(
-                  onPressed: () => context.read<OffersBloc>().add(FetchAllOffers()),
+                  onPressed: () =>
+                      context.read<OffersBloc>().add(FetchAllOffers()),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: AppColors.primary,
                     foregroundColor: Colors.white,
@@ -412,7 +454,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
                     style: TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.bold,
-                      fontSize: 16,
+                      fontSize: 13,
                     ),
                   ),
                 ),

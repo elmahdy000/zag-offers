@@ -22,15 +22,34 @@ class StoreSetupPage extends StatefulWidget {
 class _StoreSetupPageState extends State<StoreSetupPage> {
   static final _appBarTitle = GoogleFonts.cairo(fontWeight: FontWeight.bold);
   static final _loadingOverlay = GoogleFonts.cairo(fontWeight: FontWeight.bold);
-  static final _sectionTitle = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w900, color: AppColors.primary);
+  static final _sectionTitle = GoogleFonts.cairo(
+    fontSize: 16,
+    fontWeight: FontWeight.w900,
+    color: AppColors.primary,
+  );
   static final _fieldInput = GoogleFonts.cairo(fontSize: 14);
-  static final _loadingCategories = GoogleFonts.cairo(fontSize: 14, color: AppColors.textTertiary);
+  static final _loadingCategories = GoogleFonts.cairo(
+    fontSize: 14,
+    color: AppColors.textTertiary,
+  );
   static final _dropdownHint = GoogleFonts.cairo(fontSize: 14);
-  static final _dropdownValue = GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary);
+  static final _dropdownValue = GoogleFonts.cairo(
+    fontSize: 14,
+    color: AppColors.textPrimary,
+  );
   static final _dropdownItem = GoogleFonts.cairo(fontSize: 14);
-  static final _imagePickerLabel = GoogleFonts.cairo(fontSize: 12, color: AppColors.textTertiary);
-  static final _galleryTitle = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold);
-  static final _submitBtn = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold);
+  static final _imagePickerLabel = GoogleFonts.cairo(
+    fontSize: 12,
+    color: AppColors.textTertiary,
+  );
+  static final _galleryTitle = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+  );
+  static final _submitBtn = GoogleFonts.cairo(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
 
   final _formKey = GlobalKey<FormState>();
   final _nameController = TextEditingController();
@@ -65,8 +84,10 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
 
   Future<void> _pickImage(bool isLogo) async {
     final picker = ImagePicker();
-    final pickedFile =
-        await picker.pickImage(source: ImageSource.gallery, imageQuality: 70);
+    final pickedFile = await picker.pickImage(
+      source: ImageSource.gallery,
+      imageQuality: 70,
+    );
     if (pickedFile != null) {
       setState(() {
         if (isLogo) {
@@ -120,8 +141,10 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
 
       final List<String> galleryUrls = [];
       for (var i = 0; i < _galleryFiles.length; i++) {
-        setState(() =>
-            _uploadStatus = 'جاري رفع صورة المعرض (${i + 1}/${_galleryFiles.length})...');
+        setState(
+          () => _uploadStatus =
+              'جاري رفع صورة المعرض (${i + 1}/${_galleryFiles.length})...',
+        );
         final url = await uploadUseCase(_galleryFiles[i]);
         galleryUrls.add(url);
       }
@@ -152,7 +175,10 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     } catch (e) {
       if (!mounted) return;
       setState(() => _isUploading = false);
-      SnackBarUtils.showError(context, 'خطأ في رفع الصور: ${e.toString().replaceAll('Exception: ', '')}');
+      SnackBarUtils.showError(
+        context,
+        'خطأ في رفع الصور: ${e.toString().replaceAll('Exception: ', '')}',
+      );
     }
   }
 
@@ -167,12 +193,19 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         centerTitle: true,
       ),
       body: BlocConsumer<StoreSetupBloc, StoreSetupState>(
-        listenWhen: (_, next) => next is StoreCreatedSuccess || next is StoreSetupError,
-        buildWhen: (_, next) => next is StoreSetupLoading || next is StoreSetupError || next is CategoriesLoaded,
+        listenWhen: (_, next) =>
+            next is StoreCreatedSuccess || next is StoreSetupError,
+        buildWhen: (_, next) =>
+            next is StoreSetupLoading ||
+            next is StoreSetupError ||
+            next is CategoriesLoaded,
         listener: (context, state) {
           if (state is StoreCreatedSuccess) {
             setState(() => _isUploading = false);
-            SnackBarUtils.showSuccess(context, 'تم إنشاء المتجر بنجاح! بانتظار موافقة الإدارة');
+            SnackBarUtils.showSuccess(
+              context,
+              'تم إنشاء المتجر بنجاح! بانتظار موافقة الإدارة',
+            );
             // Refresh dashboard then pop
             context.read<DashboardBloc>().add(GetDashboardStatsRequested());
             Navigator.pop(context);
@@ -194,7 +227,8 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
             categories = const [];
           }
 
-          final bool isBlocLoading = state is StoreSetupLoading || state is StoreSubmitting;
+          final bool isBlocLoading =
+              state is StoreSetupLoading || state is StoreSubmitting;
           final bool isLoading = isBlocLoading || _isUploading;
 
           return Stack(
@@ -217,7 +251,10 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                             (v == null || v.trim().isEmpty) ? 'مطلوب' : null,
                       ),
                       const SizedBox(height: 16),
-                      _buildCategoryDropdown(categories, state is StoreSetupLoading),
+                      _buildCategoryDropdown(
+                        categories,
+                        state is StoreSetupLoading,
+                      ),
                       const SizedBox(height: 16),
                       _buildTextField(
                         controller: _areaController,
@@ -277,7 +314,8 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                     child: Card(
                       margin: const EdgeInsets.symmetric(horizontal: 40),
                       shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(20)),
+                        borderRadius: BorderRadius.circular(20),
+                      ),
                       child: Padding(
                         padding: const EdgeInsets.all(32),
                         child: Column(
@@ -306,10 +344,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
   }
 
   Widget _buildSectionTitle(String title) {
-    return Text(
-      title,
-      style: _sectionTitle,
-    );
+    return Text(title, style: _sectionTitle);
   }
 
   Widget _buildTextField({
@@ -334,21 +369,28 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         filled: true,
         fillColor: AppColors.card,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: AppColors.border)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.primary)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
       ),
     );
   }
 
-  Widget _buildCategoryDropdown(List<CategoryEntity> categories, bool isLoadingCategories) {
-    final hasValidSelection =
-        categories.any((c) => c.id == _selectedCategoryId);
+  Widget _buildCategoryDropdown(
+    List<CategoryEntity> categories,
+    bool isLoadingCategories,
+  ) {
+    final hasValidSelection = categories.any(
+      (c) => c.id == _selectedCategoryId,
+    );
 
     if (isLoadingCategories) {
       return Container(
@@ -360,7 +402,11 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
         ),
         child: Row(
           children: [
-            const Icon(Icons.category_rounded, size: 20, color: AppColors.textTertiary),
+            const Icon(
+              Icons.category_rounded,
+              size: 20,
+              color: AppColors.textTertiary,
+            ),
             const SizedBox(width: 12),
             const SizedBox(
               width: 16,
@@ -388,25 +434,32 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
       onChanged: (v) => setState(() => _selectedCategoryId = v),
       validator: (v) => v == null ? 'يرجى اختيار القسم' : null,
       decoration: InputDecoration(
-        prefixIcon: const Icon(Icons.category_rounded, size: 20, color: AppColors.textTertiary),
+        prefixIcon: const Icon(
+          Icons.category_rounded,
+          size: 20,
+          color: AppColors.textTertiary,
+        ),
         filled: true,
         fillColor: AppColors.card,
         border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide.none),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide.none,
+        ),
         enabledBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: BorderSide(color: AppColors.border)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: BorderSide(color: AppColors.border),
+        ),
         focusedBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.primary)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.primary),
+        ),
         errorBorder: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(16),
-            borderSide: const BorderSide(color: AppColors.error)),
+          borderRadius: BorderRadius.circular(16),
+          borderSide: const BorderSide(color: AppColors.error),
+        ),
       ),
     );
   }
-
 
   Widget _buildImagePickers() {
     return Row(
@@ -430,8 +483,11 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     );
   }
 
-  Widget _buildImageSelector(
-      {required String label, File? file, required VoidCallback onTap}) {
+  Widget _buildImageSelector({
+    required String label,
+    File? file,
+    required VoidCallback onTap,
+  }) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -450,10 +506,12 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
             : Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Icon(Icons.add_a_photo_rounded, color: AppColors.textTertiary),
+                  Icon(
+                    Icons.add_a_photo_rounded,
+                    color: AppColors.textTertiary,
+                  ),
                   const SizedBox(height: 8),
-                  Text(label,
-                      style: _imagePickerLabel),
+                  Text(label, style: _imagePickerLabel),
                 ],
               ),
       ),
@@ -464,8 +522,7 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text('معرض الصور (اختياري)',
-            style: _galleryTitle),
+        Text('معرض الصور (اختياري)', style: _galleryTitle),
         const SizedBox(height: 12),
         SizedBox(
           height: 80,
@@ -492,8 +549,12 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                 children: [
                   ClipRRect(
                     borderRadius: BorderRadius.circular(12),
-                    child: Image.file(_galleryFiles[index],
-                        width: 80, height: 80, fit: BoxFit.cover),
+                    child: Image.file(
+                      _galleryFiles[index],
+                      width: 80,
+                      height: 80,
+                      fit: BoxFit.cover,
+                    ),
                   ),
                   Positioned(
                     top: 2,
@@ -504,9 +565,14 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                       child: Container(
                         padding: const EdgeInsets.all(2),
                         decoration: const BoxDecoration(
-                            color: Colors.red, shape: BoxShape.circle),
-                        child: const Icon(Icons.close,
-                            size: 12, color: Colors.white),
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.close,
+                          size: 12,
+                          color: Colors.white,
+                        ),
                       ),
                     ),
                   ),
@@ -522,20 +588,18 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
   Widget _buildSubmitButton(bool isLoading) {
     return SizedBox(
       width: double.infinity,
-      height: 56,
+      height: 48,
       child: ElevatedButton(
         onPressed: isLoading ? null : _submit,
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: Colors.white,
-          shape:
-              RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(14),
+          ),
           elevation: 0,
         ),
-        child: Text(
-          'تأكيد وإرسال للمراجعة',
-          style: _submitBtn,
-        ),
+        child: Text('تأكيد وإرسال للمراجعة', style: _submitBtn),
       ),
     );
   }

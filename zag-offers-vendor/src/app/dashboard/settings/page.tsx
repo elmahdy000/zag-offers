@@ -1,8 +1,8 @@
 'use client';
-import { Store, Shield, Bell, ChevronLeft, Lock, Smartphone, LogOut, ExternalLink, HelpCircle, Activity, Wifi, Zap } from 'lucide-react';
+import { Store, Bell, ChevronLeft, Lock, MessageSquare, LogOut, ExternalLink, HelpCircle, Activity, Wifi, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { deleteCookie } from '@/lib/api';
+import { deleteCookie, vendorApi } from '@/lib/api';
 import { useEffect, useState } from 'react';
 import { PerformanceMonitor } from '@/lib/performance-monitor';
 import { ConfirmModal } from '@/components/ConfirmModal';
@@ -10,21 +10,39 @@ import { secureStorage } from '@/lib/crypto';
 
 export default function SettingsPage() {
   const [avgLatency, setAvgLatency] = useState<number | null>(null);
+  const [isOnline, setIsOnline] = useState(true);
 
   useEffect(() => {
-    const metrics = PerformanceMonitor.getMetrics().filter(m => m.type === 'API_LATENCY');
-    if (metrics.length > 0) {
-      const avg = metrics.reduce((acc, m) => acc + m.value, 0) / metrics.length;
-      setAvgLatency(avg);
-    }
+    const timer = window.setTimeout(() => {
+      const metrics = PerformanceMonitor.getMetrics().filter(m => m.type === 'API_LATENCY');
+      if (metrics.length > 0) {
+        setAvgLatency(metrics.reduce((acc, m) => acc + m.value, 0) / metrics.length);
+      }
+    }, 0);
+    return () => window.clearTimeout(timer);
+  }, []);
+
+  useEffect(() => {
+    const syncConnection = () => setIsOnline(navigator.onLine);
+    syncConnection();
+    window.addEventListener('online', syncConnection);
+    window.addEventListener('offline', syncConnection);
+    return () => {
+      window.removeEventListener('online', syncConnection);
+      window.removeEventListener('offline', syncConnection);
+    };
   }, []);
 
   const [showLogoutConfirm, setShowLogoutConfirm] = useState(false);
 
-  const handleLogout = () => {
-    deleteCookie('auth_token');
-    secureStorage.clear();
-    window.location.href = '/login';
+  const handleLogout = async () => {
+    try {
+      await vendorApi().post('/auth/logout');
+    } finally {
+      deleteCookie('auth_token');
+      secureStorage.clear();
+      window.location.href = '/login';
+    }
   };
 
   const sections = [
@@ -46,26 +64,25 @@ export default function SettingsPage() {
     },
     {
       title: 'التنبيهات',
-      description: 'التحكم في الإشعارات الفورية وصوت التنبيه',
+      description: 'متابعة الموافقات وطلبات الكوبونات وتحديثات المتجر',
       icon: Bell,
-      href: '#',
+      href: '/dashboard/notifications',
       color: 'text-secondary',
-      bg: 'bg-secondary/10',
-      tag: 'قريباً'
+      bg: 'bg-secondary/10'
     },
     {
-      title: 'تطبيق الموبايل',
-      description: 'ربط الحساب بتطبيق التاجر على أندرويد و iOS',
-      icon: Smartphone,
-      href: '#',
+      title: 'الدعم الفني',
+      description: 'فتح محادثة مباشرة مع فريق الدعم ومتابعة طلباتك',
+      icon: MessageSquare,
+      href: '/dashboard/chat',
       color: 'text-purple-500',
       bg: 'bg-purple-500/10'
     }
   ];
 
   return (
-    <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto animate-in">
-      <div className="mb-12">
+    <div className="vendor-settings-page p-4 sm:p-8 dir-rtl max-w-4xl mx-auto animate-in">
+      <div className="vendor-settings-header mb-6">
         <h1 className="text-4xl font-black text-text tracking-tighter">إعدادات النظام</h1>
         <p className="text-text-dim mt-2 font-bold text-xs uppercase tracking-widest flex items-center gap-2">
            <span className="w-1.5 h-1.5 bg-primary rounded-full" />
@@ -83,7 +100,7 @@ export default function SettingsPage() {
           >
             <Link 
               href={section.href}
-              className="glass p-6 rounded-[2rem] border border-glass-border flex items-center justify-between hover:border-primary/30 transition-all group active:scale-[0.99] bg-glass"
+              className="vendor-settings-link glass p-5 rounded-[2rem] border border-glass-border flex items-center justify-between hover:border-primary/30 transition-all group active:scale-[0.99] bg-glass"
             >
               <div className="flex items-center gap-5">
                 <div className={`w-14 h-14 ${section.bg} rounded-2xl flex items-center justify-center transition-transform group-hover:scale-110 shadow-lg`}>
@@ -92,11 +109,6 @@ export default function SettingsPage() {
                 <div>
                   <div className="flex items-center gap-3">
                     <h3 className="font-black text-text text-sm">{section.title}</h3>
-                    {section.tag && (
-                      <span className="text-[8px] font-black bg-glass-heavy text-primary px-2 py-0.5 rounded-md uppercase tracking-wider">
-                        {section.tag}
-                      </span>
-                    )}
                   </div>
                   <p className="text-text-dim text-[11px] font-bold mt-1 leading-relaxed">
                     {section.description}
@@ -113,7 +125,7 @@ export default function SettingsPage() {
 
       {/* Performance Status Section */}
       <div className="mt-6">
-        <div className="glass p-6 rounded-[2rem] border border-glass-border bg-glass">
+        <div className="vendor-settings-panel glass p-6 rounded-[2rem] border border-glass-border bg-glass">
           <div className="flex items-center gap-3 mb-6">
             <div className="w-10 h-10 bg-emerald-500/10 rounded-xl flex items-center justify-center text-emerald-500">
               <Activity size={20} />
@@ -131,8 +143,8 @@ export default function SettingsPage() {
                    <span className="text-[10px] font-black uppercase">سرعة الـ API</span>
                 </div>
                 <div className="flex items-end gap-1">
-                   <span className={`text-2xl font-black ${!avgLatency ? 'text-text-dimmer' : avgLatency < 500 ? 'text-emerald-400' : 'text-amber-400'}`}>
-                      {avgLatency ? avgLatency.toFixed(0) : '--'}
+                   <span className={`text-2xl font-black ${!isOnline || avgLatency === null ? 'text-text-dimmer' : avgLatency < 500 ? 'text-emerald-400' : 'text-amber-400'}`}>
+                      {isOnline && avgLatency !== null ? avgLatency.toFixed(0) : '--'}
                    </span>
                    <span className="text-[10px] font-bold text-text-dimmer mb-1">ms</span>
                 </div>
@@ -143,7 +155,9 @@ export default function SettingsPage() {
                    <span className="text-[10px] font-black uppercase">جودة الخدمة</span>
                 </div>
                 <div className="flex items-end gap-1">
-                   <span className="text-2xl font-black text-blue-400">مستقر</span>
+                   <span className={`text-xl font-black ${isOnline ? 'text-emerald-500' : 'text-red-500'}`}>
+                     {isOnline ? (avgLatency && avgLatency >= 1000 ? 'بطيء' : 'مستقر') : 'غير متصل'}
+                   </span>
                 </div>
              </div>
           </div>
@@ -157,7 +171,7 @@ export default function SettingsPage() {
           <p className="text-[10px] font-bold text-text-dimmer max-w-[200px] leading-relaxed">
             لديك استفسار؟ فريق الدعم متاح 24/7 لمساعدتك
           </p>
-          <a href="https://wa.me/201091428238" target="_blank" className="mt-6 text-[10px] font-black text-primary hover:underline flex items-center gap-2">
+          <a href="https://wa.me/201091428238" target="_blank" rel="noreferrer" className="mt-6 text-[10px] font-black text-primary hover:underline flex items-center gap-2">
             تواصل معنا <ExternalLink size={12} />
           </a>
         </div>

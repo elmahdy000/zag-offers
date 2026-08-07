@@ -5,6 +5,7 @@ import { EventsGateway } from '../events/events.gateway';
 import { PrismaService } from '../prisma/prisma.service';
 import { ReviewsService } from './reviews.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { UsersService } from '../users/users.service';
 
 describe('ReviewsService', () => {
   let service: ReviewsService;
@@ -30,6 +31,10 @@ describe('ReviewsService', () => {
     sendToUserId: jest.fn(),
   };
 
+  const mockUsers = {
+    addPoints: jest.fn().mockResolvedValue(undefined),
+  };
+
   beforeEach(async () => {
     const module: TestingModule = await Test.createTestingModule({
       providers: [
@@ -37,6 +42,7 @@ describe('ReviewsService', () => {
         { provide: PrismaService, useValue: mockPrisma },
         { provide: EventsGateway, useValue: mockEvents },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: UsersService, useValue: mockUsers },
       ],
     }).compile();
 

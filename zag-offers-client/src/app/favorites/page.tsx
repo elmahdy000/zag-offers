@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Heart, ShoppingBag, ArrowRight, Trash2 } from 'lucide-react';
+import { Heart, ArrowRight, Trash2 } from 'lucide-react';
 import Link from 'next/link';
 import { OfferCard } from '@/components/offer-card';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
@@ -14,13 +14,6 @@ export default function FavoritesPage() {
   const [favorites, setFavorites] = useState<Offer[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-
-  useEffect(() => {
-    const token = localStorage.getItem('token');
-    setTimeout(() => setIsLoggedIn(!!token), 0);
-  }, []);
-
   const favoritesRef = useRef<Offer[]>([]);
 
   const fetchFavorites = useCallback(async () => {
@@ -65,19 +58,21 @@ export default function FavoritesPage() {
     } finally {
       setLoading(false);
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, []);
 
   useEffect(() => {
-    fetchFavorites();
+    const initialFetch = window.setTimeout(() => void fetchFavorites(), 0);
     const handleOnline = () => fetchFavorites();
     window.addEventListener('online', handleOnline);
-    return () => window.removeEventListener('online', handleOnline);
+    return () => {
+      window.clearTimeout(initialFetch);
+      window.removeEventListener('online', handleOnline);
+    };
   }, [fetchFavorites]);
 
   // Re-fetch when auth state changes
   useEffect(() => {
     const handleAuthChange = () => {
-      setIsLoggedIn(!!localStorage.getItem('token'));
       fetchFavorites();
     };
     window.addEventListener('auth-change', handleAuthChange);
@@ -178,7 +173,7 @@ export default function FavoritesPage() {
                 <OfferCard offer={offer} />
                 <button 
                   onClick={() => removeFavorite(offer.id)}
-                  className="absolute top-2 left-2 z-30 p-2 bg-red-500 text-white rounded-lg opacity-0 group-hover:opacity-100 transition-all shadow-lg"
+                  className="absolute top-2 left-2 z-30 p-2 bg-red-500 text-white rounded-lg sm:opacity-0 sm:group-hover:opacity-100 transition-all shadow-lg"
                 >
                   <Trash2 size={14} />
                 </button>

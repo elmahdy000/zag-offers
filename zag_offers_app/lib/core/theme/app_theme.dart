@@ -19,21 +19,69 @@ class AppTheme {
     return base.copyWith(
       primaryColor: AppColors.primary,
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-        displayMedium: GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-        displaySmall: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textPrimary),
-        headlineLarge: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        headlineMedium: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        headlineSmall: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textPrimary),
-        titleLarge: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        titleMedium: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        titleSmall: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        bodyLarge: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.textPrimary, height: 1.5),
-        bodyMedium: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textSecondary, height: 1.5),
-        bodySmall: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textSecondary, height: 1.4),
-        labelLarge: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textPrimary),
-        labelMedium: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
-        labelSmall: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textSecondary),
+        displayLarge: GoogleFonts.cairo(
+            fontSize: 32,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary),
+        displayMedium: GoogleFonts.cairo(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary),
+        displaySmall: GoogleFonts.cairo(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textPrimary),
+        headlineLarge: GoogleFonts.cairo(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary),
+        headlineMedium: GoogleFonts.cairo(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary),
+        headlineSmall: GoogleFonts.cairo(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textPrimary),
+        titleLarge: GoogleFonts.cairo(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary),
+        titleMedium: GoogleFonts.cairo(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary),
+        titleSmall: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary),
+        bodyLarge: GoogleFonts.cairo(
+            fontSize: 15,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textPrimary,
+            height: 1.5),
+        bodyMedium: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textSecondary,
+            height: 1.5),
+        bodySmall: GoogleFonts.cairo(
+            fontSize: 12,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textSecondary,
+            height: 1.4),
+        labelLarge: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textPrimary),
+        labelMedium: GoogleFonts.cairo(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary),
+        labelSmall: GoogleFonts.cairo(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textSecondary),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.white,
@@ -52,7 +100,7 @@ class AppTheme {
         hintStyle: GoogleFonts.cairo(color: AppColors.textSecondary),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 16,
+          vertical: 12,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -79,16 +127,40 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
-          minimumSize: const Size(double.infinity, 54),
+          minimumSize: const Size(double.infinity, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.cairo(
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            fontSize: 14,
           ),
           elevation: 0,
         ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle:
+              GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(0, 40),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          textStyle:
+              GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+            minimumSize: const Size(40, 40),
+            iconSize: 20,
+            padding: const EdgeInsets.all(8)),
       ),
       cardTheme: CardThemeData(
         color: AppColors.white,
@@ -132,21 +204,69 @@ class AppTheme {
     return base.copyWith(
       primaryColor: AppColors.primary,
       textTheme: TextTheme(
-        displayLarge: GoogleFonts.cairo(fontSize: 32, fontWeight: FontWeight.w800, color: AppColors.textDark),
-        displayMedium: GoogleFonts.cairo(fontSize: 28, fontWeight: FontWeight.w800, color: AppColors.textDark),
-        displaySmall: GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w800, color: AppColors.textDark),
-        headlineLarge: GoogleFonts.cairo(fontSize: 22, fontWeight: FontWeight.w700, color: AppColors.textDark),
-        headlineMedium: GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w700, color: AppColors.textDark),
-        headlineSmall: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w700, color: AppColors.textDark),
-        titleLarge: GoogleFonts.cairo(fontSize: 18, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        titleMedium: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        titleSmall: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        bodyLarge: GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.normal, color: AppColors.textDark, height: 1.5),
-        bodyMedium: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.normal, color: AppColors.textDarkDim, height: 1.5),
-        bodySmall: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.normal, color: AppColors.textDarkDim, height: 1.4),
-        labelLarge: GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w600, color: AppColors.textDark),
-        labelMedium: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w600, color: AppColors.textDarkDim),
-        labelSmall: GoogleFonts.cairo(fontSize: 10, fontWeight: FontWeight.w600, color: AppColors.textDarkDim),
+        displayLarge: GoogleFonts.cairo(
+            fontSize: 32,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark),
+        displayMedium: GoogleFonts.cairo(
+            fontSize: 28,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark),
+        displaySmall: GoogleFonts.cairo(
+            fontSize: 24,
+            fontWeight: FontWeight.w800,
+            color: AppColors.textDark),
+        headlineLarge: GoogleFonts.cairo(
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textDark),
+        headlineMedium: GoogleFonts.cairo(
+            fontSize: 20,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textDark),
+        headlineSmall: GoogleFonts.cairo(
+            fontSize: 18,
+            fontWeight: FontWeight.w700,
+            color: AppColors.textDark),
+        titleLarge: GoogleFonts.cairo(
+            fontSize: 18,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark),
+        titleMedium: GoogleFonts.cairo(
+            fontSize: 16,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark),
+        titleSmall: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark),
+        bodyLarge: GoogleFonts.cairo(
+            fontSize: 15,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textDark,
+            height: 1.5),
+        bodyMedium: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textDarkDim,
+            height: 1.5),
+        bodySmall: GoogleFonts.cairo(
+            fontSize: 12,
+            fontWeight: FontWeight.normal,
+            color: AppColors.textDarkDim,
+            height: 1.4),
+        labelLarge: GoogleFonts.cairo(
+            fontSize: 14,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDark),
+        labelMedium: GoogleFonts.cairo(
+            fontSize: 12,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDarkDim),
+        labelSmall: GoogleFonts.cairo(
+            fontSize: 10,
+            fontWeight: FontWeight.w600,
+            color: AppColors.textDarkDim),
       ),
       appBarTheme: AppBarTheme(
         backgroundColor: AppColors.darkBackground,
@@ -165,7 +285,7 @@ class AppTheme {
         hintStyle: GoogleFonts.cairo(color: AppColors.textDarkDim),
         contentPadding: const EdgeInsets.symmetric(
           horizontal: 16,
-          vertical: 16,
+          vertical: 12,
         ),
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(18),
@@ -192,16 +312,40 @@ class AppTheme {
         style: ElevatedButton.styleFrom(
           backgroundColor: AppColors.primary,
           foregroundColor: AppColors.white,
-          minimumSize: const Size(double.infinity, 54),
+          minimumSize: const Size(double.infinity, 48),
           shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
+            borderRadius: BorderRadius.circular(14),
           ),
           textStyle: GoogleFonts.cairo(
             fontWeight: FontWeight.w700,
-            fontSize: 16,
+            fontSize: 14,
           ),
           elevation: 0,
         ),
+      ),
+      outlinedButtonTheme: OutlinedButtonThemeData(
+        style: OutlinedButton.styleFrom(
+          minimumSize: const Size(0, 44),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 10),
+          shape:
+              RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+          textStyle:
+              GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      ),
+      textButtonTheme: TextButtonThemeData(
+        style: TextButton.styleFrom(
+          minimumSize: const Size(0, 40),
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+          textStyle:
+              GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w700),
+        ),
+      ),
+      iconButtonTheme: IconButtonThemeData(
+        style: IconButton.styleFrom(
+            minimumSize: const Size(40, 40),
+            iconSize: 20,
+            padding: const EdgeInsets.all(8)),
       ),
       cardTheme: CardThemeData(
         color: AppColors.darkSurface,

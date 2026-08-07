@@ -219,13 +219,29 @@ export class CouponsService {
     const fixedCommission = (coupon.offer as any).fixedCommission || 0;
     const commissionAmount = fixedCommission; // Direct value in EGP
 
-    const updatedCoupon = await this.prisma.coupon.update({
-      where: { id: coupon.id },
+    const redeemedAt = new Date();
+    const redemption = await this.prisma.coupon.updateMany({
+      where: {
+        id: coupon.id,
+        status: CouponStatus.GENERATED,
+        expiresAt: { gt: redeemedAt },
+      },
       data: {
         status: CouponStatus.USED,
-        redeemedAt: new Date(),
-        commissionAmount: commissionAmount,
+        redeemedAt,
+        commissionAmount,
       },
+    });
+
+    // Only one concurrent request may transition this coupon to used.
+    if (redemption.count !== 1) {
+      throw new BadRequestException(
+        'عفوًا، الكوبون تم استخدامه أو انتهت صلاحيته بالفعل',
+      );
+    }
+
+    const updatedCoupon = await this.prisma.coupon.findUniqueOrThrow({
+      where: { id: coupon.id },
       include: {
         offer: {
           include: { store: true },

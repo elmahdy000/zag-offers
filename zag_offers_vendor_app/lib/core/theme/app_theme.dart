@@ -5,7 +5,7 @@ import 'app_colors.dart';
 class AppTheme {
   // Text Styles - React App Consistency
   static TextStyle get heading1 => GoogleFonts.cairo(
-    fontSize: 48,
+    fontSize: 34,
     fontWeight: FontWeight.w900,
     color: AppColors.text,
     letterSpacing: -1.5,
@@ -13,7 +13,7 @@ class AppTheme {
   );
 
   static TextStyle get heading2 => GoogleFonts.cairo(
-    fontSize: 36,
+    fontSize: 26,
     fontWeight: FontWeight.w900,
     color: AppColors.text,
     letterSpacing: -1,
@@ -21,7 +21,7 @@ class AppTheme {
   );
 
   static TextStyle get heading3 => GoogleFonts.cairo(
-    fontSize: 24,
+    fontSize: 20,
     fontWeight: FontWeight.w900,
     color: AppColors.text,
     letterSpacing: -0.5,
@@ -29,14 +29,14 @@ class AppTheme {
   );
 
   static TextStyle get title => GoogleFonts.cairo(
-    fontSize: 18,
+    fontSize: 16,
     fontWeight: FontWeight.w900,
     color: AppColors.text,
     letterSpacing: 0.2,
   );
 
   static TextStyle get body => GoogleFonts.cairo(
-    fontSize: 14,
+    fontSize: 13,
     fontWeight: FontWeight.w700,
     color: AppColors.textSecondary,
     letterSpacing: 0.1,
@@ -60,10 +60,7 @@ class AppTheme {
   static BoxDecoration get glassCard => BoxDecoration(
     color: AppColors.glassBackground,
     borderRadius: BorderRadius.circular(32),
-    border: Border.all(
-      color: AppColors.glassBorder,
-      width: 1,
-    ),
+    border: Border.all(color: AppColors.glassBorder, width: 1),
     boxShadow: [
       BoxShadow(
         color: Colors.black.withValues(alpha: 0.2),
@@ -76,10 +73,7 @@ class AppTheme {
   static BoxDecoration get glassHeavy => BoxDecoration(
     color: AppColors.glassHeavy,
     borderRadius: BorderRadius.circular(40),
-    border: Border.all(
-      color: AppColors.glassBorder,
-      width: 1,
-    ),
+    border: Border.all(color: AppColors.glassBorder, width: 1),
     boxShadow: [
       BoxShadow(
         color: AppColors.primary.withValues(alpha: 0.1),
@@ -95,12 +89,11 @@ class AppTheme {
     foregroundColor: Colors.white,
     elevation: 0,
     shadowColor: AppColors.primary.withValues(alpha: 0.3),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(32),
-    ),
-    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    minimumSize: const Size(0, 46),
+    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 11),
     textStyle: GoogleFonts.cairo(
-      fontSize: 14,
+      fontSize: 13,
       fontWeight: FontWeight.w900,
       letterSpacing: 0.2,
     ),
@@ -110,16 +103,12 @@ class AppTheme {
     backgroundColor: AppColors.glassBackground,
     foregroundColor: AppColors.text,
     elevation: 0,
-    side: BorderSide(
-      color: AppColors.glassBorder,
-      width: 1,
-    ),
-    shape: RoundedRectangleBorder(
-      borderRadius: BorderRadius.circular(32),
-    ),
-    padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 16),
+    side: BorderSide(color: AppColors.glassBorder, width: 1),
+    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+    minimumSize: const Size(0, 44),
+    padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 10),
     textStyle: GoogleFonts.cairo(
-      fontSize: 14,
+      fontSize: 13,
       fontWeight: FontWeight.w900,
       letterSpacing: 0.2,
     ),
@@ -183,10 +172,7 @@ class AppTheme {
       elevation: 0,
       centerTitle: true,
       titleTextStyle: heading2,
-      iconTheme: const IconThemeData(
-        color: AppColors.text,
-        size: 24,
-      ),
+      iconTheme: const IconThemeData(color: AppColors.text, size: 24),
     ),
     cardTheme: CardThemeData(
       color: AppColors.card,
@@ -196,16 +182,24 @@ class AppTheme {
         side: const BorderSide(color: AppColors.border, width: 1),
       ),
     ),
-    elevatedButtonTheme: ElevatedButtonThemeData(
-      style: primaryButton,
+    elevatedButtonTheme: ElevatedButtonThemeData(style: primaryButton),
+    outlinedButtonTheme: OutlinedButtonThemeData(style: secondaryButton),
+    textButtonTheme: TextButtonThemeData(
+      style: TextButton.styleFrom(
+        minimumSize: const Size(0, 40),
+        padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+        textStyle: GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.w700),
+      ),
     ),
-    outlinedButtonTheme: OutlinedButtonThemeData(
-      style: secondaryButton,
+    iconButtonTheme: IconButtonThemeData(
+      style: IconButton.styleFrom(
+        minimumSize: const Size(40, 40),
+        iconSize: 20,
+        padding: const EdgeInsets.all(8),
+      ),
     ),
     inputDecorationTheme: inputDecorationTheme,
-    textTheme: GoogleFonts.cairoTextTheme(
-      ThemeData.dark().textTheme,
-    ).copyWith(
+    textTheme: GoogleFonts.cairoTextTheme(ThemeData.dark().textTheme).copyWith(
       displayLarge: heading1,
       displayMedium: heading2,
       displaySmall: heading3,
@@ -222,13 +216,7 @@ class AppTheme {
       labelMedium: caption,
       labelSmall: small,
     ),
-    iconTheme: const IconThemeData(
-      color: AppColors.textSecondary,
-      size: 20,
-    ),
-    dividerTheme: const DividerThemeData(
-      color: AppColors.border,
-      thickness: 1,
-    ),
+    iconTheme: const IconThemeData(color: AppColors.textSecondary, size: 20),
+    dividerTheme: const DividerThemeData(color: AppColors.border, thickness: 1),
   );
 }

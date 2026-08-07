@@ -5,15 +5,27 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Share } from 'lucide-react';
 import { secureStorage } from '@/lib/crypto';
 
+interface BeforeInstallPromptEvent extends Event {
+  prompt: () => Promise<void>;
+  userChoice: Promise<{ outcome: 'accepted' | 'dismissed' }>;
+}
+
 export default function PWAInstallPrompt() {
   const [show, setShow] = useState(false);
-  const [platform, setPlatform] = useState<'android' | 'ios' | 'other'>('other');
-  const [deferredPrompt, setDeferredPrompt] = useState<any>(null);
+  const [platform] = useState<'android' | 'ios' | 'other'>(() => {
+    if (typeof navigator === 'undefined') return 'other';
+    const ua = navigator.userAgent.toLowerCase();
+    if (/iphone|ipad|ipod/.test(ua)) return 'ios';
+    if (/android/.test(ua)) return 'android';
+    return 'other';
+  });
+  const [deferredPrompt, setDeferredPrompt] = useState<BeforeInstallPromptEvent | null>(null);
 
   useEffect(() => {
+    const timers: number[] = [];
     // 1. Check if already installed
     const isStandalone = window.matchMedia('(display-mode: standalone)').matches 
-                         || (window.navigator as any).standalone;
+                         || Boolean((window.navigator as Navigator & { standalone?: boolean }).standalone);
     
     if (isStandalone) return;
 
@@ -27,28 +39,25 @@ export default function PWAInstallPrompt() {
     }
 
     // 3. Detect Platform
-    const ua = window.navigator.userAgent.toLowerCase();
-    if (/iphone|ipad|ipod/.test(ua)) {
-      setPlatform('ios');
-    } else if (/android/.test(ua)) {
-      setPlatform('android');
-    }
-
     // 4. Listen for Android Install Prompt
-    const handler = (e: any) => {
+    const handler = (event: Event) => {
+      const e = event as BeforeInstallPromptEvent;
       e.preventDefault();
       setDeferredPrompt(e);
-      setTimeout(() => setShow(true), 2000);
+      timers.push(window.setTimeout(() => setShow(true), 2000));
     };
 
     window.addEventListener('beforeinstallprompt', handler);
 
-    if (/iphone|ipad|ipod/.test(ua)) {
-      setTimeout(() => setShow(true), 4000);
+    if (platform === 'ios') {
+      timers.push(window.setTimeout(() => setShow(true), 4000));
     }
 
-    return () => window.removeEventListener('beforeinstallprompt', handler);
-  }, []);
+    return () => {
+      timers.forEach((timer) => window.clearTimeout(timer));
+      window.removeEventListener('beforeinstallprompt', handler);
+    };
+  }, [platform]);
 
   const handleInstall = async () => {
     if (platform === 'android' && deferredPrompt) {
@@ -59,7 +68,7 @@ export default function PWAInstallPrompt() {
       }
       setDeferredPrompt(null);
     } else if (platform === 'ios') {
-      alert('لتثبيت لوحة التاجر: اضغط على زر "مشاركة" (Share) ثم اختر "إضافة للشاشة الرئيسية" (Add to Home Screen) لتصلك الإشعارات فوراً 🔔');
+      alert('لتثبيت لوحة التاجر: اضغط على زر "مشاركة" (Share) ثم اختر "إضافة للشاشة الرئيسية" (Add to Home Screen) لتصلك الإشعارات فوراً.');
     }
   };
 

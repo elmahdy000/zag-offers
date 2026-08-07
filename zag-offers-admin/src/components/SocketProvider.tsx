@@ -58,8 +58,17 @@ export function SocketProvider({ children }: { children: ReactNode }) {
       if (notification.type === 'ANNOUNCEMENT' && notification.body) {
         showToast(notification.body, 'info');
       }
-      queryClientRef.current.invalidateQueries({ queryKey: ['admin-stores'] });
-      queryClientRef.current.invalidateQueries({ queryKey: ['all-offers'] });
+      if (notification.type === 'NEW_PENDING_OFFER') {
+        queryClientRef.current.invalidateQueries({ queryKey: ['all-offers'] });
+        queryClientRef.current.invalidateQueries({ queryKey: ['pending-offers'] });
+      } else if (notification.type === 'NEW_PENDING_STORE') {
+        queryClientRef.current.invalidateQueries({ queryKey: ['admin-stores'] });
+        queryClientRef.current.invalidateQueries({ queryKey: ['pending-stores'] });
+      } else if (notification.type === 'SYSTEM') {
+        queryClientRef.current.invalidateQueries({ queryKey: ['admin-stores'] });
+      }
+      queryClientRef.current.invalidateQueries({ queryKey: ['pending-count'] });
+      queryClientRef.current.invalidateQueries({ queryKey: ['global-stats'] });
     });
 
     setSocket(newSocket);

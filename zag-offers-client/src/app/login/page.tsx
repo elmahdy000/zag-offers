@@ -1,12 +1,13 @@
 "use client";
 
 import { useState } from 'react';
-import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShoppingBag } from 'lucide-react';
+import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowLeft, CheckCircle2 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import axios from 'axios';
 import { API_URL } from '@/lib/constants';
+import { AuthShell } from '@/components/auth-shell';
 
 export default function LoginPage() {
   const router = useRouter();
@@ -50,7 +51,7 @@ export default function LoginPage() {
       localStorage.setItem('user', JSON.stringify(user));
       window.dispatchEvent(new Event('auth-change'));
       router.replace('/');
-    } catch (err: any) {
+    } catch {
       setError('رقم الموبايل أو كلمة المرور غير صحيحة');
     } finally {
       setLoading(false);
@@ -58,94 +59,89 @@ export default function LoginPage() {
   };
 
   return (
-    <div className="min-h-[90vh] flex items-center justify-center px-4 py-12 relative overflow-hidden">
-      <div className="absolute top-0 inset-x-0 h-[500px] bg-gradient-to-b from-[#FF6B00]/10 to-transparent -z-10" />
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-[#FF6B00]/5 blur-[120px] rounded-full -z-10" />
-      
-      <motion.div 
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="w-full max-w-[450px] glass p-8 sm:p-12 rounded-[3rem] shadow-2xl border border-white/5 relative"
-      >
-        <div className="text-center mb-10">
-          <Link href="/" className="inline-flex items-center gap-2 mb-8 group">
-            <div className="w-16 h-16 bg-[#FF6B00] rounded-[2rem] flex items-center justify-center shadow-2xl shadow-orange-900/40 group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
-              <ShoppingBag className="text-white" size={32} />
-            </div>
-          </Link>
-          <h1 className="text-3xl font-black mb-3 tracking-tight">مرحباً بك مجدداً</h1>
-          <p className="text-white/40 text-sm font-bold">سجل دخولك لتتمكن من استخدام كوبوناتك</p>
+    <AuthShell mode="login">
+      <motion.div initial={false} animate={{ opacity: 1, y: 0 }}>
+        <div className="mb-8">
+          <span className="auth-kicker">أهلاً بعودتك</span>
+          <h1 className="auth-title mt-3">سجّل دخولك</h1>
+          <p className="auth-subtitle mt-2">ادخل بياناتك للوصول إلى كوبوناتك وعروضك المحفوظة.</p>
         </div>
 
-        <form onSubmit={handleLogin} className="space-y-6">
+        <form onSubmit={handleLogin} className="space-y-5">
           {error && (
-            <motion.div initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="p-4 bg-red-500/10 border border-red-500/20 rounded-2xl text-red-500 text-[11px] font-bold text-center">
+            <motion.div initial={{ opacity: 0, y: -6 }} animate={{ opacity: 1, y: 0 }} className="auth-error" role="alert">
               {error}
             </motion.div>
           )}
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-wider">رقم الموبايل</label>
-            <div className="relative group">
-              <Smartphone className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+            <label htmlFor="login-phone" className="auth-label">رقم الموبايل</label>
+            <div className="auth-input-wrap group">
+              <Smartphone className="auth-input-icon" size={19} />
               <input 
+                id="login-phone"
                 type="tel" 
                 placeholder="01xxxxxxxxx"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] focus:bg-white/[0.08] outline-none transition-all text-left dir-ltr"
+                className="auth-input text-left"
                 value={phone}
                 onChange={(e) => setPhone(e.target.value)}
+                inputMode="numeric"
+                autoComplete="tel"
                 required
               />
             </div>
           </div>
 
           <div className="space-y-2">
-            <label className="text-[11px] font-black text-white/30 mr-2 uppercase tracking-wider">كلمة المرور</label>
-            <div className="relative group">
-              <Lock className="absolute right-4 top-1/2 -translate-y-1/2 text-white/20 group-focus-within:text-[#FF6B00] transition-colors" size={18} />
+            <div className="flex items-center justify-between">
+              <label htmlFor="login-password" className="auth-label">كلمة المرور</label>
+              <Link href="/forgot-password" className="auth-inline-link text-xs">نسيت كلمة المرور؟</Link>
+            </div>
+            <div className="auth-input-wrap group">
+              <Lock className="auth-input-icon" size={19} />
               <input 
+                id="login-password"
                 type={showPassword ? 'text' : 'password'} 
-                placeholder="••••••••"
-                className="w-full bg-white/5 border border-white/10 rounded-2xl px-12 py-4 text-sm font-bold focus:border-[#FF6B00] focus:bg-white/[0.08] outline-none transition-all text-left dir-ltr"
+                placeholder="أدخل كلمة المرور"
+                className="auth-input px-12"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
+                autoComplete="current-password"
                 required
               />
               <button 
                 type="button" 
-                className="absolute left-4 top-1/2 -translate-y-1/2 text-white/20 hover:text-[#FF6B00] transition-colors"
+                className="auth-password-toggle"
                 onClick={() => setShowPassword(!showPassword)}
+                aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'}
               >
                 {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
               </button>
-            </div>
-            <div className="flex justify-end pt-1">
-              <Link href="/forgot-password" className="text-[10px] font-black text-white/20 hover:text-[#FF6B00] transition-colors">
-                نسيت كلمة المرور؟
-              </Link>
             </div>
           </div>
 
           <button 
             type="submit" 
             disabled={loading}
-            className="w-full py-4.5 bg-[#FF6B00] text-white font-black rounded-2xl shadow-2xl shadow-orange-900/40 hover:scale-[1.02] active:scale-[0.98] transition-all flex items-center justify-center gap-2 text-base"
+            className="auth-submit"
           >
-            {loading ? <Loader2 className="animate-spin" size={24} /> : (
+            {loading ? <Loader2 className="animate-spin" size={21} /> : (
               <>
                 تسجيل الدخول
-                <ArrowRight size={20} />
+                <ArrowLeft size={19} />
               </>
             )}
           </button>
         </form>
 
-        <div className="mt-10 text-center">
-          <p className="text-sm font-bold text-white/30">
-            ليس لديك حساب؟ <Link href="/register" className="text-[#FF6B00] hover:underline hover:text-white transition-colors">أنشئ حساباً جديداً</Link>
+        <div className="auth-benefit mt-6"><CheckCircle2 size={17} /> الدخول مجاني ولن يستغرق أكثر من دقيقة</div>
+
+        <div className="auth-switch mt-8">
+          <p>
+            ليس لديك حساب؟ <Link href="/register">أنشئ حساباً جديداً</Link>
           </p>
         </div>
       </motion.div>
-    </div>
+    </AuthShell>
   );
 }

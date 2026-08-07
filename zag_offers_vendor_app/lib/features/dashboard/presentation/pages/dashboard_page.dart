@@ -20,23 +20,89 @@ import 'package:zag_offers_vendor_app/core/widgets/network_image.dart';
 import 'package:zag_offers_vendor_app/injection_container.dart';
 
 class DashboardPage extends StatelessWidget {
-  static final _overviewLabel = GoogleFonts.cairo(color: Colors.white70, fontSize: 12, fontWeight: FontWeight.w600, letterSpacing: 0.5);
-  static final _userName = GoogleFonts.cairo(color: Colors.white, fontSize: 20, fontWeight: FontWeight.w900);
-  static final _pendingBanner = GoogleFonts.cairo(color: Colors.amber.shade800, fontSize: 13, fontWeight: FontWeight.bold);
-  static final _rejectedBanner = GoogleFonts.cairo(color: AppColors.error, fontSize: 13, fontWeight: FontWeight.bold);
-  static final _viewAllBtn = GoogleFonts.cairo(fontSize: 12, color: AppColors.primary, fontWeight: FontWeight.bold);
-  static final _headerStatValue = GoogleFonts.cairo(color: Colors.white, fontSize: 18, fontWeight: FontWeight.w900, height: 1);
-  static final _headerStatLabel = GoogleFonts.cairo(color: Colors.white70, fontSize: 10, fontWeight: FontWeight.w500);
-  static final _sectionHeader = GoogleFonts.cairo(fontSize: 15, fontWeight: FontWeight.w900, color: AppColors.textPrimary, letterSpacing: 0.5);
-  static final _compactActionLabel = GoogleFonts.cairo(fontSize: 11, fontWeight: FontWeight.bold, color: AppColors.textSecondary);
-  static final _activityTitle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 13, color: AppColors.textPrimary);
-  static final _activityCustomer = GoogleFonts.cairo(color: AppColors.textSecondary, fontSize: 10);
-  static final _activityStatusBase = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 9);
-  static final _activityTime = GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 9);
-  static final _emptyStateText = GoogleFonts.cairo(color: AppColors.textTertiary, fontSize: 14);
-  static final _noStoreTitle = GoogleFonts.cairo(fontSize: 24, fontWeight: FontWeight.w900, color: AppColors.textPrimary);
-  static final _noStoreDesc = GoogleFonts.cairo(fontSize: 14, color: AppColors.textSecondary, height: 1.5);
-  static final _noStoreBtn = GoogleFonts.cairo(fontSize: 16, fontWeight: FontWeight.bold);
+  static final _overviewLabel = GoogleFonts.cairo(
+    color: Colors.white70,
+    fontSize: 12,
+    fontWeight: FontWeight.w600,
+    letterSpacing: 0.5,
+  );
+  static final _userName = GoogleFonts.cairo(
+    color: Colors.white,
+    fontSize: 20,
+    fontWeight: FontWeight.w900,
+  );
+  static final _pendingBanner = GoogleFonts.cairo(
+    color: Colors.amber.shade800,
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+  );
+  static final _rejectedBanner = GoogleFonts.cairo(
+    color: AppColors.error,
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+  );
+  static final _viewAllBtn = GoogleFonts.cairo(
+    fontSize: 12,
+    color: AppColors.primary,
+    fontWeight: FontWeight.bold,
+  );
+  static final _headerStatValue = GoogleFonts.cairo(
+    color: Colors.white,
+    fontSize: 18,
+    fontWeight: FontWeight.w900,
+    height: 1,
+  );
+  static final _headerStatLabel = GoogleFonts.cairo(
+    color: Colors.white70,
+    fontSize: 10,
+    fontWeight: FontWeight.w500,
+  );
+  static final _sectionHeader = GoogleFonts.cairo(
+    fontSize: 15,
+    fontWeight: FontWeight.w900,
+    color: AppColors.textPrimary,
+    letterSpacing: 0.5,
+  );
+  static final _compactActionLabel = GoogleFonts.cairo(
+    fontSize: 11,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textSecondary,
+  );
+  static final _activityTitle = GoogleFonts.cairo(
+    fontWeight: FontWeight.bold,
+    fontSize: 13,
+    color: AppColors.textPrimary,
+  );
+  static final _activityCustomer = GoogleFonts.cairo(
+    color: AppColors.textSecondary,
+    fontSize: 10,
+  );
+  static final _activityStatusBase = GoogleFonts.cairo(
+    fontWeight: FontWeight.w900,
+    fontSize: 9,
+  );
+  static final _activityTime = GoogleFonts.cairo(
+    color: AppColors.textTertiary,
+    fontSize: 9,
+  );
+  static final _emptyStateText = GoogleFonts.cairo(
+    color: AppColors.textTertiary,
+    fontSize: 14,
+  );
+  static final _noStoreTitle = GoogleFonts.cairo(
+    fontSize: 24,
+    fontWeight: FontWeight.w900,
+    color: AppColors.textPrimary,
+  );
+  static final _noStoreDesc = GoogleFonts.cairo(
+    fontSize: 14,
+    color: AppColors.textSecondary,
+    height: 1.5,
+  );
+  static final _noStoreBtn = GoogleFonts.cairo(
+    fontSize: 16,
+    fontWeight: FontWeight.bold,
+  );
 
   const DashboardPage({super.key});
 
@@ -57,7 +123,11 @@ class DashboardPage extends StatelessWidget {
           context.read<DashboardBloc>().add(GetDashboardStatsRequested());
         },
         child: BlocBuilder<DashboardBloc, DashboardState>(
-          buildWhen: (prev, next) => next is DashboardLoading || next is DashboardLoaded || next is DashboardError || next is DashboardNoStore,
+          buildWhen: (prev, next) =>
+              next is DashboardLoading ||
+              next is DashboardLoaded ||
+              next is DashboardError ||
+              next is DashboardNoStore,
           builder: (context, state) {
             if (state is DashboardNoStore) {
               return _buildNoStoreState(context);
@@ -91,7 +161,9 @@ class DashboardPage extends StatelessWidget {
                             top: -50,
                             child: CircleAvatar(
                               radius: 120,
-                              backgroundColor: Colors.white.withValues(alpha: 0.05),
+                              backgroundColor: Colors.white.withValues(
+                                alpha: 0.05,
+                              ),
                             ),
                           ),
                           Padding(
@@ -100,10 +172,12 @@ class DashboardPage extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Row(
-                                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                                  mainAxisAlignment:
+                                      MainAxisAlignment.spaceBetween,
                                   children: [
                                     Column(
-                                      crossAxisAlignment: CrossAxisAlignment.start,
+                                      crossAxisAlignment:
+                                          CrossAxisAlignment.start,
                                       children: [
                                         Text(
                                           'نظرة عامة',
@@ -119,7 +193,10 @@ class DashboardPage extends StatelessWidget {
                                       Icons.notifications_none_rounded,
                                       () => Navigator.push(
                                         context,
-                                        MaterialPageRoute(builder: (_) => const NotificationsPage()),
+                                        MaterialPageRoute(
+                                          builder: (_) =>
+                                              const NotificationsPage(),
+                                        ),
                                       ),
                                     ),
                                   ],
@@ -130,10 +207,17 @@ class DashboardPage extends StatelessWidget {
                                   children: [
                                     Expanded(
                                       child: InkWell(
-                                        onTap: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(1),
+                                        onTap: () => context
+                                            .findAncestorStateOfType<
+                                              MainLayoutState
+                                            >()
+                                            ?.setIndex(1),
                                         child: _buildHeaderStat(
                                           'عروض نشطة',
-                                          state is DashboardLoaded ? state.stats.activeOffers.toString() : '...',
+                                          state is DashboardLoaded
+                                              ? state.stats.activeOffers
+                                                    .toString()
+                                              : '...',
                                           Icons.local_fire_department_rounded,
                                         ),
                                       ),
@@ -141,10 +225,17 @@ class DashboardPage extends StatelessWidget {
                                     _buildVerticalDivider(),
                                     Expanded(
                                       child: InkWell(
-                                        onTap: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
+                                        onTap: () => context
+                                            .findAncestorStateOfType<
+                                              MainLayoutState
+                                            >()
+                                            ?.setIndex(2),
                                         child: _buildHeaderStat(
                                           'طلبات اليوم',
-                                          state is DashboardLoaded ? state.stats.claimsToday.toString() : '...',
+                                          state is DashboardLoaded
+                                              ? state.stats.claimsToday
+                                                    .toString()
+                                              : '...',
                                           Icons.confirmation_num_outlined,
                                         ),
                                       ),
@@ -152,10 +243,17 @@ class DashboardPage extends StatelessWidget {
                                     _buildVerticalDivider(),
                                     Expanded(
                                       child: InkWell(
-                                        onTap: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
+                                        onTap: () => context
+                                            .findAncestorStateOfType<
+                                              MainLayoutState
+                                            >()
+                                            ?.setIndex(2),
                                         child: _buildHeaderStat(
                                           'مسح اليوم',
-                                          state is DashboardLoaded ? state.stats.scansToday.toString() : '...',
+                                          state is DashboardLoaded
+                                              ? state.stats.scansToday
+                                                    .toString()
+                                              : '...',
                                           Icons.qr_code_scanner_rounded,
                                         ),
                                       ),
@@ -174,7 +272,8 @@ class DashboardPage extends StatelessWidget {
                 const SliverToBoxAdapter(child: SizedBox(height: 24)),
 
                 // Status Banner
-                if (state is DashboardLoaded && state.stats.storeStatus == 'PENDING')
+                if (state is DashboardLoaded &&
+                    state.stats.storeStatus == 'PENDING')
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -182,11 +281,16 @@ class DashboardPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: Colors.amber.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: Colors.amber.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: Colors.amber.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.hourglass_empty_rounded, color: Colors.amber),
+                          const Icon(
+                            Icons.hourglass_empty_rounded,
+                            color: Colors.amber,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -199,7 +303,8 @@ class DashboardPage extends StatelessWidget {
                     ),
                   ),
 
-                if (state is DashboardLoaded && state.stats.storeStatus == 'REJECTED')
+                if (state is DashboardLoaded &&
+                    state.stats.storeStatus == 'REJECTED')
                   SliverToBoxAdapter(
                     child: Container(
                       margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -207,11 +312,16 @@ class DashboardPage extends StatelessWidget {
                       decoration: BoxDecoration(
                         color: AppColors.error.withValues(alpha: 0.1),
                         borderRadius: BorderRadius.circular(16),
-                        border: Border.all(color: AppColors.error.withValues(alpha: 0.3)),
+                        border: Border.all(
+                          color: AppColors.error.withValues(alpha: 0.3),
+                        ),
                       ),
                       child: Row(
                         children: [
-                          const Icon(Icons.error_outline_rounded, color: AppColors.error),
+                          const Icon(
+                            Icons.error_outline_rounded,
+                            color: AppColors.error,
+                          ),
                           const SizedBox(width: 12),
                           Expanded(
                             child: Text(
@@ -240,28 +350,40 @@ class DashboardPage extends StatelessWidget {
                               Icons.add_rounded,
                               'إضافة عرض',
                               AppColors.primary,
-                              () => Navigator.push(context, MaterialPageRoute(builder: (_) => const AddEditOfferPage())),
+                              () => Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (_) => const AddEditOfferPage(),
+                                ),
+                              ),
                             ),
                             _buildCompactAction(
                               Icons.analytics_rounded,
                               'التحليلات',
                               AppColors.accent,
-                              () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
+                              () => context
+                                  .findAncestorStateOfType<MainLayoutState>()
+                                  ?.setIndex(2),
                             ),
                             _buildCompactAction(
                               Icons.star_rounded,
                               'التقييمات',
                               Colors.amber,
                               () {
-                                if (state is DashboardLoaded && state.storeId != null) {
+                                if (state is DashboardLoaded &&
+                                    state.storeId != null) {
                                   Navigator.push(
                                     context,
                                     MaterialPageRoute(
-                                      builder: (_) => ReviewsPage(storeId: state.storeId!),
+                                      builder: (_) =>
+                                          ReviewsPage(storeId: state.storeId!),
                                     ),
                                   );
                                 } else {
-                                  SnackBarUtils.showError(context, 'لم يتم العثور على المتجر');
+                                  SnackBarUtils.showError(
+                                    context,
+                                    'لم يتم العثور على المتجر',
+                                  );
                                 }
                               },
                             ),
@@ -269,7 +391,9 @@ class DashboardPage extends StatelessWidget {
                               Icons.settings_rounded,
                               'الإعدادات',
                               AppColors.textTertiary,
-                              () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(3),
+                              () => context
+                                  .findAncestorStateOfType<MainLayoutState>()
+                                  ?.setIndex(3),
                             ),
                           ],
                         ),
@@ -289,11 +413,10 @@ class DashboardPage extends StatelessWidget {
                       children: [
                         _buildSectionHeader('عروضي النشطة'),
                         TextButton(
-                          onPressed: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(1),
-                          child: Text(
-                            'عرض الكل',
-                            style: _viewAllBtn,
-                          ),
+                          onPressed: () => context
+                              .findAncestorStateOfType<MainLayoutState>()
+                              ?.setIndex(1),
+                          child: Text('عرض الكل', style: _viewAllBtn),
                         ),
                       ],
                     ),
@@ -302,14 +425,23 @@ class DashboardPage extends StatelessWidget {
 
                 SliverToBoxAdapter(
                   child: BlocBuilder<OffersBloc, OffersState>(
-                    buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading,
+                    buildWhen: (prev, next) =>
+                        next is OffersLoaded || next is OffersLoading,
                     builder: (context, offersState) {
                       if (offersState is OffersLoaded) {
-                        final activeOffers = offersState.offers.where((o) => o.status == 'ACTIVE').toList();
+                        final activeOffers = offersState.offers
+                            .where((o) => o.status == 'ACTIVE')
+                            .toList();
                         if (activeOffers.isEmpty) {
                           return Padding(
-                            padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
-                            child: Text('لا توجد عروض نشطة حالياً', style: _emptyStateText),
+                            padding: const EdgeInsets.symmetric(
+                              horizontal: 20,
+                              vertical: 16,
+                            ),
+                            child: Text(
+                              'لا توجد عروض نشطة حالياً',
+                              style: _emptyStateText,
+                            ),
                           );
                         }
                         return SizedBox(
@@ -318,7 +450,11 @@ class DashboardPage extends StatelessWidget {
                             scrollDirection: Axis.horizontal,
                             padding: const EdgeInsets.symmetric(horizontal: 16),
                             itemCount: activeOffers.length,
-                            itemBuilder: (context, index) => _buildMiniOfferCard(context, activeOffers[index]),
+                            itemBuilder: (context, index) =>
+                                _buildMiniOfferCard(
+                                  context,
+                                  activeOffers[index],
+                                ),
                           ),
                         );
                       }
@@ -344,11 +480,10 @@ class DashboardPage extends StatelessWidget {
                       children: [
                         _buildSectionHeader('أحدث الطلبات (كوبونات)'),
                         TextButton(
-                          onPressed: () => context.findAncestorStateOfType<MainLayoutState>()?.setIndex(2),
-                          child: Text(
-                            'عرض الكل',
-                            style: _viewAllBtn,
-                          ),
+                          onPressed: () => context
+                              .findAncestorStateOfType<MainLayoutState>()
+                              ?.setIndex(2),
+                          child: Text('عرض الكل', style: _viewAllBtn),
                         ),
                       ],
                     ),
@@ -362,7 +497,9 @@ class DashboardPage extends StatelessWidget {
                       ? _buildEmptyState()
                       : SliverList(
                           delegate: SliverChildBuilderDelegate(
-                            (context, index) => _buildActivityTile(state.stats.recentCoupons[index]),
+                            (context, index) => _buildActivityTile(
+                              state.stats.recentCoupons[index],
+                            ),
                             childCount: state.stats.recentCoupons.length,
                           ),
                         ),
@@ -397,14 +534,8 @@ class DashboardPage extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.white, size: 20),
         const SizedBox(height: 8),
-        Text(
-          value,
-          style: _headerStatValue,
-        ),
-        Text(
-          label,
-          style: _headerStatLabel,
-        ),
+        Text(value, style: _headerStatValue),
+        Text(label, style: _headerStatLabel),
       ],
     );
   }
@@ -418,13 +549,15 @@ class DashboardPage extends StatelessWidget {
   }
 
   Widget _buildSectionHeader(String title) {
-    return Text(
-      title,
-      style: _sectionHeader,
-    );
+    return Text(title, style: _sectionHeader);
   }
 
-  Widget _buildCompactAction(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildCompactAction(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(16),
@@ -441,10 +574,7 @@ class DashboardPage extends StatelessWidget {
             child: Icon(icon, color: color, size: 26),
           ),
           const SizedBox(height: 8),
-          Text(
-            label,
-            style: _compactActionLabel,
-          ),
+          Text(label, style: _compactActionLabel),
         ],
       ),
     );
@@ -466,7 +596,8 @@ class DashboardPage extends StatelessWidget {
             Container(
               padding: const EdgeInsets.all(8),
               decoration: BoxDecoration(
-                color: (isUsed ? AppColors.success : AppColors.primary).withValues(alpha: 0.1),
+                color: (isUsed ? AppColors.success : AppColors.primary)
+                    .withValues(alpha: 0.1),
                 borderRadius: BorderRadius.circular(10),
               ),
               child: Icon(
@@ -498,10 +629,16 @@ class DashboardPage extends StatelessWidget {
               children: [
                 Text(
                   isUsed ? 'تم المسح' : 'طلب جديد',
-                  style: _activityStatusBase.copyWith(color: isUsed ? AppColors.success : AppColors.primary),
+                  style: _activityStatusBase.copyWith(
+                    color: isUsed ? AppColors.success : AppColors.primary,
+                  ),
                 ),
                 Text(
-                  TimeUtils.getRelativeTime(isUsed ? (coupon.redeemedAt ?? coupon.createdAt) : coupon.createdAt),
+                  TimeUtils.getRelativeTime(
+                    isUsed
+                        ? (coupon.redeemedAt ?? coupon.createdAt)
+                        : coupon.createdAt,
+                  ),
                   style: _activityTime,
                 ),
               ],
@@ -514,7 +651,9 @@ class DashboardPage extends StatelessWidget {
 
   Widget _buildMiniOfferCard(BuildContext context, OfferEntity offer) {
     final hasImage = offer.images.isNotEmpty;
-    final firstImage = hasImage ? ImageUrlHelper.resolve(offer.images.first) : null;
+    final firstImage = hasImage
+        ? ImageUrlHelper.resolve(offer.images.first)
+        : null;
 
     return Container(
       width: 160,
@@ -539,7 +678,10 @@ class DashboardPage extends StatelessWidget {
                     )
                   : Container(
                       color: AppColors.surface,
-                      child: const Icon(Icons.image_rounded, color: AppColors.textTertiary),
+                      child: const Icon(
+                        Icons.image_rounded,
+                        color: AppColors.textTertiary,
+                      ),
                     ),
             ),
             Padding(
@@ -551,11 +693,21 @@ class DashboardPage extends StatelessWidget {
                     offer.title,
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
-                    style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textPrimary),
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                      color: AppColors.textPrimary,
+                    ),
                   ),
                   Text(
-                    offer.newPrice != null ? '${offer.newPrice} ج.م' : offer.discount,
-                    style: GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.w900, color: AppColors.primary),
+                    offer.newPrice != null
+                        ? '${offer.newPrice} ج.م'
+                        : offer.discount,
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w900,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ],
               ),
@@ -575,10 +727,7 @@ class DashboardPage extends StatelessWidget {
           children: [
             Icon(Icons.inbox_rounded, size: 48, color: AppColors.border),
             const SizedBox(height: 16),
-            Text(
-              'لا توجد نشاطات حالياً',
-              style: _emptyStateText,
-            ),
+            Text('لا توجد نشاطات حالياً', style: _emptyStateText),
           ],
         ),
       ),
@@ -598,7 +747,11 @@ class DashboardPage extends StatelessWidget {
                 color: AppColors.primary.withValues(alpha: 0.1),
                 shape: BoxShape.circle,
               ),
-              child: Icon(Icons.storefront_rounded, size: 80, color: AppColors.primary),
+              child: Icon(
+                Icons.storefront_rounded,
+                size: 80,
+                color: AppColors.primary,
+              ),
             ),
             const SizedBox(height: 32),
             Text(
@@ -615,7 +768,7 @@ class DashboardPage extends StatelessWidget {
             const SizedBox(height: 48),
             SizedBox(
               width: double.infinity,
-              height: 56,
+              height: 48,
               child: ElevatedButton(
                 onPressed: () {
                   Navigator.push(
@@ -631,13 +784,12 @@ class DashboardPage extends StatelessWidget {
                 style: ElevatedButton.styleFrom(
                   backgroundColor: AppColors.primary,
                   foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(14),
+                  ),
                   elevation: 0,
                 ),
-                child: Text(
-                  'إعداد المتجر الآن',
-                  style: _noStoreBtn,
-                ),
+                child: Text('إعداد المتجر الآن', style: _noStoreBtn),
               ),
             ),
           ],

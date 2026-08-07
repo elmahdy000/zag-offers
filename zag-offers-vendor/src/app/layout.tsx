@@ -12,7 +12,7 @@ export const metadata: Metadata = {
   metadataBase: new URL('https://zagoffers.online'),
   title: 'ZAG Offers - Vendor',
   description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
-  manifest: '/manifest.json',
+  manifest: '/manifest.webmanifest',
   icons: {
     icon: '/icon-192.svg',
     apple: '/icon-192.svg',
@@ -44,5 +44,18 @@ export default function RootLayout({
 }: {
   children: React.ReactNode;
 }) {
-  return <LayoutClient>{children}</LayoutClient>;
+  return (
+    <html lang="ar" dir="rtl" suppressHydrationWarning>
+      <head>
+        <script
+          dangerouslySetInnerHTML={{
+            __html: `(function(){try{var t=localStorage.getItem('zag-vendor-theme');document.documentElement.dataset.theme=t==='light'?'light':'dark'}catch(e){document.documentElement.dataset.theme='dark'}})();`,
+          }}
+        />
+      </head>
+      <body className="bg-bg text-text">
+        <LayoutClient>{children}</LayoutClient>
+      </body>
+    </html>
+  );
 }

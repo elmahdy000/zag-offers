@@ -1,9 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
-import { Bell, CheckCircle2, XCircle, Clock, Trash2, ChevronRight, MessageSquare, Tag } from 'lucide-react';
+import { Bell, CheckCircle2, XCircle, Clock, ChevronRight, MessageSquare, Tag, RefreshCw } from 'lucide-react';
 import { getCookie } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/Skeleton';
+import EmptyState from '@/components/EmptyState';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
@@ -14,7 +15,7 @@ interface Notification {
   type: string;
   isRead: boolean;
   createdAt: string;
-  metadata?: any;
+  metadata?: Record<string, unknown>;
 }
 
 export default function NotificationsPage() {
@@ -24,15 +25,18 @@ export default function NotificationsPage() {
 
   const fetchNotifs = async () => {
     const token = getCookie('auth_token');
-    if (!token) return;
+    if (!token) {
+      setError('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');
+      setLoading(false);
+      return;
+    }
     try {
       const res = await fetch(`${API_URL}/api/notifications`, {
         headers: { Authorization: `Bearer ${token}` },
       });
-      if (res.ok) {
-        const data = await res.json();
-        setNotifications(Array.isArray(data) ? data : []);
-      }
+      if (!res.ok) throw new Error(`Notifications request failed: ${res.status}`);
+      const data: unknown = await res.json();
+      setNotifications(Array.isArray(data) ? data : []);
       setError(null);
     } catch (e) {
       console.error(e);
@@ -43,22 +47,25 @@ export default function NotificationsPage() {
   };
 
   useEffect(() => {
-    fetchNotifs();
+    const timer = window.setTimeout(() => void fetchNotifs(), 0);
+    return () => window.clearTimeout(timer);
   }, []);
 
   const markAllRead = async () => {
     try {
       const token = getCookie('auth_token');
       if (token) {
-        await fetch(`${API_URL}/api/notifications/read-all`, {
+        const response = await fetch(`${API_URL}/api/notifications/read-all`, {
           method: 'POST',
           headers: { Authorization: `Bearer ${token}` },
         });
+        if (!response.ok) throw new Error(`Mark read failed: ${response.status}`);
       }
+      setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (e) {
       console.error('Failed to mark all as read:', e);
+      setError('تعذر تحديث التنبيهات. حاول مرة أخرى.');
     }
-    setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
   };
 
   const getIcon = (type: string) => {
@@ -75,15 +82,14 @@ export default function NotificationsPage() {
   if (error) {
     return (
       <div className="p-4 sm:p-8 dir-rtl max-w-4xl mx-auto">
-        <div className="flex flex-col items-center justify-center py-24 text-center">
-          <div className="w-16 h-16 bg-red-500/10 rounded-full flex items-center justify-center mb-4">
-            <Bell size={32} className="text-red-500" />
-          </div>
-          <p className="text-sm font-bold text-text-dim mb-4">{error}</p>
-          <button onClick={fetchNotifs} className="text-[11px] font-black bg-primary text-white px-4 py-2 rounded-xl hover:bg-primary-dark transition-all">
-            إعادة المحاولة
-          </button>
-        </div>
+        <EmptyState
+          icon={<Bell size={28} />}
+          title="تعذر تحميل التنبيهات"
+          description={error}
+          actionText="إعادة المحاولة"
+          actionIcon={<RefreshCw size={16} />}
+          onAction={fetchNotifs}
+        />
       </div>
     );
   }
@@ -105,10 +111,14 @@ export default function NotificationsPage() {
 
       <div className="flex flex-col gap-3">
         {notifications.length === 0 ? (
-          <div className="py-24 glass rounded-[3rem] flex flex-col items-center justify-center text-center opacity-40">
-            <Bell size={48} className="mb-4" />
-            <p className="text-sm font-bold">لا توجد تنبيهات حالياً</p>
-          </div>
+          <EmptyState
+            icon={<Bell size={28} />}
+            title="كل شيء هادئ حتى الآن"
+            description="ستظهر هنا الموافقات على العروض وطلبات الكوبونات وأهم تحديثات متجرك."
+            actionText="تحديث التنبيهات"
+            actionIcon={<RefreshCw size={16} />}
+            onAction={fetchNotifs}
+          />
         ) : (
           <AnimatePresence>
             {notifications.map((n, idx) => (
@@ -158,7 +168,7 @@ export default function NotificationsPage() {
                <p className="text-[10px] font-bold text-text-dim">تواصل مع الدعم الفني لطلب المساعدة</p>
             </div>
          </div>
-         <a href="https://wa.me/201091428238" target="_blank" className="bg-white text-bg px-4 py-2 rounded-xl text-[10px] font-black hover:bg-primary hover:text-white transition-all">تواصل الآن</a>
+         <a href="https://wa.me/201091428238" target="_blank" rel="noreferrer" className="bg-primary text-white px-4 py-2 rounded-xl text-[10px] font-black hover:bg-primary-lt transition-all">تواصل الآن</a>
       </div>
     </div>
   );

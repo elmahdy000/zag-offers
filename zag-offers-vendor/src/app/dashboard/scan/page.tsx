@@ -2,12 +2,24 @@
 
 import { useState, useEffect, useRef } from 'react';
 import { Html5Qrcode } from 'html5-qrcode';
-import { QrCode, X, Camera, RefreshCw, CheckCircle2, AlertCircle, Loader2, ChevronRight, Keyboard, Scan, CloudOff } from 'lucide-react';
+import { Camera, CheckCircle2, AlertCircle, Loader2, ChevronRight, Keyboard, Scan, CloudOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import { vendorApi } from '@/lib/api';
 import { OfflineSync } from '@/lib/offline-sync';
 import { secureStorage } from '@/lib/crypto';
+import axios from 'axios';
+
+interface CouponData {
+  offer?: { title?: string; discount?: string };
+}
+
+interface RecentScan {
+  id: number;
+  code: string;
+  offerTitle: string;
+  time: string;
+}
 
 export default function ScanPage() {
   const router = useRouter();
@@ -16,21 +28,26 @@ export default function ScanPage() {
   const [loading, setLoading] = useState(false);
   const [status, setStatus] = useState<'idle' | 'success' | 'error'>('idle');
   const [message, setMessage] = useState('');
-  const [couponData, setCouponData] = useState<any>(null);
+  const [couponData, setCouponData] = useState<CouponData | null>(null);
   const [isManual, setIsManual] = useState(false);
   const [manualCode, setManualCode] = useState('');
   const [pendingSyncs, setPendingSyncs] = useState(0);
+  const [cameraError, setCameraError] = useState<string | null>(null);
   const scannerRef = useRef<Html5Qrcode | null>(null);
+  const startTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  const [recentScans, setRecentScans] = useState<any[]>([]);
+  const [recentScans, setRecentScans] = useState<RecentScan[]>([]);
 
   useEffect(() => {
-    setPendingSyncs(OfflineSync.getQueue().length);
+    const initialSyncTimer = window.setTimeout(() => setPendingSyncs(OfflineSync.getQueue().length), 0);
     const handleSyncComplete = () => {
       setPendingSyncs(OfflineSync.getQueue().length);
     };
     window.addEventListener('offline-sync-completed', handleSyncComplete);
-    return () => window.removeEventListener('offline-sync-completed', handleSyncComplete);
+    return () => {
+      window.clearTimeout(initialSyncTimer);
+      window.removeEventListener('offline-sync-completed', handleSyncComplete);
+    };
   }, []);
 
   // Sound effects
@@ -39,7 +56,7 @@ export default function ScanPage() {
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2000/2000-preview.mp3');
       audio.play().catch(() => {});
       if (navigator.vibrate) navigator.vibrate([100, 50, 100]);
-    } catch (e) {}
+    } catch {}
   };
 
   const playErrorSound = () => {
@@ -47,7 +64,7 @@ export default function ScanPage() {
       const audio = new Audio('https://assets.mixkit.co/active_storage/sfx/2571/2571-preview.mp3');
       audio.play().catch(() => {});
       if (navigator.vibrate) navigator.vibrate(300);
-    } catch (e) {}
+    } catch {}
   };
 
   const startScanner = async () => {
@@ -57,12 +74,17 @@ export default function ScanPage() {
       setStatus('idle');
       setMessage('');
       setResult(null);
+      setCameraError(null);
 
-      const cached = secureStorage.get<any[]>('vendor_recent_scans');
+      const cached = secureStorage.get<RecentScan[]>('vendor_recent_scans');
       if (cached) setRecentScans(cached);
 
-      setTimeout(async () => {
+      if (startTimerRef.current) clearTimeout(startTimerRef.current);
+      startTimerRef.current = setTimeout(async () => {
         try {
+          if (!navigator.mediaDevices?.getUserMedia) {
+            throw new Error('CAMERA_UNSUPPORTED');
+          }
           const html5QrCode = new Html5Qrcode("reader");
           scannerRef.current = html5QrCode;
           const config = { fps: 30, qrbox: { width: 320, height: 320 } };
@@ -74,27 +96,41 @@ export default function ScanPage() {
             },
             () => {} 
           );
-        } catch (e) {
-          console.error("Scanner start error", e);
+        } catch (error: unknown) {
+          const errorText = error instanceof Error ? `${error.name} ${error.message}` : String(error);
+          const permissionDenied = /NotAllowedError|Permission denied|PermissionDenied/i.test(errorText);
+          const noCamera = /NotFoundError|DevicesNotFoundError|Requested device not found/i.test(errorText);
+          const cameraBusy = /NotReadableError|TrackStartError|Could not start video source/i.test(errorText);
+          setCameraError(
+            permissionDenied
+              ? 'تم رفض صلاحية الكاميرا. اسمح للموقع باستخدام الكاميرا من إعدادات المتصفح أو استخدم الإدخال اليدوي.'
+              : noCamera
+                ? 'لم يتم العثور على كاميرا متاحة على هذا الجهاز.'
+                : cameraBusy
+                  ? 'الكاميرا مستخدمة في تطبيق آخر. أغلق التطبيق الآخر ثم أعد المحاولة.'
+                  : errorText.includes('CAMERA_UNSUPPORTED')
+                    ? 'هذا المتصفح لا يدعم تشغيل الكاميرا.'
+                    : 'تعذر تشغيل الكاميرا. يمكنك إعادة المحاولة أو إدخال الكوبون يدويًا.'
+          );
           setScanning(false);
         }
       }, 100);
-    } catch (err) {
-      console.error(err);
+    } catch {
       setScanning(false);
-      setStatus('error');
-      setMessage('يرجى السماح بالوصول إلى الكاميرا');
+      setCameraError('تعذر تهيئة الكاميرا. يمكنك إدخال الكوبون يدويًا.');
     }
   };
 
   const stopScanner = async () => {
+    if (startTimerRef.current) {
+      clearTimeout(startTimerRef.current);
+      startTimerRef.current = null;
+    }
     if (scannerRef.current && scannerRef.current.isScanning) {
       try {
         await scannerRef.current.stop();
         scannerRef.current.clear();
-      } catch (e) {
-        console.error("Scanner stop error", e);
-      }
+      } catch {}
     }
     setScanning(false);
   };
@@ -118,15 +154,16 @@ export default function ScanPage() {
       setCouponData(res.data);
       setResult(code.trim()); 
       playSuccessSound();
-    } catch (err: any) {
-      if (!navigator.onLine || err.message === 'Network Error') {
+    } catch (err: unknown) {
+      if (!navigator.onLine || (axios.isAxiosError(err) && !err.response)) {
         // لو مفيش نت بس الكود موجود يدوي أو ممسوح، هنسمح بالانتقال لمرحلة التفعيل
         setResult(code.trim());
         setCouponData({ offer: { title: 'كوبون (غير محقق - أوفلاين)', discount: '??%' } });
         return;
       }
       setStatus('error');
-      setMessage(err.response?.data?.message || 'الكود غير صحيح أو منتهي الصلاحية');
+      const serverMessage = axios.isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined;
+      setMessage(serverMessage || 'الكود غير صحيح أو منتهي الصلاحية');
       setCouponData(null);
       playErrorSound();
     } finally {
@@ -157,8 +194,8 @@ export default function ScanPage() {
       setRecentScans(updatedRecent);
       secureStorage.set('vendor_recent_scans', updatedRecent);
 
-    } catch (err: any) {
-      if (!navigator.onLine || err.message === 'Network Error' || !err.response) {
+    } catch (err: unknown) {
+      if (!navigator.onLine || (axios.isAxiosError(err) && !err.response)) {
         await OfflineSync.addToQueue('REDEEM_COUPON', { code: code.trim() });
         setPendingSyncs(OfflineSync.getQueue().length);
         
@@ -169,7 +206,8 @@ export default function ScanPage() {
       }
 
       setStatus('error');
-      setMessage(err.response?.data?.message || 'فشل في تفعيل الكوبون');
+      const serverMessage = axios.isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined;
+      setMessage(serverMessage || 'فشل في تفعيل الكوبون');
       playErrorSound();
     } finally {
       setLoading(false);
@@ -177,15 +215,15 @@ export default function ScanPage() {
   };
 
   useEffect(() => {
-    startScanner();
-    return () => { stopScanner(); };
+    return () => {
+      if (startTimerRef.current) clearTimeout(startTimerRef.current);
+      const scanner = scannerRef.current;
+      if (scanner?.isScanning) void scanner.stop().catch(() => {});
+    };
   }, []);
 
   return (
     <div className="fixed inset-0 bg-bg z-[100] flex flex-col overflow-hidden dir-rtl" dir="rtl">
-      {/* Background Decor */}
-      <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-primary/10 blur-[120px] rounded-full pointer-events-none" />
-      
       {/* Header */}
       <div className="relative px-6 pt-4 pb-2 flex items-center justify-between z-50">
         <button onClick={() => router.back()} className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim border border-glass-border active:scale-90">
@@ -220,8 +258,8 @@ export default function ScanPage() {
       <div className="flex-1 flex flex-col items-center px-6 overflow-y-auto pb-8">
         <AnimatePresence mode="wait">
           {(!result && !isManual) ? (
-            <motion.div key="scanner-ui" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full mt-2 space-y-4">
-              <div className="relative aspect-[3/4] w-full bg-black rounded-[3rem] overflow-hidden border-2 border-glass-border shadow-2xl">
+            <motion.div key="scanner-ui" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="mx-auto mt-2 w-full max-w-md space-y-4">
+              <div className="relative aspect-[3/4] w-full bg-black rounded-[1.5rem] overflow-hidden border border-glass-border shadow-xl">
                 <div id="reader" className="w-full h-full" />
                 <div className="absolute inset-0 pointer-events-none">
                   <div className="absolute top-10 right-10 w-16 h-16 border-t-4 border-r-4 border-primary rounded-tr-3xl" />
@@ -230,8 +268,23 @@ export default function ScanPage() {
                   <div className="absolute bottom-10 left-10 w-16 h-16 border-b-4 border-l-4 border-primary rounded-bl-3xl" />
                 </div>
                 {!scanning && (
-                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/80 backdrop-blur-xl px-8 text-center">
-                    <button onClick={startScanner} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl active:scale-95 transition-all">تفعيل الكاميرا</button>
+                  <div className="absolute inset-0 flex flex-col items-center justify-center bg-black/90 px-8 text-center">
+                    {cameraError && (
+                      <>
+                        <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-2xl border border-amber-400/20 bg-amber-400/10 text-amber-400">
+                          <Camera size={26} />
+                        </div>
+                        <p className="mb-5 text-xs font-bold leading-6 text-white/75">{cameraError}</p>
+                      </>
+                    )}
+                    <button onClick={startScanner} className="w-full py-4 bg-primary text-white font-black rounded-2xl shadow-xl active:scale-95 transition-all">
+                      {cameraError ? 'إعادة محاولة تشغيل الكاميرا' : 'تفعيل الكاميرا'}
+                    </button>
+                    {cameraError && (
+                      <button onClick={() => { setCameraError(null); setIsManual(true); }} className="mt-3 w-full py-3 text-xs font-black text-white/70 hover:text-white">
+                        إدخال الكوبون يدويًا
+                      </button>
+                    )}
                   </div>
                 )}
               </div>
@@ -266,7 +319,7 @@ export default function ScanPage() {
             </motion.div>
           ) : isManual && !result ? (
             <motion.div key="manual-ui" initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm mt-8">
-              <div className="glass p-8 rounded-[3rem] border border-glass-border shadow-2xl space-y-8">
+              <div className="glass p-6 rounded-[1.25rem] border border-glass-border shadow-xl space-y-6">
                 <div className="text-center">
                   <h3 className="text-xl font-black text-text">إدخال يدوي</h3>
                   <p className="text-text-dim text-sm font-bold">اكتب كود الكوبون المكون من 6-8 أرقام</p>
@@ -288,7 +341,7 @@ export default function ScanPage() {
             </motion.div>
           ) : (
             <motion.div key="result-ui" initial={{ opacity: 0, y: 30 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-sm mt-6">
-              <div className="glass p-8 rounded-[3rem] border border-glass-border shadow-2xl relative">
+              <div className="glass p-6 rounded-[1.25rem] border border-glass-border shadow-xl relative">
                 {status === 'success' ? (
                   <div className="py-4 text-center space-y-8">
                     <div className="w-24 h-24 bg-emerald-500/10 rounded-full flex items-center justify-center text-emerald-500 mx-auto border-4 border-emerald-500/10"><CheckCircle2 size={50} /></div>

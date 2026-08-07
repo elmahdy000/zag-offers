@@ -9,7 +9,7 @@ interface PerformanceMetric {
   type: MetricType;
   name: string;
   value: number;
-  metadata?: any;
+  metadata?: unknown;
   timestamp: number;
 }
 
@@ -20,7 +20,7 @@ import { secureStorage } from './crypto';
 
 export const PerformanceMonitor = {
   /** تسجيل مقياس جديد */
-  log(type: MetricType, name: string, value: number, metadata?: any) {
+  log(type: MetricType, name: string, value: number, metadata?: unknown) {
     const metric: PerformanceMetric = {
       type,
       name,

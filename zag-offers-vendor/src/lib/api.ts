@@ -1,6 +1,12 @@
-import axios from 'axios';
+import axios, { AxiosError, InternalAxiosRequestConfig } from 'axios';
+import { optimizeUploadFormData } from './image-upload';
 
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
+type TimedRequestConfig = InternalAxiosRequestConfig & {
+  metadata?: { startTime: number };
+};
+
+const configuredApiUrl = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/+$/, '');
+const API_URL = configuredApiUrl.endsWith('/api') ? configuredApiUrl : `${configuredApiUrl}/api`;
 
 /** تحويل المسار النسبي لصورة إلى رابط كامل */
 export function resolveImageUrl(path: string | null | undefined): string {
@@ -63,7 +69,10 @@ function signRequest(url: string, timestamp: number) {
 }
 
 /** Axios instance مع Authorization header وتتبع الأداء وتوقيع الطلبات */
+let sharedVendorApi: ReturnType<typeof axios.create> | null = null;
+
 export function vendorApi() {
+  if (sharedVendorApi) return sharedVendorApi;
   const token = getCookie('auth_token');
   const instance = axios.create({
     baseURL: API_URL,
@@ -74,9 +83,15 @@ export function vendorApi() {
   });
 
   // تتبع وقت بداية الطلب وتوقيع الطلب
-  instance.interceptors.request.use((config) => {
+  instance.interceptors.request.use(async (config) => {
     const timestamp = Date.now();
-    (config as any).metadata = { startTime: timestamp };
+    (config as TimedRequestConfig).metadata = { startTime: timestamp };
+    const activeToken = getCookie('auth_token');
+    if (activeToken) config.headers.Authorization = `Bearer ${activeToken}`;
+    else delete config.headers.Authorization;
+    if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
+      config.data = await optimizeUploadFormData(config.data);
+    }
     
     // إضافة هيدرز الأمان
     config.headers['X-Request-Timestamp'] = timestamp.toString();
@@ -88,7 +103,7 @@ export function vendorApi() {
   // تتبع وقت نهاية الطلب وحساب المدة + معالجة الأخطاء
   instance.interceptors.response.use(
     (response) => {
-      const startTime = (response.config as any).metadata?.startTime;
+      const startTime = (response.config as TimedRequestConfig).metadata?.startTime;
       if (startTime) {
         const duration = Date.now() - startTime;
         PerformanceMonitor.log('API_LATENCY', response.config.url || 'unknown', duration, {
@@ -98,8 +113,8 @@ export function vendorApi() {
       }
       return response;
     },
-    (error) => {
-      const startTime = (error.config as any)?.metadata?.startTime;
+    (error: AxiosError) => {
+      const startTime = (error.config as TimedRequestConfig | undefined)?.metadata?.startTime;
       if (startTime) {
         const duration = Date.now() - startTime;
         PerformanceMonitor.log('API_LATENCY', error.config?.url || 'unknown', duration, {
@@ -116,5 +131,6 @@ export function vendorApi() {
     }
   );
 
-  return instance;
+  sharedVendorApi = instance;
+  return sharedVendorApi;
 }

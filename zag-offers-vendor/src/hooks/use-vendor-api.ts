@@ -1,5 +1,6 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
 import { getCookie, vendorApi, getVendorStoreId } from '@/lib/api';
+import axios from 'axios';
 
 // Types
 interface CreateOfferData {
@@ -82,7 +83,7 @@ export function useVendorStats() {
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
-    refetchInterval: 60 * 1000, // Update every minute
+    refetchInterval: 2 * 60 * 1000, // Realtime events handle important changes; this is a safety refresh.
     retry: 3,
   });
 }
@@ -101,12 +102,15 @@ export function useVendorStore() {
         });
         if (!res.data) throw new Error('No data returned from server');
         return res.data;
-      } catch (err: any) {
+      } catch (err: unknown) {
         console.error('Store fetch error:', err);
-        if (err.response?.status === 404) {
-          throw new Error('لم يتم العثور على متجر مربوط بهذا الحساب. يرجى التواصل مع الإدارة.');
+        if (axios.isAxiosError(err) && err.response?.status === 404) {
+          const notFoundError = new Error('لم يتم العثور على متجر مربوط بهذا الحساب. يرجى التواصل مع الإدارة.');
+          Object.assign(notFoundError, { status: 404 });
+          throw notFoundError;
         }
-        throw new Error(err.response?.data?.message || 'فشل الاتصال بخادم بيانات المتجر. يرجى المحاولة لاحقاً.');
+        const serverMessage = axios.isAxiosError<{ message?: string }>(err) ? err.response?.data?.message : undefined;
+        throw new Error(serverMessage || 'فشل الاتصال بخادم بيانات المتجر. يرجى المحاولة لاحقاً.');
       }
     },
     enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
@@ -194,7 +198,7 @@ export function useUpdateStore() {
 // ── Change Password Mutation ──
 export function useChangePassword() {
   return useMutation({
-    mutationFn: async (data: any) => {
+    mutationFn: async (data: { currentPassword: string; newPassword: string }) => {
       const res = await vendorApi().post('/auth/password', data);
       return res.data;
     },

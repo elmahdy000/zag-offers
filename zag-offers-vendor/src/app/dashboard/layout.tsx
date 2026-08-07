@@ -7,6 +7,8 @@ import { vendorApi, getVendorStoreId } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import { secureStoreData } from '@/lib/crypto';
 import { OfflineSync } from '@/lib/offline-sync';
+import BrandMark from '@/components/BrandMark';
+import ThemeToggle from '@/components/ThemeToggle';
 
 export default function DashboardLayout({
   children,
@@ -18,8 +20,8 @@ export default function DashboardLayout({
   
   useEffect(() => {
     if (typeof window !== 'undefined') {
-      setIsOnline(navigator.onLine);
-      OfflineSync.init();
+      const statusTimer = window.setTimeout(() => setIsOnline(navigator.onLine), 0);
+      const stopOfflineSync = OfflineSync.init();
 
       const handleOnline = () => setIsOnline(true);
       const handleOffline = () => setIsOnline(false);
@@ -39,6 +41,8 @@ export default function DashboardLayout({
       }
 
       return () => {
+        window.clearTimeout(statusTimer);
+        stopOfflineSync?.();
         window.removeEventListener('online', handleOnline);
         window.removeEventListener('offline', handleOffline);
       };
@@ -46,7 +50,7 @@ export default function DashboardLayout({
   }, []);
 
   return (
-    <div className="flex bg-bg min-h-screen relative overflow-x-hidden">
+    <div className="vendor-shell flex bg-bg min-h-screen relative overflow-x-hidden">
       {/* Mobile Overlay */}
       <AnimatePresence>
         {isSidebarOpen && (
@@ -55,7 +59,7 @@ export default function DashboardLayout({
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={() => setSidebarOpen(false)}
-            className="fixed inset-0 bg-black/60 backdrop-blur-sm z-[60] lg:hidden"
+            className="fixed inset-0 bg-[#071426]/80 z-[60] lg:hidden"
           />
         )}
       </AnimatePresence>
@@ -85,27 +89,29 @@ export default function DashboardLayout({
         </AnimatePresence>
 
         {/* Mobile Header */}
-        <header className="lg:hidden glass sticky top-0 z-50 flex items-center justify-between px-6 py-4 border-b border-glass-border bg-bg/80">
+        <header className="vendor-mobile-header lg:hidden sticky top-0 z-50 flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-3">
-             <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center shadow-lg shadow-primary/20">
-                <span className="text-white font-black text-xs">Z</span>
-             </div>
+             <BrandMark priority className="h-10 w-10" />
              <div className="flex flex-col">
                 <span className="text-text font-black text-sm tracking-tight leading-none">لوحة التاجر</span>
                 {!isOnline && <span className="text-[9px] text-red-500 font-bold mt-0.5">وضع الأوفلاين</span>}
              </div>
           </div>
           
-          <button 
-            onClick={() => setSidebarOpen(!isSidebarOpen)}
-            className="w-10 h-10 glass rounded-xl flex items-center justify-center text-text-dim hover:text-primary transition-all border border-glass-border"
-          >
-            {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
-          </button>
+          <div className="flex items-center gap-2">
+            <ThemeToggle compact />
+            <button 
+              onClick={() => setSidebarOpen(!isSidebarOpen)}
+              className="icon-button"
+              aria-label="فتح القائمة"
+            >
+              {isSidebarOpen ? <X size={20} /> : <Menu size={20} />}
+            </button>
+          </div>
         </header>
 
         {/* Dynamic Padding for Desktop & Mobile Bottom Nav */}
-        <main className="flex-1 w-full max-w-[100vw] overflow-x-hidden pb-32 lg:pb-0">
+        <main className="vendor-main flex-1 w-full max-w-[100vw] overflow-x-hidden pb-28 lg:pb-0">
           {children}
         </main>
 

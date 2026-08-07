@@ -1,14 +1,9 @@
-const CACHE_NAME = 'zag-offers-vendor-v1';
+const CACHE_NAME = 'zag-offers-vendor-v2';
 const urlsToCache = [
-  '/dashboard',
-  '/dashboard/offers',
-  '/dashboard/coupons',
-  '/dashboard/profile',
-  '/dashboard/scan',
   '/login',
-  '/manifest.json',
-  '/icon-192.png',
-  '/icon-512.png',
+  '/manifest.webmanifest',
+  '/icon-192x192.png',
+  '/icon-512x512.png',
 ];
 
 // تثبيت Service Worker
@@ -18,7 +13,7 @@ self.addEventListener('install', (event) => {
     caches.open(CACHE_NAME)
       .then((cache) => {
         console.log('Vendor App cache opened');
-        return cache.addAll(urlsToCache);
+        return Promise.all(urlsToCache.map((url) => cache.add(url).catch(() => undefined)));
       })
       .then(() => {
         console.log('Vendor App SW installed successfully');
@@ -51,24 +46,32 @@ self.addEventListener('activate', (event) => {
 
 // جلب الطلبات
 self.addEventListener('fetch', (event) => {
-  event.respondWith(
-    caches.match(event.request)
-      .then((response) => {
-        // Cache hit - return response
-        if (response) {
-          console.log('Vendor App cache hit:', event.request.url);
-          return response;
-        }
+  if (event.request.method !== 'GET') return;
 
-        // Cache miss - fetch from network
-        console.log('Vendor App cache miss:', event.request.url);
-        const fetchRequest = event.request.clone();
-        return fetch(fetchRequest);
-      })
-      .catch((error) => {
-        console.error('Vendor App SW fetch error:', error);
-        return new Response('Network error', { status: 500 });
-      })
+  const requestUrl = new URL(event.request.url);
+  if (requestUrl.origin !== self.location.origin) return;
+
+  if (event.request.mode === 'navigate') {
+    event.respondWith(
+      fetch(event.request).catch(async () => (await caches.match('/login')) || new Response('Offline', { status: 503 }))
+    );
+    return;
+  }
+
+  const isStaticAsset = requestUrl.pathname.startsWith('/_next/static/')
+    || requestUrl.pathname.startsWith('/brand/')
+    || /\.(?:png|svg|ico|woff2?)$/i.test(requestUrl.pathname)
+    || requestUrl.pathname === '/manifest.webmanifest';
+  if (!isStaticAsset) return;
+
+  event.respondWith(
+    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
+      if (response.ok) {
+        const copy = response.clone();
+        void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
+      }
+      return response;
+    }))
   );
 });
 

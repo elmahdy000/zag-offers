@@ -155,7 +155,7 @@ export const logError = (error: ApiError, context?: string) => {
 
   // في التطوير، نطبع في الكونسول
   if (process.env.NODE_ENV === 'development') {
-    console.group('🔴 API Error');
+    console.group('API Error');
     console.error('Error:', logData);
     console.groupEnd();
   }

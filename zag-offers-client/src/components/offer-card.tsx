@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { 
-  RiMapPin2Line, RiHeartFill, RiHeartLine, 
+  RiMapPin2Line, RiHeartFill, RiStore3Line,
   RiRestaurant2Fill, RiCupFill, RiShirtFill, 
   RiHeartPulseFill, RiMagicFill, RiHospitalFill, 
   RiShoppingCartFill, RiBookOpenFill, RiCarWashingFill, 
@@ -12,8 +12,8 @@ import {
   RiHomeHeartFill
 } from 'react-icons/ri';
 import { useRouter } from 'next/navigation';
-import Link from 'next/link';
-import { BASE_URL, API_URL } from '@/lib/constants';
+import Image from 'next/image';
+import { API_URL } from '@/lib/constants';
 import { resolveImageUrl, calculateDaysLeft, formatDiscount } from '@/lib/utils';
 
 interface Offer {
@@ -77,22 +77,6 @@ const CAT_ICONS: Record<string, React.ReactNode> = {
   'default':       <RiSparklingFill size={14} />,
 };
 
-const CAT_GRADIENTS: Record<string, string> = {
-  'مطاعم':         'from-[#2a1000] to-[#1a0800]',
-  'دلع كرشك':      'from-[#2a1000] to-[#1a0800]',
-  'كافيهات':       'from-[#1a0d00] to-[#0d0600]',
-  'روقان':         'from-[#1a0d00] to-[#0d0600]',
-  'جيم':           'from-[#001a0a] to-[#000d05]',
-  'فورمة':          'from-[#001a0a] to-[#000d05]',
-  'ملابس':         'from-[#1a001a] to-[#0d000d]',
-  'شياكة':         'from-[#1a001a] to-[#0d000d]',
-  'تجميل':         'from-[#180018] to-[#0e000e]',
-  'دلع بنات':       'from-[#180018] to-[#0e000e]',
-  'دورات':         'from-[#001a1a] to-[#000d0d]',
-  'طور نفسك':      'from-[#001a1a] to-[#000d0d]',
-  'default':       'from-[#1a1a2e] to-[#16213e]',
-};
-
 export function OfferCard({ offer, priority = false }: OfferCardProps) {
   const router = useRouter();
   const [isFav, setIsFav] = useState(false);
@@ -123,7 +107,6 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
   const logoUrl = resolveImageUrl(offer.store?.logo);
   const catName = offer.store?.category?.name || '';
   const catIcon = CAT_ICONS[catName] || CAT_ICONS.default;
-  const catGrad = CAT_GRADIENTS[catName] || CAT_GRADIENTS.default;
 
   const expiryColor =
     daysLeft <= 0 ? 'text-red-400' : daysLeft <= 3 ? 'text-orange-400' : 'text-[#9A9A9A]';
@@ -185,120 +168,129 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     <motion.div
       whileHover={{ y: -3, transition: { duration: 0.15 } }}
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="group relative bg-[#252525] border border-white/[0.06] rounded-lg overflow-hidden hover:border-[#FF6B00]/30 hover:shadow-[0_8px_20px_rgba(0,0,0,0.35)]
+      className="global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:border-[#FF8A32]/55 hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)]
                  transition-all duration-200 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
-      <div className={`relative h-[116px] bg-gradient-to-br ${catGrad} overflow-hidden flex-shrink-0`}>
+      <div className="relative h-[240px] bg-[#18253A] overflow-hidden flex-shrink-0">
 
         {offerImage && (
-          <img
+          <Image
             src={offerImage}
             alt={offer.title}
-            className="absolute inset-0 w-full h-full object-cover group-hover:scale-105 transition-transform duration-500 opacity-80"
+            fill
+            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            className="object-cover group-hover:scale-105 transition-transform duration-500"
+            {...(priority ? { preload: true } : { loading: 'lazy' as const })}
             onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
           />
         )}
 
-        <div className="absolute inset-0 bg-gradient-to-t from-[#252525] via-transparent to-black/5" />
+        {!offerImage && (
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-2 text-[#708198]">
+            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#354761] bg-[#1B2A42]">{catIcon}</span>
+            <span className="text-xs font-medium">صورة العرض غير متاحة</span>
+          </div>
+        )}
+        <div className="absolute inset-0 bg-black/10" />
 
         {offer.isFeatured && (
-          <div className="absolute top-1.5 left-1.5 z-10 px-1.5 py-0.5 bg-gradient-to-r from-yellow-400 to-orange-400
-                          text-[#1a1a1a] text-[7px] font-semibold rounded-md shadow-lg">
-            ⭐ مميز
+          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-[#FFF3E8]
+                          text-[#B84C00] text-[11px] font-semibold rounded-lg">
+            مميز
           </div>
         )}
 
-        <div className="absolute top-1.5 right-1.5 z-10 px-1.5 py-0.5
-                        bg-gradient-to-br from-[#FF6B00] to-[#D95A00]
-                        text-white text-[9px] font-black rounded-[4px]
-                        shadow-[0_3px_10px_rgba(255,107,0,0.35)]">
+        <div className="absolute top-3 right-3 z-10 px-2.5 py-1
+                        bg-[#FF8A32] text-[#07101F] text-xs font-bold rounded-lg">
           {discountDisplay}
         </div>
 
         <button
           onClick={toggleFav}
-          className={`absolute bottom-1.5 left-1.5 z-10 p-1 rounded-md backdrop-blur-md border transition-all
+          className={`absolute bottom-3 left-3 z-10 p-2 rounded-xl backdrop-blur-md border transition-all
             ${isFav
               ? 'bg-red-500/20 border-red-500/50 text-red-400'
               : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
         >
-          <RiHeartFill size={11} className={isFav ? 'text-red-500' : 'text-white/40'} />
+          <RiHeartFill size={16} className={isFav ? 'text-red-500' : 'text-white/70'} />
         </button>
 
-        <div className="absolute -bottom-3 right-2.5 z-20
-                        w-8 h-8 rounded-md border-2 border-[#252525]
-                        bg-[#1E1E1E] overflow-hidden shadow-lg
+        <div className="absolute bottom-3 right-3 z-20
+                        w-10 h-10 rounded-xl border-2 border-white/80
+                        bg-[#0F1A2B] overflow-hidden shadow-lg
                         flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
           {logoUrl
-            ? <img
+            ? <Image
                 src={logoUrl}
                 alt={offer.store?.name || 'Store Logo'}
+                width={40}
+                height={40}
                 className="w-full h-full object-cover"
                 onError={(e) => { (e.target as HTMLImageElement).style.display = 'none'; }}
               />
-            : <div className="text-white/20 scale-75">{catIcon}</div>
+            : <div className="text-sm font-bold text-white">{offer.store.name.trim().charAt(0)}</div>
           }
         </div>
       </div>
 
       {/* ─── Body ────────────────────────────────────── */}
-      <div className="flex flex-col flex-1 px-2.5 pt-3 pb-2 gap-0.5">
+      <div className="flex flex-col flex-1 px-5 pt-5 pb-5 gap-3">
 
         {catName && (
-          <span className="text-[7px] font-semibold text-[#FF6B00] uppercase tracking-widest flex items-center gap-1">
-            <span className="scale-75 opacity-70">{catIcon}</span> {catName}
+          <span className="text-[13px] font-semibold text-[#FF8A3D] flex items-center gap-1.5">
+            <span className="opacity-80">{catIcon}</span> {catName}
           </span>
         )}
 
-        <h3 className="text-[10.5px] font-semibold text-[#F0F0F0] leading-snug line-clamp-2
-                       group-hover:text-[#FF6B00] transition-colors min-h-[28px]">
+        <h3 className="text-lg font-bold text-[#F0F0F0] leading-7 line-clamp-2
+                       group-hover:text-[#FF8A3D] transition-colors min-h-[56px]">
           {offer.title}
         </h3>
 
         {offer.discountedPrice ? (
-          <div className="flex items-baseline gap-1.5 mt-0.5">
-            <span className="text-[13px] font-bold text-[#FF6B00]">
+          <div className="flex items-baseline gap-2" dir="ltr">
+            <span className="price text-xl font-bold text-[#FF7A1A]">
               {offer.discountedPrice} ج.م
             </span>
             {offer.originalPrice && (
-              <span className="text-[8px] text-[#9A9A9A] line-through font-semibold">
+              <span className="price text-xs text-[#8FA0B8] line-through font-normal">
                 {offer.originalPrice} ج.م
               </span>
             )}
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between mt-0.5">
-          <p className="text-[8px] text-[#9A9A9A] font-semibold flex items-center gap-1 truncate max-w-[70%]">
-            <span className="opacity-50">🏪</span>
+        <div className="flex items-center justify-between">
+          <p className="text-sm text-[#B2BED0] font-medium flex items-center gap-1.5 truncate max-w-[75%]">
+            <RiStore3Line size={14} className="text-[#71839B]" />
             {offer.store?.name}
           </p>
           {(offer._count?.coupons || 0) > 0 && (
-            <span className="text-[7px] font-semibold text-orange-400 bg-orange-500/5 px-1 py-0.5 rounded flex items-center gap-1 flex-shrink-0">
+            <span className="text-[11px] font-medium text-orange-300 bg-orange-500/10 px-2 py-1 rounded-lg flex items-center gap-1 flex-shrink-0">
               {offer._count?.coupons} طلب
             </span>
           )}
         </div>
 
-        <div className="mt-auto pt-1.5 border-t border-white/[0.04] flex items-center justify-between gap-1">
-          <div className="flex items-center gap-1 px-1.5 py-0.5 bg-white/[0.03] rounded-md border border-white/5 transition-colors group-hover:border-[#FF6B00]/20">
-            <RiMapPin2Line size={9} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-[7px] font-semibold text-[#8A8A8A] truncate max-w-[65px] group-hover:text-white transition-colors">
+        <div className="mt-auto pt-3 border-t border-[#2A3A52]/70 flex items-center justify-between gap-2">
+          <div className="flex items-center gap-1.5 min-w-0">
+            <RiMapPin2Line size={14} className="text-[#FF6B00] flex-shrink-0" />
+            <span className="text-xs font-normal text-[#8FA0B8] truncate group-hover:text-white transition-colors">
               {offer.store?.area || 'الزقازيق'}
             </span>
           </div>
-          <span className={`text-[7px] font-semibold ${expiryColor}`}>{expiryText}</span>
+          <span className={`text-xs font-medium flex-shrink-0 ${expiryColor}`}>{expiryText}</span>
         </div>
 
         <div
-          className="mt-1 w-full py-1 text-center text-[9px] font-semibold text-[#FF6B00]
-                     bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-md
+          className="mt-1 w-full py-3 text-center text-[15px] font-bold text-[#FF7A1A]
+                     bg-[#FF6B00]/10 border border-[#FF6B00]/25 rounded-xl
                      group-hover:bg-[#FF6B00] group-hover:text-white group-hover:border-[#FF6B00]
                      group-hover:shadow-[0_3px_10px_rgba(255,107,0,0.25)]
                      transition-all duration-200"
         >
-          🏷️ احصل على العرض
+          عرض التفاصيل
         </div>
       </div>
     </motion.div>
@@ -307,14 +299,14 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
 /* ─── Skeleton ──────────────────────────────────── */
 export const SkeletonCard = () => (
-  <div className="bg-[#252525] border border-white/[0.07] rounded-lg overflow-hidden">
-    <div className="h-[116px] skeleton-shimmer" />
-    <div className="px-2.5 pt-3 pb-2 space-y-2">
+  <div className="bg-[#0F1A2B] border border-[#2A3A52] rounded-2xl overflow-hidden">
+    <div className="h-[240px] skeleton-shimmer" />
+    <div className="px-4 py-4 space-y-3">
       <div className="h-1.5 w-1/3 skeleton-shimmer rounded-full" />
       <div className="h-3 w-full skeleton-shimmer rounded-full" />
       <div className="h-2.5 w-3/4 skeleton-shimmer rounded-full" />
       <div className="h-2 w-1/2 skeleton-shimmer rounded-full" />
-      <div className="h-6 w-full skeleton-shimmer rounded-md mt-1" />
+      <div className="h-9 w-full skeleton-shimmer rounded-xl mt-1" />
     </div>
   </div>
 );

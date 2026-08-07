@@ -1,11 +1,10 @@
 'use client';
 import { useState, useEffect, useMemo } from 'react';
 import Image from 'next/image';
-import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers, ChevronLeft } from 'lucide-react';
+import { Tag, Edit3, Trash2, Plus, TrendingUp, Users, Calendar, Clock, CheckCircle2, XCircle, AlertCircle, PauseCircle, Layers, Search, RefreshCw } from 'lucide-react';
 import Link from 'next/link';
-import { vendorApi, resolveImageUrl } from '@/lib/api';
+import { resolveImageUrl } from '@/lib/api';
 import { useVendorOffers, useDeleteOffer } from '@/hooks/use-vendor-api';
-import { DashboardSkeleton } from '@/components/Skeleton';
 import { motion } from 'framer-motion';
 import { secureStorage } from '@/lib/crypto';
 import { ConfirmModal } from '@/components/ConfirmModal';
@@ -31,16 +30,16 @@ const STATUS_CONFIG: Record<string, { label: string; color: string; icon: React.
   EXPIRED:  { label: 'منتهي',   color: 'bg-glass-heavy text-text-dim border-glass-border',       icon: <Clock size={10} />, order: 5 },
 };
 
-function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) => void }) {
+function OfferCard({ offer, onDelete, now }: { offer: Offer; onDelete: (id: string) => void; now: number }) {
   const cfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.EXPIRED;
-  const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / 86_400_000);
+  const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - now) / 86_400_000);
   const isExpired = daysLeft <= 0;
 
   return (
     <motion.div
       initial={{ opacity: 0, scale: 0.95 }}
       animate={{ opacity: 1, scale: 1 }}
-      className="glass rounded-[2rem] overflow-hidden group hover:border-primary/40 transition-all flex flex-col bg-glass border border-glass-border shadow-xl"
+      className="vendor-offer-card glass rounded-[1.25rem] overflow-hidden group hover:border-primary/40 transition-all flex flex-col bg-glass border border-glass-border"
     >
       {/* Header Info */}
       <div className="p-5 flex flex-col flex-1">
@@ -66,25 +65,25 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
           </div>
         </div>
 
-        <h3 className="text-sm font-black text-white group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-4 min-h-[2.5rem]">
+        <h3 className="text-sm font-black text-text group-hover:text-primary transition-colors line-clamp-2 leading-snug mb-4 min-h-[2.5rem]">
           {offer.title}
         </h3>
 
         {/* Dense Stats Grid */}
         <div className="grid grid-cols-2 gap-3 mb-5">
-          <div className="bg-glass-heavy rounded-2xl p-3 border border-glass-border">
+          <div className="vendor-offer-stat bg-glass-heavy rounded-2xl p-3 border border-glass-border">
             <div className="flex items-center gap-2 mb-1">
                <TrendingUp size={12} className="text-primary" />
                <span className="text-[10px] font-black text-text-dim">المشاهدات</span>
             </div>
-            <span className="text-lg font-black text-white tabular-nums">{offer.views || 0}</span>
+            <span className="text-lg font-black text-text tabular-nums">{offer.views || 0}</span>
           </div>
-          <div className="bg-glass-heavy rounded-2xl p-3 border border-glass-border">
+          <div className="vendor-offer-stat bg-glass-heavy rounded-2xl p-3 border border-glass-border">
             <div className="flex items-center gap-2 mb-1">
                <Users size={12} className="text-secondary" />
                <span className="text-[10px] font-black text-text-dim">الكوبونات</span>
             </div>
-            <span className="text-lg font-black text-white tabular-nums">{offer._count?.coupons || 0}</span>
+            <span className="text-lg font-black text-text tabular-nums">{offer._count?.coupons || 0}</span>
           </div>
         </div>
 
@@ -125,7 +124,8 @@ function OfferCard({ offer, onDelete }: { offer: Offer; onDelete: (id: string) =
 export default function OffersListPage() {
   const [activeFilter, setActiveFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
-  const [cachedOffers, setCachedOffers] = useState<Offer[]>([]);
+  const [cachedOffers] = useState<Offer[]>(() => secureStorage.get<Offer[]>('cache_vendor_offers_list') || []);
+  const [now] = useState(() => Date.now());
   
   // State for Custom Confirm Modal
   const [deleteModal, setDeleteModal] = useState<{ isOpen: boolean; id: string | null }>({
@@ -137,16 +137,10 @@ export default function OffersListPage() {
   const { mutate: deleteOffer, isPending: isDeleting } = useDeleteOffer();
 
   // تحميل الكاش من التخزين الآمن
-  useEffect(() => {
-    const cached = secureStorage.get<Offer[]>('cache_vendor_offers_list');
-    if (cached) setCachedOffers(cached);
-  }, []);
-
   // تحديث الكاش عند النجاح
   useEffect(() => {
     if (offers) {
       secureStorage.set('cache_vendor_offers_list', offers);
-      setCachedOffers(offers);
     }
   }, [offers]);
 
@@ -165,7 +159,7 @@ export default function OffersListPage() {
   };
 
   const displayOffers = Array.isArray(offers) ? offers : cachedOffers;
-  const offersArray = Array.isArray(displayOffers) ? displayOffers : [];
+  const offersArray = useMemo(() => Array.isArray(displayOffers) ? displayOffers : [], [displayOffers]);
   
   const filters = useMemo(() => ['ALL', 'PENDING', 'ACTIVE', 'PAUSED', 'REJECTED', 'EXPIRED'], []);
 
@@ -193,7 +187,7 @@ export default function OffersListPage() {
 
   if (isLoading && cachedOffers.length === 0) {
     return (
-      <div className="p-8 max-w-7xl mx-auto space-y-8">
+      <div className="p-6 max-w-7xl mx-auto space-y-5">
         <div className="h-20 bg-glass-heavy rounded-3xl animate-pulse" />
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           {[1,2,3].map(i => <div key={i} className="h-64 bg-glass-heavy rounded-3xl animate-pulse" />)}
@@ -203,18 +197,18 @@ export default function OffersListPage() {
   }
 
   return (
-    <div className="p-4 sm:p-10 dir-rtl max-w-7xl mx-auto pb-20">
+    <div className="vendor-offers-page p-4 sm:p-10 dir-rtl max-w-7xl mx-auto pb-20">
       {/* Header Section */}
-      <div className="flex flex-col lg:flex-row justify-between items-start lg:items-center gap-8 mb-12">
+      <section className="vendor-offers-hero flex flex-col lg:flex-row justify-between items-start lg:items-center gap-5 mb-5">
         <div className="space-y-2">
           <div className="flex items-center gap-4">
-            <h1 className="text-4xl font-black text-text tracking-tighter">إدارة العروض</h1>
+            <h1 className="text-3xl font-black text-text tracking-tight">إدارة العروض</h1>
             <button 
               onClick={() => refetch()} 
               className={`p-2.5 rounded-xl bg-glass-heavy border border-glass-border text-text-dim hover:text-primary hover:bg-primary/10 transition-all ${isLoading ? 'animate-spin' : ''}`}
               title="تحديث البيانات"
             >
-              <TrendingUp size={18} className="rotate-90" />
+              <RefreshCw size={18} />
             </button>
           </div>
           <p className="text-text-dim text-sm font-bold flex items-center gap-2">
@@ -222,18 +216,27 @@ export default function OffersListPage() {
             {searchQuery ? `تم العثور على ${filtered.length} نتيجة بحث` : `لديك ${counts.ACTIVE} عرض نشط من إجمالي ${counts.ALL}`}
           </p>
         </div>
-        <div className="flex flex-col sm:flex-row gap-4 w-full lg:w-auto">
+        <div className="vendor-offers-tools flex flex-col sm:flex-row gap-3 w-full lg:w-auto">
+          <label className="relative w-full sm:w-[300px]">
+            <Search size={16} className="absolute right-4 top-1/2 -translate-y-1/2 text-text-dimmer" />
+            <input
+              value={searchQuery}
+              onChange={(event) => setSearchQuery(event.target.value)}
+              placeholder="ابحث في عروضك"
+              className="h-12 w-full rounded-xl border border-glass-border bg-card pr-11 pl-4 text-xs font-bold text-text"
+            />
+          </label>
           <Link
             href="/dashboard/offers/new"
-            className="bg-primary text-white px-8 py-4 rounded-2xl font-black text-sm shadow-xl shadow-primary/20 hover:scale-[1.02] active:scale-95 transition-all flex items-center justify-center gap-3 border border-primary/20"
+            className="bg-primary text-white px-6 h-12 rounded-xl font-black text-xs shadow-lg shadow-primary/20 hover:bg-primary-lt active:scale-95 transition-all flex items-center justify-center gap-2 border border-primary/20 shrink-0 whitespace-nowrap"
           >
             <Plus size={20} strokeWidth={3} /> إضافة عرض جديد
           </Link>
         </div>
-      </div>
+      </section>
 
       {/* Filter Tabs */}
-      <div className="flex gap-2 overflow-x-auto pb-6 mb-10 scrollbar-none border-b border-glass-border">
+      <div className="vendor-offers-filters flex gap-2 overflow-x-auto mb-7 scrollbar-none">
         {filters.map(f => {
           const cfg = f === 'ALL' ? null : STATUS_CONFIG[f];
           const isActive = activeFilter === f;
@@ -259,35 +262,44 @@ export default function OffersListPage() {
 
       {/* Grid Content */}
       {filtered.length === 0 ? (
-        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="py-32 glass rounded-[3rem] flex flex-col items-center justify-center text-center border-dashed border-glass-border">
-          <div className="w-24 h-24 bg-glass-heavy rounded-[2.5rem] flex items-center justify-center mb-8 border border-glass-border">
-            <Tag size={40} className="text-text-tertiary" />
+        <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="vendor-offers-empty glass rounded-[1.25rem] flex flex-col items-center justify-center text-center border-glass-border">
+          <div className="w-16 h-16 bg-primary/10 rounded-2xl flex items-center justify-center mb-5 border border-primary/20">
+            <Tag size={28} className="text-primary" />
           </div>
           <h3 className="text-2xl font-black text-text mb-3">لم يتم العثور على عروض</h3>
           <p className="text-text-dim font-bold text-sm max-w-xs mx-auto leading-relaxed">
             {searchQuery ? `لا يوجد نتائج تطابق بحث "${searchQuery}"` : 'ابدأ بإضافة أول عرض لمتجرك الآن'}
           </p>
+          {searchQuery ? (
+            <button type="button" onClick={() => setSearchQuery('')} className="vendor-empty-action">
+              عرض كل العروض
+            </button>
+          ) : (
+            <Link href="/dashboard/offers/new" className="vendor-empty-action">
+              <Plus size={17} /> إضافة أول عرض
+            </Link>
+          )}
         </motion.div>
       ) : (
         (Object.entries(grouped) as [string, Offer[]][]).map(([category, catOffers]) => (
-          <div key={category} className="mb-16">
-            <div className="flex items-center gap-4 mb-8">
+          <section key={category} className="vendor-offers-category mb-10">
+            <div className="flex items-center gap-3 mb-5">
               <div className="w-10 h-10 bg-primary/10 rounded-2xl flex items-center justify-center border border-primary/20">
                 <Layers size={18} className="text-primary" />
               </div>
-              <h2 className="text-xl font-black text-white tracking-tight">{category}</h2>
-              <div className="flex-1 h-px bg-gradient-to-l from-glass-border to-transparent" />
+              <h2 className="text-base font-black text-text tracking-tight">{category}</h2>
+              <div className="flex-1 h-px bg-glass-border" />
               <span className="text-[11px] font-black text-text-dim bg-glass-heavy px-3 py-1 rounded-xl border border-glass-border">
                 {catOffers.length} عرض
               </span>
             </div>
 
-            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 2xl:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
               {catOffers.map((offer) => (
-                <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} />
+                <OfferCard key={offer.id} offer={offer} onDelete={handleDelete} now={now} />
               ))}
             </div>
-          </div>
+          </section>
         ))
       )}
       <ConfirmModal 

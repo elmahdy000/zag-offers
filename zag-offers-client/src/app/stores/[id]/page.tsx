@@ -2,11 +2,11 @@
 
 import React, { useState, useEffect } from 'react';
 import { useParams } from 'next/navigation';
-import { motion } from 'framer-motion';
-import { MapPin, Phone, MessageSquare, ExternalLink, Tag, Store } from 'lucide-react';
+import { MapPin, Phone, MessageCircle, ExternalLink, Tag, Store, Clock3, Star, BadgeCheck, Navigation, Images, ArrowLeft, ShieldCheck } from 'lucide-react';
+import { RiFacebookFill, RiInstagramLine } from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
-import { API_URL, BASE_URL } from '@/lib/constants';
+import { API_URL } from '@/lib/constants';
 import { OfferCard } from '@/components/offer-card';
 import { ErrorDisplay } from '@/components/error-display';
 import { resolveImageUrl } from '@/lib/utils';
@@ -19,9 +19,18 @@ interface Store {
   id: string;
   name: string;
   logo?: string;
+  coverImage?: string;
+  images?: string[];
   area: string;
+  address?: string;
   phone?: string;
   whatsapp?: string;
+  locationUrl?: string;
+  facebook?: string;
+  instagram?: string;
+  workingHours?: string;
+  ratingAvg?: number;
+  ratingCount?: number;
   category?: Category;
 }
 
@@ -30,6 +39,7 @@ interface Offer {
   title: string;
   discount: string;
   endDate: string;
+  images?: string[];
   store: Store;
 }
 
@@ -83,97 +93,86 @@ export default function StoreDetailsPage() {
     fetchData();
   }, [id]);
 
-  if (loading) return <div className="min-h-screen flex items-center justify-center text-[#FF6B00] font-black">جاري تحميل بيانات المتجر...</div>;
-  if (error) return <ErrorDisplay message={error} onRetry={() => window.location.reload()} />;
-  if (!store) return <div className="text-center py-20 font-black">المتجر غير موجود</div>;
-
-  const logoUrl = resolveImageUrl(store.logo);
-
-  return (
+  if (loading) return (
     <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
-      {/* Header Profile */}
-      <div className="glass rounded-[40px] p-8 sm:p-12 mb-12 relative overflow-hidden">
-        <div className="absolute top-0 right-0 w-64 h-64 bg-[#FF6B00]/10 blur-[100px] -z-10" />
-        
-        <div className="flex flex-col md:flex-row items-center gap-8 text-center md:text-right">
-          <div className="w-32 h-32 bg-[#141414] rounded-[32px] border-4 border-white/5 flex items-center justify-center overflow-hidden shadow-2xl">
-            {logoUrl ? 
-              <Image
-                src={logoUrl}
-                alt={store.name || 'Store Logo'}
-                width={128}
-                height={128}
-                className="w-full h-full object-cover"
-                loading="lazy"
-                sizes="128px"
-                quality={80}
-                placeholder="blur"
-                blurDataURL="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTI4IiBoZWlnaHQ9IjEyOCIgZmlsbD0iIzFFRTFFMSIvPjwvc3ZnPg=="
-              /> : 
-              <Store size={48} className="text-white/10" />
-            }
-          </div>
-          
-          <div className="flex-1 space-y-3">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-[#FF6B00]/10 text-[#FF6B00] rounded-lg text-xs font-black">
-              <Tag size={12} /> {store.category?.name || 'متجر معتمد'}
-            </div>
-            <h1 className="text-4xl font-black">{store.name}</h1>
-            <div className="flex flex-wrap justify-center md:justify-start gap-4 text-white/50 text-sm font-bold">
-              <div className="flex items-center gap-1.5"><MapPin size={16} className="text-[#FF6B00]" /> {store.area}</div>
-              <div className="flex items-center gap-1.5"><Phone size={16} className="text-[#FF6B00]" /> {store.phone || '-'}</div>
-            </div>
-          </div>
-
-          <div className="flex gap-3">
-            <a href={`tel:${store.phone}`} className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-[#FF6B00] hover:text-white transition-all"><Phone size={24} /></a>
-            {store.whatsapp && (
-              <a
-                href={`https://wa.me/${(()=>{
-                  let p = store.whatsapp || '';
-                  p = p.replace(/\D/g, '');
-                  if (p.startsWith('01')) return '+20' + p.substring(1);
-                  if (p.startsWith('20')) return '+' + p;
-                  return '+' + p;
-                })()}`}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="p-4 bg-white/5 rounded-2xl border border-white/10 hover:bg-green-500 hover:text-white transition-all"
-              >
-                <MessageSquare size={24} />
-              </a>
-            )}
+      <div className="glass rounded-[40px] p-8 sm:p-12 mb-12">
+        <div className="flex flex-col md:flex-row items-center gap-8">
+          <div className="w-32 h-32 bg-white/5 rounded-[32px] animate-pulse" />
+          <div className="flex-1 space-y-3 w-full">
+            <div className="h-4 w-24 bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-8 w-48 bg-white/5 rounded-lg animate-pulse" />
+            <div className="h-4 w-36 bg-white/5 rounded-lg animate-pulse" />
           </div>
         </div>
       </div>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+        {[1,2,3].map(i => <div key={i} className="h-48 bg-white/5 rounded-3xl animate-pulse" />)}
+      </div>
+    </div>
+  );
+  if (error) return (
+    <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
+      <ErrorDisplay message={error} onRetry={() => window.location.reload()} />
+    </div>
+  );
+  if (!store) return (
+    <div className="max-w-7xl mx-auto px-4 py-10" dir="rtl">
+      <div className="text-center py-24 glass rounded-[3rem] border border-white/5">
+        <Store size={48} className="mx-auto text-white/10 mb-4" />
+        <h3 className="text-2xl font-black mb-3">المتجر غير موجود</h3>
+        <p className="text-white/40 text-sm font-bold mb-8">ربما تم حذف هذا المتجر أو أن الرابط غير صحيح</p>
+        <Link href="/stores" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
+          تصفح المتاجر
+        </Link>
+      </div>
+    </div>
+  );
 
-      {/* Offers from this store */}
-      <div className="space-y-8">
-        <h2 className="text-2xl font-black flex items-center gap-3">
-          <Tag className="text-[#FF6B00]" /> عروض المتجر الحالية
-        </h2>
+  const logoUrl = resolveImageUrl(store.logo);
+  const coverUrl = resolveImageUrl(store.coverImage || store.images?.[0]);
+  const gallery = (store.images || []).map(resolveImageUrl).filter((image): image is string => Boolean(image)).slice(0, 4);
+  const whatsappNumber = (store.whatsapp || '').replace(/\D/g, '').replace(/^0/, '20');
 
-        {offers.length === 0 ? (
-          <div className="text-center py-20 text-white/30 font-bold border-2 border-dashed border-white/5 rounded-3xl"> لا توجد عروض نشطة حالياً لهذا المتجر</div>
-        ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
-            {offers.map((offer: Offer) => (
-              <Link key={offer.id} href={`/offers/${offer.id}`}>
-                <div className="glass p-6 rounded-3xl hover:border-[#FF6B00]/50 transition-all group">
-                  <div className="flex justify-between items-start mb-4">
-                    <span className="px-3 py-1 bg-[#FF6B00] text-white font-black rounded-lg text-lg shadow-lg shadow-orange-900/20">{offer.discount}</span>
-                    <span className="text-[10px] font-black text-white/30 uppercase">خصم حصري</span>
-                  </div>
-                  <h3 className="font-black text-white group-hover:text-[#FF6B00] transition-colors leading-relaxed">{offer.title}</h3>
-                  <div className="mt-6 pt-4 border-t border-white/5 flex justify-between items-center text-xs font-bold text-white/40">
-                    <span>📅 ينتهي {new Date(offer.endDate).toLocaleDateString('ar-EG')}</span>
-                    <span className="text-[#FF6B00]">عرض التفاصيل ←</span>
-                  </div>
-                </div>
-              </Link>
-            ))}
+  return (
+    <div className="store-profile-page" dir="rtl">
+      <section className="store-profile-hero">
+        <div className={`store-cover ${coverUrl ? 'has-cover' : 'no-cover'}`}>
+          {coverUrl ? <Image src={coverUrl} alt={`غلاف ${store.name}`} fill priority className="object-cover" sizes="100vw" /> : <div className="store-cover-placeholder"><Store size={64}/></div>}
+          <div className="store-cover-shade" />
+        </div>
+        <div className="site-container store-identity">
+          <div className="store-profile-logo">{logoUrl ? <Image src={logoUrl} alt={store.name} width={144} height={144} className="h-full w-full object-cover" priority /> : <Store size={48}/>}</div>
+          <div className="store-profile-copy">
+            <div className="store-badges"><span><BadgeCheck size={15}/> متجر معتمد</span><span><Tag size={14}/>{store.category?.name || 'متجر'}</span></div>
+            <h1>{store.name}</h1>
+            <div className="store-quick-meta"><span><MapPin size={16}/>{store.area || 'الزقازيق'}</span>{store.ratingAvg !== undefined && <span><Star size={16}/>{store.ratingAvg.toFixed(1)} <small>({store.ratingCount || 0} تقييم)</small></span>}{store.workingHours && <span><Clock3 size={16}/>{store.workingHours}</span>}</div>
           </div>
-        )}
+          <div className="store-hero-actions">{store.phone && <a href={`tel:${store.phone}`}><Phone size={18}/> اتصال</a>}{store.whatsapp && <a className="is-whatsapp" href={`https://wa.me/${whatsappNumber}`} target="_blank" rel="noopener noreferrer"><MessageCircle size={18}/> واتساب</a>}</div>
+        </div>
+      </section>
+
+      <div className="site-container store-profile-content">
+        <div className="store-profile-layout">
+          <main className="store-profile-main">
+            <section className="store-section-card store-about">
+              <div className="store-section-heading"><div><ShieldCheck/><span><small>نبذة سريعة</small><h2>عن المتجر</h2></span></div></div>
+              <p>اكتشف أحدث عروض {store.name} واستفد من الخصومات المتاحة. يمكنك التواصل مع المتجر مباشرة أو زيارته في {store.area || 'الزقازيق'}.</p>
+              {gallery.length > 0 && <div className="store-gallery">{gallery.map((image, index) => <div key={image} className={index === 0 ? 'is-main' : ''}><Image src={image} alt={`${store.name} - صورة ${index + 1}`} fill className="object-cover" sizes="(max-width: 640px) 100vw, 40vw" /></div>)}</div>}
+            </section>
+            <section className="store-offers-section">
+              <div className="store-offers-heading"><div><span><Tag size={18}/></span><div><small>وفر أكثر</small><h2>عروض المتجر الحالية</h2></div></div><b>{offers.length} عرض</b></div>
+              {offers.length === 0 ? <div className="store-empty-offers"><Tag size={30}/><h3>لا توجد عروض نشطة الآن</h3><p>تابع المتجر وارجع لاحقًا لاكتشاف عروضه الجديدة.</p><Link href="/offers">اكتشف عروضًا أخرى <ArrowLeft size={16}/></Link></div> : <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">{offers.map((offer: Offer) => <OfferCard key={offer.id} offer={{ ...offer, images: offer.images || [] }} />)}</div>}
+            </section>
+          </main>
+          <aside className="store-profile-sidebar">
+            <section className="store-section-card store-info-card">
+              <div className="store-section-heading"><div><MapPin/><span><small>تواصل وزيارة</small><h2>بيانات المتجر</h2></span></div></div>
+              <div className="store-info-list"><div><span><MapPin/></span><p><small>العنوان</small><b>{store.address || store.area || 'الزقازيق'}</b></p></div>{store.phone && <a href={`tel:${store.phone}`}><span><Phone/></span><p><small>رقم الهاتف</small><b dir="ltr">{store.phone}</b></p></a>}{store.workingHours && <div><span><Clock3/></span><p><small>مواعيد العمل</small><b>{store.workingHours}</b></p></div>}</div>
+              {store.locationUrl && <a className="store-map-button" href={store.locationUrl} target="_blank" rel="noopener noreferrer"><Navigation size={17}/> فتح الموقع على الخريطة <ExternalLink size={14}/></a>}
+            </section>
+            {(store.facebook || store.instagram) && <section className="store-social-card"><div><Images size={20}/><span><small>تابع الجديد</small><b>حسابات المتجر</b></span></div><div>{store.facebook && <a href={store.facebook} target="_blank" rel="noopener noreferrer" aria-label="Facebook"><RiFacebookFill/></a>}{store.instagram && <a href={store.instagram} target="_blank" rel="noopener noreferrer" aria-label="Instagram"><RiInstagramLine/></a>}</div></section>}
+          </aside>
+        </div>
       </div>
     </div>
   );

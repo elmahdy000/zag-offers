@@ -2,15 +2,13 @@
 
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { motion } from 'framer-motion';
-import { RiArrowRightLine } from 'react-icons/ri';
 import Link from 'next/link';
-import Image from 'next/image';
 import { ErrorDisplay } from '@/components/error-display';
-import { API_URL, CAT_ASSETS, DISPLAY_NAMES } from '@/lib/constants';
+import { API_URL, DISPLAY_NAMES } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { Category } from '@/lib/types';
-import { resolveImageUrl } from '@/lib/utils';
-import { usePublicSocket } from '@/lib/socket';
+import { useNotifications } from '@/components/notification-provider';
+import { CategoryIcon } from '@/components/category-icon';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
@@ -18,7 +16,7 @@ export default function CategoriesPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const { socket, isConnected } = usePublicSocket();
+  const { socket, isConnected } = useNotifications();
 
   const fetchCats = useCallback(async (force = false) => {
     const cachedRaw = localStorage.getItem('cache_categories_full_v2');
@@ -33,6 +31,7 @@ export default function CategoriesPage() {
         } else {
           setCategories(parsed);
           setLoading(false);
+          if (age <= 60_000) return;
         }
       } else {
         setCategories(parsed.data || []);
@@ -64,7 +63,9 @@ export default function CategoriesPage() {
 
   // Stable ref for socket/polling/online handlers
   const fetchCatsRef = useRef(fetchCats);
-  fetchCatsRef.current = fetchCats;
+  useEffect(() => {
+    fetchCatsRef.current = fetchCats;
+  }, [fetchCats]);
 
   useEffect(() => {
     fetchCatsRef.current();
@@ -102,63 +103,45 @@ export default function CategoriesPage() {
   }, [isConnected]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-12 sm:py-20" dir="rtl">
-      <div className="text-center mb-12 sm:mb-20">
-        <motion.div 
-          initial={{ opacity: 0, scale: 0.9 }}
-          animate={{ opacity: 1, scale: 1 }}
-          className="inline-flex items-center gap-2 px-4 py-1.5 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-full mb-6"
-        >
-          <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse" />
-          <span className="text-[10px] sm:text-xs font-black text-[#FF6B00] uppercase tracking-wider">استكشف عالم زاج</span>
-        </motion.div>
-        <h1 className="text-4xl sm:text-6xl font-black mb-6 text-[#F0F0F0] leading-tight">أقسام العروض</h1>
-        <p className="text-[#9A9A9A] text-sm sm:text-lg font-bold max-w-2xl mx-auto">تصفح العروض حسب الفئة التي تفضلها واستمتع بتجربة تسوق فريدة</p>
-      </div>
+    <div className="min-h-[72vh] bg-[#07101F] pb-20" dir="rtl">
+      <header className="border-b border-[#25344A] bg-[#101A2B] py-10 sm:py-14">
+        <div className="site-container">
+          <div className="mb-3 flex items-center gap-2 text-xs text-[#8F9DB1]">
+            <Link href="/" className="hover:text-white">الرئيسية</Link><span>‹</span><span className="text-[#FF8A32]">الأقسام</span>
+          </div>
+          <h1 className="text-3xl font-bold text-white sm:text-4xl">الأقسام</h1>
+          <p className="mt-2 text-sm text-[#A8B4C5]">تصفح العروض حسب القسم</p>
+        </div>
+      </header>
 
-      {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
-          {[1,2,3,4,5,6,7,8].map(i => (
-            <div key={i} className="aspect-[4/5] bg-white/5 rounded-[2.5rem] animate-pulse border border-white/5" />
-          ))}
-        </div>
-      ) : error ? (
-        <ErrorDisplay message={error} onRetry={() => fetchCatsRef.current(true)} />
-      ) : (
-        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-8">
-          {categories.map((cat, i) => (
-            <Link key={cat.id} href={`/offers?category=${cat.id}`}>
-              <motion.div 
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                transition={{ delay: i * 0.05 }}
-                className="group relative aspect-[4/5] rounded-[2.5rem] overflow-hidden border border-white/5 hover:border-[#FF6B00]/50 transition-all duration-500 cursor-pointer shadow-2xl"
-              >
-                  <div className="absolute inset-0 bg-[#252525]">
-                  <Image 
-                    src={cat.image ? (resolveImageUrl(cat.image) ?? CAT_ASSETS.default) : (CAT_ASSETS[cat.name] || CAT_ASSETS.default)} 
-                    alt={cat.name} 
-                    fill
-                    className="object-cover transition-all duration-700 group-hover:scale-110"
-                    sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 25vw"
-                    quality={75}
-                  />
-                </div>
-                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/40 to-transparent z-10" />
-                
-                <div className="absolute inset-0 flex flex-col items-center justify-end pb-8 sm:pb-12 z-20 space-y-4">
-                  <h3 className="font-black text-xl sm:text-2xl text-white group-hover:text-[#FF6B00] transition-colors duration-300">
-                    {getCatName(cat.name)}
-                  </h3>
-                  <div className="inline-flex items-center gap-2 text-[10px] sm:text-xs font-black text-white/60 bg-white/10 backdrop-blur-md px-4 py-2 rounded-full group-hover:bg-[#FF6B00] group-hover:text-white transition-all duration-300">
-                    تصفح العروض <RiArrowRightLine size={12} className="group-hover:-translate-x-1 transition-transform rotate-180" />
-                  </div>
-                </div>
-              </motion.div>
-            </Link>
-          ))}
-        </div>
-      )}
+      <div className="site-container pt-7 sm:pt-9">
+        {loading ? (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {[1,2,3,4,5,6,7,8,9,10].map(i => <div key={i} className="h-40 animate-pulse rounded-2xl border border-[#25344A] bg-[#101A2B]" />)}
+          </div>
+        ) : error ? (
+          <ErrorDisplay message={error} onRetry={() => fetchCatsRef.current(true)} />
+        ) : (
+          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+            {categories.map((cat, i) => (
+              <Link key={cat.id} href={`/offers?category=${cat.id}`}>
+                <motion.div
+                  initial={{ opacity: 0, y: 12 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  transition={{ delay: Math.min(i * 0.035, 0.25) }}
+                  className="global-card group flex h-48 flex-col items-center justify-center rounded-[20px] border border-[#25344A] bg-[#101A2B] p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#FF8A32]/70 hover:bg-[#132035]"
+                >
+                  <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1B2940] text-[#FF8A32] transition-transform group-hover:scale-110">
+                    <CategoryIcon name={cat.name} size={26} />
+                  </span>
+                  <h3 className="text-base font-bold text-white sm:text-lg">{getCatName(cat.name)}</h3>
+                  <p className="mt-2 text-sm text-[#90A0B6]">تصفح العروض</p>
+                </motion.div>
+              </Link>
+            ))}
+          </div>
+        )}
+      </div>
     </div>
   );
 }

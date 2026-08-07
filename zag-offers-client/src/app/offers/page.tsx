@@ -2,13 +2,13 @@
 
 import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X } from 'lucide-react';
-import { motion, AnimatePresence } from 'framer-motion';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2 } from 'lucide-react';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
-import { usePublicSocket } from '@/lib/socket';
+import { useNotifications } from '@/components/notification-provider';
+import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
@@ -37,17 +37,6 @@ function useDebounce<T>(value: T, delay: number): T {
   }, [value, delay]);
   return debouncedValue;
 }
-
-const normalizeArabic = (str: string) => {
-  if (!str) return '';
-  return str
-    .toLowerCase()
-    .trim()
-    .replace(/[أإآ]/g, 'ا')
-    .replace(/ة/g, 'ه')
-    .replace(/[ى]/g, 'ي')
-    .replace(/[\u064B-\u0652]/g, '');
-};
 
 function OffersPageContent() {
   const searchParams  = useSearchParams();
@@ -112,7 +101,7 @@ function OffersPageContent() {
       return;
     }
     scrollToResults();
-  }, [activeCat, area, sort]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [activeCat, area, sort]);
 
   // Scroll after search debounce settles — only if user stopped typing
   useEffect(() => {
@@ -124,10 +113,10 @@ function OffersPageContent() {
       }
     }, 200);
     return () => clearTimeout(timer);
-  }, [debouncedSearch]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [debouncedSearch]);
 
-  const [isOffline, setIsOffline] = useState(false);
-  const { socket } = usePublicSocket();
+  const [, setIsOffline] = useState(false);
+  const { socket } = useNotifications();
 
   const fetchData = useCallback(async () => {
     const cachedOffers = safeJsonParse<Offer[]>(localStorage.getItem('cache_offers'), []);
@@ -145,7 +134,7 @@ function OffersPageContent() {
       
       if (offRes.ok) {
         const data = await offRes.json();
-        const items = Array.isArray(data) ? data : (data.items || []);
+        const items = extractItems<Offer>(data);
         setOffers(items);
         localStorage.setItem('cache_offers', JSON.stringify(items));
         setIsOffline(false);
@@ -170,7 +159,10 @@ function OffersPageContent() {
     }
   }, [offers.length]);
 
-  useEffect(() => { fetchData(); }, [fetchData]);
+  useEffect(() => {
+    const timer = window.setTimeout(() => fetchData(), 0);
+    return () => window.clearTimeout(timer);
+  }, [fetchData]);
 
   useEffect(() => {
     if (!socket) return;
@@ -181,8 +173,12 @@ function OffersPageContent() {
     };
 
     socket.on('categories_updated', handleCategoriesUpdated);
+    socket.on('offers_updated', handleCategoriesUpdated);
+    socket.on('new_offer', handleCategoriesUpdated);
     return () => {
       socket.off('categories_updated', handleCategoriesUpdated);
+      socket.off('offers_updated', handleCategoriesUpdated);
+      socket.off('new_offer', handleCategoriesUpdated);
     };
   }, [socket, fetchData]);
 
@@ -199,29 +195,12 @@ function OffersPageContent() {
   }, [fetchData]);
 
   const filtered = useMemo(() => {
-    let list = offers.filter(o => {
-      const q = normalizeArabic(debouncedSearch);
-      const matchSearch = !q
-        || normalizeArabic(o.title || '').includes(q)
-        || normalizeArabic(o.description || '').includes(q)
-        || normalizeArabic(o.store?.name || '').includes(q)
-        || normalizeArabic(o.store?.area || '').includes(q)
-        || normalizeArabic(o.store?.category?.name || '').includes(q);
-      const matchCat  = activeCat ? (o.store?.category?.id === activeCat || o.store?.categoryId === activeCat) : true;
-      const matchArea = area ? o.store?.area === area : true;
-      return matchSearch && matchCat && matchArea;
-    });
-
-    if (sort === 'expiring') {
-      list = [...list].sort((a, b) => new Date(a.endDate).getTime() - new Date(b.endDate).getTime());
-    } else if (sort === 'discount') {
-      const getVal = (d: string) => parseInt(d?.replace(/[^0-9]/g, '') || '0');
-      list = [...list].sort((a, b) => getVal(b.discount) - getVal(a.discount));
-    } else {
-      list = [...list].sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
-    }
-
-    return list;
+    return sortOffers(filterOffers(offers, {
+      query: debouncedSearch,
+      categoryId: activeCat,
+      area,
+      activeOnly: true,
+    }), sort);
   }, [offers, debouncedSearch, activeCat, area, sort]);
 
   const grouped = useMemo(() => {
@@ -235,26 +214,40 @@ function OffersPageContent() {
   }, [filtered]);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 py-6" dir="rtl">
-
-      {/* ─── Page Title ──────────────────────────────────── */}
-      <div className="mb-5 sm:mb-8">
-        <h1 className="text-xl sm:text-2xl font-black flex items-center gap-2.5">
-          <div className="w-9 h-9 bg-[#FF6B00]/10 rounded-xl flex items-center justify-center text-[#FF6B00]">
-            <Flame size={19} />
+    <div className="offers-page pb-16" dir="rtl">
+      <section className="offers-hero">
+        <div className="site-container offers-hero-inner">
+          <div className="offers-hero-copy">
+            <div className="offers-kicker"><Flame size={15} /> عروض حقيقية تتجدد كل يوم</div>
+            <h1>اكتشف عرضك القادم</h1>
+            <p>خصومات مختارة من أفضل المتاجر والخدمات في الزقازيق، في تجربة أسرع وأسهل.</p>
+            <div className="offers-trust-row">
+              <span><CheckCircle2 size={15} /> عروض موثوقة</span>
+              <span><MapPin size={15} /> قريبة منك</span>
+              <span><BadgePercent size={15} /> خصومات حصرية</span>
+            </div>
           </div>
-          استكشف العروض
-        </h1>
-        <p className="text-[#9A9A9A] text-[11px] sm:text-xs font-bold mt-1.5">
-          عروض حية ومعتمدة من أفضل المحلات في الزقازيق
-        </p>
-      </div>
+          <div className="offers-hero-art" aria-hidden="true">
+            <div className="offers-ticket">
+              <span className="offers-ticket-label">ZAG DEALS</span>
+              <BadgePercent size={54} />
+              <b>خصم يستاهل</b>
+              <small>اختار • وفّر • استمتع</small>
+            </div>
+          </div>
+        </div>
+      </section>
+      <div className="site-container offers-content">
 
       {/* ─── Filters Card ────────────────────────────────── */}
-      <div className="bg-[#252525] border border-white/[0.07] rounded-2xl p-4 mb-6 space-y-3">
+      <div className="offers-filter-panel">
+        <div className="offers-filter-heading">
+          <div><SlidersHorizontal size={18} /><span>اعثر على العرض المناسب</span></div>
+          <small>فلترة ذكية وسريعة</small>
+        </div>
 
         {/* Search */}
-        <div className="relative">
+        <div className="relative offers-search">
           <Search
             className="absolute right-3.5 top-1/2 -translate-y-1/2 text-[#9A9A9A] pointer-events-none"
             size={16}
@@ -262,8 +255,8 @@ function OffersPageContent() {
           <input
             type="text"
             placeholder="ابحث بالاسم أو المحل أو المنطقة أو الصنف..."
-            className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
-                       pr-10 pl-10 py-2.5 text-sm font-bold text-[#F0F0F0]
+            className="w-full bg-[#0B1526] border border-[#25344A] rounded-xl
+                       pr-11 pl-11 py-3.5 text-sm font-bold text-[#F0F0F0]
                        placeholder:text-[#9A9A9A] outline-none
                        focus:border-[#FF6B00] focus:shadow-[0_0_0_3px_rgba(255,107,0,0.15)]
                        transition-all"
@@ -282,13 +275,13 @@ function OffersPageContent() {
         </div>
 
         {/* Category Ribbon */}
-        <div className="flex items-center gap-1.5 overflow-x-auto pb-1.5 no-scrollbar scroll-smooth -mx-0.5 px-0.5">
+        <div className="offers-category-ribbon no-scrollbar">
           <button
             onClick={(e) => { setActiveCat(''); scrollActiveIntoView(e); }}
-            className={`flex items-center gap-1.5 px-4 py-2 rounded-xl whitespace-nowrap font-black transition-all text-[11px] sm:text-xs ${
+            className={`offers-category-chip ${
               !activeCat 
-              ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
-              : 'bg-[#252525] text-white/60 hover:bg-[#252525] hover:text-white border border-white/5'
+              ? 'is-active' 
+              : ''
             }`}
           >
             <Layers size={12} /> الكل
@@ -297,10 +290,10 @@ function OffersPageContent() {
             <button
               key={cat.id}
               onClick={(e) => { setActiveCat(cat.id); scrollActiveIntoView(e); }}
-              className={`flex items-center gap-1.5 px-4 py-2 rounded-xl whitespace-nowrap font-black transition-all text-[11px] sm:text-xs ${
+              className={`offers-category-chip ${
                 activeCat === cat.id 
-                ? 'bg-[#FF6B00] text-white shadow-lg shadow-[#FF6B00]/20' 
-                : 'bg-[#252525] text-white/60 hover:bg-[#252525] hover:text-white border border-white/5'
+                ? 'is-active' 
+                : ''
               }`}
             >
               {CAT_ICONS[cat.name] || CAT_ICONS.default} {cat.name}
@@ -309,44 +302,43 @@ function OffersPageContent() {
         </div>
 
         {/* Filters Grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-2">
-          <select
-            className="w-full bg-[#1E1E1E] border border-white/[0.07] rounded-xl
+        <div className="offers-select-grid">
+          <label className="offers-select-wrap"><MapPin size={16} /><span>المنطقة</span><select
+            className="w-full bg-[#0B1526] border border-[#25344A] rounded-xl
                        pr-3.5 py-2.5 text-xs font-bold text-[#F0F0F0] cursor-pointer outline-none
                        focus:border-[#FF6B00] transition-all appearance-none"
             value={area}
             onChange={e => setArea(e.target.value)}
           >
-            <option value="">📍 كل المناطق</option>
+            <option value="">كل المناطق</option>
             {AREAS.map(a => <option key={a} value={a}>{a}</option>)}
-          </select>
+          </select></label>
 
-          <select
-            className="flex-1 min-w-[160px] bg-[#1E1E1E] border border-white/[0.07] rounded-xl
+          <label className="offers-select-wrap"><ArrowUpDown size={16} /><span>الترتيب</span><select
+            className="flex-1 min-w-[160px] bg-[#0B1526] border border-[#25344A] rounded-xl
                        pr-3.5 py-2.5 text-xs font-bold text-[#F0F0F0] cursor-pointer outline-none
                        focus:border-[#FF6B00] transition-all appearance-none"
             value={sort}
             onChange={e => setSort(e.target.value as SortOption)}
           >
-            <option value="newest">🕐 الأحدث أولاً</option>
-            <option value="expiring">⏰ ينتهي قريباً</option>
-            <option value="discount">💰 أعلى خصم</option>
-          </select>
+            <option value="newest">الأحدث أولاً</option>
+            <option value="expiring">ينتهي قريباً</option>
+            <option value="discount">أعلى خصم</option>
+          </select></label>
         </div>
       </div>
 
       {/* ─── Results Bar ─────────────────────────────────── */}
       {!loading && (
-        <div className="flex items-center justify-between mb-6">
-          <p className="text-xs font-semibold text-[#9A9A9A]">
-            وجدنا <span className="text-[#F0F0F0] font-bold">{filtered.length}</span> عرض متاح
+        <div className="offers-results-bar">
+          <p><span className="offers-result-count">{filtered.length}</span><span>عرض متاح لك الآن</span>
           </p>
           {(search || activeCat || area) && (
             <button
               onClick={() => { setSearch(''); setActiveCat(''); setArea(''); }}
-              className="text-[11px] font-bold text-[#FF6B00] hover:underline"
+              className="offers-clear-button"
             >
-              ✕ مسح الفلاتر
+              مسح الفلاتر
             </button>
           )}
         </div>
@@ -355,14 +347,14 @@ function OffersPageContent() {
       {/* ─── Grouped Content ─────────────────────────────── */}
       <div ref={resultsRef} className="scroll-mt-20" />
       {loading ? (
-        <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
+        <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}
         </div>
       ) : error ? (
         <ErrorDisplay message={error} onRetry={fetchData} />
       ) : filtered.length === 0 ? (
         <div className="flex flex-col items-center py-20 gap-3 text-center">
-          <div className="w-16 h-16 bg-[#252525] rounded-full flex items-center justify-center text-2xl">🔍</div>
+          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1B2940] text-[#FF8A32]"><Search size={24} /></div>
           <h3 className="text-base font-bold">لا توجد عروض تطابق بحثك</h3>
           <p className="text-xs text-[#9A9A9A] max-w-xs leading-relaxed">
             جرّب تغيير كلمة البحث أو تحديد فلاتر مختلفة
@@ -374,19 +366,19 @@ function OffersPageContent() {
           {Object.entries(grouped).map(([categoryName, categoryOffers]) => (
             <div key={categoryName} className="animate-in fade-in slide-in-from-bottom-4 duration-500">
               {/* Category Header */}
-              <div className="flex items-center gap-2.5 mb-4">
-                <div className="w-7 h-7 bg-[#FF6B00]/10 rounded-lg flex items-center justify-center text-[#FF6B00]">
+              <div className="offers-group-header">
+                <div className="offers-group-icon">
                   {CAT_ICONS[categoryName] || <Layers size={13} />}
                 </div>
-                <h2 className="text-sm sm:text-base font-black text-[#F0F0F0]">{categoryName}</h2>
+                <h2>{categoryName}</h2>
                 <div className="h-px flex-1 bg-white/[0.04]" />
-                <span className="text-[8px] font-black text-[#9A9A9A] uppercase tracking-wider bg-white/[0.02] px-2.5 py-0.5 rounded-full border border-white/[0.05]">
+                <span className="offers-group-count">
                   {categoryOffers.length}
                 </span>
               </div>
 
               {/* Offers Grid for this category */}
-              <div className="grid grid-cols-2 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-2.5 sm:gap-3">
+              <div className="grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
                 {categoryOffers.map((offer) => (
                   <OfferCard key={offer.id} offer={offer} />
                 ))}
@@ -395,6 +387,7 @@ function OffersPageContent() {
           ))}
         </div>
       )}
+      </div>
     </div>
   );
 }

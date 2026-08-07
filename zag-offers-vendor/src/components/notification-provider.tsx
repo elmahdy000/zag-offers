@@ -2,10 +2,12 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, MessageSquare, CheckCircle2, X, Tag, AlertCircle, AlertTriangle } from 'lucide-react';
+import { Bell, CheckCircle2, X, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useSocket } from '@/lib/socket';
 import { getCookie } from '@/lib/api';
 import { onGlobalError } from '@/lib/error-events';
+import type { Socket } from 'socket.io-client';
+import { useQueryClient } from '@tanstack/react-query';
 
 interface Notification {
   id: string;
@@ -27,17 +29,14 @@ const NotificationContext = createContext<{
   addError: (title: string, body?: string) => void;
   addSuccess: (title: string, body?: string) => void;
   addWarning: (title: string, body?: string) => void;
+  socket: Socket | null;
 } | null>(null);
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [token, setToken] = useState<string | null>(null);
+  const [token] = useState<string | null>(() => getCookie('auth_token'));
   const { socket } = useSocket(token);
-
-  useEffect(() => {
-    const t = getCookie('auth_token');
-    setToken(t);
-  }, []);
+  const queryClient = useQueryClient();
 
   const show = useCallback((title: string, body: string, severity: Notification['severity']) => {
     const id = Date.now().toString() + Math.random().toString(36).slice(2, 6);
@@ -72,14 +71,17 @@ export const NotificationProvider = ({ children }: { children: React.ReactNode }
 
   useEffect(() => {
     if (!socket) return;
-    socket.on('merchant_notification', (data: { type: string, title: string, body: string, payload?: any }) => {
+    socket.on('merchant_notification', (data: { type: string, title: string, body: string, payload?: unknown }) => {
       addNotification(data.title, data.body, data.type);
+      if (data.type.includes('OFFER')) queryClient.invalidateQueries({ queryKey: ['vendor-offers'] });
+      if (data.type.includes('STORE')) queryClient.invalidateQueries({ queryKey: ['vendor-store'] });
+      queryClient.invalidateQueries({ queryKey: ['vendor-stats'] });
     });
     return () => { socket.off('merchant_notification'); };
-  }, [socket, addNotification]);
+  }, [socket, addNotification, queryClient]);
 
   return (
-    <NotificationContext.Provider value={{ addNotification, addError, addSuccess, addWarning }}>
+    <NotificationContext.Provider value={{ addNotification, addError, addSuccess, addWarning, socket }}>
       {children}
       <div className="fixed top-4 right-4 left-4 sm:left-auto sm:right-4 z-[1000] flex flex-col gap-3 max-w-sm w-auto pointer-events-none" dir="rtl">
         <AnimatePresence>

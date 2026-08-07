@@ -47,6 +47,7 @@ export default function OfferDetailPage() {
   const [activeImg, setActiveImg] = useState(0);
   const [lightbox, setLightbox] = useState(false);
   const [deleting, setDeleting] = useState(false);
+  const [now] = useState(() => Date.now());
 
   useEffect(() => {
     if (!id) return;
@@ -57,7 +58,7 @@ export default function OfferDetailPage() {
       router.push('/dashboard/offers');
     })
       .finally(() => setLoading(false));
-  }, [id]);
+  }, [addError, id, router]);
 
   const handleDelete = async () => {
     if (!confirm('هل تريد حذف هذا العرض نهائياً؟')) return;
@@ -97,7 +98,7 @@ export default function OfferDetailPage() {
   }
 
   const cfg = STATUS_CONFIG[offer.status] || STATUS_CONFIG.EXPIRED;
-  const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - Date.now()) / 86_400_000);
+  const daysLeft = Math.ceil((new Date(offer.endDate).getTime() - now) / 86_400_000);
   const isExpired = daysLeft <= 0;
 
   const fmtDate = (iso: string) =>
@@ -118,7 +119,7 @@ export default function OfferDetailPage() {
               src={resolveImageUrl(offer.images[activeImg])}
               className="max-w-full max-h-full object-contain rounded-2xl"
               onClick={e => e.stopPropagation()}
-              alt=""
+              alt={offer.title}
             />
             <button onClick={() => setLightbox(false)}
               className="absolute top-4 left-4 w-10 h-10 bg-glass-heavy rounded-xl flex items-center justify-center text-white">
@@ -277,7 +278,7 @@ export default function OfferDetailPage() {
               {offer.images.map((img, i) => (
                 <button key={i} onClick={() => { setActiveImg(i); setLightbox(true); }}
                   className={`shrink-0 w-20 h-20 rounded-xl overflow-hidden border-2 transition-all ${i === activeImg ? 'border-primary' : 'border-transparent opacity-60'}`}>
-                  <img src={resolveImageUrl(img)} className="w-full h-full object-cover" alt="" />
+                  <img src={resolveImageUrl(img)} className="w-full h-full object-cover" alt={`${offer.title} - صورة ${i + 1}`} />
                 </button>
               ))}
             </div>

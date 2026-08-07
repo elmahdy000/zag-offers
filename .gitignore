@@ -11,5 +11,20 @@ build
 .DS_Store
 *.log
 
+# Local/generated audit and development artifacts
+coverage/
+scratch/
+screenshots/
+playwright-report/
+test-results/
+graphify-out/
+.impeccable/
+portfolio/
+stitch_zag_offers_platform/
+stitch_zag_offers_web_platform/
+zag-offers-backend/uploads/
+*.tsbuildinfo
+*.py
+
 # Firebase Service Account
 zagoffers-firebase-*.json

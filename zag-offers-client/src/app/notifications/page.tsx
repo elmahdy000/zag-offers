@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { Bell, CheckCheck, ArrowLeft, Trash2, Tag, Store, Ticket, Clock, ArrowRight, CheckCircle2 } from 'lucide-react';
+import { Bell, CheckCheck, ArrowLeft, Trash2, Tag, Store, Ticket, Clock, CheckCircle2 } from 'lucide-react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { ErrorDisplay } from '@/components/error-display';
@@ -15,7 +15,7 @@ interface Notification {
   isRead: boolean;
   createdAt: string;
   type?: string;
-  data?: any;
+  data?: Record<string, unknown> | string;
 }
 
 function getNotifIcon(type?: string) {
@@ -35,17 +35,17 @@ function getNotifIcon(type?: string) {
 }
 
 function getNotifRoute(n: Notification): string {
-  let d = n.data || {};
-  if (typeof d === 'string') {
-    try { d = JSON.parse(d); } catch { d = {}; }
-  }
+  let d: Record<string, unknown> = {};
+  if (typeof n.data === 'string') {
+    try { d = JSON.parse(n.data) as Record<string, unknown>; } catch { d = {}; }
+  } else if (n.data) d = n.data;
   
   switch (n.type) {
     case 'NEW_OFFER':
     case 'OFFER_APPROVED':
-      return d.offerId ? `/offers/${d.offerId}` : '/offers';
+      return typeof d.offerId === 'string' ? `/offers/${d.offerId}` : '/offers';
     case 'STORE_APPROVED':
-      return d.storeId ? `/stores/${d.storeId}` : '/stores';
+      return typeof d.storeId === 'string' ? `/stores/${d.storeId}` : '/stores';
     case 'COUPON_REDEEMED':
     case 'COUPON_UPDATE':
     case 'COUPON_GENERATED':
@@ -61,9 +61,11 @@ export default function NotificationsPage() {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean | null>(null);
 
   const fetchNotifications = useCallback(async () => {
     const token = localStorage.getItem('token');
+    setIsLoggedIn(!!token);
     if (!token) {
       setLoading(false);
       return;
@@ -85,8 +87,10 @@ export default function NotificationsPage() {
     }
   }, []);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  useEffect(() => { fetchNotifications(); }, []);
+  useEffect(() => {
+    const initialFetch = window.setTimeout(() => void fetchNotifications(), 0);
+    return () => window.clearTimeout(initialFetch);
+  }, [fetchNotifications]);
 
   const markAsRead = async (id: string) => {
     const token = localStorage.getItem('token');
@@ -217,6 +221,15 @@ export default function NotificationsPage() {
         </div>
       ) : error ? (
         <ErrorDisplay message={error} onRetry={fetchNotifications} />
+      ) : isLoggedIn === false ? (
+        <div className="text-center py-20 glass rounded-[32px]">
+          <Bell className="mx-auto text-white/10 mb-4" size={64} />
+          <h3 className="text-xl font-black mb-2">يرجى تسجيل الدخول</h3>
+          <p className="text-white/40 text-sm font-bold mb-8">سجّل دخولك لترى إشعاراتك وتحديثاتك</p>
+          <Link href="/login" className="px-8 py-3 bg-[#FF6B00] text-white font-black rounded-full shadow-lg">
+            تسجيل الدخول
+          </Link>
+        </div>
       ) : notifications.length === 0 ? (
         <motion.div 
           initial={{ opacity: 0, y: 20 }}
@@ -228,7 +241,7 @@ export default function NotificationsPage() {
           </div>
           <h3 className="text-2xl font-black mb-3">صندوق الوارد فارغ</h3>
           <p className="text-white/40 text-sm font-bold mb-10 max-w-xs mx-auto">عندما تتلقى عروضاً جديدة أو تحديثات على كوبوناتك، ستظهر هنا</p>
-          <Link href="/" className="px-10 py-4 bg-[#FF6B00] text-white font-black rounded-2xl shadow-xl shadow-orange-900/20 hover:scale-105 active:scale-95 transition-all inline-block">
+          <Link href="/" className="inline-flex min-h-11 items-center rounded-xl bg-[#FF6B00] px-6 py-2.5 text-sm font-extrabold text-white shadow-lg shadow-orange-900/15 transition-all hover:bg-[#ff7620] active:scale-95">
             تصفح العروض الحالية
           </Link>
         </motion.div>

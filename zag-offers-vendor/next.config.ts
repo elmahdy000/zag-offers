@@ -1,23 +1,31 @@
 
 import type { NextConfig } from "next";
-import withPWAInit from "@ducanh2912/next-pwa";
-
-const withPWA = withPWAInit({
-  dest: "public",
-  disable: process.env.NODE_ENV === "development",
-});
 
 const nextConfig: NextConfig = {
   turbopack: {},
   images: {
+    formats: ['image/avif', 'image/webp'],
+    minimumCacheTTL: 2_592_000,
     remotePatterns: [
       {
         protocol: 'https',
         hostname: 'api.zagoffers.online',
         pathname: '/**',
       },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3010',
+        pathname: '/uploads/**',
+      },
+      {
+        protocol: 'http',
+        hostname: 'localhost',
+        port: '3001',
+        pathname: '/uploads/**',
+      },
     ],
   },
 };
 
-export default withPWA(nextConfig);
+export default nextConfig;

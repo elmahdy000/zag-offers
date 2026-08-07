@@ -25,10 +25,16 @@ describe('useSocket', () => {
     vi.restoreAllMocks();
   });
 
-  it('should not connect when token is null', () => {
+  it('should connect to public realtime events when token is null', () => {
     const { result } = renderHook(() => useSocket(null));
-    
-    expect(io).not.toHaveBeenCalled();
+
+    expect(io).toHaveBeenCalledWith(
+      expect.any(String),
+      expect.objectContaining({
+        auth: undefined,
+        transports: ['websocket', 'polling'],
+      }),
+    );
     expect(result.current.socket).toBeNull();
     expect(result.current.isConnected).toBe(false);
     expect(result.current.connectionStatus).toBe('disconnected');

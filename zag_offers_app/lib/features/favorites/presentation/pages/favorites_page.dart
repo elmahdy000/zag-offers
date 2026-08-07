@@ -1,4 +1,4 @@
-﻿import 'package:flutter/material.dart';
+import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/auth/data/datasources/auth_local_data_source.dart';
@@ -17,8 +17,10 @@ class FavoritesPage extends StatefulWidget {
 }
 
 class _FavoritesPageState extends State<FavoritesPage> {
-  static final _loginDescStyle = GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.5);
-  static final _loginBtnStyle = GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16);
+  static final _loginDescStyle =
+      GoogleFonts.cairo(color: AppColors.textSecondary, height: 1.5);
+  static final _loginBtnStyle =
+      GoogleFonts.cairo(fontWeight: FontWeight.bold, fontSize: 16);
 
   bool _isLoggedIn = false;
 
@@ -53,185 +55,203 @@ class _FavoritesPageState extends State<FavoritesPage> {
         ),
         centerTitle: true,
       ),
-      body: !_isLoggedIn ? _buildLoginRequired() : BlocBuilder<FavoritesBloc, FavoritesState>(
-        buildWhen: (prev, next) => next is FavoritesLoaded || next is FavoritesLoading || next is FavoritesError,
-        builder: (context, state) {
-          final theme = Theme.of(context);
-          if (state is FavoritesLoading) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      body: !_isLoggedIn
+          ? _buildLoginRequired()
+          : BlocBuilder<FavoritesBloc, FavoritesState>(
+              buildWhen: (prev, next) =>
+                  next is FavoritesLoaded ||
+                  next is FavoritesLoading ||
+                  next is FavoritesError,
+              builder: (context, state) {
+                final theme = Theme.of(context);
+                if (state is FavoritesLoading) {
+                  return const Center(child: CircularProgressIndicator());
+                }
 
-          if (state is FavoritesLoaded) {
-            final favorites = state.favorites;
+                if (state is FavoritesLoaded) {
+                  final favorites = state.favorites;
 
-            if (favorites.isEmpty) {
-              return Center(
-                child: Padding(
-                  padding: const EdgeInsets.all(40),
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Container(
-                        padding: const EdgeInsets.all(32),
-                        decoration: BoxDecoration(
-                          color: AppColors.primary.withValues(alpha: 0.1),
-                          shape: BoxShape.circle,
-                        ),
-                        child: Stack(
-                          alignment: Alignment.center,
+                  if (favorites.isEmpty) {
+                    return Center(
+                      child: Padding(
+                        padding: const EdgeInsets.all(40),
+                        child: Column(
+                          mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            Icon(
-                              Icons.favorite_rounded,
-                              size: 80,
-                              color: AppColors.primary.withValues(alpha: 0.2),
+                            Container(
+                              padding: const EdgeInsets.all(32),
+                              decoration: BoxDecoration(
+                                color: AppColors.primary.withValues(alpha: 0.1),
+                                shape: BoxShape.circle,
+                              ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  Icon(
+                                    Icons.favorite_rounded,
+                                    size: 80,
+                                    color: AppColors.primary
+                                        .withValues(alpha: 0.2),
+                                  ),
+                                  const Icon(
+                                    Icons.favorite_outline_rounded,
+                                    size: 40,
+                                    color: AppColors.primary,
+                                  ),
+                                ],
+                              ),
                             ),
-                            const Icon(
-                              Icons.favorite_outline_rounded,
-                              size: 40,
-                              color: AppColors.primary,
+                            const SizedBox(height: 32),
+                            Text(
+                              'قائمة المفضلة فارغة',
+                              style: theme.textTheme.headlineSmall?.copyWith(
+                                fontWeight: FontWeight.w900,
+                              ),
+                            ),
+                            const SizedBox(height: 12),
+                            Text(
+                              'ابدأ بإضافة العروض التي تعجبك لتجدها هنا بسهولة في أي وقت.',
+                              textAlign: TextAlign.center,
+                              style: TextStyle(
+                                color: AppColors.textSecondary,
+                                height: 1.6,
+                                fontSize: 15,
+                              ),
+                            ),
+                            const SizedBox(height: 32),
+                            OutlinedButton(
+                              onPressed: () => Navigator.pop(context),
+                              style: OutlinedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                    horizontal: 32, vertical: 12),
+                                shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(16)),
+                              ),
+                              child: const Text('استكشف العروض'),
                             ),
                           ],
                         ),
                       ),
-                      const SizedBox(height: 32),
-                      Text(
-                        'قائمة المفضلة فارغة',
-                        style: theme.textTheme.headlineSmall?.copyWith(
-                          fontWeight: FontWeight.w900,
-                        ),
-                      ),
-                      const SizedBox(height: 12),
-                      Text(
-                        'ابدأ بإضافة العروض التي تعجبك لتجدها هنا بسهولة في أي وقت.',
-                        textAlign: TextAlign.center,
-                        style: TextStyle(
-                          color: AppColors.textSecondary,
-                          height: 1.6,
-                          fontSize: 15,
-                        ),
-                      ),
-                      const SizedBox(height: 32),
-                      OutlinedButton(
-                        onPressed: () => Navigator.pop(context),
-                        style: OutlinedButton.styleFrom(
-                          padding: const EdgeInsets.symmetric(horizontal: 32, vertical: 12),
-                          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-                        ),
-                        child: const Text('استكشف العروض'),
-                      ),
-                    ],
-                  ),
-                ),
-              );
-            }
+                    );
+                  }
 
-            return RefreshIndicator(
-              onRefresh: () async {
-                context.read<FavoritesBloc>().add(FetchFavorites());
-              },
-              child: GridView.builder(
-                padding: const EdgeInsets.all(16),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  mainAxisSpacing: 16,
-                  crossAxisSpacing: 16,
-                  childAspectRatio: 0.70,
-                ),
-                itemCount: favorites.length,
-                itemBuilder: (context, index) {
-                  final offer = favorites[index];
-                  return OfferCard(
-                    offer: offer,
-                    isWide: true,
-                    onTap: () => Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => OfferDetailPage(offer: offer),
+                  return RefreshIndicator(
+                    onRefresh: () async {
+                      context.read<FavoritesBloc>().add(FetchFavorites());
+                    },
+                    child: GridView.builder(
+                      padding: const EdgeInsets.all(16),
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        mainAxisSpacing: 16,
+                        crossAxisSpacing: 16,
+                        childAspectRatio: 0.70,
+                      ),
+                      itemCount: favorites.length,
+                      itemBuilder: (context, index) {
+                        final offer = favorites[index];
+                        return OfferCard(
+                          offer: offer,
+                          isWide: true,
+                          onTap: () => Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) =>
+                                  OfferDetailPage(offer: offer),
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  );
+                }
+
+                if (state is FavoritesError) {
+                  final isConnectionError =
+                      state.message.toLowerCase().contains('connection') ||
+                          state.message.toLowerCase().contains('network') ||
+                          state.message.toLowerCase().contains('socket');
+
+                  return Center(
+                    child: Padding(
+                      padding: const EdgeInsets.all(40),
+                      child: Column(
+                        mainAxisAlignment: MainAxisAlignment.center,
+                        children: [
+                          Container(
+                            padding: const EdgeInsets.all(24),
+                            decoration: BoxDecoration(
+                              color: AppColors.error.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: Icon(
+                              isConnectionError
+                                  ? Icons.wifi_off_rounded
+                                  : Icons.error_outline_rounded,
+                              size: 64,
+                              color: AppColors.error,
+                            ),
+                          ),
+                          const SizedBox(height: 24),
+                          Text(
+                            isConnectionError
+                                ? 'مشكلة في الاتصال'
+                                : 'تعذر تحميل المفضلة',
+                            style: theme.textTheme.headlineSmall?.copyWith(
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                          const SizedBox(height: 12),
+                          Text(
+                            isConnectionError
+                                ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                                : state.message,
+                            textAlign: TextAlign.center,
+                            style: theme.textTheme.bodyMedium?.copyWith(
+                              color: AppColors.textSecondary,
+                              height: 1.5,
+                            ),
+                          ),
+                          const SizedBox(height: 32),
+                          SizedBox(
+                            width: 200,
+                            height: 50,
+                            child: ElevatedButton(
+                              onPressed: () => context
+                                  .read<FavoritesBloc>()
+                                  .add(FetchFavorites()),
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: AppColors.primary,
+                                foregroundColor: Colors.white,
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(16),
+                                ),
+                                elevation: 0,
+                              ),
+                              child: const Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  Icon(Icons.refresh_rounded, size: 20),
+                                  SizedBox(width: 8),
+                                  Text(
+                                    'إعادة المحاولة',
+                                    style:
+                                        TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                ],
+                              ),
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                   );
-                },
-              ),
-            );
-          }
+                }
 
-          if (state is FavoritesError) {
-            final isConnectionError = state.message.toLowerCase().contains('connection') || 
-                                     state.message.toLowerCase().contains('network') ||
-                                     state.message.toLowerCase().contains('socket');
-
-            return Center(
-              child: Padding(
-                padding: const EdgeInsets.all(40),
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.all(24),
-                      decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.1),
-                        shape: BoxShape.circle,
-                      ),
-                      child: Icon(
-                        isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
-                        size: 64,
-                        color: AppColors.error,
-                      ),
-                    ),
-                    const SizedBox(height: 24),
-                    Text(
-                      isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل المفضلة',
-                      style: theme.textTheme.headlineSmall?.copyWith(
-                        fontWeight: FontWeight.w900,
-                      ),
-                    ),
-                    const SizedBox(height: 12),
-                    Text(
-                      isConnectionError 
-                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
-                          : state.message,
-                      textAlign: TextAlign.center,
-                      style: theme.textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.5,
-                      ),
-                    ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: 200,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => context.read<FavoritesBloc>().add(FetchFavorites()),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Icon(Icons.refresh_rounded, size: 20),
-                            SizedBox(width: 8),
-                            Text(
-                              'إعادة المحاولة',
-                              style: TextStyle(fontWeight: FontWeight.bold),
-                            ),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            );
-          }
-
-          return const SizedBox();
-        },
-      ),
+                return const SizedBox();
+              },
+            ),
     );
   }
 
@@ -271,7 +291,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
             const SizedBox(height: 32),
             SizedBox(
               width: double.infinity,
-              height: 55,
+              height: 48,
               child: ElevatedButton(
                 onPressed: () => Navigator.push(
                   context,

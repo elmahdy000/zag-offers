@@ -10,15 +10,15 @@ export default function AdminLayout({
 }) {
   return (
     <ErrorBoundary>
-      <div className="min-h-screen bg-[#F8FAFC] flex flex-row-reverse">
+      <div className="admin-shell min-h-screen flex flex-row-reverse">
         {/* Sidebar - Fixed width on Desktop, positioned Right (RTL) */}
         <AdminSidebar />
         
         {/* Main Content Area */}
-        <div className="flex-1 min-h-screen lg:mr-[300px] w-full flex flex-col">
+        <div className="admin-main flex-1 min-h-screen lg:mr-[272px] w-full flex flex-col">
           <DashboardHeader />
-          <main className="flex-1 p-0 pb-32 lg:pb-0">
-            {children}
+          <main className="admin-content flex-1 p-0 pb-32 lg:pb-8">
+            <div className="admin-route">{children}</div>
           </main>
           <BottomNav />
         </div>

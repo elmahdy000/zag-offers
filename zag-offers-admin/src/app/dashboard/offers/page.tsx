@@ -5,20 +5,15 @@ import {
   AlertTriangle,
   Loader2,
   RefreshCw,
-  Pencil,
   Search,
   Tag,
   Trash2,
   X,
-  Calendar,
   Zap,
-  Store,
-  Clock,
   ExternalLink,
   TrendingUp,
   Users,
   Plus,
-  Image as ImageIcon,
   Upload,
   Calendar as CalendarIcon,
   Star
@@ -72,6 +67,21 @@ interface OfferDetails extends OfferRow {
   }[];
 }
 
+type OfferPayload = Record<string, FormDataEntryValue | number | null | string[]>;
+type UpdateOfferPayload = { id: string; data: OfferPayload };
+
+function getApiErrorMessage(error: unknown, fallback: string) {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const response = (error as { response?: { data?: { message?: unknown } } }).response;
+    if (typeof response?.data?.message === 'string') return response.data.message;
+  }
+  return fallback;
+}
+
+function getErrorMessage(error: unknown, fallback: string) {
+  return error instanceof Error ? error.message : fallback;
+}
+
 const statusLabels: Record<string, string> = {
   PENDING: 'معلق للمراجعة',
   ACTIVE: 'مقبول / نشط',
@@ -99,7 +109,7 @@ export default function OffersManagementPage() {
   const createFormRef = useRef<HTMLFormElement>(null);
   const editFormRef = useRef<HTMLFormElement>(null);
 
-  const handlePriceCalc = (formType: 'create' | 'edit', field: 'original' | 'new' | 'discount', value: string) => {
+  const handlePriceCalc = (formType: 'create' | 'edit', field: 'original' | 'new' | 'discount') => {
     const form = formType === 'create' ? createFormRef.current : editFormRef.current;
     if (!form) return;
 
@@ -130,15 +140,6 @@ export default function OffersManagementPage() {
         discountInput.value = `${pct}%`;
       }
     }
-  };
-
-  const formatDate = (dateString: string) => {
-    if (!dateString) return '---';
-    return new Date(dateString).toLocaleDateString('ar-EG', {
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
-    });
   };
 
   useEffect(() => {
@@ -191,11 +192,12 @@ export default function OffersManagementPage() {
 
   useEffect(() => {
     if (offerDetails && isEditing) {
-      setTempImages(offerDetails.images || []);
+      const timer = window.setTimeout(() => setTempImages(offerDetails.images || []), 0);
+      return () => window.clearTimeout(timer);
     }
   }, [offerDetails, isEditing]);
 
-  const { data: storesData, isError: isStoresError, error: storesError, refetch: refetchStores } = useQuery({
+  const { data: storesData } = useQuery({
     queryKey: ['all-stores-list'],
     queryFn: async () => {
       const response = await adminApi().get('/admin/stores', { params: { limit: 100 } });
@@ -210,15 +212,15 @@ export default function OffersManagementPage() {
   });
 
   const createOfferMutation = useMutation({
-    mutationFn: async (payload: any) => adminApi().post('/admin/offers', payload),
+    mutationFn: async (payload: OfferPayload) => adminApi().post('/admin/offers', payload),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-offers'] });
       setIsCreating(false);
       setTempImages([]);
       showToast('تم إنشاء العرض بنجاح');
     },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل إنشاء العرض', 'error');
+    onError: (err: unknown) => {
+      showToast(getApiErrorMessage(err, 'فشل إنشاء العرض'), 'error');
     }
   });
 
@@ -240,7 +242,7 @@ export default function OffersManagementPage() {
         uploadedUrls.push(res.data.url);
       }
       setTempImages(prev => [...prev, ...uploadedUrls]);
-    } catch (error) {
+    } catch {
       showToast('فشل رفع الصور', 'error');
     } finally {
       setUploading(false);
@@ -248,15 +250,15 @@ export default function OffersManagementPage() {
   };
 
   const updateOfferMutation = useMutation({
-    mutationFn: async (payload: any) => adminApi().patch(`/admin/offers/${payload.id}`, payload.data),
+    mutationFn: async (payload: UpdateOfferPayload) => adminApi().patch(`/admin/offers/${payload.id}`, payload.data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['all-offers'] });
       queryClient.invalidateQueries({ queryKey: ['offer-details', selectedOfferId] });
       setIsEditing(false);
       showToast('تم تحديث بيانات العرض بنجاح');
     },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل تحديث العرض', 'error');
+    onError: (err: unknown) => {
+      showToast(getApiErrorMessage(err, 'فشل تحديث العرض'), 'error');
     }
   });
 
@@ -268,8 +270,8 @@ export default function OffersManagementPage() {
       setSelectedOfferId(null);
       showToast('تم حذف العرض بنجاح');
     },
-    onError: (err: any) => {
-      showToast(err.response?.data?.message || 'فشل حذف العرض', 'error');
+    onError: (err: unknown) => {
+      showToast(getApiErrorMessage(err, 'فشل حذف العرض'), 'error');
     },
     onSettled: () => setBusyId(null),
   });
@@ -286,7 +288,7 @@ export default function OffersManagementPage() {
         />
         <button 
           onClick={() => { setIsCreating(true); setTempImages([]); }}
-          className="h-12 px-6 rounded-xl bg-indigo-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-indigo-700 transition-all shadow-lg shadow-indigo-900/10 shrink-0"
+          className="h-12 px-6 rounded-xl bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-orange-700 transition-all shadow-lg shadow-orange-900/10 shrink-0"
         >
           <Plus size={20} /> إضافة عرض جديد
         </button>
@@ -295,13 +297,13 @@ export default function OffersManagementPage() {
       {/* Filters & Search */}
       <div className="flex flex-col lg:flex-row gap-4 items-center">
         <div className="relative flex-1 w-full lg:max-w-md group">
-          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-indigo-600 transition-colors" size={18} />
+          <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={18} />
           <input
             type="text"
             placeholder="بحث في العروض، المتاجر، أو الخصومات..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-12 w-full pr-12 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-indigo-600 focus:ring-4 focus:ring-indigo-600/5 transition-all shadow-sm"
+            className="h-12 w-full pr-12 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all shadow-sm"
           />
         </div>
         
@@ -309,7 +311,7 @@ export default function OffersManagementPage() {
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="h-12 flex-1 lg:w-48 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:border-indigo-600 shadow-sm cursor-pointer"
+            className="h-12 flex-1 lg:w-48 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:border-orange-600 shadow-sm cursor-pointer"
           >
             <option value="">كل الحالات</option>
             {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
@@ -326,8 +328,8 @@ export default function OffersManagementPage() {
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-red-200 text-slate-400">
           <AlertTriangle size={48} className="mb-4 text-red-400" />
           <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل البيانات</h3>
-          <p className="text-sm font-medium mt-1 text-slate-500">{(error as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
-          <button onClick={() => refetch()} className="mt-6 px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/10">
+          <p className="text-sm font-medium mt-1 text-slate-500">{getErrorMessage(error, 'يرجى المحاولة مرة أخرى')}</p>
+          <button onClick={() => refetch()} className="mt-6 px-8 py-3 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg shadow-orange-900/10">
             <RefreshCw size={16} /> إعادة المحاولة
           </button>
         </div>
@@ -337,7 +339,7 @@ export default function OffersManagementPage() {
           <p className="text-sm font-bold">لا توجد عروض حالياً</p>
           <button
             onClick={() => setIsCreating(true)}
-            className="mt-6 px-8 py-3 rounded-xl bg-indigo-600 text-white font-bold text-xs hover:bg-indigo-700 transition-all flex items-center gap-2 shadow-lg shadow-indigo-900/10"
+            className="mt-6 px-8 py-3 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg shadow-orange-900/10"
           >
             <Plus size={16} /> إضافة أول عرض
           </button>
@@ -381,7 +383,7 @@ export default function OffersManagementPage() {
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <AlertTriangle size={48} className="mb-4 text-red-400" />
                   <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل التفاصيل</h3>
-                  <p className="text-sm font-medium mt-1 text-slate-500">{(detailsError as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+                  <p className="text-sm font-medium mt-1 text-slate-500">{getErrorMessage(detailsError, 'يرجى المحاولة مرة أخرى')}</p>
                   <button onClick={() => refetchDetails()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
                     <RefreshCw size={16} /> إعادة المحاولة
                   </button>
@@ -422,17 +424,17 @@ export default function OffersManagementPage() {
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">الخصم</label>
-                          <input name="discount" defaultValue={offerDetails?.discount} onChange={(e) => handlePriceCalc('edit', 'discount', e.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                          <input name="discount" defaultValue={offerDetails?.discount} onChange={() => handlePriceCalc('edit', 'discount')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
                         </div>
                       </div>
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
-                          <input type="number" step="0.01" name="originalPrice" defaultValue={offerDetails?.originalPrice} onChange={(e) => handlePriceCalc('edit', 'original', e.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                          <input type="number" step="0.01" name="originalPrice" defaultValue={offerDetails?.originalPrice} onChange={() => handlePriceCalc('edit', 'original')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
-                          <input type="number" step="0.01" name="newPrice" defaultValue={offerDetails?.newPrice} onChange={(e) => handlePriceCalc('edit', 'new', e.target.value)} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                          <input type="number" step="0.01" name="newPrice" defaultValue={offerDetails?.newPrice} onChange={() => handlePriceCalc('edit', 'new')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -471,7 +473,7 @@ export default function OffersManagementPage() {
                         <div className="grid grid-cols-4 gap-4">
                           {tempImages.map((img, i) => (
                             <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                              <img src={resolveImageUrl(img)} className="h-full w-full object-cover" />
+                              <img src={resolveImageUrl(img)} alt="" className="h-full w-full object-cover" />
                               <button type="button" onClick={() => setTempImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><X size={14} /></button>
                             </div>
                           ))}
@@ -507,7 +509,7 @@ export default function OffersManagementPage() {
                           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
                             {offerDetails.images.map((img, i) => (
                               <div key={i} className="aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                                <img src={resolveImageUrl(img)} className="h-full w-full object-cover hover:scale-110 transition-transform duration-500" />
+                                <img src={resolveImageUrl(img)} alt="" className="h-full w-full object-cover hover:scale-110 transition-transform duration-500" />
                               </div>
                             ))}
                           </div>
@@ -572,7 +574,7 @@ export default function OffersManagementPage() {
                         <button onClick={() => setDeleteModal({ id: offerDetails!.id, title: offerDetails!.title })} className="h-12 w-12 flex items-center justify-center rounded-xl bg-rose-600 text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10"><Trash2 size={20} /></button>
                       </div>
                       <div className="text-center">
-                         <Link href={`/dashboard/offers/${offerDetails?.id}`} onClick={() => setSelectedOfferId(null)} className="text-xs font-bold text-indigo-600 hover:underline flex items-center justify-center gap-2">عرض الصفحة الكاملة للعرض <ExternalLink size={14} /></Link>
+                         <Link href={`/dashboard/offers/${offerDetails?.id}`} onClick={() => setSelectedOfferId(null)} className="text-xs font-bold text-orange-600 hover:underline flex items-center justify-center gap-2">عرض الصفحة الكاملة للعرض <ExternalLink size={14} /></Link>
                       </div>
                     </div>
                   )}
@@ -615,7 +617,8 @@ export default function OffersManagementPage() {
                   showToast('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية', 'error');
                   return;
                 }
-                const { status: _, ...payloadWithoutStatus } = formData;
+                const payloadWithoutStatus = { ...formData };
+                delete payloadWithoutStatus.status;
                 const data = {
                   ...payloadWithoutStatus,
                   discount: discountVal,
@@ -632,15 +635,15 @@ export default function OffersManagementPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">قيمة الخصم</label>
-                    <input name="discount" onChange={(e) => handlePriceCalc('create', 'discount', e.target.value)} placeholder="مثلاً: 50% أو خصم 100 ج" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
+                    <input name="discount" onChange={() => handlePriceCalc('create', 'discount')} placeholder="مثلاً: 50% أو خصم 100 ج" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" required />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
-                    <input type="number" step="0.01" name="originalPrice" onChange={(e) => handlePriceCalc('create', 'original', e.target.value)} placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                    <input type="number" step="0.01" name="originalPrice" onChange={() => handlePriceCalc('create', 'original')} placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
-                    <input type="number" step="0.01" name="newPrice" onChange={(e) => handlePriceCalc('create', 'new', e.target.value)} placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                    <input type="number" step="0.01" name="newPrice" onChange={() => handlePriceCalc('create', 'new')} placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">اختر المتجر</label>
@@ -690,7 +693,7 @@ export default function OffersManagementPage() {
                   <div className="grid grid-cols-4 gap-4">
                     {tempImages.map((img, i) => (
                       <div key={i} className="group relative aspect-square rounded-xl overflow-hidden border border-slate-200 bg-slate-50">
-                        <img src={resolveImageUrl(img)} className="h-full w-full object-cover" />
+                        <img src={resolveImageUrl(img)} alt="" className="h-full w-full object-cover" />
                         <button type="button" onClick={() => setTempImages(prev => prev.filter((_, idx) => idx !== i))} className="absolute top-1 right-1 h-6 w-6 rounded-lg bg-rose-600 text-white opacity-0 group-hover:opacity-100 transition-all flex items-center justify-center"><X size={14} /></button>
                       </div>
                     ))}

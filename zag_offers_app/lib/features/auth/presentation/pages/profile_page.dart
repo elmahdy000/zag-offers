@@ -104,7 +104,8 @@ class _ProfilePageState extends State<ProfilePage> {
     );
     if (source == null || !mounted) return;
     final picker = ImagePicker();
-    final picked = await picker.pickImage(source: source, maxWidth: 512, maxHeight: 512);
+    final picked =
+        await picker.pickImage(source: source, maxWidth: 512, maxHeight: 512);
     if (picked == null) return;
     setState(() => _isUploadingAvatar = true);
     final result = await sl<UpdateAvatarUseCase>().call(picked.path);
@@ -230,22 +231,22 @@ class _ProfilePageState extends State<ProfilePage> {
               mainAxisSize: MainAxisSize.min,
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-              Text('يمكنك استخدام التطبيق بهذه الخطوات:'),
-              SizedBox(height: 12),
-              Text('1. استكشف العروض من الرئيسية أو صفحة العروض.'),
-              Text('2. أضف العروض إلى المفضلة للرجوع إليها بسرعة.'),
-              Text('3. استخدم حساب عميل للحصول على الكوبونات.'),
-              Text('4. من صفحة المتجر يمكنك الاتصال أو فتح واتساب مباشرة.'),
-            ],
+                Text('يمكنك استخدام التطبيق بهذه الخطوات:'),
+                SizedBox(height: 12),
+                Text('1. استكشف العروض من الرئيسية أو صفحة العروض.'),
+                Text('2. أضف العروض إلى المفضلة للرجوع إليها بسرعة.'),
+                Text('3. استخدم حساب عميل للحصول على الكوبونات.'),
+                Text('4. من صفحة المتجر يمكنك الاتصال أو فتح واتساب مباشرة.'),
+              ],
+            ),
           ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('إغلاق'),
-          ),
-        ],
-      );
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(context),
+              child: const Text('إغلاق'),
+            ),
+          ],
+        );
       },
     );
   }
@@ -317,7 +318,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
                 ListTile(
                   leading: const Icon(IconlyBroken.delete, color: Colors.red),
-                  title: const Text('حذف الحساب', style: TextStyle(color: Colors.red)),
+                  title: const Text('حذف الحساب',
+                      style: TextStyle(color: Colors.red)),
                   onTap: () {
                     Navigator.pop(context);
                     _deleteAccount();
@@ -400,7 +402,9 @@ class _ProfilePageState extends State<ProfilePage> {
                             ],
                           ),
                           child: GestureDetector(
-                            onTap: _isUploadingAvatar ? null : _pickAndUploadAvatar,
+                            onTap: _isUploadingAvatar
+                                ? null
+                                : _pickAndUploadAvatar,
                             child: CircleAvatar(
                               radius: 50,
                               backgroundColor: Colors.white,
@@ -415,7 +419,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                     )
                                   : _avatarUrl != null
                                       ? ClipRRect(
-                                          borderRadius: BorderRadius.circular(50),
+                                          borderRadius:
+                                              BorderRadius.circular(50),
                                           child: NetworkImageWidget(
                                             imageUrl: _avatarUrl!,
                                             width: 100,
@@ -423,7 +428,8 @@ class _ProfilePageState extends State<ProfilePage> {
                                             fit: BoxFit.cover,
                                           ),
                                         )
-                                      : const Icon(IconlyBroken.profile, size: 50, color: AppColors.primary),
+                                      : const Icon(IconlyBroken.profile,
+                                          size: 50, color: AppColors.primary),
                             ),
                           ),
                         ),
@@ -438,7 +444,8 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                         const SizedBox(height: 8),
                         Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
+                          padding: const EdgeInsets.symmetric(
+                              horizontal: 16, vertical: 6),
                           decoration: BoxDecoration(
                             color: Colors.white.withValues(alpha: 0.2),
                             borderRadius: BorderRadius.circular(20),
@@ -473,7 +480,8 @@ class _ProfilePageState extends State<ProfilePage> {
               child: Container(
                 decoration: BoxDecoration(
                   color: theme.scaffoldBackgroundColor,
-                  borderRadius: const BorderRadius.vertical(top: Radius.circular(30)),
+                  borderRadius:
+                      const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
                 padding: const EdgeInsets.fromLTRB(24, 30, 24, 40),
                 child: Column(
@@ -552,9 +560,9 @@ class _ProfilePageState extends State<ProfilePage> {
 
   Widget _buildRewardsCard(BuildContext context) {
     if (_userRole != 'CUSTOMER') return const SizedBox.shrink();
-    
+
     final isDark = Theme.of(context).brightness == Brightness.dark;
-    
+
     Color tierColor;
     switch (_tier.toUpperCase()) {
       case 'PLATINUM':
@@ -589,7 +597,7 @@ class _ProfilePageState extends State<ProfilePage> {
         padding: const EdgeInsets.all(20),
         decoration: BoxDecoration(
           gradient: LinearGradient(
-            colors: isDark 
+            colors: isDark
                 ? [const Color(0xFF1E1E1E), const Color(0xFF2D2D2D)]
                 : [Colors.white, const Color(0xFFF9F9F9)],
             begin: Alignment.topLeft,
@@ -648,11 +656,13 @@ class _ProfilePageState extends State<ProfilePage> {
                       ),
                       const SizedBox(width: 8),
                       Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                        padding: const EdgeInsets.symmetric(
+                            horizontal: 8, vertical: 2),
                         decoration: BoxDecoration(
                           color: tierColor.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
-                          border: Border.all(color: tierColor.withValues(alpha: 0.5)),
+                          border: Border.all(
+                              color: tierColor.withValues(alpha: 0.5)),
                         ),
                         child: Text(
                           _tier.toUpperCase(),
@@ -754,7 +764,8 @@ class _ProfilePageState extends State<ProfilePage> {
           decoration: BoxDecoration(
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(18),
-            border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+            border:
+                Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
           ),
           child: Row(
             children: [
@@ -770,7 +781,8 @@ class _ProfilePageState extends State<ProfilePage> {
               Expanded(
                 child: Text(
                   label,
-                  style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15),
+                  style: const TextStyle(
+                      fontWeight: FontWeight.w700, fontSize: 15),
                 ),
               ),
               Icon(IconlyLight.arrowLeft2, size: 16, color: theme.dividerColor),
@@ -790,7 +802,7 @@ class _ProfilePageState extends State<ProfilePage> {
           backgroundColor: AppColors.error.withValues(alpha: 0.1),
           foregroundColor: AppColors.error,
           elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 18),
+          padding: const EdgeInsets.symmetric(vertical: 11),
           shape: RoundedRectangleBorder(
             borderRadius: BorderRadius.circular(18),
             side: BorderSide(color: AppColors.error.withValues(alpha: 0.2)),
@@ -812,7 +824,7 @@ class _ProfilePageState extends State<ProfilePage> {
                   SizedBox(width: 10),
                   Text(
                     'تسجيل الخروج',
-                    style: TextStyle(fontWeight: FontWeight.w900, fontSize: 16),
+                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
                   ),
                 ],
               ),
@@ -820,4 +832,3 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 }
-
