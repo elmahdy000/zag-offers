@@ -8,7 +8,7 @@ import { API_URL, DISPLAY_NAMES } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { Category } from '@/lib/types';
 import { useNotifications } from '@/components/notification-provider';
-import { CategoryIcon } from '@/components/category-icon';
+import { CategoryImageCard } from '@/components/category-image-card';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 
@@ -104,7 +104,7 @@ export default function CategoriesPage() {
 
   return (
     <div className="min-h-[72vh] bg-[#07101F] pb-20" dir="rtl">
-      <header className="border-b border-[#25344A] bg-[#101A2B] py-10 sm:py-14">
+      <header className="border-b border-[#25344A] bg-[#101A2B] py-7 sm:py-9">
         <div className="site-container">
           <div className="mb-3 flex items-center gap-2 text-xs text-[#8F9DB1]">
             <Link href="/" className="hover:text-white">الرئيسية</Link><span>‹</span><span className="text-[#FF8A32]">الأقسام</span>
@@ -116,26 +116,22 @@ export default function CategoriesPage() {
 
       <div className="site-container pt-7 sm:pt-9">
         {loading ? (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {[1,2,3,4,5,6,7,8,9,10].map(i => <div key={i} className="h-40 animate-pulse rounded-2xl border border-[#25344A] bg-[#101A2B]" />)}
           </div>
         ) : error ? (
           <ErrorDisplay message={error} onRetry={() => fetchCatsRef.current(true)} />
         ) : (
-          <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+          <div className="grid grid-cols-2 gap-3 sm:grid-cols-3">
             {categories.map((cat, i) => (
-              <Link key={cat.id} href={`/offers?category=${cat.id}`}>
+              <Link key={cat.id} href={`/offers?category=${cat.id}`} className="group block">
                 <motion.div
                   initial={{ opacity: 0, y: 12 }}
                   animate={{ opacity: 1, y: 0 }}
                   transition={{ delay: Math.min(i * 0.035, 0.25) }}
-                  className="global-card group flex h-48 flex-col items-center justify-center rounded-[20px] border border-[#25344A] bg-[#101A2B] p-6 text-center transition-all duration-300 hover:-translate-y-1 hover:border-[#FF8A32]/70 hover:bg-[#132035]"
+                  className="transition-transform duration-300 hover:-translate-y-1"
                 >
-                  <span className="mb-5 flex h-14 w-14 items-center justify-center rounded-2xl bg-[#1B2940] text-[#FF8A32] transition-transform group-hover:scale-110">
-                    <CategoryIcon name={cat.name} size={26} />
-                  </span>
-                  <h3 className="text-base font-bold text-white sm:text-lg">{getCatName(cat.name)}</h3>
-                  <p className="mt-2 text-sm text-[#90A0B6]">تصفح العروض</p>
+                  <CategoryImageCard name={getCatName(cat.name)} image={cat.image} />
                 </motion.div>
               </Link>
             ))}

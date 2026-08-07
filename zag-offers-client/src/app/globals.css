@@ -92,6 +92,17 @@ html[data-theme="light"] { color-scheme: light; }
   border-radius: 18px;
 }
 
+.category-image-card { position:relative; overflow:hidden; min-height:210px; border:1px solid #25344a; border-radius:18px; background:#101a2b; }
+.category-image-card.is-compact { min-height:158px; }
+.category-image-shade { position:absolute; inset:0; background:linear-gradient(180deg,rgba(7,16,31,.02) 25%,rgba(7,16,31,.9) 100%); }
+.category-image-copy { position:absolute; inset-inline:14px; bottom:13px; display:flex; flex-direction:column; color:#fff; }
+.category-image-copy strong { font-size:16px; font-weight:900; line-height:1.5; }
+.category-image-copy span { color:rgba(255,255,255,.72); font-size:10px; font-weight:700; }
+.category-image-fallback { position:absolute; inset:0; display:grid; place-items:center; color:#ff8a32; background:#162338; }
+html[data-theme="light"] .category-image-card { border-color:#e0e5ec; box-shadow:0 6px 18px rgba(16,32,57,.08); }
+html[data-theme="light"] .category-image-copy, html[data-theme="light"] .category-image-copy strong { color:#fff !important; }
+html[data-theme="light"] .category-image-copy span { color:rgba(255,255,255,.76) !important; }
+
 .price {
   direction: ltr;
   unicode-bidi: isolate;

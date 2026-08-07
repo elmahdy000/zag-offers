@@ -28,7 +28,7 @@ import { API_URL, DISPLAY_NAMES, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
 import { useNotifications } from '@/components/notification-provider';
 import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
-import { CategoryIcon } from '@/components/category-icon';
+import { CategoryImageCard } from '@/components/category-image-card';
 import { BrandMark } from '@/components/brand-mark';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
@@ -286,8 +286,8 @@ function HomePageContent() {
   return (
     <div className="relative overflow-x-hidden bg-[#07101F] pb-20" dir="rtl">
       {/* ─── Hero Section ────────────────────────────────── */}
-      <section className="brand-hero border-b border-[#25344A] px-4 py-10 sm:py-14">
-        <div className="site-container grid min-h-[360px] items-center gap-7 lg:grid-cols-[1.15fr_.85fr] lg:gap-12">
+      <section className="brand-hero border-b border-[#25344A] px-4 py-7 sm:py-10">
+        <div className="site-container grid min-h-[300px] items-center gap-6 lg:grid-cols-[1.3fr_.7fr] lg:gap-9">
           <div className="w-full space-y-5 text-center lg:text-right">
           <motion.div 
             initial={false}
@@ -302,7 +302,7 @@ function HomePageContent() {
             initial={false}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: 0.1 }}
-            className="text-[34px] font-bold leading-[1.25] tracking-tight text-white sm:text-[46px]"
+            className="text-[32px] font-bold leading-[1.3] tracking-tight text-white sm:text-[42px]"
           >
             عروض الزقازيق في مكان واحد
           </motion.h1>
@@ -370,7 +370,7 @@ function HomePageContent() {
             initial={false}
             animate={{ opacity: 1, scale: 1, rotate: 0 }}
             transition={{ duration: 0.65, ease: 'easeOut' }}
-            className="brand-hero-mark relative mx-auto hidden h-[330px] w-full max-w-[430px] lg:block"
+            className="brand-hero-mark relative mx-auto hidden h-[250px] w-full max-w-[330px] lg:block"
           >
             <span className="brand-orbit brand-orbit-one" />
             <span className="brand-orbit brand-orbit-two" />
@@ -428,14 +428,10 @@ function HomePageContent() {
           <h2 className="text-xl font-bold text-white sm:text-2xl">تصفح حسب القسم</h2>
           <Link href="/categories" className="text-sm font-semibold text-[#FF8A32] hover:text-[#FFAC6E]">كل الأقسام ←</Link>
         </div>
-        <div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-4">
+        <div className="grid grid-cols-2 gap-3 sm:grid-cols-3 lg:grid-cols-6">
           {categories.slice(0, 6).map((category) => (
-            <Link key={category.id} href={`/offers?category=${category.id}`} className="global-card group flex h-44 flex-col items-center justify-center rounded-[20px] border border-[#25344A] bg-[#101A2B] p-5 text-center transition-all hover:-translate-y-1 hover:border-[#FF8A32]/70">
-              <span className="mb-3 flex h-12 w-12 items-center justify-center rounded-full bg-[#1B2940] text-[#FF8A32] group-hover:scale-110">
-                <CategoryIcon name={category.name} size={23} />
-              </span>
-              <span className="text-base font-bold text-white">{getCatName(category.name)}</span>
-              <span className="mt-2 text-sm text-[#91A0B6]">اكتشف العروض</span>
+            <Link key={category.id} href={`/offers?category=${category.id}`} className="group block transition-transform hover:-translate-y-1">
+              <CategoryImageCard name={getCatName(category.name)} image={category.image} compact />
             </Link>
           ))}
         </div>
