@@ -683,7 +683,7 @@ html[data-theme="light"] .auth-benefit, html[data-theme="light"] .auth-consent {
 .coupon-ticket-offer { display:grid; grid-template-columns:78px 1fr; align-items:center; gap:15px; min-height:132px; padding:14px 20px 18px; }
 .coupon-discount { display:flex; height:76px; flex-direction:column; align-items:center; justify-content:center; border-radius:18px; background:#ff6500; color:#fff; }
 .coupon-discount small { font-size:9px; font-weight:900; }
-.coupon-discount strong { font-size:20px; font-weight:950; }
+.coupon-discount strong { max-width:100%; padding-inline:4px; overflow-wrap:anywhere; font-size:20px; line-height:1.15; font-weight:900; text-align:center; }
 .coupon-ticket-offer p { margin-bottom:5px; color:#ff8a32; font-size:10px; font-weight:900; }
 .coupon-ticket-offer h3 { color:#fff; font-size:17px; line-height:1.55; font-weight:950; }
 .coupon-ticket-code-row { position:relative; display:grid; grid-template-columns:72px 1fr auto; align-items:center; gap:12px; padding:18px 20px; border-top:1px dashed #3a475b; background:#0d1829; }
@@ -751,7 +751,10 @@ html[data-theme="light"] .coupon-ticket-card::before,html[data-theme="light"] .c
   .coupon-ticket-card { min-height:0; border-radius:20px; }
   .coupon-ticket-offer { grid-template-columns:66px 1fr; padding-inline:15px; }
   .coupon-discount { height:66px; }
-  .coupon-ticket-offer h3 { font-size:15px; }
+  .coupon-ticket-offer p { margin-bottom:4px; font-size:9px; line-height:1.4; }
+  .coupon-ticket-offer h3 { font-size:14px; line-height:1.5; font-weight:850; }
+  .coupon-discount small { font-size:8px; line-height:1.2; }
+  .coupon-discount strong { font-size:17px; line-height:1.15; }
   .coupon-ticket-code-row { grid-template-columns:58px minmax(0,1fr) auto; gap:8px; padding:14px 15px; }
   .coupon-mini-qr { width:54px; height:54px; }
   .coupon-mini-qr svg { width:46px; height:46px; }
@@ -827,7 +830,10 @@ html[data-theme="light"] .mobile-dock-inner { background: #fff; border-color: #d
   .coupon-status { padding:6px 8px; font-size:8px; }
   .coupon-ticket-offer { grid-template-columns:62px minmax(0,1fr); gap:10px; min-height:116px; padding:10px 12px 14px; }
   .coupon-discount { width:62px; height:62px; }
-  .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
+  .coupon-ticket-offer p { margin-bottom:3px; font-size:8px; line-height:1.35; }
+  .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:13px; line-height:1.45; font-weight:800; }
+  .coupon-discount small { font-size:7px; }
+  .coupon-discount strong { font-size:15px; line-height:1.12; }
   .coupon-ticket-code-row { grid-template-columns:52px minmax(0,1fr) auto; gap:6px; padding:12px; }
   .coupon-mini-qr { width:50px; height:50px; }
   .coupon-mini-qr svg { width:43px; height:43px; }
@@ -1220,7 +1226,10 @@ html[data-theme="light"] .surface-card > span { background:#fff3e9 !important; }
   .coupon-ticket-card:last-child { margin-bottom:24px; }
   .coupon-ticket-offer { grid-template-columns:62px minmax(0,1fr); gap:10px; min-height:116px; padding:10px 12px 14px; }
   .coupon-discount { width:62px; height:62px; }
-  .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:14px; line-height:1.45; }
+  .coupon-ticket-offer p { margin-bottom:3px; font-size:8px; line-height:1.35; }
+  .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:13px; line-height:1.45; font-weight:800; }
+  .coupon-discount small { font-size:7px; }
+  .coupon-discount strong { font-size:15px; line-height:1.12; }
   .coupon-ticket-code-row { grid-template-columns:52px minmax(0,1fr) auto; gap:6px; padding:12px; }
   .coupon-mini-qr { width:50px; height:50px; }
   .coupon-mini-qr svg { width:43px; height:43px; }

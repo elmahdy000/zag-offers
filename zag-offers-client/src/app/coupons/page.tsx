@@ -32,6 +32,14 @@ interface Coupon {
   };
 }
 
+function getCouponDiscountDisplay(value?: string) {
+  const raw = String(value || '').trim();
+  if (!raw) return { label: 'خصم', value: 'عرض' };
+  const isSaving = raw.includes('وفر');
+  const cleaned = raw.replace(/\bخصم\b/g, '').replace('خصم', '').replace('وفر', '').trim();
+  return { label: isSaving ? 'وفّر' : 'خصم', value: cleaned || raw };
+}
+
 export default function MyCouponsPage() {
   const router = useRouter();
   const { addNotification } = useNotifications();
@@ -169,7 +177,7 @@ export default function MyCouponsPage() {
                 <button aria-label="فتح تفاصيل العرض" onClick={(e) => { e.stopPropagation(); if (coupon.offer?.id) router.push(`/offers/${coupon.offer.id}`); }}><RiArrowRightLine/></button>
               </div>
               <div className="coupon-ticket-offer">
-                <div className="coupon-discount"><small>خصم</small><strong>{coupon.offer?.discount || '%'}</strong></div>
+                <div className="coupon-discount"><small>{getCouponDiscountDisplay(coupon.offer?.discount).label}</small><strong>{getCouponDiscountDisplay(coupon.offer?.discount).value}</strong></div>
                 <div><p>{coupon.offer?.store?.name || 'Zag Offers'}</p><h3>{coupon.offer?.title || 'كوبون خصم مميز'}</h3></div>
               </div>
 
