@@ -31,6 +31,22 @@ import { Throttle } from '@nestjs/throttler';
 export class AuthController {
   constructor(private authService: AuthService) {}
 
+  private authCookieOptions() {
+    const configuredDomain = process.env.AUTH_COOKIE_DOMAIN?.trim();
+    const isProduction =
+      process.env.NODE_ENV === 'production' ||
+      process.env.APP_ENV === 'production' ||
+      Boolean(configuredDomain);
+
+    return {
+      httpOnly: true,
+      secure: isProduction,
+      sameSite: 'lax' as const,
+      domain: configuredDomain || (isProduction ? '.zagoffers.online' : undefined),
+      path: '/',
+    };
+  }
+
   @Post('register')
   @Throttle({ strict: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'تسجيل حساب جديد' })
@@ -69,11 +85,7 @@ export class AuthController {
     }
     const result = await this.authService.login(user);
     response.cookie('auth_token', result.access_token, {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      domain: process.env.NODE_ENV === 'production' ? '.zagoffers.online' : undefined,
-      path: '/',
+      ...this.authCookieOptions(),
       maxAge: 7 * 24 * 60 * 60 * 1000,
     });
     return result;
@@ -168,13 +180,7 @@ export class AuthController {
     @Request() req: { user: { id: string } },
     @Res({ passthrough: true }) response: Response,
   ) {
-    response.clearCookie('auth_token', {
-      httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
-      sameSite: 'lax',
-      domain: process.env.NODE_ENV === 'production' ? '.zagoffers.online' : undefined,
-      path: '/',
-    });
+    response.clearCookie('auth_token', this.authCookieOptions());
     return this.authService.logout(req.user.id);
   }
 
