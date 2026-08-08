@@ -1238,24 +1238,26 @@ html[data-theme="light"] .home-offers-empty button { color:#d95400 !important; }
 .home-area-chip.is-active { border-color:#ff6b00; background:#ff6b00; color:#fff; }
 
 .homepage .ad-carousel { overflow:visible; }
-.homepage .ad-carousel-heading { align-items:center; justify-content:flex-start; margin-bottom:12px; }
-.homepage .ad-carousel-heading h2 { color:var(--home-text); font-size:clamp(28px,2.1vw,38px); font-weight:700; line-height:1.4; }
+.homepage .ad-carousel-heading { align-items:center; justify-content:flex-start; margin-bottom:14px; }
+.homepage .ad-carousel-heading h2 { color:var(--home-text); font-size:clamp(26px,1.8vw,34px); font-weight:700; line-height:1.45; }
 .homepage .ad-carousel-kicker { font-size:12px; font-weight:600; }
 .homepage .ad-carousel-controls { margin-inline-start:8px; }
-.homepage .ad-carousel-stage { grid-template-columns:minmax(0,2.65fr) minmax(260px,.9fr); gap:16px; height:clamp(300px,22vw,350px); min-height:0; }
-.homepage .ad-carousel-main,.homepage .ad-carousel-preview { border-color:var(--home-border); border-radius:18px; background:var(--home-surface); box-shadow:0 12px 30px rgba(0,0,0,.16); }
+.homepage .ad-carousel-stage { grid-template-columns:minmax(0,3fr) minmax(250px,.82fr); gap:16px; height:clamp(300px,21vw,340px); min-height:0; }
+.homepage .ad-carousel-main,.homepage .ad-carousel-preview { border-color:var(--home-border); border-radius:16px; background:var(--home-surface); box-shadow:0 8px 24px rgba(0,0,0,.14); }
 .homepage .ad-carousel-main,.homepage .ad-carousel-preview { height:100%; }
-.homepage .ad-carousel-shade { background:linear-gradient(90deg,rgba(5,14,28,.03) 28%,rgba(5,14,28,.42) 100%); }
-.homepage .ad-carousel-copy { right:20px; bottom:18px; left:auto; width:clamp(310px,40%,520px); max-width:44%; padding:14px 16px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(7,20,38,.68); backdrop-filter:blur(3px); }
-.homepage .ad-carousel-copy h3 { font-size:clamp(26px,2vw,34px); font-weight:700; line-height:1.35; }
-.homepage .ad-carousel-copy p { margin-top:3px; color:#e2e8f0; font-size:13px; font-weight:500; line-height:1.7; }
+.homepage .ad-carousel-shade { background:linear-gradient(90deg,rgba(5,14,28,0) 24%,rgba(5,14,28,.34) 100%); }
+.homepage .ad-carousel-copy { right:18px; bottom:16px; left:auto; width:clamp(300px,37%,450px); max-width:40%; padding:14px 16px; border:1px solid rgba(255,255,255,.1); border-radius:11px; background:rgba(7,20,38,.84); }
+.homepage .ad-carousel-copy h3 { font-size:clamp(24px,1.75vw,31px); font-weight:700; line-height:1.45; }
+.homepage .ad-carousel-copy p { margin-top:2px; color:#dbe4ef; font-size:12px; font-weight:500; line-height:1.7; }
 .homepage .ad-carousel-tag { margin-bottom:7px; padding:5px 10px; font-size:11px; font-weight:700; }
-.homepage .ad-carousel-action { display:inline-flex; min-height:38px; align-items:center; margin-top:10px; border-radius:9px; background:#ff6b00; padding:7px 13px; color:#fff; font-size:12px; font-weight:700; }
+.homepage .ad-carousel-action { display:inline-flex; min-height:36px; align-items:center; margin-top:9px; border-radius:8px; background:#ff6b00; padding:7px 12px; color:#fff; font-size:12px; font-weight:700; }
 .homepage .ad-carousel-action svg { color:#fff; }
 .homepage .ad-carousel-preview strong { font-weight:700; }
 .homepage .ad-carousel-controls button { width:44px; height:44px; border-color:var(--home-border); background:var(--home-surface); }
 .homepage .ad-carousel-count { right:auto; bottom:20px; left:22px; border-radius:999px; background:rgba(7,20,38,.68); padding:5px 10px; backdrop-filter:blur(5px); }
-.homepage .ad-carousel-preview-arrow { left:22px; }
+.homepage .ad-carousel-preview-arrow { left:18px; bottom:18px; }
+.homepage .ad-carousel-preview-label { top:14px; right:14px; }
+.homepage .ad-carousel-preview strong { right:16px; bottom:17px; left:42px; font-size:14px; line-height:1.6; }
 .homepage .ad-carousel-pagination { margin-top:8px; }
 .homepage .ad-carousel-pagination button { width:26px; }
 .homepage .ad-carousel-pagination button.is-active { width:48px; }
@@ -1304,13 +1306,13 @@ html[data-theme="light"] .homepage .home-featured-store-name { color:var(--home-
 @media (max-width:1279px) {
   .home-categories-row { grid-template-columns:repeat(4,minmax(0,1fr)); }
   .home-offers-grid { grid-template-columns:repeat(3,minmax(0,1fr)); }
-  .homepage .ad-carousel-stage { height:330px; }
+  .homepage .ad-carousel-stage { height:320px; }
 }
 @media (max-width:1023px) {
   .homepage .brand-hero-market { height:clamp(440px,58vw,500px); min-height:440px; }
   .home-offers-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
-  .homepage .ad-carousel-stage { grid-template-columns:minmax(0,2.2fr) minmax(220px,1fr); height:310px; }
-  .homepage .ad-carousel-copy { width:46%; max-width:48%; }
+  .homepage .ad-carousel-stage { grid-template-columns:minmax(0,2.5fr) minmax(210px,.9fr); height:300px; }
+  .homepage .ad-carousel-copy { width:42%; max-width:44%; }
   .home-stores-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
   .home-featured-store-card { width:100%; }
 }
@@ -1333,16 +1335,17 @@ html[data-theme="light"] .homepage .home-featured-store-name { color:var(--home-
   .home-categories-row { display:flex; overflow-x:auto; gap:12px; margin-inline:-12px; padding:2px 12px 10px; scroll-snap-type:x proximity; scrollbar-width:none; }
   .home-category-link { width:132px; min-width:132px; scroll-snap-align:start; }
   .homepage .category-image-card.is-compact { min-height:128px; }
-  .homepage .ad-carousel-heading { align-items:flex-end; justify-content:space-between; margin-bottom:9px; }
-  .homepage .ad-carousel-heading h2 { font-size:22px; }
+  .homepage .ad-carousel-heading { align-items:center; justify-content:space-between; margin-bottom:9px; }
+  .homepage .ad-carousel-heading h2 { font-size:21px; }
   .homepage .ad-carousel-controls button { width:40px; height:40px; }
-  .homepage .ad-carousel-stage { display:block; height:245px; min-height:0; }
-  .homepage .ad-carousel-main { height:245px; border-radius:14px; }
-  .homepage .ad-carousel-copy { right:9px; bottom:9px; left:9px; width:auto; max-width:none; padding:10px 11px; border-radius:10px; }
-  .homepage .ad-carousel-copy h3 { font-size:20px; line-height:1.45; }
-  .homepage .ad-carousel-copy p { overflow:hidden; margin-top:1px; font-size:11px; line-height:1.6; -webkit-line-clamp:1; }
+  .homepage .ad-carousel-stage { display:block; height:240px; min-height:0; }
+  .homepage .ad-carousel-main { height:240px; border-radius:13px; }
+  .homepage .ad-carousel-shade { background:linear-gradient(0deg,rgba(5,14,28,.58),rgba(5,14,28,.02) 70%); }
+  .homepage .ad-carousel-copy { right:8px; bottom:8px; left:8px; width:auto; max-width:none; padding:9px 10px; border-radius:9px; background:rgba(7,20,38,.88); }
+  .homepage .ad-carousel-copy h3 { font-size:19px; line-height:1.5; }
+  .homepage .ad-carousel-copy p { overflow:hidden; margin-top:0; font-size:10px; line-height:1.55; -webkit-line-clamp:1; }
   .homepage .ad-carousel-tag { margin-bottom:5px; padding:4px 8px; font-size:10px; }
-  .homepage .ad-carousel-action { min-height:34px; margin-top:7px; padding:6px 11px; font-size:11px; }
+  .homepage .ad-carousel-action { min-height:32px; margin-top:6px; padding:5px 10px; font-size:10px; }
   .homepage .ad-carousel-count { display:none; }
   .homepage .ad-carousel-pagination { margin-top:6px; }
   .homepage .ad-carousel-pagination button { width:20px; height:6px; }
