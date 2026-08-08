@@ -42,35 +42,35 @@ export default function manifest(): MetadataRoute.Manifest {
         short_name: "لوحة التحكم",
         description: "عرض لوحة التحكم",
         url: "/dashboard",
-        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+        icons: [{ src: "/icon-192x192.png", sizes: "192x192", type: "image/png" }]
       },
       {
         name: "العروض",
         short_name: "العروض",
         description: "إدارة العروض",
         url: "/dashboard/offers",
-        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+        icons: [{ src: "/icon-192x192.png", sizes: "192x192", type: "image/png" }]
       },
       {
         name: "الكوبونات",
         short_name: "الكوبونات",
         description: "سجل الكوبونات",
         url: "/dashboard/coupons",
-        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+        icons: [{ src: "/icon-192x192.png", sizes: "192x192", type: "image/png" }]
       },
       {
         name: "المتجر",
         short_name: "المتجر",
         description: "إعدادات المتجر",
         url: "/dashboard/profile",
-        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+        icons: [{ src: "/icon-192x192.png", sizes: "192x192", type: "image/png" }]
       },
       {
         name: "المسح",
         short_name: "المسح",
         description: "مسح الكوبونات",
         url: "/dashboard/scan",
-        icons: [{ src: "/icon-192.svg", sizes: "192x192" }]
+        icons: [{ src: "/icon-192x192.png", sizes: "192x192", type: "image/png" }]
       }
     ]
   };

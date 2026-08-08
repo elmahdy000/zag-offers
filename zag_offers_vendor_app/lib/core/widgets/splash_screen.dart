@@ -13,17 +13,11 @@ class SplashScreen extends StatelessWidget {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              padding: const EdgeInsets.all(24),
-              decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
-                shape: BoxShape.circle,
-              ),
-              child: const Icon(
-                Icons.storefront_rounded,
-                size: 80,
-                color: AppColors.primary,
-              ),
+            Image.asset(
+              'assets/images/app_icon_foreground.png',
+              width: 136,
+              height: 136,
+              fit: BoxFit.contain,
             ),
             const SizedBox(height: 24),
             Text(

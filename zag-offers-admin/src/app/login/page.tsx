@@ -64,7 +64,7 @@ export default function AdminLoginPage() {
           <div className="admin-auth-brand-top">
             <span className="flex items-center gap-3">
               <span className="relative block h-12 w-12 overflow-hidden rounded-2xl">
-                <Image src="/icon-192.svg" alt="" fill priority className="object-cover" sizes="48px" />
+                <Image src="/brand/zag-mark.png" alt="" fill priority className="object-contain" sizes="48px" />
               </span>
               <span>
                 <b className="block text-base font-black text-white">Zag Offers</b>

@@ -76,6 +76,16 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
+                  Opacity(
+                    opacity: Curves.easeOut.transform((_controller.value * 1.5).clamp(0.0, 1.0)),
+                    child: Image.asset(
+                      'assets/branding/splash_logo.png',
+                      width: 132,
+                      height: 132,
+                      fit: BoxFit.contain,
+                    ),
+                  ),
+                  const SizedBox(height: 20),
                   Row(
                     mainAxisSize: MainAxisSize.min,
                     children: [

@@ -79,7 +79,7 @@ function SidebarContent({
     <div className="admin-sidebar-panel flex h-full flex-col">
       <div className="admin-sidebar-brand flex items-center gap-3 px-5 py-5">
         <div className="admin-brand-mark relative h-12 w-12 shrink-0 overflow-hidden rounded-2xl">
-          <Image src="/icon-192.svg" alt="" fill priority className="object-cover" sizes="48px" />
+          <Image src="/brand/zag-mark.png" alt="" fill priority className="object-contain" sizes="48px" />
         </div>
         <div className="flex flex-col">
           <span className="admin-brand-title text-lg font-black tracking-tight leading-none">

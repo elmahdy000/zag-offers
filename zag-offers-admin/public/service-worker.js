@@ -1,7 +1,7 @@
-const VERSION = 'zag-admin-v1';
+const VERSION = 'zag-admin-v2';
 const STATIC_CACHE = `${VERSION}-static`;
 const IMAGE_CACHE = `${VERSION}-images`;
-const CORE = ['/offline', '/manifest.webmanifest', '/icon-192.svg', '/icon-512.svg'];
+const CORE = ['/offline', '/manifest.webmanifest', '/icon-192.png', '/icon-512.png'];
 
 self.addEventListener('install', (event) => {
   event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE)));

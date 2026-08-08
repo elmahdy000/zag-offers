@@ -81,20 +81,23 @@ dev_dependencies:
 flutter_launcher_icons:
   android: "launcher_icon"
   ios: true
+  remove_alpha_ios: true
   image_path: "assets/app_icon.png"
-  adaptive_icon_background: "#FF6A00"
-  adaptive_icon_foreground: "assets/app_icon.png"
+  adaptive_icon_background: "#FFFFFF"
+  adaptive_icon_foreground: "assets/branding/app_icon_foreground.png"
   notification_icon:
     android: true
     image_path: "assets/notification_icon.png"
 
 flutter_native_splash:
   color: "#FF6A00"
+  image: assets/branding/splash_logo.png
   android: true
   ios: true
   web: false
   android_12:
     color: "#FF6A00"
+    image: assets/branding/splash_logo.png
   fullscreen: true
 
 
@@ -111,6 +114,7 @@ flutter:
   assets:
     - assets/app_icon.png
     - assets/branding/app_icon.png
+    - assets/branding/app_icon_foreground.png
     - assets/notification_icon.png
     - assets/branding/splash_logo.png
     - assets/categories/
