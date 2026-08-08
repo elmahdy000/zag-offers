@@ -130,7 +130,7 @@ export default function LoginPage() {
 
         <aside className="vendor-auth-brand-panel">
           <div className="vendor-auth-brand-copy">
-            <BrandMark priority className="h-28 w-28" />
+            <BrandMark priority className="h-20 w-20" />
             <span className="vendor-auth-eyebrow"><Store size={15} /> صُممت للتاجر</span>
             <h2>كل ما يحتاجه متجرك للنمو.</h2>
             <p>تجربة إدارة واضحة وسريعة تمنحك صورة كاملة عن عروضك وعملائك لحظة بلحظة.</p>
