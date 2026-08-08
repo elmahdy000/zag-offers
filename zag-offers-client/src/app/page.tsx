@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiSearch2Line, RiFireFill, RiSparkling2Fill, RiMapPin2Fill,
   RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine,
-  RiCoupon3Line, RiMapPinLine, RiCompass3Line, RiArrowLeftLine
+  RiCoupon3Line, RiMapPinLine, RiCompass3Line, RiArrowLeftLine, RiStore3Line
 } from 'react-icons/ri';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -29,6 +29,7 @@ import { normalizeCategories } from '@/lib/category-utils';
 import { useNotifications } from '@/components/notification-provider';
 import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 import { CategoryImageCard } from '@/components/category-image-card';
+import { CategoryIcon } from '@/components/category-icon';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 const getBannerTitle = (title: string) => /المطاعم.*بانتظاركم/.test(title.trim()) ? 'أشهى الأكلات مستنياك' : title;
@@ -632,10 +633,19 @@ function HomePageContent() {
 
       {/* ─── Featured stores ─────────────────────────────── */}
       {!activeCat && !search && stores.length > 0 && (
-        <section className="home-container home-section" aria-labelledby="featured-stores-title">
-          <div className="home-section-heading home-store-heading"><div><span className="home-section-kicker">شركاء قريبين منك</span><h2 id="featured-stores-title" className="home-section-title">متاجر مميزة</h2></div><Link prefetch={false} href="/stores" className="home-section-link">عرض كل المتاجر <RiArrowLeftLine /></Link></div>
-          <div className="home-stores-row">
-            {stores.slice(0, 6).map(store => <FeaturedStoreCard key={store.id} store={store} />)}
+        <section className="featured-stores-section home-section" aria-labelledby="featured-stores-title">
+          <div className="featured-stores-container">
+            <div className="featured-stores-header">
+              <div>
+                <h2 id="featured-stores-title">متاجر مميزة في الزقازيق</h2>
+                <p>اكتشف متاجر موثوقة وعروض قريبة منك</p>
+              </div>
+              <Link prefetch={false} href="/stores" className="featured-stores-all">عرض كل المتاجر <RiArrowLeftLine /></Link>
+            </div>
+            <div className="featured-stores-grid">
+              {stores.slice(0, 3).map(store => <FeaturedStoreCard key={store.id} store={store} />)}
+              {stores.length < 3 && <FeaturedStoresCta />}
+            </div>
           </div>
         </section>
       )}
@@ -691,14 +701,54 @@ function HomeOffersSection({ id, title, subtitle, offers }: { id: string; title:
 
 function FeaturedStoreCard({ store }: { store: Store }) {
   const [logoFailed, setLogoFailed] = useState(false);
+  const [coverFailed, setCoverFailed] = useState(false);
   const logoUrl = !logoFailed ? resolveImageUrl(store.logo) : '';
+  const coverUrl = !coverFailed ? resolveImageUrl(store.coverImage) : '';
+  const categoryName = store.category?.name ? getCatName(store.category.name) : '';
   return (
-    <Link prefetch={false} href={`/stores/${store.id}`} className="home-featured-store-card group">
-        <div className="home-featured-store-logo">
-          {logoUrl ? <Image src={logoUrl} alt={`شعار ${store.name}`} width={64} height={64} className="h-full w-full object-contain" quality={72} loading="lazy" onError={() => setLogoFailed(true)} /> : <span className="home-featured-store-fallback">{store.name.trim().charAt(0)}</span>}
+    <Link prefetch={false} href={`/stores/${store.id}`} className="featured-store-card group" aria-label={`استكشف متجر ${store.name}`}>
+      <div className="featured-store-cover">
+        {coverUrl ? (
+          <Image src={coverUrl} alt={`غلاف متجر ${store.name}`} fill sizes="(max-width: 640px) 84vw, (max-width: 1024px) 50vw, 33vw" className="object-cover" quality={78} loading="lazy" onError={() => setCoverFailed(true)} />
+        ) : (
+          <div className="featured-store-cover-fallback" aria-hidden="true">
+            <span className="featured-store-pattern pattern-one" />
+            <span className="featured-store-pattern pattern-two" />
+            <CategoryIcon name={categoryName || store.name} size={38} />
+          </div>
+        )}
+        <div className="featured-store-logo">
+          {logoUrl ? <Image src={logoUrl} alt={`شعار ${store.name}`} width={76} height={76} className="h-full w-full object-contain" quality={76} loading="lazy" onError={() => setLogoFailed(true)} /> : <span>{store.name.trim().charAt(0)}</span>}
         </div>
-        <div className="min-w-0"><strong className="home-featured-store-name">{store.name}</strong>{store.category?.name && <span>{getCatName(store.category.name)}</span>}{store.area && <small><RiMapPin2Fill /> {store.area}</small>}</div>
-        <RiArrowLeftSLine className="home-store-arrow" aria-hidden="true" />
+      </div>
+      <div className="featured-store-content">
+        <h3>{store.name}</h3>
+        {(categoryName || store.area) && (
+          <div className="featured-store-meta">
+            {categoryName && <span>{categoryName}</span>}
+            {categoryName && store.area && <i aria-hidden="true">•</i>}
+            {store.area && <span><RiMapPin2Fill aria-hidden="true" /> {store.area}</span>}
+          </div>
+        )}
+        <span className="featured-store-action">استكشف المتجر <RiArrowLeftLine /></span>
+      </div>
+    </Link>
+  );
+}
+
+function FeaturedStoresCta() {
+  return (
+    <Link prefetch={false} href="/stores" className="featured-stores-cta" aria-label="اكتشف متاجر أكثر في الزقازيق">
+      <div className="featured-stores-cta-visual" aria-hidden="true">
+        <span className="featured-store-pattern pattern-one" />
+        <span className="featured-store-pattern pattern-two" />
+        <RiStore3Line />
+      </div>
+      <div className="featured-stores-cta-content">
+        <h3>اكتشف متاجر أكثر</h3>
+        <p>متاجر وخدمات قريبة منك في مكان واحد</p>
+        <span>عرض المتاجر <RiArrowLeftLine /></span>
+      </div>
     </Link>
   );
 }
