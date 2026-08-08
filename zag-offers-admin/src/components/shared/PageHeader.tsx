@@ -28,7 +28,7 @@ export function PageHeader({
           <Icon size={20} strokeWidth={2.2} />
         </div>
         <div className="min-w-0">
-          <h1 className="truncate text-[26px] font-black tracking-tight text-slate-900 leading-tight">{title}</h1>
+          <h1 className="truncate text-[26px] font-bold text-slate-900 leading-relaxed sm:text-[30px]">{title}</h1>
           {displaySubtitle && <p className="mt-1 max-w-3xl text-xs font-semibold leading-6 text-slate-500">{displaySubtitle}</p>}
         </div>
       </div>

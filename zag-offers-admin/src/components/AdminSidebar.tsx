@@ -82,17 +82,17 @@ function SidebarContent({
           <Image src="/brand/zag-mark.png" alt="" fill priority className="object-contain" sizes="48px" />
         </div>
         <div className="flex flex-col">
-          <span className="admin-brand-title text-lg font-black tracking-tight leading-none">
+          <span className="admin-brand-title text-lg font-bold leading-normal">
             Zag <span>Offers</span>
           </span>
-          <span className="admin-brand-subtitle text-[10px] font-black mt-1.5">
+          <span className="admin-brand-subtitle mt-1 text-[10px] font-semibold">
             إدارة المنصة المركزية
           </span>
         </div>
       </div>
 
       <nav className="flex-1 space-y-1 px-4 overflow-y-auto custom-scrollbar py-5">
-        <p className="admin-nav-kicker px-3 pb-2 text-[9px] font-black tracking-[.16em]">إدارة المنصة</p>
+        <p className="admin-nav-kicker px-3 pb-2 text-[11px] font-semibold">إدارة المنصة</p>
         {menuItems.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon as ComponentType<{
@@ -130,7 +130,7 @@ function SidebarContent({
             <Settings size={18} />
           </div>
           <div>
-            <p className="admin-account-title text-[11px] font-black">حساب المسؤول</p>
+            <p className="admin-account-title text-[11px] font-bold">المدير العام</p>
             <p className="admin-account-copy text-[9px] font-bold">
               الإعدادات العامة
             </p>

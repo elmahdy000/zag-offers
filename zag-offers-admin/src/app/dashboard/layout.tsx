@@ -12,12 +12,12 @@ export default function AdminLayout({
   return (
     <Providers>
       <ErrorBoundary>
-        <div className="admin-shell min-h-screen flex flex-row-reverse">
+        <div className="admin-layout admin-shell min-h-screen flex flex-row-reverse" lang="ar" dir="rtl">
         {/* Sidebar - Fixed width on Desktop, positioned Right (RTL) */}
         <AdminSidebar />
         
         {/* Main Content Area */}
-        <div className="admin-main flex-1 min-h-screen lg:mr-[272px] w-full flex flex-col">
+        <div className="admin-main flex-1 min-h-screen lg:mr-[270px] w-full min-w-0 flex flex-col">
           <DashboardHeader />
           <main className="admin-content flex-1 p-0 pb-32 lg:pb-8">
             <div className="admin-route">{children}</div>

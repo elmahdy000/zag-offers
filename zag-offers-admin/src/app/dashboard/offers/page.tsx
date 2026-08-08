@@ -16,7 +16,11 @@ import {
   Plus,
   Upload,
   Calendar as CalendarIcon,
-  Star
+  Star,
+  Eye,
+  Pencil,
+  Store,
+  Clock
 } from 'lucide-react';
 import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
@@ -25,7 +29,6 @@ import { adminApi, resolveImageUrl } from '@/lib/api';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
-import { OfferCard } from '@/components/offers/OfferCard';
 import { useToast } from '@/components/shared/Toast';
 import { useSocketContext } from '@/components/SocketProvider';
 import Pagination from '@/components/shared/Pagination';
@@ -36,7 +39,7 @@ interface OfferRow {
   description?: string;
   discount: string;
   discountType?: string;
-  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'EXPIRED' | 'PAUSED';
+  status: 'PENDING' | 'APPROVED' | 'ACTIVE' | 'REJECTED' | 'EXPIRED' | 'PAUSED';
   createdAt: string;
   startDate?: string;
   endDate?: string;
@@ -45,6 +48,7 @@ interface OfferRow {
   newPrice?: number;
   _count: { coupons: number };
   views?: number;
+  images?: string[];
 }
 
 interface OfferDetails extends OfferRow {
@@ -89,6 +93,19 @@ const statusLabels: Record<string, string> = {
   EXPIRED: 'منتهي الصلاحية',
   PAUSED: 'متوقف مؤقتاً',
 };
+
+const statusClasses: Record<string, string> = {
+  ACTIVE: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  APPROVED: 'border-emerald-200 bg-emerald-50 text-emerald-700',
+  PENDING: 'border-amber-200 bg-amber-50 text-amber-700',
+  REJECTED: 'border-rose-200 bg-rose-50 text-rose-700',
+  EXPIRED: 'border-slate-200 bg-slate-100 text-slate-600',
+  PAUSED: 'border-slate-200 bg-slate-100 text-slate-600',
+};
+
+function formatOfferDate(value?: string) {
+  return value ? new Date(value).toLocaleDateString('ar-EG', { day: 'numeric', month: 'short', year: 'numeric' }) : '—';
+}
 
 export default function OffersManagementPage() {
   const queryClient = useQueryClient();
@@ -279,50 +296,45 @@ export default function OffersManagementPage() {
   const offers = data?.items ?? [];
 
   return (
-    <div className="p-6 lg:p-10 space-y-8">
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-6">
+    <div className="space-y-6 p-4 sm:p-6 lg:p-8">
         <PageHeader 
           title="إدارة العروض" 
           description="متابعة وتنظيم كافة العروض الترويجية والخصومات المتاحة حالياً في المنصة" 
           icon={Tag}
+          actions={<button onClick={() => { setIsCreating(true); setTempImages([]); }} className="admin-focus flex h-11 items-center justify-center gap-2 rounded-xl bg-orange-600 px-5 text-sm font-bold text-white transition-colors hover:bg-orange-700"><Plus size={18} /> إضافة عرض جديد</button>}
         />
-        <button 
-          onClick={() => { setIsCreating(true); setTempImages([]); }}
-          className="h-12 px-6 rounded-xl bg-orange-600 text-white font-bold text-xs flex items-center justify-center gap-2 hover:bg-orange-700 transition-all shadow-lg shadow-orange-900/10 shrink-0"
-        >
-          <Plus size={20} /> إضافة عرض جديد
-        </button>
-      </div>
 
       {/* Filters & Search */}
-      <div className="flex flex-col lg:flex-row gap-4 items-center">
-        <div className="relative flex-1 w-full lg:max-w-md group">
+      <div className="flex flex-col gap-3 rounded-2xl border border-slate-200 bg-white p-4 lg:flex-row lg:items-center">
+        <div className="relative w-full flex-1 group">
           <Search className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 group-focus-within:text-orange-600 transition-colors" size={18} />
           <input
             type="text"
             placeholder="بحث في العروض، المتاجر، أو الخصومات..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="h-12 w-full pr-12 pl-4 rounded-xl border border-slate-200 bg-white text-sm font-bold focus:outline-none focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5 transition-all shadow-sm"
+            className="h-11 w-full rounded-xl border border-slate-200 bg-white pr-11 pl-4 text-sm font-medium outline-none transition focus:border-orange-600 focus:ring-4 focus:ring-orange-600/5"
           />
         </div>
         
-        <div className="flex gap-4 w-full lg:w-auto">
+        <div className="flex w-full gap-3 lg:w-auto">
           <select
             value={statusFilter}
             onChange={(e) => { setStatusFilter(e.target.value); setPage(1); }}
-            className="h-12 flex-1 lg:w-48 rounded-xl border border-slate-200 bg-white px-4 text-sm font-bold focus:outline-none focus:border-orange-600 shadow-sm cursor-pointer"
+            className="h-11 flex-1 cursor-pointer rounded-xl border border-slate-200 bg-white px-4 text-sm font-semibold outline-none focus:border-orange-600 lg:w-48"
           >
             <option value="">كل الحالات</option>
             {Object.entries(statusLabels).map(([v, l]) => <option key={v} value={v}>{l}</option>)}
           </select>
+          {(search || statusFilter) && <button onClick={() => { setSearch(''); setStatusFilter(''); setPage(1); }} className="admin-focus h-11 rounded-xl border border-slate-200 px-4 text-sm font-semibold text-slate-600 hover:bg-slate-50">مسح الفلاتر</button>}
         </div>
+        <span className="text-xs font-semibold text-slate-500">{data ? `${data.meta.total} نتيجة` : '—'}</span>
       </div>
 
       {/* Content */}
       {isLoading ? (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {Array.from({ length: 10 }).map((_, i) => <div key={i} className="h-40 animate-pulse bg-white rounded-2xl border border-slate-100" />)}
+        <div className="admin-table-shell p-4">
+          {Array.from({ length: 7 }).map((_, i) => <div key={i} className="mb-3 h-14 animate-pulse rounded-xl bg-slate-100 last:mb-0" />)}
         </div>
       ) : isError ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-red-200 text-slate-400">
@@ -336,7 +348,8 @@ export default function OffersManagementPage() {
       ) : offers.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 bg-white rounded-3xl border border-dashed border-slate-200 text-slate-400">
           <Tag size={48} className="mb-4 opacity-10" />
-          <p className="text-sm font-bold">لا توجد عروض حالياً</p>
+          <p className="text-base font-bold text-slate-700">{search || statusFilter ? 'لا توجد عروض مطابقة' : 'لا توجد عروض حتى الآن'}</p>
+          <p className="mt-1 text-sm">{search || statusFilter ? 'جرّب تعديل البحث أو الفلاتر' : 'ابدأ بإضافة أول عرض إلى المنصة'}</p>
           <button
             onClick={() => setIsCreating(true)}
             className="mt-6 px-8 py-3 rounded-xl bg-orange-600 text-white font-bold text-xs hover:bg-orange-700 transition-all flex items-center gap-2 shadow-lg shadow-orange-900/10"
@@ -345,17 +358,33 @@ export default function OffersManagementPage() {
           </button>
         </div>
       ) : (
-        <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 2xl:grid-cols-5">
-          {offers.map((offer, idx) => (
-            <OfferCard 
-              key={offer.id} 
-              offer={offer} 
-              index={idx}
-              onView={(id) => { setSelectedOfferId(id); setIsEditing(false); }}
-              onEdit={(id) => { setSelectedOfferId(id); setIsEditing(true); }}
-            />
-          ))}
-        </div>
+        <>
+          <div className="admin-table-shell hidden lg:block">
+            <div className="overflow-x-auto">
+              <table className="admin-data-table min-w-[980px]">
+                <thead><tr><th>العرض</th><th>المتجر</th><th>الحالة</th><th>الخصم</th><th>الكوبونات</th><th>المشاهدات</th><th>المدة</th><th className="text-left">الإجراءات</th></tr></thead>
+                <tbody>{offers.map((offer) => (
+                  <tr key={offer.id}>
+                    <td><div className="flex min-w-[210px] items-center gap-3"><div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-lg border border-slate-200 bg-slate-50">{offer.images?.[0] ? <img src={resolveImageUrl(offer.images[0])} alt="" className="h-full w-full object-cover" /> : <Tag size={19} className="text-slate-400" />}</div><div className="min-w-0"><p className="line-clamp-2 font-bold leading-6 text-slate-900">{offer.title}</p><p className="text-xs text-slate-500">أُضيف {formatOfferDate(offer.createdAt)}</p></div></div></td>
+                    <td><span className="inline-flex max-w-[170px] items-center gap-1.5"><Store size={14} className="shrink-0 text-slate-400" /><span className="truncate font-semibold text-slate-700">{offer.store?.name || '—'}</span></span></td>
+                    <td><span className={`inline-flex whitespace-nowrap rounded-lg border px-2.5 py-1 text-xs font-semibold ${statusClasses[offer.status] || 'border-slate-200 bg-slate-50 text-slate-600'}`}>{statusLabels[offer.status] || offer.status}</span></td>
+                    <td><span className="font-bold text-orange-600">{offer.discount || '—'}</span></td>
+                    <td>{offer._count?.coupons ?? '—'}</td><td>{offer.views ?? '—'}</td>
+                    <td><div className="min-w-[150px] text-xs leading-6 text-slate-600"><div>{formatOfferDate(offer.startDate)}</div><div>{formatOfferDate(offer.endDate)}</div></div></td>
+                    <td><div className="flex justify-end gap-2"><button aria-label="عرض التفاصيل" onClick={() => { setSelectedOfferId(offer.id); setIsEditing(false); }} className="admin-focus flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:border-orange-200 hover:text-orange-600"><Eye size={16} /></button><button aria-label="تعديل العرض" onClick={() => { setSelectedOfferId(offer.id); setIsEditing(true); }} className="admin-focus flex h-10 w-10 items-center justify-center rounded-lg border border-slate-200 text-slate-600 hover:border-orange-200 hover:text-orange-600"><Pencil size={16} /></button></div></td>
+                  </tr>
+                ))}</tbody>
+              </table>
+            </div>
+          </div>
+          <div className="grid gap-3 lg:hidden">{offers.map((offer) => (
+            <article key={offer.id} className="rounded-2xl border border-slate-200 bg-white p-4">
+              <div className="flex items-start gap-3"><div className="flex h-14 w-14 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-slate-200 bg-slate-50">{offer.images?.[0] ? <img src={resolveImageUrl(offer.images[0])} alt="" className="h-full w-full object-cover" /> : <Tag size={20} className="text-slate-400" />}</div><div className="min-w-0 flex-1"><h2 className="line-clamp-2 text-sm font-bold leading-6 text-slate-900">{offer.title}</h2><p className="truncate text-xs text-slate-500">{offer.store?.name || '—'}</p></div><span className={`shrink-0 rounded-lg border px-2 py-1 text-[11px] font-semibold ${statusClasses[offer.status] || 'border-slate-200 bg-slate-50 text-slate-600'}`}>{statusLabels[offer.status] || offer.status}</span></div>
+              <div className="mt-4 grid grid-cols-2 gap-2 rounded-xl bg-slate-50 p-3 text-xs"><span>الخصم: <b className="text-orange-600">{offer.discount || '—'}</b></span><span>الكوبونات: <b>{offer._count?.coupons ?? '—'}</b></span><span>المشاهدات: <b>{offer.views ?? '—'}</b></span><span className="flex items-center gap-1"><Clock size={13} /> {formatOfferDate(offer.endDate)}</span></div>
+              <div className="mt-3 flex gap-2"><button onClick={() => { setSelectedOfferId(offer.id); setIsEditing(false); }} className="admin-focus h-11 flex-1 rounded-xl border border-slate-200 text-sm font-semibold text-slate-700">عرض التفاصيل</button><button onClick={() => { setSelectedOfferId(offer.id); setIsEditing(true); }} className="admin-focus h-11 flex-1 rounded-xl bg-orange-600 text-sm font-semibold text-white">تعديل</button></div>
+            </article>
+          ))}</div>
+        </>
       )}
 
       {/* Pagination */}

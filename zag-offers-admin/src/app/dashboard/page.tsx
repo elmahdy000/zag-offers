@@ -3,13 +3,13 @@
 import type { LucideIcon } from 'lucide-react';
 import {
   Activity,
+  AlertTriangle,
   ArrowLeft,
   ArrowUpLeft,
   BarChart3,
   BellRing,
   CheckCircle2,
   ChevronLeft,
-  CircleGauge,
   Clock3,
   FileText,
   LayoutGrid,
@@ -73,7 +73,7 @@ interface TopCategory {
 const numberFormatter = new Intl.NumberFormat('ar-EG');
 
 function formatNumber(value: number | undefined) {
-  return numberFormatter.format(value ?? 0);
+  return typeof value === 'number' && Number.isFinite(value) ? numberFormatter.format(value) : '—';
 }
 
 function MetricCard({
@@ -82,7 +82,6 @@ function MetricCard({
   helper,
   icon: Icon,
   tone,
-  bars,
   delay,
 }: {
   label: string;
@@ -90,7 +89,6 @@ function MetricCard({
   helper: string;
   icon: LucideIcon;
   tone: 'orange' | 'blue' | 'emerald' | 'violet';
-  bars: number[];
   delay: number;
 }) {
   const tones = {
@@ -98,13 +96,6 @@ function MetricCard({
     blue: 'bg-blue-50 text-blue-600 border-blue-100',
     emerald: 'bg-emerald-50 text-emerald-600 border-emerald-100',
     violet: 'bg-violet-50 text-violet-600 border-violet-100',
-  };
-
-  const barTones = {
-    orange: 'bg-orange-500',
-    blue: 'bg-blue-500',
-    emerald: 'bg-emerald-500',
-    violet: 'bg-violet-500',
   };
 
   return (
@@ -118,9 +109,7 @@ function MetricCard({
         <div className={`grid h-12 w-12 place-items-center rounded-2xl border ${tones[tone]}`}>
           <Icon size={21} strokeWidth={2.2} />
         </div>
-        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-black text-emerald-700">
-          مباشر <span className="h-1.5 w-1.5 rounded-full bg-emerald-500" />
-        </span>
+        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-50 px-2.5 py-1 text-[10px] font-semibold text-emerald-700">بيانات المنصة</span>
       </div>
 
       <div className="mt-7 flex items-end justify-between gap-4">
@@ -128,15 +117,6 @@ function MetricCard({
           <p className="text-xs font-bold text-slate-500">{label}</p>
           <p className="mt-2 text-3xl font-black tracking-tight text-slate-900 tabular-nums">{value}</p>
           <p className="mt-2 text-[10px] font-bold text-slate-400">{helper}</p>
-        </div>
-        <div className="flex h-14 items-end gap-1" aria-hidden="true">
-          {bars.map((height, index) => (
-            <span
-              key={index}
-              className={`w-1.5 rounded-full ${index > bars.length - 3 ? 'opacity-100' : 'opacity-30'} ${barTones[tone]}`}
-              style={{ height: `${height}%` }}
-            />
-          ))}
         </div>
       </div>
     </motion.article>
@@ -222,6 +202,18 @@ export default function AdminDashboard() {
   });
 
   if (statsQuery.isLoading) return <DashboardSkeleton />;
+  if (statsQuery.isError && !statsQuery.data) {
+    return (
+      <div className="flex min-h-[60vh] items-center justify-center p-5">
+        <div role="alert" className="w-full max-w-lg rounded-2xl border border-rose-200 bg-white p-8 text-center">
+          <AlertTriangle className="mx-auto text-rose-500" size={36} />
+          <h1 className="mt-4 text-xl font-bold text-slate-900">تعذر تحميل بيانات لوحة الإدارة</h1>
+          <p className="mt-2 text-sm text-slate-500">لم يتم استبدال البيانات الفاشلة بقيم صفرية. حاول التحديث مرة أخرى.</p>
+          <button onClick={() => void statsQuery.refetch()} className="admin-focus mt-5 h-11 rounded-xl bg-orange-600 px-5 text-sm font-bold text-white">إعادة المحاولة</button>
+        </div>
+      </div>
+    );
+  }
 
   const stats = statsQuery.data;
   const period = periodQuery.data;
@@ -229,13 +221,16 @@ export default function AdminDashboard() {
   const engagement = (stats?.engagement.totalFavorites ?? 0) + (stats?.engagement.totalReviews ?? 0);
   const usedCoupons = stats?.coupons.totalCouponsUsed ?? 0;
   const generatedCoupons = stats?.coupons.totalCouponsGenerated ?? 0;
-  const healthScore = statsQuery.isError ? 74 : 98;
+  const isRefreshing = statsQuery.isFetching || periodQuery.isFetching || storesQuery.isFetching || categoriesQuery.isFetching;
+  const lastUpdatedAt = statsQuery.dataUpdatedAt ? new Date(statsQuery.dataUpdatedAt) : null;
 
-  const refreshDashboard = () => {
-    void queryClient.invalidateQueries({ queryKey: ['global-stats'] });
-    void queryClient.invalidateQueries({ queryKey: ['stats-period'] });
-    void queryClient.invalidateQueries({ queryKey: ['top-stores'] });
-    void queryClient.invalidateQueries({ queryKey: ['top-categories'] });
+  const refreshDashboard = async () => {
+    await Promise.all([
+      queryClient.invalidateQueries({ queryKey: ['global-stats'] }),
+      queryClient.invalidateQueries({ queryKey: ['stats-period'] }),
+      queryClient.invalidateQueries({ queryKey: ['top-stores'] }),
+      queryClient.invalidateQueries({ queryKey: ['top-categories'] }),
+    ]);
   };
 
   return (
@@ -243,7 +238,7 @@ export default function AdminDashboard() {
       <motion.section
         initial={{ opacity: 0, y: 12 }}
         animate={{ opacity: 1, y: 0 }}
-        className="relative isolate overflow-hidden rounded-[22px] border border-white/10 bg-[#071426] px-6 py-7 text-white shadow-[0_28px_70px_-42px_rgba(7,20,38,.85)] sm:px-8 lg:px-10 lg:py-9"
+        className="relative isolate overflow-hidden rounded-[20px] border border-white/10 bg-[#071426] px-6 py-6 text-white sm:px-8 lg:px-9 lg:py-7"
       >
         <div className="absolute -left-20 -top-40 -z-10 h-96 w-96 rounded-full border border-orange-500/15" />
         <div className="absolute -left-5 -top-24 -z-10 h-64 w-64 rounded-full bg-orange-500/5 blur-3xl" />
@@ -259,15 +254,15 @@ export default function AdminDashboard() {
                 </span>
                 النظام يعمل بكفاءة
               </span>
-              <span className="text-[10px] font-bold text-slate-400">آخر تحديث: الآن</span>
+              <span className="text-[10px] font-bold text-slate-400">آخر تحديث: {lastUpdatedAt ? lastUpdatedAt.toLocaleTimeString('ar-EG', { hour: 'numeric', minute: '2-digit' }) : '—'}</span>
             </div>
 
-            <p className="text-xs font-black text-orange-400">غرفة عمليات Zag Offers</p>
-            <h1 className="mt-2 max-w-2xl text-3xl font-black leading-tight tracking-tight sm:text-4xl lg:text-[42px]">
-              كل تفاصيل المنصة.<br />قرار أوضح، في وقت أسرع.
+            <p className="text-xs font-bold text-orange-400">لوحة إدارة Zag Offers</p>
+            <h1 className="mt-2 max-w-2xl text-2xl font-bold leading-relaxed sm:text-3xl lg:text-[34px]">
+              نظرة شاملة على أداء المنصة
             </h1>
             <p className="mt-4 max-w-2xl text-sm font-semibold leading-7 text-slate-400">
-              متابعة لحظية للأداء والموافقات ونشاط العملاء والتجار من مركز تحكم واحد مصمم للإدارة الفعلية.
+              تابع المستخدمين والمتاجر والعروض والموافقات من مكان واحد.
             </p>
 
             <div className="mt-7 flex flex-wrap gap-3">
@@ -284,25 +279,18 @@ export default function AdminDashboard() {
           <div className="rounded-[18px] border border-white/10 bg-white/[0.055] p-5 backdrop-blur-sm">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-[10px] font-black text-orange-400">مؤشر صحة المنصة</p>
-                <p className="mt-1 text-xs font-bold text-slate-400">الخدمات والبيانات المباشرة</p>
+                <p className="text-[10px] font-bold text-orange-400">حالة الاتصال</p>
+                <p className="mt-1 text-xs font-bold text-slate-400">الحالة الفعلية للبيانات</p>
               </div>
-              <CircleGauge size={22} className="text-orange-400" />
+              <Activity size={22} className="text-orange-400" />
             </div>
-            <div className="my-6 flex items-center gap-5">
-              <div className="grid h-24 w-24 shrink-0 place-items-center rounded-full border-[7px] border-orange-500 bg-[#0d1b2e]">
-                <span className="text-2xl font-black">{healthScore}%</span>
-              </div>
-              <div className="flex-1 space-y-3 text-[10px] font-bold">
-                <div className="flex justify-between text-slate-300"><span>API الرئيسي</span><span className="text-emerald-400">متصل</span></div>
-                <div className="h-px bg-white/10" />
-                <div className="flex justify-between text-slate-300"><span>التحديثات المباشرة</span><span className="text-emerald-400">تعمل</span></div>
+            <div className="my-5 space-y-3 text-[11px] font-bold">
+                <div className="flex justify-between text-slate-300"><span>API الرئيسي</span><span className={statsQuery.isError ? 'text-rose-400' : 'text-emerald-400'}>{statsQuery.isError ? 'تعذر التحديث' : 'متصل'}</span></div>
                 <div className="h-px bg-white/10" />
                 <div className="flex justify-between text-slate-300"><span>طلبات معلقة</span><span className="text-orange-400">{pendingCount}</span></div>
-              </div>
             </div>
-            <button onClick={refreshDashboard} className="flex h-11 w-full items-center justify-center gap-2 rounded-2xl border border-white/10 bg-white/5 text-[11px] font-black text-slate-200 transition hover:bg-white/10">
-              <RefreshCw size={15} /> تحديث بيانات اللوحة
+            <button disabled={isRefreshing} onClick={() => void refreshDashboard()} className="flex h-11 w-full items-center justify-center gap-2 rounded-xl border border-white/10 bg-white/5 text-[11px] font-bold text-slate-200 transition hover:bg-white/10 disabled:cursor-wait disabled:opacity-60">
+              <RefreshCw size={15} className={isRefreshing ? 'animate-spin' : ''} /> {isRefreshing ? 'جاري التحديث' : 'تحديث بيانات اللوحة'}
             </button>
           </div>
         </div>
@@ -311,10 +299,10 @@ export default function AdminDashboard() {
       <section>
         <SectionTitle eyebrow="نظرة تنفيذية" title="نبض المنصة اليوم" action={<span className="text-[10px] font-bold text-slate-400">بيانات محدثة تلقائيًا</span>} />
         <div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4">
-          <MetricCard label="إجمالي المستخدمين" value={formatNumber(stats?.users.totalUsers)} helper={`+${formatNumber(period?.newUsers)} خلال آخر أسبوع`} icon={Users} tone="blue" bars={[24, 40, 35, 52, 48, 72, 88]} delay={0.04} />
-          <MetricCard label="المتاجر المعتمدة" value={formatNumber(stats?.stores.approvedStores)} helper={`${formatNumber(stats?.stores.pendingStores)} بانتظار المراجعة`} icon={Store} tone="emerald" bars={[32, 38, 46, 58, 62, 76, 82]} delay={0.08} />
-          <MetricCard label="العروض النشطة" value={formatNumber(stats?.offers.activeOffers)} helper={`${formatNumber(stats?.offers.totalOffers)} عرض على المنصة`} icon={Tags} tone="orange" bars={[56, 48, 68, 54, 72, 82, 96]} delay={0.12} />
-          <MetricCard label="الكوبونات المستخدمة" value={formatNumber(usedCoupons)} helper={`معدل تحويل ${stats?.coupons.couponConversionRate ?? '0%'}`} icon={TicketPercent} tone="violet" bars={[20, 42, 36, 68, 58, 78, 92]} delay={0.16} />
+          <MetricCard label="إجمالي المستخدمين" value={formatNumber(stats?.users.totalUsers)} helper={period ? `+${formatNumber(period.newUsers)} خلال آخر أسبوع` : 'بيانات الفترة غير متاحة'} icon={Users} tone="blue" delay={0.04} />
+          <MetricCard label="المتاجر المعتمدة" value={formatNumber(stats?.stores.approvedStores)} helper={`${formatNumber(stats?.stores.pendingStores)} بانتظار المراجعة`} icon={Store} tone="emerald" delay={0.08} />
+          <MetricCard label="العروض النشطة" value={formatNumber(stats?.offers.activeOffers)} helper={`${formatNumber(stats?.offers.totalOffers)} عرض على المنصة`} icon={Tags} tone="orange" delay={0.12} />
+          <MetricCard label="الكوبونات المستخدمة" value={formatNumber(usedCoupons)} helper={stats?.coupons.couponConversionRate ? `معدل تحويل ${stats.coupons.couponConversionRate}` : 'معدل التحويل غير متاح'} icon={TicketPercent} tone="violet" delay={0.16} />
         </div>
       </section>
 
@@ -369,16 +357,17 @@ export default function AdminDashboard() {
           <div className="space-y-3">
             {(storesQuery.data ?? []).slice(0, 4).map((store, index) => {
               const category = typeof store.category === 'string' ? store.category : store.category?.name;
-              const score = (store.totalCoupons ?? 0) + (store._count?.offers ?? 0) * 10;
+              const metric = store._count?.reviews ?? 0;
+              const maxMetric = Math.max(...(storesQuery.data ?? []).map((item) => item._count?.reviews ?? 0), 1);
               return (
                 <div key={store.id} className="group flex items-center gap-4 rounded-2xl border border-transparent bg-slate-50 p-3.5 transition hover:border-orange-100 hover:bg-orange-50/50">
                   <span className={`grid h-11 w-11 shrink-0 place-items-center rounded-2xl text-sm font-black ${index === 0 ? 'bg-[#071426] text-orange-400' : 'bg-white text-slate-500 shadow-sm'}`}>{index + 1}</span>
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-black text-slate-900">{store.name}</p>
-                    <p className="mt-1 text-[10px] font-bold text-slate-400">{category || 'متجر شريك'} · {formatNumber(store._count?.offers)} عرض</p>
+                    <p className="mt-1 text-[10px] font-bold text-slate-400">{category || 'متجر شريك'} · {formatNumber(metric)} تقييم</p>
                   </div>
                   <div className="hidden w-32 sm:block">
-                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-200"><span className="block h-full rounded-full bg-orange-500" style={{ width: `${Math.min(100, Math.max(18, score))}%` }} /></div>
+                    <div className="h-1.5 overflow-hidden rounded-full bg-slate-200"><span className="block h-full rounded-full bg-orange-500" style={{ width: `${(metric / maxMetric) * 100}%` }} /></div>
                   </div>
                   <TrendingUp size={17} className="text-emerald-500" />
                 </div>
@@ -399,7 +388,7 @@ export default function AdminDashboard() {
                 <div key={category.name}>
                   <div className="mb-2 flex items-center justify-between gap-4 text-xs font-bold">
                     <span className="text-slate-700">{category.name}</span>
-                    <span className="text-slate-400">{formatNumber(categoryCount)} متجر</span>
+                    <span className="text-slate-400">{formatNumber(categoryCount)} {categoryCount === 1 ? 'متجر' : 'متاجر'}</span>
                   </div>
                   <div className="h-2 overflow-hidden rounded-full bg-slate-100"><motion.span initial={{ width: 0 }} animate={{ width: `${(categoryCount / max) * 100}%` }} transition={{ delay: 0.15 + index * 0.07 }} className="block h-full rounded-full bg-orange-500" /></div>
                 </div>
@@ -427,7 +416,7 @@ export default function AdminDashboard() {
       {statsQuery.isError && (
         <div className="flex items-center justify-between gap-4 rounded-2xl border border-amber-200 bg-amber-50 p-4 text-xs font-bold text-amber-800">
           <span className="flex items-center gap-2"><CheckCircle2 size={17} /> تم عرض آخر بيانات متاحة، وقد تتأخر بعض المؤشرات.</span>
-          <button onClick={refreshDashboard} className="rounded-xl bg-amber-100 px-3 py-2">إعادة المحاولة</button>
+          <button onClick={() => void refreshDashboard()} className="rounded-xl bg-amber-100 px-3 py-2">إعادة المحاولة</button>
         </div>
       )}
     </div>

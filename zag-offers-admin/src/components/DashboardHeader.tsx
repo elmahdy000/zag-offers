@@ -69,9 +69,9 @@ export default function DashboardHeader() {
   }, [socket, queryClient, showToast]);
 
   return (
-    <header className="admin-header sticky top-0 z-30 flex h-[72px] items-center justify-between px-5 lg:px-8">
+    <header className="admin-header sticky top-0 z-30 flex h-[76px] items-center justify-between px-5 lg:px-8">
       <div className="admin-header-brand mr-14 flex items-center gap-2 lg:mr-0">
-        <span className="text-sm font-black">لوحة الإدارة</span>
+        <span className="text-sm font-bold">لوحة الإدارة</span>
         <span className="admin-header-dot" />
         <span className="hidden text-[10px] font-bold sm:inline">Zag Offers</span>
       </div>
@@ -87,7 +87,7 @@ export default function DashboardHeader() {
         >
           <Bell size={20} />
           {pendingCount > 0 && (
-            <span className="absolute -top-1.5 -left-1.5 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-600 px-1 text-xs font-bold text-white ring-2 ring-white shadow-lg animate-bounce">
+            <span className="absolute -top-1 -left-1 flex h-5 min-w-[20px] items-center justify-center rounded-full bg-orange-600 px-1 text-xs font-bold text-white ring-2 ring-white">
               {pendingCount}
             </span>
           )}
@@ -103,8 +103,7 @@ export default function DashboardHeader() {
             <User size={18} />
           </div>
           <div className="flex flex-col items-start hidden sm:flex">
-             <span className="admin-profile-kicker mb-1 text-[9px] font-black uppercase tracking-widest leading-none">Administrator</span>
-             <span className="admin-profile-name text-xs font-black">المدير العام</span>
+             <span className="admin-profile-name text-xs font-bold">المدير العام</span>
           </div>
         </button>
       </div>
