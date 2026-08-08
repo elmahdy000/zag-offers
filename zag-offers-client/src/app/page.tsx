@@ -32,8 +32,9 @@ import { CategoryImageCard } from '@/components/category-image-card';
 import { CategoryIcon } from '@/components/category-icon';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
-const getBannerTitle = (title: string) => /المطاعم.*بانتظاركم/.test(title.trim()) ? 'أشهى الأكلات مستنياك' : title;
+const getBannerTitle = (title: string) => title;
 const getBannerTag = (tag?: string) => tag?.trim() === 'مصايف' ? 'عروض المصيف' : tag;
+const getBannerAction = (url?: string) => url?.startsWith('/stores/') ? 'استكشف المتجر' : url?.startsWith('/offers/') ? 'احصل على العرض' : url ? 'اعرف التفاصيل' : 'اكتشف العروض';
 
 const CACHE_KEY = 'zag_offers_home_cache_v4';
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -57,6 +58,7 @@ function HomePageContent() {
   const [banners, setBanners] = useState<Banner[]>([]);
   const [activeBanner, setActiveBanner] = useState(0);
   const [bannerPaused, setBannerPaused] = useState(false);
+  const [bannerTimerKey, setBannerTimerKey] = useState(0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(catIdParam || '');
@@ -71,19 +73,23 @@ function HomePageContent() {
 
   const showNextBanner = () => {
     setActiveBanner((current) => banners.length ? (current + 1) % banners.length : 0);
+    setBannerTimerKey((key) => key + 1);
   };
 
   const showPreviousBanner = () => {
     setActiveBanner((current) => banners.length ? (current - 1 + banners.length) % banners.length : 0);
+    setBannerTimerKey((key) => key + 1);
   };
 
   useEffect(() => {
     if (banners.length < 2 || bannerPaused) return;
+    if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
     const timer = window.setInterval(() => {
+      if (document.visibilityState !== 'visible') return;
       setActiveBanner((current) => (current + 1) % banners.length);
-    }, 6500);
+    }, 7000);
     return () => window.clearInterval(timer);
-  }, [banners.length, bannerPaused]);
+  }, [banners.length, bannerPaused, bannerTimerKey]);
 
   useEffect(() => {
     const timer = window.setTimeout(() => setCurrentTime(Date.now()), 0);
@@ -471,9 +477,10 @@ function HomePageContent() {
       {/* ─── Featured advertisements ───────────────────── */}
       {banners.length > 0 && (
         <section
-          className="ad-carousel home-container home-section"
+          className="featured-ads-section ad-carousel home-container home-section"
           aria-roledescription="carousel"
           aria-label="إعلانات وعروض مميزة"
+          aria-live="off"
           data-paused={bannerPaused ? 'true' : 'false'}
           onMouseEnter={() => setBannerPaused(true)}
           onMouseLeave={() => setBannerPaused(false)}
@@ -485,12 +492,6 @@ function HomePageContent() {
               <span className="ad-carousel-kicker"><RiSparkling2Fill /> مختار ليك</span>
               <h2>عروض وإعلانات مميزة</h2>
             </div>
-            {banners.length > 1 && (
-              <div className="ad-carousel-controls">
-                <button type="button" onClick={showPreviousBanner} aria-label="الإعلان السابق"><RiArrowRightSLine /></button>
-                <button type="button" onClick={showNextBanner} aria-label="الإعلان التالي"><RiArrowLeftSLine /></button>
-              </div>
-            )}
           </div>
 
           <div className="ad-carousel-stage">
@@ -498,10 +499,11 @@ function HomePageContent() {
               <motion.a
                 key={banners[safeActiveBanner].id}
                 href={banners[safeActiveBanner].actionUrl || '/offers'}
-                className="ad-carousel-main group"
-                initial={{ opacity: 0, x: 34, scale: 0.985 }}
-                animate={{ opacity: 1, x: 0, scale: 1 }}
-                exit={{ opacity: 0, x: -28, scale: 0.985 }}
+                className="featured-billboard ad-carousel-main group"
+                aria-label={`${getBannerTitle(banners[safeActiveBanner].title)} — ${getBannerAction(banners[safeActiveBanner].actionUrl)}`}
+                initial={{ opacity: 0, x: 28 }}
+                animate={{ opacity: 1, x: 0 }}
+                exit={{ opacity: 0, x: -24 }}
                 transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1] }}
                 drag={banners.length > 1 ? 'x' : false}
                 dragConstraints={{ left: 0, right: 0 }}
@@ -511,27 +513,34 @@ function HomePageContent() {
                   if (info.offset.x > 55) showPreviousBanner();
                 }}
               >
-                {banners[safeActiveBanner].image ? (
-                  <Image
-                    src={resolveImageUrl(banners[safeActiveBanner].image) ?? '/placeholder-offer.jpg'}
-                    alt={getBannerTitle(banners[safeActiveBanner].title)}
-                    fill
-                    className="object-cover transition-transform duration-1000 group-hover:scale-[1.025]"
-                    sizes="(max-width: 768px) 100vw, 950px"
-                    quality={88}
-                    priority={safeActiveBanner === 0}
-                  />
-                ) : <div className="absolute inset-0 bg-[#162338]" />}
-                <span className="ad-carousel-shade" aria-hidden="true" />
-                <div className="ad-carousel-copy">
-                  {banners[safeActiveBanner].tag && <span className="ad-carousel-tag">{getBannerTag(banners[safeActiveBanner].tag)}</span>}
-                  <h3>{getBannerTitle(banners[safeActiveBanner].title)}</h3>
-                  {banners[safeActiveBanner].subtitle && <p>{banners[safeActiveBanner].subtitle}</p>}
-                  <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>
+                <div className="featured-billboard-media">
+                  {banners[safeActiveBanner].image ? (
+                    <Image
+                      src={resolveImageUrl(banners[safeActiveBanner].image) ?? '/placeholder-offer.jpg'}
+                      alt={getBannerTitle(banners[safeActiveBanner].title)}
+                      fill
+                      className="featured-billboard-image object-cover transition-transform duration-700 group-hover:scale-[1.015]"
+                      sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1200px) 75vw, 1100px"
+                      quality={86}
+                      priority={safeActiveBanner === 0}
+                    />
+                  ) : <div className="featured-billboard-image-fallback"><RiSparkling2Fill /></div>}
+                  <span className="ad-carousel-shade" aria-hidden="true" />
+                </div>
+                <div className="featured-billboard-content ad-carousel-copy">
+                  {banners[safeActiveBanner].tag && <span className="featured-billboard-badge ad-carousel-tag">{getBannerTag(banners[safeActiveBanner].tag)}</span>}
+                  <h3 className="featured-billboard-title">{getBannerTitle(banners[safeActiveBanner].title)}</h3>
+                  {banners[safeActiveBanner].subtitle && banners[safeActiveBanner].subtitle !== banners[safeActiveBanner].title && <p className="featured-billboard-description">{banners[safeActiveBanner].subtitle}</p>}
+                  <span className="featured-billboard-cta ad-carousel-action">{getBannerAction(banners[safeActiveBanner].actionUrl)} <RiArrowLeftSLine /></span>
                 </div>
                 {banners.length > 1 && <span className="ad-carousel-count"><b>{String(safeActiveBanner + 1).padStart(2, '0')}</b> / {String(banners.length).padStart(2, '0')}</span>}
               </motion.a>
             </AnimatePresence>
+
+            {banners.length > 1 && <>
+              <button type="button" className="billboard-control billboard-control-previous" onClick={showPreviousBanner} aria-label="الإعلان السابق"><RiArrowRightSLine /></button>
+              <button type="button" className="billboard-control billboard-control-next" onClick={showNextBanner} aria-label="الإعلان التالي"><RiArrowLeftSLine /></button>
+            </>}
 
             {banners.length > 1 && (
               <button type="button" className="ad-carousel-preview" onClick={showNextBanner} aria-label={`عرض الإعلان التالي: ${banners[(safeActiveBanner + 1) % banners.length].title}`}>
@@ -541,7 +550,6 @@ function HomePageContent() {
                 <span className="ad-carousel-preview-shade" />
                 <span className="ad-carousel-preview-label">التالي</span>
                 <strong>{getBannerTitle(banners[(safeActiveBanner + 1) % banners.length].title)}</strong>
-                <RiArrowLeftSLine className="ad-carousel-preview-arrow" />
               </button>
             )}
           </div>
