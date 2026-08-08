@@ -9,6 +9,7 @@ import { validateEgyptianPhone, validatePassword } from '@/lib/validation';
 import { handleApiError, logError } from '@/lib/errorHandler';
 import { secureUserData, secureStoreData } from '@/lib/crypto';
 import BrandMark from '@/components/BrandMark';
+import { deleteCookie } from '@/lib/cookie-utils';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
 
@@ -56,6 +57,7 @@ export default function LoginPage() {
       return;
     }
     try {
+      deleteCookie('auth_token'); // Remove the legacy JavaScript-readable cookie before migration.
       const response = await axios.post(
         `${API_URL}/auth/login`,
         { phone: phone.trim(), password },

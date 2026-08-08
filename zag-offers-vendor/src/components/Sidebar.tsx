@@ -17,7 +17,7 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { getVendorStoreId, vendorApi } from '@/lib/api';
+import { deleteCookie, getVendorStoreId, vendorApi } from '@/lib/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import { secureStorage } from '@/lib/crypto';
 import BrandMark from './BrandMark';
@@ -82,6 +82,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     try {
       await vendorApi().post('/auth/logout');
     } finally {
+      deleteCookie('auth_token'); // Clears legacy host-only cookies; the API clears HttpOnly cookies.
       secureStorage.clear();
       window.location.href = '/login';
     }
