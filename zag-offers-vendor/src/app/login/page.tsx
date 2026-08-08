@@ -2,10 +2,9 @@
 
 import { useEffect, useState } from 'react';
 import { ArrowLeft, BadgePercent, Eye, EyeOff, Loader2, Lock, ScanLine, ShieldCheck, Smartphone, Store, Sun, Moon } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import axios from 'axios';
-import { validateEgyptianPhone, validatePassword } from '@/lib/validation';
+import { validateEgyptianPhone, validatePassword } from '@/lib/auth-validation';
 import { handleApiError, logError } from '@/lib/errorHandler';
 import { secureUserData, secureStoreData } from '@/lib/crypto';
 import BrandMark from '@/components/BrandMark';
@@ -108,7 +107,7 @@ export default function LoginPage() {
             <button className="icon-button" onClick={toggleTheme} aria-label="تغيير المظهر">{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</button>
           </div>
 
-          <motion.div initial={{ opacity: 0, y: 14 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[430px]">
+          <div className="vendor-auth-content w-full max-w-[430px]">
             <span className="vendor-auth-kicker">بوابة شركاء Zag Offers</span>
             <h1 className="vendor-auth-title">أهلًا بعودتك</h1>
             <p className="vendor-auth-subtitle">أدر عروضك، تابع الكوبونات، وراقب أداء متجرك من مكان واحد.</p>
@@ -126,7 +125,7 @@ export default function LoginPage() {
               <button className="vendor-auth-submit" type="submit" disabled={loading}>{loading ? <Loader2 className="animate-spin" size={20} /> : <><span>دخول لوحة التحكم</span><ArrowLeft size={18} /></>}</button>
             </form>
             <p className="vendor-auth-security"><ShieldCheck size={16} /> اتصال مشفر وآمن لحماية بيانات متجرك</p>
-          </motion.div>
+          </div>
         </section>
 
         <aside className="vendor-auth-brand-panel">

@@ -9,6 +9,7 @@ import { secureStorage, secureUserData } from '@/lib/crypto';
 import { OfflineSync } from '@/lib/offline-sync';
 import BrandMark from '@/components/BrandMark';
 import ThemeToggle from '@/components/ThemeToggle';
+import DashboardProviders from '@/components/dashboard-providers';
 
 export default function DashboardLayout({
   children,
@@ -58,6 +59,7 @@ export default function DashboardLayout({
   }
 
   return (
+    <DashboardProviders>
     <div className="vendor-shell flex bg-bg min-h-screen relative overflow-x-hidden">
       {/* Mobile Overlay */}
       <AnimatePresence>
@@ -126,5 +128,6 @@ export default function DashboardLayout({
         <BottomNav />
       </div>
     </div>
+    </DashboardProviders>
   );
 }

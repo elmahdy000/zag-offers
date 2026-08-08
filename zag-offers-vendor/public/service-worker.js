@@ -1,83 +1,62 @@
-const CACHE_NAME = 'zag-offers-vendor-v2';
-const urlsToCache = [
-  '/login',
-  '/manifest.webmanifest',
-  '/icon-192x192.png',
-  '/icon-512x512.png',
-];
+const VERSION = 'zag-vendor-v4';
+const STATIC_CACHE = `${VERSION}-static`;
+const IMAGE_CACHE = `${VERSION}-images`;
+const CORE = ['/offline', '/manifest.webmanifest', '/icon-192x192.png', '/icon-512x512.png'];
 
-// تثبيت Service Worker
 self.addEventListener('install', (event) => {
-  console.log('Vendor App SW installing...');
-  event.waitUntil(
-    caches.open(CACHE_NAME)
-      .then((cache) => {
-        console.log('Vendor App cache opened');
-        return Promise.all(urlsToCache.map((url) => cache.add(url).catch(() => undefined)));
-      })
-      .then(() => {
-        console.log('Vendor App SW installed successfully');
-      })
-      .catch((error) => {
-        console.error('Vendor App SW installation failed:', error);
-      })
-  );
+  event.waitUntil(caches.open(STATIC_CACHE).then((cache) => cache.addAll(CORE)));
 });
 
-// تفعيل Service Worker
 self.addEventListener('activate', (event) => {
-  console.log('Vendor App SW activating...');
-  event.waitUntil(
-    caches.keys().then((cacheNames) => {
-      return Promise.all(
-        cacheNames.map((cacheName) => {
-          if (cacheName !== CACHE_NAME) {
-            console.log('Vendor App deleting old cache:', cacheName);
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
-    .then(() => {
-      console.log('Vendor App SW activated successfully');
-    })
-  );
+  event.waitUntil((async () => {
+    const keys = await caches.keys();
+    await Promise.all(keys.filter((key) => key.startsWith('zag-vendor-') && !key.startsWith(VERSION)).map((key) => caches.delete(key)));
+    await self.clients.claim();
+  })());
 });
 
-// جلب الطلبات
+async function networkFirst(request) {
+  try {
+    return await fetch(request);
+  } catch {
+    return (await caches.match('/offline')) || new Response('Offline', { status: 503 });
+  }
+}
+
+async function staleWhileRevalidate(request, cacheName) {
+  const cache = await caches.open(cacheName);
+  const cached = await cache.match(request);
+  const refresh = fetch(request).then((response) => {
+    if (response.ok) void cache.put(request, response.clone());
+    return response;
+  }).catch(() => cached);
+  return cached || refresh;
+}
+
 self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
+  const { request } = event;
+  if (request.method !== 'GET') return;
+  const url = new URL(request.url);
 
-  const requestUrl = new URL(event.request.url);
-  if (requestUrl.origin !== self.location.origin) return;
+  // Authentication and business API responses must never be cached.
+  if (url.hostname === 'api.zagoffers.online' || url.pathname.startsWith('/api/')) return;
+  if (url.origin !== self.location.origin) return;
 
-  if (event.request.mode === 'navigate') {
-    event.respondWith(
-      fetch(event.request).catch(async () => (await caches.match('/login')) || new Response('Offline', { status: 503 }))
-    );
+  if (request.mode === 'navigate') {
+    event.respondWith(networkFirst(request));
     return;
   }
 
-  const isStaticAsset = requestUrl.pathname.startsWith('/_next/static/')
-    || requestUrl.pathname.startsWith('/brand/')
-    || /\.(?:png|svg|ico|woff2?)$/i.test(requestUrl.pathname)
-    || requestUrl.pathname === '/manifest.webmanifest';
-  if (!isStaticAsset) return;
+  if (url.pathname.startsWith('/_next/static/') || /\.(?:css|js|woff2?)$/i.test(url.pathname)) {
+    event.respondWith(staleWhileRevalidate(request, STATIC_CACHE));
+    return;
+  }
 
-  event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request).then((response) => {
-      if (response.ok) {
-        const copy = response.clone();
-        void caches.open(CACHE_NAME).then((cache) => cache.put(event.request, copy));
-      }
-      return response;
-    }))
-  );
+  if (/\.(?:png|webp|avif|svg|ico)$/i.test(url.pathname) || url.pathname.startsWith('/_next/image')) {
+    event.respondWith(staleWhileRevalidate(request, IMAGE_CACHE));
+  }
 });
 
-// تحديث الـ cache
 self.addEventListener('message', (event) => {
-  if (event.data && event.data.type === 'SKIP_WAITING') {
-    self.skipWaiting();
-  }
+  if (event.data?.type === 'SKIP_WAITING') void self.skipWaiting();
 });

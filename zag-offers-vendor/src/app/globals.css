@@ -198,6 +198,12 @@ html[data-theme="light"] .brand-mark-dark { display:none; }
 .vendor-auth-brand-panel::before { content:""; position:absolute; width:440px; height:440px; top:12%; left:-22%; border:1px solid rgba(255,101,0,.18); border-radius:50%; }
 .vendor-auth-brand-panel::after { content:""; position:absolute; width:170px; height:170px; right:9%; bottom:8%; border:1px solid rgba(255,101,0,.2); border-radius:50%; }
 .vendor-auth-brand-copy, .vendor-auth-features { position:relative; z-index:1; }
+.vendor-auth-content { animation:vendor-auth-enter .22s ease-out both; }
+@keyframes vendor-auth-enter { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion:reduce) { .vendor-auth-content { animation:none; } }
+.vendor-pwa-prompt { animation:vendor-pwa-enter .2s ease-out both; }
+@keyframes vendor-pwa-enter { from { opacity:0; transform:translateY(18px); } to { opacity:1; transform:none; } }
+@media (prefers-reduced-motion:reduce) { .vendor-pwa-prompt { animation:none; } }
 .vendor-auth-eyebrow { display:inline-flex; margin:28px 0 15px; align-items:center; gap:7px; padding:7px 11px; border:1px solid rgba(255,101,0,.28); border-radius:999px; color:#ff9b58; background:rgba(255,101,0,.07); font-size:10px; font-weight:900; }
 .vendor-auth-brand-copy h2 { max-width:560px; color:#fff; font-size:clamp(2.5rem,4vw,4.5rem); font-weight:900; line-height:1.28; letter-spacing:-.05em; }
 .vendor-auth-brand-copy p { max-width:510px; margin-top:16px; color:#95a3b7; font-size:14px; line-height:2; }

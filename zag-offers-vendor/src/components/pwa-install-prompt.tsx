@@ -1,7 +1,6 @@
 'use client';
 
 import { useState, useEffect } from 'react';
-import { motion, AnimatePresence } from 'framer-motion';
 import { Download, X, Share } from 'lucide-react';
 import { secureStorage } from '@/lib/crypto';
 
@@ -77,15 +76,10 @@ export default function PWAInstallPrompt() {
     secureStorage.set('vendor_pwa_dismissed', new Date().toISOString());
   };
 
+  if (!show) return null;
+
   return (
-    <AnimatePresence>
-      {show && (
-        <motion.div
-          initial={{ y: 100, opacity: 0 }}
-          animate={{ y: 0, opacity: 1 }}
-          exit={{ y: 100, opacity: 0 }}
-          className="fixed bottom-24 left-4 right-4 z-[100] md:hidden"
-        >
+        <div className="vendor-pwa-prompt fixed bottom-24 left-4 right-4 z-[100] md:hidden">
           <div className="bg-[#1A1A1A] border border-primary/20 p-4 rounded-[2rem] shadow-[0_20px_50px_rgba(0,0,0,0.8)] flex items-center justify-between gap-4">
             <div className="flex items-center gap-3">
               <div className="w-12 h-12 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20">
@@ -113,8 +107,6 @@ export default function PWAInstallPrompt() {
               </button>
             </div>
           </div>
-        </motion.div>
-      )}
-    </AnimatePresence>
+        </div>
   );
 }

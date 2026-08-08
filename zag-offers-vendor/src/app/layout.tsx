@@ -10,13 +10,13 @@ export const viewport: Viewport = {
 };
 
 export const metadata: Metadata = {
-  metadataBase: new URL('https://zagoffers.online'),
+  metadataBase: new URL('https://vendor.zagoffers.online'),
   title: 'ZAG Offers - Vendor',
   description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
   manifest: '/manifest.webmanifest',
   icons: {
-    icon: '/icon-192.svg',
-    apple: '/icon-192.svg',
+    icon: '/icon-192x192.png',
+    apple: '/icon-192x192.png',
   },
   appleWebApp: {
     capable: true,
@@ -26,16 +26,16 @@ export const metadata: Metadata = {
   openGraph: {
     title: 'ZAG Offers - Vendor Dashboard',
     description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
-    url: 'https://zagoffers.online/vendor',
+    url: 'https://vendor.zagoffers.online',
     siteName: 'ZAG Offers',
-    images: ['/icon-512.svg'],
+    images: ['/icon-512x512.png'],
     locale: 'ar_EG',
   },
   twitter: {
     card: 'summary_large_image',
     title: 'ZAG Offers - Vendor Dashboard',
     description: 'لوحة تحكم تجار زاچ لإدارة العروض وتفعيل الكوبونات',
-    images: ['/icon-512.svg'],
+    images: ['/icon-512x512.png'],
   },
   robots: 'noindex, nofollow',
 };

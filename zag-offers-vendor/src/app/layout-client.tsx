@@ -1,24 +1,37 @@
 'use client';
 
-import { ReactQueryProvider } from '@/lib/react-query-provider';
 import SWProvider from '@/components/sw-provider';
-import { NotificationProvider } from '@/components/notification-provider';
-import PWAInstallPrompt from '@/components/pwa-install-prompt';
 import ErrorBoundary from '@/components/ErrorBoundary';
-import { PerformanceTracker } from '@/components/PerformanceTracker';
+import { lazy, Suspense, useEffect, useState } from 'react';
+import PWAInstallPrompt from '@/components/pwa-install-prompt';
+
+const PerformanceTracker = lazy(() => import('@/components/PerformanceTracker').then((module) => ({ default: module.PerformanceTracker })));
+
+function DeferredEnhancements() {
+  const [ready, setReady] = useState(false);
+  useEffect(() => {
+    const load = () => setReady(true);
+    const idle = window.requestIdleCallback?.(load, { timeout: 3500 });
+    const timer = idle === undefined ? window.setTimeout(load, 2500) : undefined;
+    return () => {
+      if (idle !== undefined) window.cancelIdleCallback?.(idle);
+      if (timer !== undefined) window.clearTimeout(timer);
+    };
+  }, []);
+  if (!ready) return null;
+  return (
+    <Suspense fallback={null}>
+      <PerformanceTracker />
+    </Suspense>
+  );
+}
 
 export default function LayoutClient({ children }: { children: React.ReactNode }) {
   return (
     <ErrorBoundary>
-      <PerformanceTracker />
-      <ReactQueryProvider>
-        <SWProvider>
-          <NotificationProvider>
-            {children}
-            <PWAInstallPrompt />
-          </NotificationProvider>
-        </SWProvider>
-      </ReactQueryProvider>
+      <SWProvider>{children}</SWProvider>
+      <PWAInstallPrompt />
+      <DeferredEnhancements />
     </ErrorBoundary>
   );
 }
