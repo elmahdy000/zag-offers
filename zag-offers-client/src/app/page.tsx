@@ -31,7 +31,8 @@ import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 import { CategoryImageCard } from '@/components/category-image-card';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
-const getBannerTitle = (title: string) => title.trim() === 'اكل المطاعم بانتظاركم' ? 'أشهى الأكلات مستنياك' : title;
+const getBannerTitle = (title: string) => /المطاعم.*بانتظاركم/.test(title.trim()) ? 'أشهى الأكلات مستنياك' : title;
+const getBannerTag = (tag?: string) => tag?.trim() === 'مصايف' ? 'عروض المصيف' : tag;
 
 const CACHE_KEY = 'zag_offers_home_cache_v4';
 const CACHE_DURATION = 5 * 60 * 1000;
@@ -495,7 +496,7 @@ function HomePageContent() {
             <AnimatePresence mode="wait" initial={false}>
               <motion.a
                 key={banners[safeActiveBanner].id}
-                href={banners[safeActiveBanner].actionUrl || '#'}
+                href={banners[safeActiveBanner].actionUrl || '/offers'}
                 className="ad-carousel-main group"
                 initial={{ opacity: 0, x: 34, scale: 0.985 }}
                 animate={{ opacity: 1, x: 0, scale: 1 }}
@@ -522,10 +523,10 @@ function HomePageContent() {
                 ) : <div className="absolute inset-0 bg-[#162338]" />}
                 <span className="ad-carousel-shade" aria-hidden="true" />
                 <div className="ad-carousel-copy">
-                  {banners[safeActiveBanner].tag && <span className="ad-carousel-tag">{banners[safeActiveBanner].tag}</span>}
+                  {banners[safeActiveBanner].tag && <span className="ad-carousel-tag">{getBannerTag(banners[safeActiveBanner].tag)}</span>}
                   <h3>{getBannerTitle(banners[safeActiveBanner].title)}</h3>
                   {banners[safeActiveBanner].subtitle && <p>{banners[safeActiveBanner].subtitle}</p>}
-                  {banners[safeActiveBanner].actionUrl && <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>}
+                  <span className="ad-carousel-action">اكتشف العرض <RiArrowLeftSLine /></span>
                 </div>
                 {banners.length > 1 && <span className="ad-carousel-count"><b>{String(safeActiveBanner + 1).padStart(2, '0')}</b> / {String(banners.length).padStart(2, '0')}</span>}
               </motion.a>
