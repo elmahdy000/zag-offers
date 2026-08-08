@@ -52,6 +52,17 @@ export class ReviewsController {
     } as Prisma.ReviewCreateInput);
   }
 
+  @Post('report')
+  @UseGuards(JwtAuthGuard)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'إرسال بلاغ عن تقييم أو متجر أو عرض' })
+  reportContent(
+    @Body() body: { entityType: string; entityId: string; reason: string; details?: string },
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.reviewsService.createContentReport(req.user.id, body);
+  }
+
   @Get('offer/:offerId')
   @ApiOperation({ summary: 'عرض كل التقييمات الخاصة بعرض معين' })
   findAllByOffer(@Param('offerId') offerId: string) {

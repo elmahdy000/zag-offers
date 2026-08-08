@@ -1,13 +1,14 @@
 'use client';
 
 import { Bell, User } from 'lucide-react';
-import { useEffect } from 'react';
+import { useEffect, useMemo } from 'react';
 import { useRouter } from 'next/navigation';
 import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import { useSocketContext } from '@/components/SocketProvider';
 import { useToast } from './shared/Toast';
 import AdminThemeToggle from './AdminThemeToggle';
+import { ADMIN_PERMISSIONS as P, canAccess, readAdminUser } from '@/lib/admin-auth';
 
 async function fetchPendingCount() {
   try {
@@ -23,12 +24,16 @@ async function fetchPendingCount() {
 
 export default function DashboardHeader() {
   const router = useRouter();
+  const adminUser = useMemo(() => readAdminUser(), []);
+  const canViewApprovals = canAccess(adminUser, P.APPROVALS_MANAGE);
+  const canViewSettings = canAccess(adminUser, P.SETTINGS_MANAGE);
   const queryClient = useQueryClient();
   const { showToast } = useToast();
   const { data: pendingCount = 0 } = useQuery<number>({
     queryKey: ['pending-count'],
     queryFn: fetchPendingCount,
     staleTime: 30000,
+    enabled: canViewApprovals,
   });
 
   const { socket } = useSocketContext();
@@ -79,7 +84,7 @@ export default function DashboardHeader() {
       {/* Actions */}
       <div className="flex items-center gap-2">
         <AdminThemeToggle compact />
-        <button 
+        {canViewApprovals && <button
           onClick={() => router.push('/dashboard/approvals')}
           className="admin-icon-button relative"
           title="التنبيهات ومركز الموافقات"
@@ -91,19 +96,19 @@ export default function DashboardHeader() {
               {pendingCount}
             </span>
           )}
-        </button>
+        </button>}
 
         <div className="admin-header-divider hidden h-8 w-px sm:block" />
 
         <button 
-          onClick={() => router.push('/dashboard/settings')}
+          onClick={() => canViewSettings && router.push('/dashboard/settings')}
           className="admin-profile-button group flex items-center gap-3 rounded-2xl py-1.5 pl-2 pr-1.5"
         >
           <div className="admin-profile-icon flex h-9 w-9 items-center justify-center rounded-xl transition-transform group-hover:scale-105">
             <User size={18} />
           </div>
           <div className="flex flex-col items-start hidden sm:flex">
-             <span className="admin-profile-name text-xs font-bold">المدير العام</span>
+             <span className="admin-profile-name text-xs font-bold">{adminUser?.name || 'الإدارة'}</span>
           </div>
         </button>
       </div>

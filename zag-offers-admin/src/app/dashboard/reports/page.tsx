@@ -202,6 +202,35 @@ export default function ReportsPage() {
     return 'آخر شهر';
   }, [period]);
 
+  const exportReport = () => {
+    if (!stats) return;
+    const rows = [
+      ['المؤشر', 'القيمة'],
+      ['الفترة', periodLabel],
+      ['المستخدمون الجدد', stats.users.newUsers],
+      ['إجمالي المستخدمين', stats.users.totalUsers],
+      ['التجار', stats.users.totalMerchants],
+      ['المتاجر الجديدة', stats.stores.newStores],
+      ['إجمالي المتاجر', stats.stores.totalStores],
+      ['المتاجر المعلقة', stats.stores.pendingStores],
+      ['العروض الجديدة', stats.offers.newOffers],
+      ['إجمالي العروض', stats.offers.totalOffers],
+      ['العروض النشطة', stats.offers.activeOffers],
+      ['الكوبونات المنشأة', stats.coupons.totalCouponsGenerated],
+      ['الكوبونات المستخدمة', stats.coupons.totalCouponsUsed],
+      ['معدل التحويل', stats.coupons.couponConversionRate],
+      ['المفضلة', stats.engagement.totalFavorites],
+      ['التقييمات', stats.engagement.totalReviews],
+    ];
+    const csv = rows.map((row) => row.map((cell) => `"${String(cell).replace(/"/g, '""')}"`).join(',')).join('\r\n');
+    const url = URL.createObjectURL(new Blob([`\uFEFF${csv}`], { type: 'text/csv;charset=utf-8' }));
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `zag-offers-report-${period}-${new Date().toISOString().slice(0, 10)}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  };
+
   if (statsError && !storesError && !categoriesError) {
     return (
       <div className="p-6 lg:p-10">
@@ -239,6 +268,8 @@ export default function ReportsPage() {
 
           <button
             type="button"
+            onClick={exportReport}
+            disabled={!stats || statsLoading}
             className="h-10 px-4 rounded-xl bg-slate-900 text-white text-xs font-bold flex items-center gap-2 hover:bg-slate-800 transition-all"
           >
             <Download size={14} />

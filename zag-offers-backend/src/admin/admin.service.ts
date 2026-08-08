@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  ForbiddenException,
   Inject,
   Injectable,
   NotFoundException,
@@ -10,7 +11,9 @@ import {
   CouponStatus,
   OfferStatus,
   Prisma,
+  ReportStatus,
   Role,
+  ReviewStatus,
   StoreStatus,
 } from '@prisma/client';
 import * as bcrypt from 'bcrypt';
@@ -21,6 +24,7 @@ import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateOfferDto } from './dto/update-offer.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
+import { ALL_ADMIN_PERMISSIONS } from '../common/permissions/admin-permissions';
 
 type StoreUpdatePayload = {
   name?: string;
@@ -86,6 +90,26 @@ type OfferCreatePayload = {
 
 @Injectable()
 export class AdminService {
+  private normalizeAdminPermissions(role: Role, permissions?: string[]) {
+    if (role !== Role.STAFF) return [];
+    const allowed = new Set<string>(ALL_ADMIN_PERMISSIONS);
+    return [...new Set(permissions ?? [])].filter((permission) =>
+      allowed.has(permission),
+    );
+  }
+
+  private assertCanManagePrivilegedRole(
+    actor: { id: string; role: Role },
+    targetRole: Role,
+  ) {
+    if (
+      actor.role !== Role.ADMIN &&
+      (targetRole === Role.ADMIN || targetRole === Role.STAFF)
+    ) {
+      throw new ForbiddenException('Only administrators can manage privileged accounts');
+    }
+  }
+
   private validateOfferImages(images: string[]) {
     if (images.length > 10) {
       throw new BadRequestException('Maximum 10 images are allowed per offer');
@@ -376,6 +400,10 @@ export class AdminService {
           },
           orderBy: { createdAt: 'desc' },
           take: 10,
+        },
+        branches: {
+          include: { city: true, area: true },
+          orderBy: [{ isActive: 'desc' }, { createdAt: 'asc' }],
         },
         _count: { select: { offers: true, reviews: true } },
       },
@@ -989,8 +1017,9 @@ export class AdminService {
     };
   }
 
-  async createUser(data: CreateUserDto) {
+  async createUser(data: CreateUserDto, actor: { id: string; role: Role }) {
     try {
+      this.assertCanManagePrivilegedRole(actor, data.role);
       const existing = await this.prisma.user.findUnique({
         where: { phone: data.phone },
       });
@@ -1002,25 +1031,58 @@ export class AdminService {
         ? await bcrypt.hash(data.password, 10)
         : await bcrypt.hash('123456', 10);
 
-      return await this.prisma.user.create({
+      const created = await this.prisma.user.create({
         data: {
           ...data,
           password: hashedPassword,
+          adminPermissions: this.normalizeAdminPermissions(
+            data.role,
+            data.adminPermissions,
+          ),
         },
       });
+      await this.auditLogService.log({
+        action: 'CREATE_USER',
+        adminId: actor.id,
+        targetId: created.id,
+        targetName: created.name,
+        details: JSON.stringify({ role: created.role }),
+      });
+      const { password, ...safeUser } = created;
+      return safeUser;
     } catch (error: unknown) {
       console.error('Error creating user:', error);
-      if (error instanceof BadRequestException) throw error;
+      if (
+        error instanceof BadRequestException ||
+        error instanceof ForbiddenException
+      ) throw error;
       const errorMessage =
         error instanceof Error ? error.message : 'Unknown error';
       throw new BadRequestException('Failed to create user: ' + errorMessage);
     }
   }
 
-  async updateUser(id: string, data: UpdateUserDto) {
+  async updateUser(
+    id: string,
+    data: UpdateUserDto,
+    actor: { id: string; role: Role },
+  ) {
     try {
       const user = await this.prisma.user.findUnique({ where: { id } });
       if (!user) throw new NotFoundException('User not found');
+
+      const nextRole = data.role ?? user.role;
+      this.assertCanManagePrivilegedRole(actor, user.role);
+      this.assertCanManagePrivilegedRole(actor, nextRole);
+      if (id === actor.id && nextRole !== user.role) {
+        throw new BadRequestException('You cannot change your own role');
+      }
+      if (user.role === Role.ADMIN && nextRole !== Role.ADMIN) {
+        const adminCount = await this.prisma.user.count({ where: { role: Role.ADMIN } });
+        if (adminCount <= 1) {
+          throw new BadRequestException('The last administrator cannot be demoted');
+        }
+      }
 
       if (data.phone && data.phone !== user.phone) {
         const existing = await this.prisma.user.findUnique({
@@ -1031,20 +1093,40 @@ export class AdminService {
       }
 
       const { password, ...updateData } = data;
-      const finalData: Prisma.UserUpdateInput = { ...updateData };
+      const finalData: Prisma.UserUpdateInput = {
+        ...updateData,
+        adminPermissions: this.normalizeAdminPermissions(
+          nextRole,
+          data.adminPermissions ?? user.adminPermissions,
+        ),
+      };
 
       if (password) {
         finalData.password = await bcrypt.hash(password, 10);
       }
 
-      return await this.prisma.user.update({
+      if (password) {
+        finalData.tokenVersion = { increment: 1 };
+      }
+
+      const updated = await this.prisma.user.update({
         where: { id },
         data: finalData,
       });
+      await this.auditLogService.log({
+        action: 'UPDATE_USER',
+        adminId: actor.id,
+        targetId: updated.id,
+        targetName: updated.name,
+        details: JSON.stringify({ fields: Object.keys(data), role: updated.role }),
+      });
+      const { password: hiddenPassword, ...safeUser } = updated;
+      return safeUser;
     } catch (error: unknown) {
       console.error('Error updating user:', error);
       if (
         error instanceof BadRequestException ||
+        error instanceof ForbiddenException ||
         error instanceof NotFoundException
       )
         throw error;
@@ -1108,15 +1190,43 @@ export class AdminService {
     return { ...user, pointHistory };
   }
 
-  async changeUserRole(id: string, role: Role) {
+  async changeUserRole(
+    id: string,
+    role: Role,
+    actor: { id: string; role: Role },
+  ) {
     const user = await this.prisma.user.findUnique({ where: { id } });
     if (!user) throw new NotFoundException('User not found');
 
-    return this.prisma.user.update({
+    this.assertCanManagePrivilegedRole(actor, user.role);
+    this.assertCanManagePrivilegedRole(actor, role);
+    if (id === actor.id) {
+      throw new BadRequestException('You cannot change your own role');
+    }
+    if (user.role === Role.ADMIN && role !== Role.ADMIN) {
+      const adminCount = await this.prisma.user.count({ where: { role: Role.ADMIN } });
+      if (adminCount <= 1) {
+        throw new BadRequestException('The last administrator cannot be demoted');
+      }
+    }
+
+    const updated = await this.prisma.user.update({
       where: { id },
-      data: { role },
+      data: {
+        role,
+        adminPermissions: this.normalizeAdminPermissions(role, user.adminPermissions),
+        tokenVersion: { increment: 1 },
+      },
       select: { id: true, name: true, role: true },
     });
+    await this.auditLogService.log({
+      action: 'CHANGE_USER_ROLE',
+      adminId: actor.id,
+      targetId: updated.id,
+      targetName: updated.name,
+      details: JSON.stringify({ from: user.role, to: role }),
+    });
+    return updated;
   }
 
   async adjustUserPoints(id: string, action: 'ADD' | 'REMOVE', amount: number, reason: string, adminId: string) {
@@ -1167,15 +1277,22 @@ export class AdminService {
     return { message: 'Points adjusted successfully', newPoints, newTier };
   }
 
-  async deleteUser(id: string) {
+  async deleteUser(id: string, actor: { id: string; role: Role }) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { stores: true },
     });
 
     if (!user) throw new NotFoundException('User not found');
+    if (id === actor.id) {
+      throw new BadRequestException('You cannot delete your own account');
+    }
+    this.assertCanManagePrivilegedRole(actor, user.role);
     if (user.role === Role.ADMIN) {
-      throw new BadRequestException('Cannot delete an admin account');
+      const adminCount = await this.prisma.user.count({ where: { role: Role.ADMIN } });
+      if (adminCount <= 1) {
+        throw new BadRequestException('The last administrator cannot be deleted');
+      }
     }
 
     const result = await this.prisma.$transaction(async (tx) => {
@@ -1208,6 +1325,13 @@ export class AdminService {
     });
 
     await this.clearCache();
+    await this.auditLogService.log({
+      action: 'DELETE_USER',
+      adminId: actor.id,
+      targetId: id,
+      targetName: user.name,
+      details: JSON.stringify({ role: user.role }),
+    });
     return result;
   }
 
@@ -1633,6 +1757,9 @@ export class AdminService {
     adminId: string;
   }) {
     const { title, body, area, imageUrl, actionType, actionValue, adminId } = params;
+    const recipientCount = await this.prisma.user.count({
+      where: area ? { area } : undefined,
+    });
 
     if (area) {
       // Send to a specific area
@@ -1678,12 +1805,294 @@ export class AdminService {
       adminId,
       details: `Title: ${title}, Area: ${area || 'all'}`,
     });
+    await this.prisma.broadcastLog.create({
+      data: {
+        title,
+        body,
+        area: area || null,
+        imageUrl: imageUrl || null,
+        actionType: actionType || 'ANNOUNCEMENT',
+        actionValue: actionValue || null,
+        recipientCount,
+        createdById: adminId,
+      },
+    });
     return {
       success: true,
+      recipientCount,
       message: area
         ? `Announcement sent to area ${area}`
         : 'Announcement sent to all users',
     };
+  }
+
+  async getBroadcastHistory(page = 1, limit = 20) {
+    const safePage = Math.max(1, page);
+    const safeLimit = Math.min(100, Math.max(1, limit));
+    const [items, total] = await Promise.all([
+      this.prisma.broadcastLog.findMany({
+        include: { createdBy: { select: { id: true, name: true } } },
+        orderBy: { createdAt: 'desc' },
+        skip: (safePage - 1) * safeLimit,
+        take: safeLimit,
+      }),
+      this.prisma.broadcastLog.count(),
+    ]);
+    return {
+      items,
+      meta: {
+        total,
+        page: safePage,
+        limit: safeLimit,
+        lastPage: Math.max(1, Math.ceil(total / safeLimit)),
+      },
+    };
+  }
+
+  async getReviews(params: {
+    page?: number;
+    limit?: number;
+    status?: ReviewStatus;
+    search?: string;
+  }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const search = params.search?.trim();
+    const where: Prisma.ReviewWhereInput = {
+      ...(params.status ? { status: params.status } : {}),
+      ...(search ? {
+        OR: [
+          { comment: { contains: search, mode: 'insensitive' } },
+          { customer: { name: { contains: search, mode: 'insensitive' } } },
+          { store: { name: { contains: search, mode: 'insensitive' } } },
+        ],
+      } : {}),
+    };
+    const [items, total] = await Promise.all([
+      this.prisma.review.findMany({
+        where,
+        include: {
+          customer: { select: { id: true, name: true, phone: true } },
+          store: { select: { id: true, name: true } },
+          offer: { select: { id: true, title: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.review.count({ where }),
+    ]);
+    return { items, meta: { total, page, limit, lastPage: Math.max(1, Math.ceil(total / limit)) } };
+  }
+
+  async moderateReview(
+    id: string,
+    status: ReviewStatus,
+    note: string | undefined,
+    adminId: string,
+  ) {
+    const review = await this.prisma.review.findUnique({
+      where: { id },
+      include: { store: { select: { name: true } } },
+    });
+    if (!review) throw new NotFoundException('Review not found');
+    const updated = await this.prisma.review.update({
+      where: { id },
+      data: { status, moderationNote: note?.trim() || null },
+    });
+    await this.auditLogService.log({
+      action: status === ReviewStatus.HIDDEN ? 'HIDE_REVIEW' : 'PUBLISH_REVIEW',
+      adminId,
+      targetId: id,
+      targetName: review.store.name,
+      details: JSON.stringify({ note: note?.trim() || null }),
+    });
+    return updated;
+  }
+
+  async getContentReports(params: { page?: number; limit?: number; status?: ReportStatus }) {
+    const page = Math.max(1, params.page ?? 1);
+    const limit = Math.min(100, Math.max(1, params.limit ?? 20));
+    const where = params.status ? { status: params.status } : {};
+    const [items, total] = await Promise.all([
+      this.prisma.contentReport.findMany({
+        where,
+        include: {
+          reporter: { select: { id: true, name: true, phone: true } },
+          resolvedBy: { select: { id: true, name: true } },
+        },
+        orderBy: { createdAt: 'desc' },
+        skip: (page - 1) * limit,
+        take: limit,
+      }),
+      this.prisma.contentReport.count({ where }),
+    ]);
+    return { items, meta: { total, page, limit, lastPage: Math.max(1, Math.ceil(total / limit)) } };
+  }
+
+  async resolveContentReport(
+    id: string,
+    status: ReportStatus,
+    note: string | undefined,
+    adminId: string,
+  ) {
+    if (status === ReportStatus.OPEN) {
+      throw new BadRequestException('Resolution status must be RESOLVED or DISMISSED');
+    }
+    const report = await this.prisma.contentReport.findUnique({ where: { id } });
+    if (!report) throw new NotFoundException('Report not found');
+    const updated = await this.prisma.contentReport.update({
+      where: { id },
+      data: {
+        status,
+        resolutionNote: note?.trim() || null,
+        resolvedById: adminId,
+        resolvedAt: new Date(),
+      },
+    });
+    await this.auditLogService.log({
+      action: status === ReportStatus.RESOLVED ? 'RESOLVE_REPORT' : 'DISMISS_REPORT',
+      adminId,
+      targetId: id,
+      targetName: `${report.entityType}:${report.entityId}`,
+      details: JSON.stringify({ note: note?.trim() || null }),
+    });
+    return updated;
+  }
+
+  async getLocations() {
+    return this.prisma.city.findMany({
+      include: {
+        areas: { orderBy: [{ priority: 'desc' }, { name: 'asc' }] },
+        _count: { select: { stores: true, branches: true } },
+      },
+      orderBy: [{ priority: 'desc' }, { name: 'asc' }],
+    });
+  }
+
+  async createCity(
+    data: { name: string; priority?: number; isActive?: boolean },
+    adminId: string,
+  ) {
+    const name = data.name?.trim();
+    if (!name) throw new BadRequestException('City name is required');
+    const city = await this.prisma.city.create({
+      data: {
+        name,
+        priority: Number(data.priority ?? 0),
+        isActive: data.isActive ?? true,
+      },
+    });
+    await this.auditLogService.log({ action: 'CREATE_CITY', adminId, targetId: city.id, targetName: city.name });
+    return city;
+  }
+
+  async updateCity(
+    id: string,
+    data: { name?: string; priority?: number; isActive?: boolean },
+    adminId: string,
+  ) {
+    const existing = await this.prisma.city.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('City not found');
+    const city = await this.prisma.city.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name.trim() } : {}),
+        ...(data.priority !== undefined ? { priority: Number(data.priority) } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      },
+    });
+    await this.auditLogService.log({ action: 'UPDATE_CITY', adminId, targetId: city.id, targetName: city.name });
+    return city;
+  }
+
+  async createArea(
+    data: { cityId: string; name: string; priority?: number; isActive?: boolean },
+    adminId: string,
+  ) {
+    const name = data.name?.trim();
+    if (!name) throw new BadRequestException('Area name is required');
+    const city = await this.prisma.city.findUnique({ where: { id: data.cityId } });
+    if (!city) throw new NotFoundException('City not found');
+    const area = await this.prisma.area.create({
+      data: {
+        cityId: data.cityId,
+        name,
+        priority: Number(data.priority ?? 0),
+        isActive: data.isActive ?? true,
+      },
+    });
+    await this.auditLogService.log({ action: 'CREATE_AREA', adminId, targetId: area.id, targetName: area.name });
+    return area;
+  }
+
+  async updateArea(
+    id: string,
+    data: { name?: string; priority?: number; isActive?: boolean },
+    adminId: string,
+  ) {
+    const existing = await this.prisma.area.findUnique({ where: { id } });
+    if (!existing) throw new NotFoundException('Area not found');
+    const area = await this.prisma.area.update({
+      where: { id },
+      data: {
+        ...(data.name !== undefined ? { name: data.name.trim() } : {}),
+        ...(data.priority !== undefined ? { priority: Number(data.priority) } : {}),
+        ...(data.isActive !== undefined ? { isActive: data.isActive } : {}),
+      },
+    });
+    await this.auditLogService.log({ action: 'UPDATE_AREA', adminId, targetId: area.id, targetName: area.name });
+    return area;
+  }
+
+  async getStoreBranches(storeId: string) {
+    return this.prisma.storeBranch.findMany({
+      where: { storeId },
+      include: { city: true, area: true },
+      orderBy: [{ isActive: 'desc' }, { createdAt: 'asc' }],
+    });
+  }
+
+  async createStoreBranch(
+    storeId: string,
+    data: {
+      name: string; address: string; phone?: string; whatsapp?: string;
+      lat?: number; lng?: number; locationUrl?: string; workingHours?: string;
+      isActive?: boolean; cityId?: string; areaId?: string;
+    },
+    adminId: string,
+  ) {
+    const store = await this.prisma.store.findUnique({ where: { id: storeId } });
+    if (!store) throw new NotFoundException('Store not found');
+    const branch = await this.prisma.storeBranch.create({
+      data: { ...data, storeId, name: data.name.trim(), address: data.address.trim() },
+    });
+    await this.auditLogService.log({ action: 'CREATE_BRANCH', adminId, targetId: branch.id, targetName: `${store.name} - ${branch.name}` });
+    return branch;
+  }
+
+  async updateStoreBranch(
+    id: string,
+    data: {
+      name?: string; address?: string; phone?: string; whatsapp?: string;
+      lat?: number; lng?: number; locationUrl?: string; workingHours?: string;
+      isActive?: boolean; cityId?: string | null; areaId?: string | null;
+    },
+    adminId: string,
+  ) {
+    const branch = await this.prisma.storeBranch.findUnique({ where: { id } });
+    if (!branch) throw new NotFoundException('Branch not found');
+    const updated = await this.prisma.storeBranch.update({ where: { id }, data });
+    await this.auditLogService.log({ action: 'UPDATE_BRANCH', adminId, targetId: id, targetName: updated.name });
+    return updated;
+  }
+
+  async deleteStoreBranch(id: string, adminId: string) {
+    const branch = await this.prisma.storeBranch.findUnique({ where: { id } });
+    if (!branch) throw new NotFoundException('Branch not found');
+    await this.prisma.storeBranch.delete({ where: { id } });
+    await this.auditLogService.log({ action: 'DELETE_BRANCH', adminId, targetId: id, targetName: branch.name });
+    return { success: true };
   }
 
   async getMerchantStats(merchantId: string) {

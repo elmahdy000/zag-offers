@@ -14,7 +14,7 @@ import {
   CheckCircle2,
   Link as LinkIcon,
 } from 'lucide-react';
-import { useMutation } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { AlertTriangle } from 'lucide-react';
 import { adminApi, resolveImageUrl } from '@/lib/api';
@@ -41,6 +41,11 @@ export default function BroadcastPage() {
   const [confirmOpen, setConfirmOpen] = useState(false);
   const [actionType, setActionType] = useState('ANNOUNCEMENT');
   const [actionValue, setActionValue] = useState('');
+  const history = useQuery({
+    queryKey: ['broadcast-history'],
+    queryFn: async () => (await adminApi().get<{ items: { id: string; title: string; area?: string; recipientCount: number; createdAt: string; createdBy: { name: string } }[] }>('/admin/broadcast/history', { params: { limit: 10 } })).data.items,
+    staleTime: 60000,
+  });
 
   const broadcastMutation = useMutation({
     mutationFn: (payload: { title: string; body: string; area?: string; imageUrl?: string; actionType?: string; actionValue?: string }) =>
@@ -53,6 +58,7 @@ export default function BroadcastPage() {
       setImageUrl('');
       setActionType('ANNOUNCEMENT');
       setActionValue('');
+      void history.refetch();
     },
     onError: (err: unknown) => {
       showToast(apiErrorMessage(err, 'فشل إرسال الإشعار الجماعي'), 'error');
@@ -365,6 +371,12 @@ export default function BroadcastPage() {
            </div>
         </div>
       </div>
+
+      {/* Broadcast Confirmation Modal */}
+      <section className="admin-panel p-5 sm:p-6">
+        <div className="mb-4"><h2 className="text-sm font-black text-slate-900">سجل التنبيهات المرسلة</h2><p className="mt-1 text-xs text-slate-500">آخر الرسائل ومن أرسلها وعدد الحسابات المستهدفة</p></div>
+        {history.isLoading ? <div className="grid h-24 place-items-center"><Loader2 className="animate-spin text-orange-600" size={20}/></div> : history.data?.length ? <div className="divide-y divide-slate-100">{history.data.map(item => <div key={item.id} className="grid gap-2 py-3 sm:grid-cols-[1fr_auto_auto] sm:items-center"><div className="min-w-0"><p className="truncate text-xs font-black text-slate-800">{item.title}</p><p className="mt-1 text-[10px] text-slate-400">{item.createdBy.name} · {new Date(item.createdAt).toLocaleString('ar-EG')}</p></div><span className="text-[11px] font-bold text-slate-500">{item.area || 'كل المناطق'}</span><span className="rounded-lg bg-orange-50 px-3 py-1.5 text-[11px] font-black text-orange-700">{item.recipientCount} مستهدف</span></div>)}</div> : <p className="py-5 text-center text-xs text-slate-400">لا توجد إرساليات مسجلة بعد.</p>}
+      </section>
 
       {/* Broadcast Confirmation Modal */}
       <AnimatePresence>

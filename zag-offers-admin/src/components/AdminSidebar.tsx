@@ -1,6 +1,6 @@
 'use client';
 
-import { type ComponentType, useState } from 'react';
+import { type ComponentType, useMemo, useState } from 'react';
 import {
   AnimatePresence,
   motion,
@@ -21,6 +21,8 @@ import {
   TicketPercent,
   Users2,
   X,
+  MapPinned,
+  MessageSquareWarning,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -28,22 +30,25 @@ import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
 import AdminThemeToggle from '@/components/AdminThemeToggle';
+import { ADMIN_PERMISSIONS as P, canAccess, readAdminUser, type AdminPermission } from '@/lib/admin-auth';
 
 const menuItems = [
-  { name: 'نظرة عامة', icon: Grid2X2, href: '/dashboard' },
-  { name: 'مركز الموافقات', icon: ShieldCheck, href: '/dashboard/approvals' },
-  { name: 'إدارة التجار', icon: Users2, href: '/dashboard/merchants' },
-  { name: 'إدارة المتاجر', icon: ShoppingBag, href: '/dashboard/stores' },
-  { name: 'إدارة العروض', icon: Sparkles, href: '/dashboard/offers' },
-  { name: 'إدارة التصنيفات', icon: ListFilter, href: '/dashboard/categories' },
-  { name: 'إدارة البانرات', icon: ImageIcon, href: '/dashboard/banners' },
-  { name: 'قائمة الكوبونات', icon: TicketPercent, href: '/dashboard/coupons' },
-  { name: 'إدارة المستخدمين', icon: Users2, href: '/dashboard/users' },
-  { name: 'إرسال تنبيهات عامة', icon: Megaphone, href: '/dashboard/broadcast' },
-  { name: 'مركز المحادثات', icon: MessageSquare, href: '/dashboard/chat' },
-  { name: 'التقارير والإحصائيات', icon: BarChart3, href: '/dashboard/reports' },
-  { name: 'سجل العمليات', icon: ListFilter, href: '/dashboard/audit-logs' },
-  { name: 'إعدادات المنصة', icon: Settings, href: '/dashboard/settings' },
+  { name: 'نظرة عامة', icon: Grid2X2, href: '/dashboard', permission: P.DASHBOARD_VIEW },
+  { name: 'مركز الموافقات', icon: ShieldCheck, href: '/dashboard/approvals', permission: P.APPROVALS_MANAGE },
+  { name: 'إدارة التجار', icon: Users2, href: '/dashboard/merchants', permission: P.STORES_VIEW },
+  { name: 'إدارة المتاجر', icon: ShoppingBag, href: '/dashboard/stores', permission: P.STORES_VIEW },
+  { name: 'إدارة العروض', icon: Sparkles, href: '/dashboard/offers', permission: P.OFFERS_VIEW },
+  { name: 'إدارة التصنيفات', icon: ListFilter, href: '/dashboard/categories', permission: P.CATEGORIES_MANAGE },
+  { name: 'إدارة البانرات', icon: ImageIcon, href: '/dashboard/banners', permission: P.BANNERS_MANAGE },
+  { name: 'قائمة الكوبونات', icon: TicketPercent, href: '/dashboard/coupons', permission: P.COUPONS_VIEW },
+  { name: 'إدارة المستخدمين', icon: Users2, href: '/dashboard/users', permission: P.USERS_VIEW },
+  { name: 'إرسال تنبيهات عامة', icon: Megaphone, href: '/dashboard/broadcast', permission: P.BROADCAST_SEND },
+  { name: 'مركز المحادثات', icon: MessageSquare, href: '/dashboard/chat', permission: P.CHAT_MANAGE },
+  { name: 'التقارير والإحصائيات', icon: BarChart3, href: '/dashboard/reports', permission: P.REPORTS_VIEW },
+  { name: 'سجل العمليات', icon: ListFilter, href: '/dashboard/audit-logs', permission: P.AUDIT_VIEW },
+  { name: 'المحتوى والبلاغات', icon: MessageSquareWarning, href: '/dashboard/moderation', permission: P.REVIEWS_MANAGE },
+  { name: 'المدن والمناطق', icon: MapPinned, href: '/dashboard/locations', permission: P.LOCATIONS_MANAGE },
+  { name: 'إعدادات المنصة', icon: Settings, href: '/dashboard/settings', permission: P.SETTINGS_MANAGE },
 ] as const;
 
 async function fetchPendingCount() {
@@ -67,6 +72,7 @@ type SidebarContentProps = {
   onNavigate: () => void;
   pendingCount: number;
   onLogout: () => void;
+  allowedItems: ReadonlyArray<(typeof menuItems)[number]>;
 };
 
 function SidebarContent({
@@ -74,6 +80,7 @@ function SidebarContent({
   onNavigate,
   pendingCount,
   onLogout,
+  allowedItems,
 }: SidebarContentProps) {
   return (
     <div className="admin-sidebar-panel flex h-full flex-col">
@@ -93,7 +100,7 @@ function SidebarContent({
 
       <nav className="flex-1 space-y-1 px-4 overflow-y-auto custom-scrollbar py-5">
         <p className="admin-nav-kicker px-3 pb-2 text-[11px] font-semibold">إدارة المنصة</p>
-        {menuItems.map((item) => {
+        {allowedItems.map((item) => {
           const active = isActive(item.href);
           const Icon = item.icon as ComponentType<{
             size?: number;
@@ -153,17 +160,21 @@ export default function AdminSidebar() {
   const pathname = usePathname();
   const router = useRouter();
   const [isOpen, setIsOpen] = useState(false);
+  const adminUser = useMemo(() => readAdminUser(), []);
+  const allowedItems = useMemo(
+    () => menuItems.filter((item) => canAccess(adminUser, item.permission as AdminPermission)),
+    [adminUser],
+  );
 
   const { data: pendingCount = 0 } = useQuery<number>({
     queryKey: ['pending-count'],
     queryFn: fetchPendingCount,
     staleTime: 30000,
+    enabled: canAccess(adminUser, P.APPROVALS_MANAGE),
   });
 
   const handleLogout = async () => {
     try { await adminApi().post('/auth/logout'); } catch { /* Keep local logout available offline. */ }
-    document.cookie =
-      'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     sessionStorage.removeItem('admin_user');
     localStorage.removeItem('admin_user');
     router.replace('/login');
@@ -177,6 +188,7 @@ export default function AdminSidebar() {
     onNavigate: () => setIsOpen(false),
     pendingCount,
     onLogout: handleLogout,
+    allowedItems,
   };
 
   return (

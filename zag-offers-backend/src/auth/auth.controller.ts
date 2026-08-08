@@ -45,7 +45,7 @@ export class AuthController {
   }
 
   @Post('login')
-  @Throttle({ short: { limit: 5, ttl: 1000 } })
+  @Throttle({ strict: { limit: 5, ttl: 60000 } })
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'تسجيل الدخول بالهاتف' })
   @ApiResponse({ status: 200, description: 'تم الدخول بنجاح ويرجع التوكن' })
@@ -67,7 +67,7 @@ export class AuthController {
         'رقم الموبايل أو كلمة السر غلط، يا ريت تتأكد منهم',
       );
     }
-    const result = this.authService.login(user);
+    const result = await this.authService.login(user);
     response.cookie('auth_token', result.access_token, {
       httpOnly: true,
       secure: process.env.NODE_ENV === 'production',

@@ -19,7 +19,7 @@ interface UserItem {
   name: string;
   email: string | null;
   phone: string;
-  role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN';
+  role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN' | 'STAFF';
   area?: string | null;
   createdAt: string;
   points?: number;
@@ -29,6 +29,7 @@ interface UserItem {
 
 const roleStyles: Record<string, { icon: React.ComponentType<{ size?: number }>; color: string; bg: string; border: string; label: string }> = {
   ADMIN: { icon: Shield, color: 'text-slate-700', bg: 'bg-slate-100', border: 'border-slate-200', label: 'مدير' },
+  STAFF: { icon: Shield, color: 'text-sky-700', bg: 'bg-sky-50', border: 'border-sky-100', label: 'فريق الإدارة' },
   MERCHANT: { icon: Briefcase, color: 'text-emerald-600', bg: 'bg-emerald-50', border: 'border-emerald-100', label: 'تاجر' },
   CUSTOMER: { icon: Star, color: 'text-orange-600', bg: 'bg-orange-50', border: 'border-orange-100', label: 'عميل' },
 };

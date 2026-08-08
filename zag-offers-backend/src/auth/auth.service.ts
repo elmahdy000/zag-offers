@@ -36,7 +36,7 @@ type UserWithReset = User & {
 
 type LoginUser = Pick<
   User,
-  'id' | 'name' | 'phone' | 'email' | 'role' | 'avatar'
+  'id' | 'name' | 'phone' | 'email' | 'role' | 'avatar' | 'tokenVersion' | 'adminPermissions'
 > & { referralCode?: string | null };
 
 type SocialProvider = 'google' | 'facebook';
@@ -95,6 +95,8 @@ export class AuthService {
       lastLoginAt: user.lastLoginAt,
       createdAt: user.createdAt,
       updatedAt: user.updatedAt,
+      adminPermissions: user.adminPermissions,
+      tokenVersion: user.tokenVersion,
       referralCode: (user as any).referralCode,
       referredById: (user as any).referredById,
       hasRewardedReferrer: (user as any).hasRewardedReferrer,
@@ -126,15 +128,17 @@ export class AuthService {
     return null;
   }
 
-  login(user: LoginUser) {
+  async login(user: LoginUser) {
     const payload = {
       sub: user.id,
       phone: user.phone,
       email: user.email,
       role: user.role,
+      adminPermissions: user.adminPermissions,
+      tokenVersion: user.tokenVersion,
     };
 
-    return {
+    const result = {
       access_token: this.jwtService.sign(payload),
       user: {
         id: user.id,
@@ -143,9 +147,25 @@ export class AuthService {
         email: user.email,
         role: user.role,
         avatar: user.avatar,
+        adminPermissions: user.adminPermissions,
         referralCode: user.referralCode,
       },
     };
+    await this.prisma.user.update({
+      where: { id: user.id },
+      data: { lastLoginAt: new Date() },
+    });
+    if (user.role === 'ADMIN' || user.role === 'STAFF') {
+      await this.prisma.auditLog.create({
+        data: {
+          action: 'ADMIN_LOGIN',
+          adminId: user.id,
+          targetId: user.id,
+          targetName: user.name,
+        },
+      });
+    }
+    return result;
   }
 
   async register(data: RegisterDto) {
@@ -363,8 +383,27 @@ export class AuthService {
   }
 
   async logout(userId: string) {
-    // Clear the FCM token and unsubscribe from topics
-    await this.notificationsService.removeFcmToken(userId);
+    const user = await this.prisma.user.findUnique({
+      where: { id: userId },
+      select: { role: true, name: true },
+    });
+    await Promise.all([
+      this.notificationsService.removeFcmToken(userId),
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { tokenVersion: { increment: 1 } },
+      }),
+    ]);
+    if (user?.role === 'ADMIN' || user?.role === 'STAFF') {
+      await this.prisma.auditLog.create({
+        data: {
+          action: 'ADMIN_LOGOUT',
+          adminId: userId,
+          targetId: userId,
+          targetName: user.name,
+        },
+      });
+    }
     return { success: true, message: 'تم تسجيل الخروج بنجاح' };
   }
 
@@ -387,7 +426,13 @@ export class AuthService {
     }
 
     const hashedPassword = await bcrypt.hash(data.newPassword, 10);
-    await this.usersService.update(userId, { password: hashedPassword });
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: {
+        password: hashedPassword,
+        tokenVersion: { increment: 1 },
+      },
+    });
 
     return { success: true, message: 'تم تغيير كلمة السر بنجاح' };
   }

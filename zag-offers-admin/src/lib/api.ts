@@ -43,31 +43,14 @@ export function resolveImageUrl(path: string | null | undefined): string {
   return `${baseDomain}${cleanPath}`;
 }
 
-/** Read a cookie value from browser */
-export function getCookie(name: string): string | null {
-  if (typeof document === 'undefined') return null;
-  const match = document.cookie.match(new RegExp('(?:^|; )' + name + '=([^;]*)'));
-  return match ? decodeURIComponent(match[1]) : null;
-}
-
-/** Remove cookie */
-export function deleteCookie(name: string) {
-  document.cookie = `${name}=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT`;
-}
-
 const _axiosInstance = axios.create({
   baseURL: API_URL,
   headers: { 'Content-Type': 'application/json' },
   timeout: 15000,
+  withCredentials: true,
 });
 
 _axiosInstance.interceptors.request.use(async (config) => {
-  const token = getCookie('admin_token');
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  } else {
-    delete config.headers.Authorization;
-  }
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
     config.data = await optimizeUploadFormData(config.data);
   }
@@ -78,7 +61,6 @@ _axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      document.cookie = 'admin_token=; path=/; max-age=0';
       localStorage.removeItem('admin_user');
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';

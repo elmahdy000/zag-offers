@@ -28,6 +28,44 @@ export class ReviewsService {
     return relation.connect.id;
   }
 
+  async createContentReport(
+    reporterId: string,
+    data: { entityType: string; entityId: string; reason: string; details?: string },
+  ) {
+    const entityType = data.entityType?.trim().toUpperCase();
+    const entityId = data.entityId?.trim();
+    const reason = data.reason?.trim();
+    if (!['REVIEW', 'STORE', 'OFFER'].includes(entityType)) {
+      throw new BadRequestException('Unsupported report type');
+    }
+    if (!entityId || !reason || reason.length < 3) {
+      throw new BadRequestException('Report target and reason are required');
+    }
+    const duplicate = await this.prisma.contentReport.findFirst({
+      where: { reporterId, entityType, entityId, status: 'OPEN' },
+      select: { id: true },
+    });
+    if (duplicate) {
+      throw new BadRequestException('You already have an open report for this content');
+    }
+    const report = await this.prisma.contentReport.create({
+      data: {
+        reporterId,
+        entityType,
+        entityId,
+        reason,
+        details: data.details?.trim() || null,
+      },
+    });
+    this.eventsGateway.notifyAdmin({
+      type: 'SYSTEM',
+      title: 'بلاغ محتوى جديد',
+      body: `تم استلام بلاغ جديد على ${entityType}`,
+      payload: { reportId: report.id, entityType, entityId },
+    });
+    return { success: true, id: report.id };
+  }
+
   async create(data: Prisma.ReviewCreateInput) {
     if (data.rating < 1 || data.rating > 5) {
       throw new BadRequestException('التقييم يجب أن يكون بين 1 و 5');
@@ -74,12 +112,19 @@ export class ReviewsService {
       void this.usersService.addPoints(customerId, 20, 'REVIEW_ADDED').catch(err => Logger.error('Failed to add points for review', err));
     }
 
+    this.eventsGateway.notifyAdmin({
+      type: 'NEW_REVIEW',
+      title: 'تقييم جديد',
+      body: `${review.customer?.name || 'عميل'} أضاف تقييمًا ${review.rating}/5`,
+      payload: { reviewId: review.id, storeId: review.storeId },
+    });
+
     return review;
   }
 
   async findAllByStore(storeId: string) {
     return this.prisma.review.findMany({
-      where: { storeId },
+      where: { storeId, status: 'PUBLISHED' },
       include: { customer: { select: { name: true, avatar: true } } },
       orderBy: { createdAt: 'desc' },
     });
@@ -87,7 +132,7 @@ export class ReviewsService {
 
   async findAllByOffer(offerId: string) {
     const reviews = await this.prisma.review.findMany({
-      where: { offerId },
+      where: { offerId, status: 'PUBLISHED' },
       include: {
         customer: { select: { id: true, name: true, avatar: true } },
       },
@@ -132,7 +177,7 @@ export class ReviewsService {
   private async recalculateStoreRating(storeId: string) {
     try {
       const agg = await this.prisma.review.aggregate({
-        where: { storeId },
+        where: { storeId, status: 'PUBLISHED' },
         _avg: { rating: true },
         _count: { rating: true },
       });

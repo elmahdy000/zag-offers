@@ -25,31 +25,35 @@ export function SocketProvider({ children }: { children: ReactNode }) {
   const { showToast } = useToast();
 
   useEffect(() => {
-    const token = document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
     const userStr = localStorage.getItem('admin_user');
-    if (!token || !userStr) return;
+    if (!userStr) return;
     let active = true;
     let newSocket: Socket | null = null;
     let userId = '';
-    try { userId = JSON.parse(userStr).id || ''; } catch { return; }
+    let canReceiveAdminNotifications = false;
+    try {
+      const user = JSON.parse(userStr) as { id?: string; role?: string; adminPermissions?: string[] };
+      userId = user.id || '';
+      canReceiveAdminNotifications = user.role === 'ADMIN' || user.adminPermissions?.includes('dashboard.view') === true || user.adminPermissions?.includes('approvals.manage') === true;
+    } catch { return; }
     if (!userId) return;
 
     void import('socket.io-client').then(({ io }) => {
       if (!active) return;
       newSocket = io(SOCKET_URL, {
-        auth: { token },
+        withCredentials: true,
         transports: ['websocket', 'polling'],
         reconnectionAttempts: 5,
       });
 
       newSocket.on('connect', () => {
         setIsConnected(true);
-        newSocket?.emit('join_room', { token, room: 'admin_room' });
       });
 
       newSocket.on('disconnect', () => setIsConnected(false));
 
       newSocket.on('admin_notification', (notification: { type: string; body?: string }) => {
+        if (!canReceiveAdminNotifications) return;
         if (notification.type === 'ANNOUNCEMENT' && notification.body) showToast(notification.body, 'info');
         if (notification.type === 'NEW_PENDING_OFFER') {
           void queryClient.invalidateQueries({ queryKey: ['all-offers'] });

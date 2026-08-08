@@ -1,6 +1,7 @@
 import { ApiProperty } from '@nestjs/swagger';
-import { IsEmail, IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEmail, IsEnum, IsIn, IsOptional, IsString } from 'class-validator';
 import { Role } from '@prisma/client';
+import { ALL_ADMIN_PERMISSIONS } from '../../common/permissions/admin-permissions';
 
 export class UpdateUserDto {
   @ApiProperty({ required: false })
@@ -36,4 +37,10 @@ export class UpdateUserDto {
   @ApiProperty({ required: false })
   @IsOptional()
   points?: number;
+
+  @ApiProperty({ required: false, type: [String] })
+  @IsOptional()
+  @IsString({ each: true })
+  @IsIn(ALL_ADMIN_PERMISSIONS, { each: true })
+  adminPermissions?: string[];
 }

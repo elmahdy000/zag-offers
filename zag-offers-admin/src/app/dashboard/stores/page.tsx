@@ -23,7 +23,8 @@ import {
   RefreshCw,
   AlertTriangle,
   Star,
-  Ticket
+  Ticket,
+  Building2
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
@@ -61,6 +62,7 @@ type StoreFormData = {
 };
 
 interface StoreDetails extends StoreItem {
+  branches?: { id: string; name: string; address: string; phone?: string; isActive: boolean; city?: { name: string }; area?: { name: string } }[];
   owner: {
     id: string;
     name: string;
@@ -674,6 +676,19 @@ function StoresContent() {
                   <div className="text-[11px] font-bold text-slate-500">تقييم</div>
                 </div>
               </div>
+
+              {/* Offers Section */}
+              {storeDetails.branches && storeDetails.branches.length > 0 && (
+                <div className="mt-5">
+                  <h4 className="mb-2.5 flex items-center gap-2 text-sm font-bold text-slate-900"><Building2 size={17} className="text-orange-600" /> فروع المتجر</h4>
+                  <div className="space-y-2">
+                    {storeDetails.branches.map(branch => <div key={branch.id} className="flex items-center gap-3 rounded-xl border border-slate-100 bg-slate-50 p-3">
+                      <div className="min-w-0 flex-1"><p className="truncate text-xs font-black text-slate-800">{branch.name}</p><p className="mt-1 truncate text-[11px] text-slate-500">{branch.address} {branch.area?.name ? `· ${branch.area.name}` : ''}</p></div>
+                      <span className={`rounded-md px-2 py-1 text-[10px] font-bold ${branch.isActive ? 'bg-emerald-50 text-emerald-700' : 'bg-slate-200 text-slate-500'}`}>{branch.isActive ? 'نشط' : 'موقوف'}</span>
+                    </div>)}
+                  </div>
+                </div>
+              )}
 
               {/* Offers Section */}
               {storeDetails.offers && storeDetails.offers.length > 0 && (

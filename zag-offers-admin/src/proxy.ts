@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 
 export function proxy(request: NextRequest) {
-  const token = request.cookies.get('admin_token');
+  const token = request.cookies.get('auth_token');
   const isDashboardPage = request.nextUrl.pathname.startsWith('/dashboard');
 
   if (isDashboardPage && !token) {

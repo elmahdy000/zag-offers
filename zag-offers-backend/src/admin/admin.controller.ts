@@ -2,6 +2,7 @@ import {
   Body,
   Controller,
   Delete,
+  ForbiddenException,
   Get,
   Param,
   Patch,
@@ -18,7 +19,7 @@ import {
   ApiQuery,
   ApiTags,
 } from '@nestjs/swagger';
-import { CouponStatus, OfferStatus, Role, StoreStatus } from '@prisma/client';
+import { CouponStatus, OfferStatus, ReportStatus, ReviewStatus, Role, StoreStatus } from '@prisma/client';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { Roles } from '../auth/roles.decorator';
 import { RolesGuard } from '../auth/roles.guard';
@@ -33,16 +34,23 @@ import { UpdateBannerDto } from './dto/update-banner.dto';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
 import { BroadcastDto } from './dto/broadcast.dto';
+import { PermissionsGuard } from '../common/permissions/permissions.guard';
+import { Permissions } from '../common/permissions/permissions.decorator';
+import {
+  ADMIN_PERMISSIONS as P,
+  ALL_ADMIN_PERMISSIONS,
+} from '../common/permissions/admin-permissions';
 
 @ApiTags('admin')
 @Controller('admin')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@Roles(Role.ADMIN, Role.STAFF)
 @ApiBearerAuth()
 export class AdminController {
   constructor(private readonly adminService: AdminService) {}
 
   @Get('stats/global')
+  @Permissions(P.DASHBOARD_VIEW)
   @ApiOperation({ summary: 'Get global admin dashboard statistics' })
   async getGlobalStats() {
     const stats = await this.adminService.getGlobalStats();
@@ -51,6 +59,7 @@ export class AdminController {
   }
 
   @Get('stats/period')
+  @Permissions(P.REPORTS_VIEW)
   @ApiOperation({ summary: 'Get statistics for a given period' })
   @ApiQuery({
     name: 'period',
@@ -64,12 +73,14 @@ export class AdminController {
   }
 
   @Get('stats/top-categories')
+  @Permissions(P.REPORTS_VIEW)
   @ApiOperation({ summary: 'Get top categories by offer volume' })
   getTopCategories() {
     return this.adminService.getTopCategories();
   }
 
   @Get('stats/top-stores')
+  @Permissions(P.REPORTS_VIEW)
   @ApiOperation({ summary: 'Get top stores by performance' })
   @ApiQuery({ name: 'limit', required: false, example: 10 })
   getTopStores(@Query('limit') limit?: number) {
@@ -84,6 +95,7 @@ export class AdminController {
   }
 
   @Get('stores')
+  @Permissions(P.STORES_VIEW)
   @ApiOperation({ summary: 'List stores with filters and pagination' })
   @ApiQuery({ name: 'status', enum: StoreStatus, required: false })
   @ApiQuery({ name: 'categoryId', required: false })
@@ -110,24 +122,28 @@ export class AdminController {
   }
 
   @Get('stores/pending')
+  @Permissions(P.APPROVALS_MANAGE)
   @ApiOperation({ summary: 'Get pending stores' })
   getPendingStores() {
     return this.adminService.getPendingStores();
   }
 
   @Post('stores')
+  @Permissions(P.STORES_MANAGE)
   @ApiOperation({ summary: 'Create a new store as admin' })
   createStore(@Body() body: CreateStoreDto) {
     return this.adminService.createStore(body);
   }
 
   @Get('stores/:id')
+  @Permissions(P.STORES_VIEW)
   @ApiOperation({ summary: 'Get full store details for admin' })
   getStoreDetails(@Param('id') id: string) {
     return this.adminService.getStoreDetails(id);
   }
 
   @Patch('stores/:id')
+  @Permissions(P.STORES_MANAGE)
   @ApiOperation({ summary: 'Update store details as admin' })
   updateStore(
     @Param('id') id: string,
@@ -137,6 +153,7 @@ export class AdminController {
   }
 
   @Patch('stores/:id/approve')
+  @Permissions(P.APPROVALS_MANAGE)
   @ApiOperation({ summary: 'Approve a store' })
   approveStore(
     @Param('id') id: string,
@@ -146,6 +163,7 @@ export class AdminController {
   }
 
   @Patch('stores/:id/reject')
+  @Permissions(P.APPROVALS_MANAGE)
   @ApiOperation({ summary: 'Reject a store' })
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
   rejectStore(
@@ -157,6 +175,7 @@ export class AdminController {
   }
 
   @Patch('stores/:id/suspend')
+  @Permissions(P.STORES_MANAGE)
   @ApiOperation({ summary: 'Suspend a store' })
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
   suspendStore(@Param('id') id: string, @Body('reason') reason?: string) {
@@ -164,12 +183,14 @@ export class AdminController {
   }
 
   @Delete('stores/:id')
+  @Permissions(P.STORES_MANAGE)
   @ApiOperation({ summary: 'Delete a store' })
   deleteStore(@Param('id') id: string) {
     return this.adminService.deleteStore(id);
   }
 
   @Get('offers')
+  @Permissions(P.OFFERS_VIEW)
   @ApiOperation({ summary: 'List offers with filters and pagination' })
   @ApiQuery({ name: 'status', enum: OfferStatus, required: false })
   @ApiQuery({ name: 'storeId', required: false })
@@ -193,24 +214,28 @@ export class AdminController {
   }
 
   @Get('offers/pending')
+  @Permissions(P.APPROVALS_MANAGE)
   @ApiOperation({ summary: 'Get pending offers' })
   getPendingOffers() {
     return this.adminService.getPendingOffers();
   }
 
   @Post('offers')
+  @Permissions(P.OFFERS_MANAGE)
   @ApiOperation({ summary: 'Create a new offer as admin' })
   createOffer(@Body() body: UpdateOfferDto, @Request() req: { user: { id: string } }) {
     return this.adminService.createOffer(body, req.user.id);
   }
 
   @Get('offers/:id')
+  @Permissions(P.OFFERS_VIEW)
   @ApiOperation({ summary: 'Get full offer details for admin' })
   getOfferDetails(@Param('id') id: string) {
     return this.adminService.getOfferDetails(id);
   }
 
   @Patch('offers/:id')
+  @Permissions(P.OFFERS_MANAGE)
   @ApiOperation({ summary: 'Update offer details as admin' })
   updateOffer(
     @Param('id') id: string,
@@ -221,6 +246,7 @@ export class AdminController {
   }
 
   @Patch('offers/:id/approve')
+  @Permissions(P.APPROVALS_MANAGE)
   @ApiOperation({ summary: 'Approve an offer' })
   approveOffer(
     @Param('id') id: string,
@@ -230,6 +256,7 @@ export class AdminController {
   }
 
   @Patch('offers/:id/reject')
+  @Permissions(P.APPROVALS_MANAGE)
   @ApiOperation({ summary: 'Reject an offer' })
   @ApiBody({ schema: { properties: { reason: { type: 'string' } } } })
   rejectOffer(
@@ -241,6 +268,7 @@ export class AdminController {
   }
 
   @Delete('offers/:id')
+  @Permissions(P.OFFERS_MANAGE)
   @ApiOperation({ summary: 'Delete an offer' })
   deleteOffer(
     @Param('id') id: string,
@@ -250,6 +278,7 @@ export class AdminController {
   }
 
   @Get('users')
+  @Permissions(P.USERS_VIEW)
   @ApiOperation({ summary: 'List users with filters and pagination' })
   @ApiQuery({ name: 'role', enum: Role, required: false })
   @ApiQuery({ name: 'search', required: false })
@@ -270,24 +299,35 @@ export class AdminController {
   }
 
   @Get('users/:id')
+  @Permissions(P.USERS_VIEW)
   @ApiOperation({ summary: 'Get single user details' })
   getUserDetails(@Param('id') id: string) {
     return this.adminService.getUserDetails(id);
   }
 
   @Post('users')
+  @Permissions(P.USERS_MANAGE)
   @ApiOperation({ summary: 'Create new user' })
-  createUser(@Body() data: CreateUserDto) {
-    return this.adminService.createUser(data);
+  createUser(
+    @Body() data: CreateUserDto,
+    @Request() req: { user: { id: string; role: Role } },
+  ) {
+    return this.adminService.createUser(data, req.user);
   }
 
   @Patch('users/:id')
+  @Permissions(P.USERS_MANAGE)
   @ApiOperation({ summary: 'Update user profile' })
-  updateUser(@Param('id') id: string, @Body() data: UpdateUserDto) {
-    return this.adminService.updateUser(id, data);
+  updateUser(
+    @Param('id') id: string,
+    @Body() data: UpdateUserDto,
+    @Request() req: { user: { id: string; role: Role } },
+  ) {
+    return this.adminService.updateUser(id, data, req.user);
   }
 
   @Patch('users/:id/role')
+  @Permissions(P.USERS_MANAGE)
   @ApiOperation({ summary: 'Change user role' })
   @ApiBody({
     schema: {
@@ -296,11 +336,16 @@ export class AdminController {
       },
     },
   })
-  changeUserRole(@Param('id') id: string, @Body('role') role: Role) {
-    return this.adminService.changeUserRole(id, role);
+  changeUserRole(
+    @Param('id') id: string,
+    @Body('role') role: Role,
+    @Request() req: { user: { id: string; role: Role } },
+  ) {
+    return this.adminService.changeUserRole(id, role, req.user);
   }
 
   @Patch('users/:id/points')
+  @Permissions(P.USERS_MANAGE)
   @ApiOperation({ summary: 'Adjust user points manually' })
   @ApiBody({
     schema: {
@@ -322,18 +367,34 @@ export class AdminController {
   }
 
   @Delete('users/:id')
+  @Permissions(P.USERS_MANAGE)
   @ApiOperation({ summary: 'Delete a user' })
-  deleteUser(@Param('id') id: string) {
-    return this.adminService.deleteUser(id);
+  deleteUser(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string; role: Role } },
+  ) {
+    return this.adminService.deleteUser(id, req.user);
+  }
+
+  @Get('permissions')
+  @Permissions(P.USERS_MANAGE)
+  @ApiOperation({ summary: 'List permissions available for staff accounts' })
+  getAdminPermissions(@Request() req: { user: { role: Role } }) {
+    if (req.user.role !== Role.ADMIN) {
+      throw new ForbiddenException('Only administrators can manage staff permissions');
+    }
+    return { items: ALL_ADMIN_PERMISSIONS };
   }
 
   @Get('categories')
+  @Permissions(P.CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'List categories' })
   getAllCategories() {
     return this.adminService.getAllCategories();
   }
 
   @Post('categories')
+  @Permissions(P.CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'Create category' })
   @ApiBody({
     schema: {
@@ -352,6 +413,7 @@ export class AdminController {
   }
 
   @Patch('categories/:id')
+  @Permissions(P.CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'Update category name and image' })
   @ApiBody({
     schema: {
@@ -371,6 +433,7 @@ export class AdminController {
   }
 
   @Delete('categories/:id')
+  @Permissions(P.CATEGORIES_MANAGE)
   @ApiOperation({ summary: 'Delete category' })
   deleteCategory(
     @Param('id') id: string,
@@ -380,12 +443,14 @@ export class AdminController {
   }
 
   @Get('banners')
+  @Permissions(P.BANNERS_MANAGE)
   @ApiOperation({ summary: 'List banners' })
   getAllBanners() {
     return this.adminService.getAllBanners();
   }
 
   @Post('banners')
+  @Permissions(P.BANNERS_MANAGE)
   @ApiOperation({ summary: 'Create banner' })
   createBanner(
     @Body() body: CreateBannerDto,
@@ -395,6 +460,7 @@ export class AdminController {
   }
 
   @Patch('banners/:id')
+  @Permissions(P.BANNERS_MANAGE)
   @ApiOperation({ summary: 'Update banner' })
   updateBanner(
     @Param('id') id: string,
@@ -405,6 +471,7 @@ export class AdminController {
   }
 
   @Delete('banners/:id')
+  @Permissions(P.BANNERS_MANAGE)
   @ApiOperation({ summary: 'Delete banner' })
   deleteBanner(
     @Param('id') id: string,
@@ -414,6 +481,7 @@ export class AdminController {
   }
 
   @Get('coupons')
+  @Permissions(P.COUPONS_VIEW)
   @ApiOperation({ summary: 'List coupons with filters and pagination' })
   @ApiQuery({ name: 'status', enum: CouponStatus, required: false })
   @ApiQuery({ name: 'storeId', required: false })
@@ -437,18 +505,21 @@ export class AdminController {
   }
 
   @Get('coupons/:id')
+  @Permissions(P.COUPONS_VIEW)
   @ApiOperation({ summary: 'Get coupon details for admin' })
   getCouponDetails(@Param('id') id: string) {
     return this.adminService.getCouponDetails(id);
   }
 
   @Delete('coupons/:id')
+  @Permissions(P.COUPONS_MANAGE)
   @ApiOperation({ summary: 'Delete a coupon record' })
   deleteCoupon(@Param('id') id: string) {
     return this.adminService.deleteCoupon(id);
   }
 
   @Post('broadcast')
+  @Permissions(P.BROADCAST_SEND)
   @ApiOperation({ summary: 'Broadcast announcement to users' })
   @ApiBody({
     schema: {
@@ -472,5 +543,120 @@ export class AdminController {
       actionValue: body.actionValue,
       adminId: req.user.id,
     });
+  }
+
+  @Get('broadcast/history')
+  @Permissions(P.BROADCAST_SEND)
+  @ApiOperation({ summary: 'List broadcast notification history' })
+  getBroadcastHistory(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+  ) {
+    return this.adminService.getBroadcastHistory(
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 20,
+    );
+  }
+
+  @Get('reviews')
+  @Permissions(P.REVIEWS_MANAGE)
+  getReviews(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('status') status?: ReviewStatus,
+    @Query('search') search?: string,
+  ) {
+    return this.adminService.getReviews({
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+      status,
+      search,
+    });
+  }
+
+  @Patch('reviews/:id/moderate')
+  @Permissions(P.REVIEWS_MANAGE)
+  moderateReview(
+    @Param('id') id: string,
+    @Body('status') status: ReviewStatus,
+    @Body('note') note: string | undefined,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.adminService.moderateReview(id, status, note, req.user.id);
+  }
+
+  @Get('content-reports')
+  @Permissions(P.REVIEWS_MANAGE)
+  getContentReports(
+    @Query('page') page?: number,
+    @Query('limit') limit?: number,
+    @Query('status') status?: ReportStatus,
+  ) {
+    return this.adminService.getContentReports({
+      page: page ? Number(page) : 1,
+      limit: limit ? Number(limit) : 20,
+      status,
+    });
+  }
+
+  @Patch('content-reports/:id/resolve')
+  @Permissions(P.REVIEWS_MANAGE)
+  resolveContentReport(
+    @Param('id') id: string,
+    @Body('status') status: ReportStatus,
+    @Body('note') note: string | undefined,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.adminService.resolveContentReport(id, status, note, req.user.id);
+  }
+
+  @Get('locations')
+  @Permissions(P.LOCATIONS_MANAGE)
+  getLocations() { return this.adminService.getLocations(); }
+
+  @Post('locations/cities')
+  @Permissions(P.LOCATIONS_MANAGE)
+  createCity(@Body() body: { name: string; priority?: number; isActive?: boolean }, @Request() req: { user: { id: string } }) {
+    return this.adminService.createCity(body, req.user.id);
+  }
+
+  @Patch('locations/cities/:id')
+  @Permissions(P.LOCATIONS_MANAGE)
+  updateCity(@Param('id') id: string, @Body() body: { name?: string; priority?: number; isActive?: boolean }, @Request() req: { user: { id: string } }) {
+    return this.adminService.updateCity(id, body, req.user.id);
+  }
+
+  @Post('locations/areas')
+  @Permissions(P.LOCATIONS_MANAGE)
+  createArea(@Body() body: { cityId: string; name: string; priority?: number; isActive?: boolean }, @Request() req: { user: { id: string } }) {
+    return this.adminService.createArea(body, req.user.id);
+  }
+
+  @Patch('locations/areas/:id')
+  @Permissions(P.LOCATIONS_MANAGE)
+  updateArea(@Param('id') id: string, @Body() body: { name?: string; priority?: number; isActive?: boolean }, @Request() req: { user: { id: string } }) {
+    return this.adminService.updateArea(id, body, req.user.id);
+  }
+
+  @Get('stores/:storeId/branches')
+  @Permissions(P.STORES_VIEW)
+  getStoreBranches(@Param('storeId') storeId: string) { return this.adminService.getStoreBranches(storeId); }
+
+  @Post('stores/:storeId/branches')
+  @Permissions(P.STORES_MANAGE)
+  createStoreBranch(@Param('storeId') storeId: string, @Body() body: Parameters<AdminService['createStoreBranch']>[1], @Request() req: { user: { id: string } }) {
+    return this.adminService.createStoreBranch(storeId, body, req.user.id);
+  }
+
+  @Patch('branches/:id')
+  @Permissions(P.STORES_MANAGE)
+  updateStoreBranch(@Param('id') id: string, @Body() body: Parameters<AdminService['updateStoreBranch']>[1], @Request() req: { user: { id: string } }) {
+    return this.adminService.updateStoreBranch(id, body, req.user.id);
+  }
+
+  @Delete('branches/:id')
+  @Permissions(P.STORES_MANAGE)
+  deleteStoreBranch(@Param('id') id: string, @Request() req: { user: { id: string } }) {
+    return this.adminService.deleteStoreBranch(id, req.user.id);
   }
 }

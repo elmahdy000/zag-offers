@@ -4,6 +4,9 @@ import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
 import { Role } from '@prisma/client';
+import { PermissionsGuard } from '../common/permissions/permissions.guard';
+import { Permissions } from '../common/permissions/permissions.decorator';
+import { ADMIN_PERMISSIONS } from '../common/permissions/admin-permissions';
 import {
   ApiTags,
   ApiOperation,
@@ -13,8 +16,9 @@ import {
 
 @ApiTags('audit-logs (سجل العمليات)')
 @Controller('admin/audit-logs')
-@UseGuards(JwtAuthGuard, RolesGuard)
-@Roles(Role.ADMIN)
+@UseGuards(JwtAuthGuard, RolesGuard, PermissionsGuard)
+@Roles(Role.ADMIN, Role.STAFF)
+@Permissions(ADMIN_PERMISSIONS.AUDIT_VIEW)
 @ApiBearerAuth()
 export class AuditLogController {
   constructor(private readonly auditLogService: AuditLogService) {}

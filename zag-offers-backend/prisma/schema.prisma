@@ -44,50 +44,66 @@ enum CouponStatus {
   EXPIRED
 }
 
-model User {
-  id       String  @id @default(uuid())
-  phone    String? @unique
-  email    String? @unique
-  password String?
-  name     String
-  role     Role    @default(CUSTOMER)
+enum ReviewStatus {
+  PUBLISHED
+  HIDDEN
+}
 
-  googleId   String? @unique
-  facebookId String? @unique
-  avatar     String?
-  area       String? // منطقة السكن للترشيحات
-  fcmToken   String?
+enum ReportStatus {
+  OPEN
+  RESOLVED
+  DISMISSED
+}
+
+model User {
+  id               String   @id @default(uuid())
+  phone            String?  @unique
+  email            String?  @unique
+  password         String?
+  name             String
+  role             Role     @default(CUSTOMER)
+  adminPermissions String[] @default([])
+  tokenVersion     Int      @default(0)
+
+  googleId       String?   @unique
+  facebookId     String?   @unique
+  avatar         String?
+  area           String? // منطقة السكن للترشيحات
+  fcmToken       String?
   resetOtp       String?
   resetOtpExpiry DateTime?
-  birthDate  DateTime?
-  gender     String?
-  lastLoginAt DateTime?
+  birthDate      DateTime?
+  gender         String?
+  lastLoginAt    DateTime?
 
-  stores    Store[]
-  coupons   Coupon[]
-  reviews   Review[]
-  favorites Favorite[]
-  auditLogs AuditLog[] @relation("AdminLogs")
-  notifications Notification[]
-  points    Int        @default(0)
-  tier      UserTier   @default(BRONZE)
-  
+  stores          Store[]
+  coupons         Coupon[]
+  reviews         Review[]
+  favorites       Favorite[]
+  auditLogs       AuditLog[]      @relation("AdminLogs")
+  broadcastLogs   BroadcastLog[]  @relation("BroadcastLogs")
+  contentReports  ContentReport[] @relation("ContentReports")
+  resolvedReports ContentReport[] @relation("ResolvedReports")
+  notifications   Notification[]
+  points          Int             @default(0)
+  tier            UserTier        @default(BRONZE)
+
   pointLogs PointLog[]
-  
-  adminConversations Conversation[] @relation("AdminConversations")
-  participantConversations Conversation[] @relation("ParticipantConversations")
-  messages Message[]
 
-  createdAt DateTime   @default(now())
-  updatedAt DateTime   @updatedAt
+  adminConversations       Conversation[] @relation("AdminConversations")
+  participantConversations Conversation[] @relation("ParticipantConversations")
+  messages                 Message[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
 
   analyticsEvents AnalyticsEvent[]
 
   // Referral System
-  referralCode String? @unique
-  referredById String?
-  referredBy   User?   @relation("UserReferrals", fields: [referredById], references: [id])
-  referrals    User[]  @relation("UserReferrals")
+  referralCode        String? @unique
+  referredById        String?
+  referredBy          User?   @relation("UserReferrals", fields: [referredById], references: [id])
+  referrals           User[]  @relation("UserReferrals")
   hasRewardedReferrer Boolean @default(false)
 
   @@index([role])
@@ -113,32 +129,36 @@ model Banner {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  offerId   String?
-  offer     Offer?   @relation("BannerToOffer", fields: [offerId], references: [id])
+  offerId String?
+  offer   Offer?  @relation("BannerToOffer", fields: [offerId], references: [id])
 
   @@index([isActive])
   @@index([priority])
 }
 
 model Store {
-  id         String      @id @default(uuid())
-  name       String
-  logo       String?
-  coverImage String?
-  address    String
-  area       String? // e.g. El Qawmeya
-  lat        Float?
-  lng        Float?
-  phone      String
-  whatsapp   String?
-  locationUrl String?
-  facebook   String?
-  instagram  String?
-  tiktok     String?
+  id           String      @id @default(uuid())
+  name         String
+  logo         String?
+  coverImage   String?
+  address      String
+  area         String? // e.g. El Qawmeya
+  cityId       String?
+  city         City?       @relation(fields: [cityId], references: [id])
+  areaId       String?
+  areaRef      Area?       @relation(fields: [areaId], references: [id])
+  lat          Float?
+  lng          Float?
+  phone        String
+  whatsapp     String?
+  locationUrl  String?
+  facebook     String?
+  instagram    String?
+  tiktok       String?
   workingHours String?
-  ratingAvg  Float @default(0)
-  ratingCount Int @default(0)
-  status     StoreStatus @default(PENDING)
+  ratingAvg    Float       @default(0)
+  ratingCount  Int         @default(0)
+  status       StoreStatus @default(PENDING)
 
   categoryId String
   category   Category @relation(fields: [categoryId], references: [id])
@@ -146,10 +166,11 @@ model Store {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  offers  Offer[]
-  reviews Review[]
+  offers   Offer[]
+  reviews  Review[]
+  branches StoreBranch[]
 
-  images     String[] // معرض صور المحل
+  images    String[] // معرض صور المحل
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -159,6 +180,64 @@ model Store {
   @@index([status])
   @@index([categoryId])
   @@index([ownerId])
+  @@index([cityId])
+  @@index([areaId])
+}
+
+model City {
+  id        String        @id @default(uuid())
+  name      String        @unique
+  isActive  Boolean       @default(true)
+  priority  Int           @default(0)
+  areas     Area[]
+  stores    Store[]
+  branches  StoreBranch[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@index([isActive, priority])
+}
+
+model Area {
+  id        String        @id @default(uuid())
+  name      String
+  cityId    String
+  city      City          @relation(fields: [cityId], references: [id], onDelete: Cascade)
+  isActive  Boolean       @default(true)
+  priority  Int           @default(0)
+  stores    Store[]
+  branches  StoreBranch[]
+  createdAt DateTime      @default(now())
+  updatedAt DateTime      @updatedAt
+
+  @@unique([cityId, name])
+  @@index([cityId, isActive])
+}
+
+model StoreBranch {
+  id           String   @id @default(uuid())
+  name         String
+  address      String
+  phone        String?
+  whatsapp     String?
+  lat          Float?
+  lng          Float?
+  locationUrl  String?
+  workingHours String?
+  isActive     Boolean  @default(true)
+  storeId      String
+  store        Store    @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  cityId       String?
+  city         City?    @relation(fields: [cityId], references: [id])
+  areaId       String?
+  area         Area?    @relation(fields: [areaId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([storeId])
+  @@index([cityId])
+  @@index([areaId])
+  @@index([isActive])
 }
 
 model PointLog {
@@ -166,32 +245,32 @@ model PointLog {
   user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
   userId    String
   amount    Int
-  reason    String   // e.g., "COUPON_REDEEM", "REVIEW_ADDED", "WELCOME_BONUS"
+  reason    String // e.g., "COUPON_REDEEM", "REVIEW_ADDED", "WELCOME_BONUS"
   createdAt DateTime @default(now())
 
   @@index([userId])
 }
 
 model Offer {
-  id          String      @id @default(uuid())
-  title       String
-  description String
-  images      String[]
-  discount    String // e.g. "20%" or "BOGO"
-  originalPrice Float?
-  newPrice      Float?
-  terms       String?
-  startDate   DateTime
-  endDate     DateTime
-  usageLimit  Int?
-  minSpend    Float?
-  discountType String @default("PERCENTAGE")
-  isFeatured  Boolean @default(false)
-  fixedCommission Float @default(0) // Fixed amount in EGP per used coupon
-  status      OfferStatus @default(PENDING)
-  isNotified  Boolean     @default(false)
-  views       Int         @default(0)
-  isFlashSale Boolean     @default(false)
+  id              String      @id @default(uuid())
+  title           String
+  description     String
+  images          String[]
+  discount        String // e.g. "20%" or "BOGO"
+  originalPrice   Float?
+  newPrice        Float?
+  terms           String?
+  startDate       DateTime
+  endDate         DateTime
+  usageLimit      Int?
+  minSpend        Float?
+  discountType    String      @default("PERCENTAGE")
+  isFeatured      Boolean     @default(false)
+  fixedCommission Float       @default(0) // Fixed amount in EGP per used coupon
+  status          OfferStatus @default(PENDING)
+  isNotified      Boolean     @default(false)
+  views           Int         @default(0)
+  isFlashSale     Boolean     @default(false)
   flashSaleEndsAt DateTime?
 
   storeId String
@@ -200,7 +279,7 @@ model Offer {
   coupons   Coupon[]
   reviews   Review[]
   favorites Favorite[]
-  banners   Banner[] @relation("BannerToOffer")
+  banners   Banner[]   @relation("BannerToOffer")
 
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
@@ -228,11 +307,11 @@ model Favorite {
 }
 
 model Coupon {
-  id        String       @id @default(uuid())
-  code      String       @unique
-  expiresAt DateTime
-  status    CouponStatus @default(GENERATED)
-  commissionAmount Float @default(0) // Admin profit for this specific usage
+  id               String       @id @default(uuid())
+  code             String       @unique
+  expiresAt        DateTime
+  status           CouponStatus @default(GENERATED)
+  commissionAmount Float        @default(0) // Admin profit for this specific usage
 
   offerId String
   offer   Offer  @relation(fields: [offerId], references: [id])
@@ -250,12 +329,14 @@ model Coupon {
 }
 
 model Review {
-  id      String  @id @default(uuid())
-  rating  Int
-  comment String?
-  images  String[] // لدعم صور التقييم للمصداقية
-  merchantReply String?
+  id             String       @id @default(uuid())
+  rating         Int
+  comment        String?
+  images         String[] // لدعم صور التقييم للمصداقية
+  merchantReply  String?
   replyCreatedAt DateTime?
+  status         ReviewStatus @default(PUBLISHED)
+  moderationNote String?
 
   storeId String
   store   Store  @relation(fields: [storeId], references: [id])
@@ -273,20 +354,42 @@ model Review {
   @@index([customerId])
   @@index([rating])
   @@index([createdAt])
+  @@index([status])
+}
+
+model ContentReport {
+  id             String       @id @default(uuid())
+  reason         String
+  details        String?
+  status         ReportStatus @default(OPEN)
+  entityType     String
+  entityId       String
+  reporterId     String?
+  reporter       User?        @relation("ContentReports", fields: [reporterId], references: [id], onDelete: SetNull)
+  resolvedById   String?
+  resolvedBy     User?        @relation("ResolvedReports", fields: [resolvedById], references: [id], onDelete: SetNull)
+  resolutionNote String?
+  resolvedAt     DateTime?
+  createdAt      DateTime     @default(now())
+  updatedAt      DateTime     @updatedAt
+
+  @@index([status])
+  @@index([entityType, entityId])
+  @@index([createdAt])
 }
 
 model Conversation {
-  id            String    @id @default(uuid())
-  type          String    // 'ADMIN_CUSTOMER' | 'ADMIN_MERCHANT'
-  
-  adminId       String
-  admin         User      @relation("AdminConversations", fields: [adminId], references: [id])
-  
+  id   String @id @default(uuid())
+  type String // 'ADMIN_CUSTOMER' | 'ADMIN_MERCHANT'
+
+  adminId String
+  admin   User   @relation("AdminConversations", fields: [adminId], references: [id])
+
   participantId String
-  participant   User      @relation("ParticipantConversations", fields: [participantId], references: [id])
-  
-  messages      Message[]
-  
+  participant   User   @relation("ParticipantConversations", fields: [participantId], references: [id])
+
+  messages Message[]
+
   lastMessageAt DateTime @default(now())
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
@@ -297,16 +400,16 @@ model Conversation {
 }
 
 model Message {
-  id             String       @id @default(uuid())
-  text           String
-  senderId       String
-  sender         User         @relation(fields: [senderId], references: [id])
-  
+  id       String @id @default(uuid())
+  text     String
+  senderId String
+  sender   User   @relation(fields: [senderId], references: [id])
+
   conversationId String
   conversation   Conversation @relation(fields: [conversationId], references: [id])
-  
-  isRead         Boolean      @default(false)
-  createdAt      DateTime     @default(now())
+
+  isRead    Boolean  @default(false)
+  createdAt DateTime @default(now())
 
   @@index([conversationId])
   @@index([senderId])
@@ -315,15 +418,15 @@ model Message {
 }
 
 model AuditLog {
-  id        String   @id @default(uuid())
-  action    String   // e.g. "APPROVE_STORE", "REJECT_OFFER", "SEND_BROADCAST"
-  details   String?  // JSON or text details
-  targetId  String?  // ID of the affected entity (Store, Offer, User)
+  id         String  @id @default(uuid())
+  action     String // e.g. "APPROVE_STORE", "REJECT_OFFER", "SEND_BROADCAST"
+  details    String? // JSON or text details
+  targetId   String? // ID of the affected entity (Store, Offer, User)
   targetName String? // Human readable name of target
-  
-  adminId   String
-  admin     User     @relation("AdminLogs", fields: [adminId], references: [id])
-  
+
+  adminId String
+  admin   User   @relation("AdminLogs", fields: [adminId], references: [id])
+
   createdAt DateTime @default(now())
 
   @@index([adminId])
@@ -331,18 +434,35 @@ model AuditLog {
   @@index([createdAt])
 }
 
+model BroadcastLog {
+  id             String   @id @default(uuid())
+  title          String
+  body           String
+  area           String?
+  imageUrl       String?
+  actionType     String?
+  actionValue    String?
+  recipientCount Int      @default(0)
+  createdById    String
+  createdBy      User     @relation("BroadcastLogs", fields: [createdById], references: [id])
+  createdAt      DateTime @default(now())
+
+  @@index([createdAt])
+  @@index([createdById])
+}
+
 model Notification {
-  id        String   @id @default(uuid())
-  title     String
-  body      String
-  imageUrl  String?
-  type      String?  // e.g., 'NEW_OFFER', 'BROADCAST'
-  data      String?  // JSON payload
-  isRead    Boolean  @default(false)
-  
-  userId    String
-  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
-  
+  id       String  @id @default(uuid())
+  title    String
+  body     String
+  imageUrl String?
+  type     String? // e.g., 'NEW_OFFER', 'BROADCAST'
+  data     String? // JSON payload
+  isRead   Boolean @default(false)
+
+  userId String
+  user   User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+
   createdAt DateTime @default(now())
 
   @@index([userId])
@@ -358,7 +478,7 @@ model AnalyticsEvent {
   offer     Offer?   @relation(fields: [offerId], references: [id])
   storeId   String?
   store     Store?   @relation(fields: [storeId], references: [id])
-  eventType String   // e.g., 'OFFER_VIEW', 'OFFER_FAVORITE', 'COUPON_GENERATE'
+  eventType String // e.g., 'OFFER_VIEW', 'OFFER_FAVORITE', 'COUPON_GENERATE'
   createdAt DateTime @default(now())
 
   @@index([userId])

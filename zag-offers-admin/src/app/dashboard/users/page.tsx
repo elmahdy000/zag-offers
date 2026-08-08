@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import {
   Loader2,
   Search,
@@ -22,13 +22,15 @@ import { UserCard } from '@/components/users/UserCard';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/components/shared/Toast';
 import { useSocketContext } from '@/components/SocketProvider';
+import { readAdminUser } from '@/lib/admin-auth';
 
 interface UserItem {
   id: string;
   name: string;
   email: string | null;
   phone: string;
-  role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN';
+  role: 'CUSTOMER' | 'MERCHANT' | 'ADMIN' | 'STAFF';
+  adminPermissions?: string[];
   area?: string | null;
   createdAt: string;
   points?: number;
@@ -37,7 +39,20 @@ interface UserItem {
 }
 
 type UserRole = UserItem['role'];
-type UserPayload = { name: string; phone: string; email: string; area: string; role: UserRole; password?: string };
+type UserPayload = { name: string; phone: string; email: string; area: string; role: UserRole; password?: string; adminPermissions?: string[] };
+
+const permissionLabels: Record<string, string> = {
+  'dashboard.view': 'عرض لوحة المتابعة', 'approvals.manage': 'إدارة الموافقات',
+  'stores.view': 'عرض المتاجر', 'stores.manage': 'إدارة المتاجر',
+  'offers.view': 'عرض العروض', 'offers.manage': 'إدارة العروض',
+  'users.view': 'عرض المستخدمين', 'users.manage': 'إدارة المستخدمين',
+  'categories.manage': 'إدارة التصنيفات', 'banners.manage': 'إدارة البانرات',
+  'coupons.view': 'عرض الكوبونات', 'coupons.manage': 'إدارة الكوبونات',
+  'broadcast.send': 'إرسال التنبيهات', 'reports.view': 'عرض التقارير',
+  'audit.view': 'عرض سجل العمليات', 'settings.manage': 'إدارة الإعدادات',
+  'chat.manage': 'إدارة المحادثات', 'reviews.manage': 'إدارة المحتوى والبلاغات',
+  'locations.manage': 'إدارة المدن والمناطق',
+};
 
 function apiErrorMessage(error: unknown, fallback: string) {
   if (typeof error === 'object' && error !== null && 'response' in error) {
@@ -48,6 +63,7 @@ function apiErrorMessage(error: unknown, fallback: string) {
 }
 
 export default function UsersPage() {
+  const currentAdmin = useMemo(() => readAdminUser(), []);
   const queryClient = useQueryClient();
   const { socket } = useSocketContext();
   const { showToast } = useToast();
@@ -65,7 +81,8 @@ export default function UsersPage() {
     email: '',
     area: '',
     role: 'CUSTOMER' as UserRole,
-    password: ''
+    password: '',
+    adminPermissions: [] as string[],
   });
   const [formErrors, setFormErrors] = useState<Record<string, string>>({});
   const [adminRoleConfirm, setAdminRoleConfirm] = useState(false);
@@ -139,6 +156,13 @@ export default function UsersPage() {
     }
   });
 
+  const permissionsQuery = useQuery({
+    queryKey: ['admin-permissions'],
+    queryFn: async () => (await adminApi().get<{ items: string[] }>('/admin/permissions')).data.items,
+    enabled: currentAdmin?.role === 'ADMIN',
+    staleTime: Infinity,
+  });
+
   const openUpsert = (user?: UserItem) => {
     if (user) {
       setEditingUser(user);
@@ -148,11 +172,12 @@ export default function UsersPage() {
         email: user.email || '',
         area: user.area || '',
         role: user.role,
-        password: ''
+        password: '',
+        adminPermissions: user.adminPermissions ?? [],
       });
     } else {
       setEditingUser(null);
-      setFormData({ name: '', phone: '', email: '', area: '', role: 'CUSTOMER', password: '' });
+      setFormData({ name: '', phone: '', email: '', area: '', role: 'CUSTOMER', password: '', adminPermissions: [] });
     }
     setFormErrors({});
     setIsUpsertOpen(true);
@@ -247,6 +272,7 @@ export default function UsersPage() {
             <option value="CUSTOMER">العملاء</option>
             <option value="MERCHANT">التجار</option>
             <option value="ADMIN">المدراء</option>
+            <option value="STAFF">فريق الإدارة</option>
           </select>
         </div>
       </div>
@@ -400,9 +426,24 @@ export default function UsersPage() {
                       <option value="CUSTOMER">عميل</option>
                       <option value="MERCHANT">تاجر</option>
                       <option value="ADMIN">مدير نظام</option>
+                      {currentAdmin?.role === 'ADMIN' && <option value="STAFF">موظف بصلاحيات محددة</option>}
                     </select>
                   </div>
                 </div>
+
+                {formData.role === 'STAFF' && currentAdmin?.role === 'ADMIN' && (
+                  <fieldset className="rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                    <legend className="px-2 text-xs font-black text-slate-700">صلاحيات موظف الإدارة</legend>
+                    <div className="mt-2 grid max-h-52 gap-2 overflow-y-auto sm:grid-cols-2">
+                      {(permissionsQuery.data ?? []).map(permission => (
+                        <label key={permission} className="flex cursor-pointer items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 text-xs font-bold text-slate-600">
+                          <input type="checkbox" checked={formData.adminPermissions.includes(permission)} onChange={e => setFormData(current => ({ ...current, adminPermissions: e.target.checked ? [...current.adminPermissions, permission] : current.adminPermissions.filter(item => item !== permission) }))} className="h-4 w-4 accent-orange-600" />
+                          {permissionLabels[permission] ?? permission}
+                        </label>
+                      ))}
+                    </div>
+                  </fieldset>
+                )}
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-widest mr-1">

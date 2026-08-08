@@ -164,7 +164,7 @@ export class StoresService {
       this.prisma.favorite.count({
         where: { offer: { storeId } },
       }),
-      this.prisma.review.count({ where: { storeId } }),
+      this.prisma.review.count({ where: { storeId, status: 'PUBLISHED' } }),
       this.prisma.offer.aggregate({
         where: { storeId },
         _sum: { views: true },

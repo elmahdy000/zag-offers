@@ -6,6 +6,7 @@ import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { api } from '@/lib/api';
 import AdminThemeToggle from '@/components/AdminThemeToggle';
+import { firstAllowedAdminRoute } from '@/lib/admin-auth';
 
 export default function AdminLoginPage() {
   const router = useRouter();
@@ -36,20 +37,19 @@ export default function AdminLoginPage() {
         phone: phone.trim(),
         password,
       });
-      const { access_token, user } = res.data;
+      const { user } = res.data;
 
-      if (user.role !== 'ADMIN') {
+      if (user.role !== 'ADMIN' && user.role !== 'STAFF') {
+        await api.post('/auth/logout').catch(() => undefined);
         setError('عذراً، هذا الحساب غير مصرح له بدخول لوحة الإدارة');
         setLoading(false);
         return;
       }
 
-      const isSecure = window.location.protocol === 'https:';
-      document.cookie = `admin_token=${encodeURIComponent(access_token)}; path=/; max-age=86400; SameSite=Strict${isSecure ? '; Secure' : ''}`;
       sessionStorage.setItem('admin_user', JSON.stringify(user));
       localStorage.setItem('admin_user', JSON.stringify(user));
 
-      router.replace('/dashboard');
+      router.replace(firstAllowedAdminRoute(user));
     } catch {
       setError('بيانات الدخول غير صحيحة أو توجد مشكلة في الاتصال');
     } finally {

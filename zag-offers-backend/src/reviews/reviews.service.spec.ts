@@ -21,10 +21,15 @@ describe('ReviewsService', () => {
     store: {
       update: jest.fn(),
     },
+    contentReport: {
+      findFirst: jest.fn(),
+      create: jest.fn(),
+    },
   };
 
   const mockEvents = {
     notifyMerchant: jest.fn(),
+    notifyAdmin: jest.fn(),
   };
 
   const mockNotifications = {

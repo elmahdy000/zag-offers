@@ -119,6 +119,7 @@ interface JwtSocketPayload {
   sub: string;
   role: string;
   area?: string;
+  tokenVersion?: number;
 }
 
 interface JoinRoomPayload {
@@ -128,6 +129,7 @@ interface JoinRoomPayload {
 
 import { NotificationsService } from '../notifications/notifications.service';
 import { Role } from '@prisma/client';
+import { PrismaService } from '../prisma/prisma.service';
 
 @WebSocketGateway({
   cors: {
@@ -159,6 +161,7 @@ export class EventsGateway
   constructor(
     private jwtService: JwtService,
     private notificationsService: NotificationsService,
+    private prisma: PrismaService,
   ) {}
 
   afterInit() {
@@ -221,7 +224,7 @@ export class EventsGateway
     this.connectedClients.set(client.id, clientInfo);
   }
 
-  handleConnection(client: Socket) {
+  async handleConnection(client: Socket) {
     const token = this.extractBearerToken(client);
 
     if (!token) {
@@ -234,6 +237,18 @@ export class EventsGateway
       if (!decoded) {
         throw new Error('Invalid token payload');
       }
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.sub },
+        select: { tokenVersion: true, role: true },
+      });
+      const payloadWithVersion = decoded as JwtSocketPayload & { tokenVersion?: number };
+      if (
+        !user ||
+        user.role !== decoded.role ||
+        user.tokenVersion !== (payloadWithVersion.tokenVersion ?? 0)
+      ) {
+        throw new Error('Revoked socket token');
+      }
 
       (client as any).user = decoded;
       this.registerConnectedClient(client, decoded);
@@ -242,7 +257,7 @@ export class EventsGateway
         `Client ${client.id} joined personal room: ${decoded.sub}`,
       );
 
-      if (decoded.role === 'ADMIN') {
+      if (decoded.role === 'ADMIN' || decoded.role === 'STAFF') {
         void client.join('admin_room');
         this.logger.log(`Admin connected: ${decoded.sub}`);
       }
@@ -256,7 +271,7 @@ export class EventsGateway
         role: decoded.role,
         rooms: [
           decoded.sub,
-          decoded.role === 'ADMIN' ? 'admin_room' : null,
+          decoded.role === 'ADMIN' || decoded.role === 'STAFF' ? 'admin_room' : null,
         ].filter((room): room is string => typeof room === 'string'),
       });
 
@@ -283,7 +298,7 @@ export class EventsGateway
   }
 
   @SubscribeMessage('join_room')
-  handleJoinRoom(
+  async handleJoinRoom(
     @ConnectedSocket() client: Socket,
     @MessageBody() payload: JoinRoomPayload,
   ) {
@@ -296,6 +311,17 @@ export class EventsGateway
       const decoded = this.decodeToken(payload.token);
       if (!decoded) {
         throw new Error('Invalid token payload');
+      }
+      const user = await this.prisma.user.findUnique({
+        where: { id: decoded.sub },
+        select: { tokenVersion: true, role: true },
+      });
+      if (
+        !user ||
+        user.role !== decoded.role ||
+        user.tokenVersion !== (decoded.tokenVersion ?? 0)
+      ) {
+        throw new Error('Revoked socket token');
       }
 
       const targetRoom = payload.room || decoded.sub;
