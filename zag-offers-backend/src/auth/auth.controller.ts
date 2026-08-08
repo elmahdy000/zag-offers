@@ -9,7 +9,9 @@ import {
   HttpStatus,
   UseGuards,
   Request,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { AuthService } from './auth.service';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
@@ -52,7 +54,10 @@ export class AuthController {
     status: 429,
     description: 'تجاوزت الحد المسموح من محاولات الدخول',
   })
-  async login(@Body() loginDto: LoginDto) {
+  async login(
+    @Body() loginDto: LoginDto,
+    @Res({ passthrough: true }) response: Response,
+  ) {
     const user = await this.authService.validateUser(
       loginDto.phone,
       loginDto.password,
@@ -62,7 +67,16 @@ export class AuthController {
         'رقم الموبايل أو كلمة السر غلط، يا ريت تتأكد منهم',
       );
     }
-    return this.authService.login(user);
+    const result = this.authService.login(user);
+    response.cookie('auth_token', result.access_token, {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.zagoffers.online' : undefined,
+      path: '/',
+      maxAge: 7 * 24 * 60 * 60 * 1000,
+    });
+    return result;
   }
 
   @Post('google')
@@ -150,7 +164,17 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'تسجيل الخروج (مسح FCM Token)' })
   @ApiResponse({ status: 200, description: 'تم تسجيل الخروج بنجاح' })
-  logout(@Request() req: { user: { id: string } }) {
+  async logout(
+    @Request() req: { user: { id: string } },
+    @Res({ passthrough: true }) response: Response,
+  ) {
+    response.clearCookie('auth_token', {
+      httpOnly: true,
+      secure: process.env.NODE_ENV === 'production',
+      sameSite: 'lax',
+      domain: process.env.NODE_ENV === 'production' ? '.zagoffers.online' : undefined,
+      path: '/',
+    });
     return this.authService.logout(req.user.id);
   }
 

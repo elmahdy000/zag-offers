@@ -8,7 +8,6 @@ import axios from 'axios';
 import { validateEgyptianPhone, validatePassword } from '@/lib/validation';
 import { handleApiError, logError } from '@/lib/errorHandler';
 import { secureUserData, secureStoreData } from '@/lib/crypto';
-import { setCookie } from '@/lib/cookie-utils';
 import BrandMark from '@/components/BrandMark';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
@@ -57,22 +56,32 @@ export default function LoginPage() {
       return;
     }
     try {
-      const response = await axios.post(`${API_URL}/auth/login`, { phone: phone.trim(), password });
+      const response = await axios.post(
+        `${API_URL}/auth/login`,
+        { phone: phone.trim(), password },
+        { withCredentials: true },
+      );
       const { access_token, user } = response.data as { access_token: string; user: { id: string; name: string; role: string } };
       if (!access_token || !user?.id || !user?.role) {
         throw new Error('استجابة تسجيل الدخول غير مكتملة. حاول مرة أخرى.');
       }
       if (user.role !== 'MERCHANT') {
+        await axios.post(`${API_URL}/auth/logout`, undefined, {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${access_token}` },
+        }).catch(() => undefined);
         setError(user.role === 'ADMIN'
           ? 'هذا حساب إدارة. استخدم لوحة الإدارة بدلًا من لوحة التاجر.'
           : 'هذا الحساب ليس حساب تاجر. استخدم تطبيق العملاء.');
         setLoading(false);
         return;
       }
-      setCookie('auth_token', access_token, 7);
       secureUserData.save(user);
       try {
-        const statsResponse = await axios.get(`${API_URL}/stores/my-dashboard`, { headers: { Authorization: `Bearer ${access_token}` } });
+        const statsResponse = await axios.get(`${API_URL}/stores/my-dashboard`, {
+          withCredentials: true,
+          headers: { Authorization: `Bearer ${access_token}` },
+        });
         const stats = statsResponse.data as { storeId: string };
         if (stats.storeId) secureStoreData.save(stats.storeId);
       } catch (storeError) {

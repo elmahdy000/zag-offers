@@ -30,7 +30,7 @@ export default function EditOfferPage() {
 
   useEffect(() => {
     if (!id) return;
-    vendorApi().get(`/offers/${id}`)
+    vendorApi().get(`/offers/my/${id}`)
       .then(res => {
         const o = res.data;
         setFormData({

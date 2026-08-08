@@ -1,7 +1,7 @@
 'use client';
 
 import { useState, useEffect, useRef } from 'react';
-import { Html5Qrcode } from 'html5-qrcode';
+import type { Html5Qrcode } from 'html5-qrcode';
 import { Camera, CheckCircle2, AlertCircle, Loader2, ChevronRight, Keyboard, Scan, CloudOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useRouter } from 'next/navigation';
@@ -85,7 +85,8 @@ export default function ScanPage() {
           if (!navigator.mediaDevices?.getUserMedia) {
             throw new Error('CAMERA_UNSUPPORTED');
           }
-          const html5QrCode = new Html5Qrcode("reader");
+          const { Html5Qrcode: Html5QrcodeScanner } = await import('html5-qrcode');
+          const html5QrCode = new Html5QrcodeScanner("reader");
           scannerRef.current = html5QrCode;
           const config = { fps: 30, qrbox: { width: 320, height: 320 } };
           await html5QrCode.start(
@@ -199,9 +200,8 @@ export default function ScanPage() {
         await OfflineSync.addToQueue('REDEEM_COUPON', { code: code.trim() });
         setPendingSyncs(OfflineSync.getQueue().length);
         
-        setStatus('success');
-        setMessage('تم حفظ العملية! سيتم تفعيل الكوبون تلقائياً فور عودة الإنترنت.');
-        playSuccessSound();
+        setStatus('idle');
+        setMessage('تم حفظ طلب المزامنة. الكوبون لم يُفعّل بعد، وسيتم تأكيد النتيجة بعد عودة الإنترنت.');
         return;
       }
 

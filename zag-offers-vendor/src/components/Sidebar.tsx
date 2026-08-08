@@ -17,14 +17,12 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { deleteCookie, getCookie, getVendorStoreId, vendorApi } from '@/lib/api';
+import { getVendorStoreId, vendorApi } from '@/lib/api';
 import { AnimatePresence, motion } from 'framer-motion';
 import { secureStorage } from '@/lib/crypto';
 import BrandMark from './BrandMark';
 import ThemeToggle from './ThemeToggle';
 import { useNotifications } from './notification-provider';
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
 type VendorNotification = {
   id: string;
@@ -51,16 +49,10 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
   useEffect(() => {
     if (!mounted) return;
     const fetchNotifications = async () => {
-      const token = getCookie('auth_token');
-      if (!token) return;
       try {
-        const response = await fetch(`${API_URL}/api/notifications`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (response.ok) {
-          const data: unknown = await response.json();
-          setNotifications(Array.isArray(data) ? data as VendorNotification[] : []);
-        }
+        const response = await vendorApi().get('/notifications');
+        const data: unknown = response.data;
+        setNotifications(Array.isArray(data) ? data as VendorNotification[] : []);
       } catch {}
     };
     void fetchNotifications();
@@ -90,7 +82,6 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     try {
       await vendorApi().post('/auth/logout');
     } finally {
-      deleteCookie('auth_token');
       secureStorage.clear();
       window.location.href = '/login';
     }

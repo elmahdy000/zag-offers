@@ -1,5 +1,5 @@
 import { useQuery, useMutation, useQueryClient } from '@tanstack/react-query';
-import { getCookie, vendorApi, getVendorStoreId } from '@/lib/api';
+import { vendorApi, getVendorStoreId } from '@/lib/api';
 import axios from 'axios';
 
 const retryTransientRequest = (failureCount: number, error: unknown) => {
@@ -56,7 +56,6 @@ export const useVendorOffers = () => {
       const res = await vendorApi().get('/offers/my');
       return res.data;
     },
-    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 1000 * 60, // 1 minute
     gcTime: 1000 * 60 * 5, // 5 minutes
     retry: retryTransientRequest,
@@ -72,7 +71,6 @@ export function useVendorCoupons() {
       const res = await vendorApi().get('/coupons/merchant');
       return res.data;
     },
-    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 30 * 1000, // 30 seconds
     gcTime: 2 * 60 * 1000, // 2 minutes
   });
@@ -86,7 +84,6 @@ export function useVendorStats() {
       const res = await vendorApi().get('/stores/my-dashboard');
       return res.data;
     },
-    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 60 * 1000, // 1 minute
     gcTime: 5 * 60 * 1000, // 5 minutes
     refetchInterval: 2 * 60 * 1000, // Realtime events handle important changes; this is a safety refresh.
@@ -119,7 +116,6 @@ export function useVendorStore() {
         throw new Error(serverMessage || 'فشل الاتصال بخادم بيانات المتجر. يرجى المحاولة لاحقاً.');
       }
     },
-    enabled: typeof window !== 'undefined' ? !!getCookie('auth_token') : false,
     staleTime: 5 * 60 * 1000, // 5 minutes
     retry: retryTransientRequest,
     retryDelay: (attempt) => Math.min(attempt * 1000, 3000),

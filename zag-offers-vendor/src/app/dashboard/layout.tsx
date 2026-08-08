@@ -4,7 +4,6 @@ import { usePathname, useRouter } from 'next/navigation';
 import Sidebar from '@/components/Sidebar';
 import { Menu, X, WifiOff } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { deleteCookie, getCookie } from '@/lib/api';
 import BottomNav from '@/components/BottomNav';
 import { secureStorage, secureUserData } from '@/lib/crypto';
 import { OfflineSync } from '@/lib/offline-sync';
@@ -23,11 +22,9 @@ export default function DashboardLayout({
   const pathname = usePathname();
   
   useEffect(() => {
-    const token = getCookie('auth_token');
     const user = secureUserData.load();
 
-    if (!token || user?.role !== 'MERCHANT') {
-      deleteCookie('auth_token');
+    if (user?.role !== 'MERCHANT') {
       secureStorage.clear();
       const reason = user?.role === 'ADMIN' ? 'admin-account' : 'unauthorized';
       router.replace(`/login?reason=${reason}`);

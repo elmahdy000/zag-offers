@@ -1,4 +1,5 @@
 import { vendorApi } from './api';
+import axios from 'axios';
 
 interface SyncTask {
   id: string;
@@ -65,7 +66,15 @@ export const OfflineSync = {
           console.log(`[OfflineSync] Task ${task.id} synced successfully`);
         } catch (error) {
           console.error(`[OfflineSync] Task ${task.id} failed, will retry later`, error);
-          if (task.retryCount < 5) remainingTasks.push({ ...task, retryCount: task.retryCount + 1 });
+          const status = axios.isAxiosError(error) ? error.response?.status : undefined;
+          const permanentFailure = status !== undefined && status >= 400 && status < 500 && status !== 408 && status !== 429;
+          if (!permanentFailure && task.retryCount < 5) {
+            remainingTasks.push({ ...task, retryCount: task.retryCount + 1 });
+          } else {
+            window.dispatchEvent(new CustomEvent('offline-sync-failed', {
+              detail: { code: task.data.code, status },
+            }));
+          }
         }
       }
 

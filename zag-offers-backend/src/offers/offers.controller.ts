@@ -13,7 +13,7 @@ import {
 } from '@nestjs/common';
 import { OffersService } from './offers.service';
 import { CreateOfferDto } from './dto/create-offer.dto';
-import { UpdateOfferDto } from './dto/update-offer.dto';
+import { UpdateMerchantOfferDto } from './dto/update-merchant-offer.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { OptionalJwtAuthGuard } from '../auth/optional-jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
@@ -54,9 +54,13 @@ export class OffersController {
   })
   async create(
     @Body() createOfferDto: CreateOfferDto,
-    @Request() req: { user: { id: string } },
+    @Request() req: { user: { id: string; role: Role } },
   ) {
-    const { storeId: requestedStoreId, ...data } = createOfferDto;
+    const {
+      storeId: requestedStoreId,
+      isFeatured: requestedFeatured,
+      ...data
+    } = createOfferDto;
     let storeId = requestedStoreId;
 
     if (!storeId) {
@@ -70,6 +74,7 @@ export class OffersController {
     return this.offersService.create(
       {
         ...data,
+        isFeatured: req.user.role === Role.ADMIN ? requestedFeatured : false,
         startDate: new Date(data.startDate),
         endDate: new Date(data.endDate),
         store: { connect: { id: storeId } },
@@ -135,6 +140,18 @@ export class OffersController {
     return this.offersService.findMerchantOffers(req.user.id);
   }
 
+  @Get('my/:id')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(Role.MERCHANT)
+  @ApiBearerAuth()
+  @ApiOperation({ summary: 'Get one offer owned by the current merchant' })
+  findMyOffer(
+    @Param('id') id: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.offersService.findMerchantOffer(id, req.user.id);
+  }
+
   @Get('store/:storeId')
   @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'Get offers by store ID' })
@@ -181,8 +198,8 @@ export class OffersController {
   @ApiOperation({ summary: 'Update an offer' })
   update(
     @Param('id') id: string,
-    @Body() data: UpdateOfferDto,
-    @Request() req: { user: { id: string } },
+    @Body() data: UpdateMerchantOfferDto,
+    @Request() req: { user: { id: string; role: Role } },
   ) {
     const updateData: Prisma.OfferUpdateInput = { ...data };
 

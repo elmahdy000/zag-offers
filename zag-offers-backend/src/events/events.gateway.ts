@@ -187,6 +187,15 @@ export class EventsGateway
       return headerToken.slice(7);
     }
 
+    const cookieHeader = client.handshake.headers.cookie;
+    const tokenCookie = cookieHeader
+      ?.split(';')
+      .map((part) => part.trim())
+      .find((part) => part.startsWith('auth_token='));
+    if (tokenCookie) {
+      return decodeURIComponent(tokenCookie.slice('auth_token='.length));
+    }
+
     return undefined;
   }
 

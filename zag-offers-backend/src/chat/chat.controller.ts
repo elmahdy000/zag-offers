@@ -28,8 +28,11 @@ export class ChatController {
 
   @Get('messages/:conversationId')
   @ApiOperation({ summary: 'عرض رسائل محادثة معينة' })
-  getMessages(@Param('conversationId') conversationId: string) {
-    return this.chatService.getMessages(conversationId);
+  getMessages(
+    @Param('conversationId') conversationId: string,
+    @Request() req: { user: { id: string } },
+  ) {
+    return this.chatService.getMessages(conversationId, req.user.id);
   }
 
   @Post('send')

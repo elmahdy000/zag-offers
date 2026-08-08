@@ -76,6 +76,7 @@ export function vendorApi() {
   const token = getCookie('auth_token');
   const instance = axios.create({
     baseURL: API_URL,
+    withCredentials: true,
     headers: {
       'Content-Type': 'application/json',
       ...(token ? { Authorization: `Bearer ${token}` } : {}),
@@ -122,11 +123,10 @@ export function vendorApi() {
           error: true
         });
       }
-      if ((error.response?.status === 401 || error.response?.status === 403) && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+      if (error.response?.status === 401 && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
         deleteCookie('auth_token');
         if (typeof secureStorage !== 'undefined') secureStorage.clear();
-        const reason = error.response.status === 403 ? 'unauthorized' : 'session-expired';
-        window.location.replace(`/login?reason=${reason}`);
+        window.location.replace('/login?reason=session-expired');
       }
       return Promise.reject(error);
     }

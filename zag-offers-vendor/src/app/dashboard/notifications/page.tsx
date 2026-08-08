@@ -1,12 +1,10 @@
 'use client';
 import { useEffect, useState } from 'react';
 import { Bell, CheckCircle2, XCircle, Clock, ChevronRight, MessageSquare, Tag, RefreshCw } from 'lucide-react';
-import { getCookie } from '@/lib/api';
+import { vendorApi } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
 interface Notification {
   id: string;
@@ -24,18 +22,9 @@ export default function NotificationsPage() {
   const [error, setError] = useState<string | null>(null);
 
   const fetchNotifs = async () => {
-    const token = getCookie('auth_token');
-    if (!token) {
-      setError('انتهت جلسة الدخول. سجّل الدخول مرة أخرى.');
-      setLoading(false);
-      return;
-    }
     try {
-      const res = await fetch(`${API_URL}/api/notifications`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-      if (!res.ok) throw new Error(`Notifications request failed: ${res.status}`);
-      const data: unknown = await res.json();
+      const res = await vendorApi().get('/notifications');
+      const data: unknown = res.data;
       setNotifications(Array.isArray(data) ? data : []);
       setError(null);
     } catch (e) {
@@ -53,14 +42,7 @@ export default function NotificationsPage() {
 
   const markAllRead = async () => {
     try {
-      const token = getCookie('auth_token');
-      if (token) {
-        const response = await fetch(`${API_URL}/api/notifications/read-all`, {
-          method: 'POST',
-          headers: { Authorization: `Bearer ${token}` },
-        });
-        if (!response.ok) throw new Error(`Mark read failed: ${response.status}`);
-      }
+      await vendorApi().post('/notifications/read-all');
       setNotifications(prev => prev.map(n => ({ ...n, isRead: true })));
     } catch (e) {
       console.error('Failed to mark all as read:', e);

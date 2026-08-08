@@ -4,7 +4,6 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { motion, AnimatePresence } from 'framer-motion';
 import { Bell, CheckCircle2, X, AlertCircle, AlertTriangle } from 'lucide-react';
 import { useSocket } from '@/lib/socket';
-import { getCookie } from '@/lib/api';
 import { onGlobalError } from '@/lib/error-events';
 import type { Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
@@ -34,8 +33,7 @@ const NotificationContext = createContext<{
 
 export const NotificationProvider = ({ children }: { children: React.ReactNode }) => {
   const [notifications, setNotifications] = useState<Notification[]>([]);
-  const [token] = useState<string | null>(() => getCookie('auth_token'));
-  const { socket } = useSocket(token);
+  const { socket } = useSocket();
   const queryClient = useQueryClient();
 
   const show = useCallback((title: string, body: string, severity: Notification['severity']) => {

@@ -3,13 +3,11 @@
 import React, { useState, useEffect, useRef, useCallback, memo } from 'react';
 import { Send, MessageSquare, CheckCheck, Loader2, ChevronRight } from 'lucide-react';
 import { useRouter } from 'next/navigation';
-import { vendorApi, getCookie } from '@/lib/api';
-import { io, Socket } from 'socket.io-client';
+import { vendorApi } from '@/lib/api';
 
 import { secureUserData } from '@/lib/crypto';
 import { useNotifications } from '@/components/notification-provider';
 
-const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
 
 interface Message {
   id: string;
@@ -87,9 +85,8 @@ export default function VendorChatPage() {
     try { return secureUserData.load()?.id || ''; }
     catch { return ''; }
   });
-  const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
-  const { addError } = useNotifications();
+  const { addError, socket } = useNotifications();
 
   useEffect(() => {
     if (!userId) return;
@@ -111,38 +108,17 @@ export default function VendorChatPage() {
   }, [addError, userId]);
 
   useEffect(() => {
-    if (!userId) return;
-    const token = getCookie('auth_token');
-    if (!token) return;
-    const s = io(SOCKET_URL, { 
-      auth: { token }, 
-      transports: ['websocket'],
-      reconnection: true,
-      reconnectionAttempts: 10,
-      forceNew: true 
-    });
-    socketRef.current = s;
-
-    s.on('connect', () => {
-      console.log('Chat Socket Connected! Joining room:', userId);
-      s.emit('join_room', { token, userId });
-    });
-
-    s.on('connect_error', (err) => {
-      console.error('Socket Connection Error:', err.message);
-      addError('فشل الاتصال بخادم الدعم الفني، حاول مرة أخرى');
-    });
-
-    s.on('new_message', (msg: Message) => {
-      console.log('New real-time message received:', msg);
+    if (!socket) return;
+    const handleMessage = (msg: Message) => {
       setMessages(prev => {
         if (prev.some(m => m.id === msg.id)) return prev;
         const filtered = prev.filter(m => !(m.isOptimistic && m.text === msg.text));
         return [...filtered, msg];
       });
-    });
-    return () => { s.disconnect(); };
-  }, [addError, userId]);
+    };
+    socket.on('new_message', handleMessage);
+    return () => { socket.off('new_message', handleMessage); };
+  }, [socket]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;

@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 
@@ -37,22 +37,30 @@ export class ChatService {
     });
   }
 
-  async getMessages(conversationId: string) {
+  private async requireParticipant(conversationId: string, userId: string) {
+    const conversation = await this.conversation.findUnique({
+      where: { id: conversationId },
+      select: { adminId: true, participantId: true },
+    });
+    if (!conversation) throw new NotFoundException('Conversation not found');
+    if (conversation.adminId !== userId && conversation.participantId !== userId) {
+      throw new ForbiddenException('You are not a participant in this conversation');
+    }
+    return conversation;
+  }
+
+  async getMessages(conversationId: string, userId: string) {
+    await this.requireParticipant(conversationId, userId);
     return this.message.findMany({
       where: { conversationId },
-      orderBy: { createdAt: 'asc' },
-    });
+      orderBy: { createdAt: 'desc' },
+      take: 200,
+    }).then((messages) => messages.reverse());
   }
 
   async sendMessage(conversationId: string, senderId: string, text: string) {
     // Verify conversation exists
-    const conv = await this.conversation.findUnique({
-      where: { id: conversationId },
-    });
-
-    if (!conv) {
-      throw new NotFoundException('Conversation not found');
-    }
+    const conv = await this.requireParticipant(conversationId, senderId);
 
     const msg = await this.message.create({
       data: {

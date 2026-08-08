@@ -1,22 +1,16 @@
 import { useEffect, useState } from 'react';
 import { io, Socket } from 'socket.io-client';
-import { getCookie } from './api';
 
 const SOCKET_URL = process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online';
 
-export const useSocket = (token?: string | null) => {
+export const useSocket = () => {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
 
   useEffect(() => {
-    const activeToken = token || getCookie('auth_token');
-    if (!activeToken) {
-      return;
-    }
-
     const newSocket = io(SOCKET_URL, {
-      auth: { token: activeToken },
-      transports: ['websocket'],
+      withCredentials: true,
+      transports: ['websocket', 'polling'],
       reconnectionAttempts: 5,
     });
 
@@ -24,7 +18,6 @@ export const useSocket = (token?: string | null) => {
       setSocket(newSocket);
       setConnectionStatus('connected');
       console.log('Vendor Socket Connected');
-      newSocket.emit('join_room', { token: activeToken });
     });
 
     newSocket.on('disconnect', () => {
@@ -39,7 +32,7 @@ export const useSocket = (token?: string | null) => {
     return () => {
       newSocket.close();
     };
-  }, [token]);
+  }, []);
 
   return { socket, connectionStatus };
 };

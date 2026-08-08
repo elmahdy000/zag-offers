@@ -51,7 +51,7 @@ export default function OfferDetailPage() {
 
   useEffect(() => {
     if (!id) return;
-    vendorApi().get(`/offers/${id}`).then(r => {
+    vendorApi().get(`/offers/my/${id}`).then(r => {
       setOffer(r.data);
     }).catch(() => {
       addError('فشل تحميل العرض');

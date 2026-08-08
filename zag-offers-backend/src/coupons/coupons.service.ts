@@ -311,8 +311,17 @@ export class CouponsService {
           store: { ownerId: merchantId },
         },
       },
-      include: {
-        offer: true,
+      select: {
+        id: true,
+        code: true,
+        status: true,
+        createdAt: true,
+        expiresAt: true,
+        redeemedAt: true,
+        commissionAmount: true,
+        offer: {
+          select: { id: true, title: true, discount: true },
+        },
         customer: {
           select: {
             id: true,
@@ -322,6 +331,7 @@ export class CouponsService {
         },
       },
       orderBy: { createdAt: 'desc' },
+      take: 500,
     });
   }
 

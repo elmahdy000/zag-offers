@@ -242,6 +242,18 @@ export class OffersService {
     });
   }
 
+  async findMerchantOffer(id: string, userId: string) {
+    const offer = await this.prisma.offer.findFirst({
+      where: { id, store: { ownerId: userId } },
+      include: {
+        store: { include: { category: true } },
+        _count: { select: { coupons: true, favorites: true } },
+      },
+    });
+    if (!offer) throw new NotFoundException('Offer not found for this merchant');
+    return offer;
+  }
+
   async findOne(id: string, userId?: string): Promise<Offer | null> {
     const offer = await this.prisma.offer.findFirst({
       where: {

@@ -13,6 +13,7 @@ import {
 
 import { StoresService } from './stores.service';
 import { CreateStoreDto } from './dto/create-store.dto';
+import { UpdateStoreDto } from './dto/update-store.dto';
 import { JwtAuthGuard } from '../auth/jwt-auth.guard';
 import { RolesGuard } from '../auth/roles.guard';
 import { Roles } from '../auth/roles.decorator';
@@ -103,7 +104,6 @@ export class StoresController {
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(Role.MERCHANT)
   @ApiBearerAuth()
-  @UseInterceptors(CacheInterceptor)
   @ApiOperation({ summary: 'إحصائيات لوحة تحكم التاجر' })
   async getDashboardStats(@Request() req: { user: { id: string } }) {
     return this.storesService.getVendorDashboardStats(req.user.id);
@@ -141,11 +141,16 @@ export class StoresController {
   @ApiOperation({ summary: 'تحديث بيانات المحل (للتاجر)' })
   updateStore(
     @Param('id') id: string,
-    @Body() data: Prisma.StoreUpdateInput,
+    @Body() data: UpdateStoreDto,
     @Request() req: { user: { id: string; role: Role } },
   ) {
     const isAdmin = req.user.role === Role.ADMIN;
-    return this.storesService.updateStoreDetails(id, req.user.id, data, isAdmin);
+    return this.storesService.updateStoreDetails(
+      id,
+      req.user.id,
+      data as Prisma.StoreUpdateInput,
+      isAdmin,
+    );
   }
 
   @Patch(':id/status')

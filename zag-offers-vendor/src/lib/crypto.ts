@@ -140,7 +140,8 @@ export const secureStorage = {
         'cache_vendor_stats',
         'cache_vendor_offers_list',
         'pending_redemptions',
-        'vendor_recent_scans'
+        'vendor_recent_scans',
+        'zag_offline_sync_queue'
       ];
       
       keysToRemove.forEach(key => {
