@@ -17,11 +17,12 @@ describe('AuthController', () => {
       login: jest.fn().mockResolvedValue({ access_token: 'token', user: { role: 'ADMIN' } }),
     } as unknown as AuthService;
     const cookie = jest.fn();
+    const clearCookie = jest.fn();
     const controller = new AuthController(authService);
 
     await controller.login(
       { phone: '01000000000', password: 'password123' },
-      { cookie } as unknown as Response,
+      { cookie, clearCookie } as unknown as Response,
     );
 
     expect(cookie).toHaveBeenCalledWith(
@@ -33,6 +34,10 @@ describe('AuthController', () => {
         secure: true,
         sameSite: 'lax',
       }),
+    );
+    expect(clearCookie).toHaveBeenCalledWith(
+      'auth_token',
+      expect.not.objectContaining({ domain: expect.anything() }),
     );
   });
 
@@ -50,5 +55,31 @@ describe('AuthController', () => {
       ),
     ).rejects.toThrow(UnauthorizedException);
     expect(cookie).not.toHaveBeenCalled();
+  });
+
+  it('clears both legacy host and shared-domain cookies on logout', async () => {
+    process.env.AUTH_COOKIE_DOMAIN = '.zagoffers.online';
+    const authService = {
+      logout: jest.fn().mockResolvedValue({ success: true }),
+    } as unknown as AuthService;
+    const clearCookie = jest.fn();
+    const controller = new AuthController(authService);
+
+    await controller.logout(
+      { user: { id: 'admin' } },
+      { clearCookie } as unknown as Response,
+    );
+
+    expect(clearCookie).toHaveBeenCalledTimes(2);
+    expect(clearCookie).toHaveBeenNthCalledWith(
+      1,
+      'auth_token',
+      expect.not.objectContaining({ domain: expect.anything() }),
+    );
+    expect(clearCookie).toHaveBeenNthCalledWith(
+      2,
+      'auth_token',
+      expect.objectContaining({ domain: '.zagoffers.online' }),
+    );
   });
 });

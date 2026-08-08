@@ -47,6 +47,18 @@ export class AuthController {
     };
   }
 
+  private legacyHostCookieOptions() {
+    return {
+      httpOnly: true,
+      secure:
+        process.env.NODE_ENV === 'production' ||
+        process.env.APP_ENV === 'production' ||
+        Boolean(process.env.AUTH_COOKIE_DOMAIN?.trim()),
+      sameSite: 'lax' as const,
+      path: '/',
+    };
+  }
+
   @Post('register')
   @Throttle({ strict: { limit: 3, ttl: 60000 } })
   @ApiOperation({ summary: 'تسجيل حساب جديد' })
@@ -84,6 +96,10 @@ export class AuthController {
       );
     }
     const result = await this.authService.login(user);
+    // Remove the old api.zagoffers.online-only cookie first. Browsers otherwise
+    // send both it and the shared-domain cookie under the same name, which can
+    // make the JWT guard read a stale token and immediately return 401.
+    response.clearCookie('auth_token', this.legacyHostCookieOptions());
     response.cookie('auth_token', result.access_token, {
       ...this.authCookieOptions(),
       maxAge: 7 * 24 * 60 * 60 * 1000,
@@ -180,6 +196,7 @@ export class AuthController {
     @Request() req: { user: { id: string } },
     @Res({ passthrough: true }) response: Response,
   ) {
+    response.clearCookie('auth_token', this.legacyHostCookieOptions());
     response.clearCookie('auth_token', this.authCookieOptions());
     return this.authService.logout(req.user.id);
   }
