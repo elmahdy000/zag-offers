@@ -573,7 +573,7 @@ function StoresContent() {
       {/* Store Details Modal */}
       <AnimatePresence>
         {selectedStoreId && detailsLoading && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-5">
+          <div className="admin-modal-overlay fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-5">
             <motion.div
               role="dialog"
               aria-modal="true"
@@ -601,7 +601,7 @@ function StoresContent() {
         )}
         {selectedStoreId && storeDetails && (
           <div
-            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-5"
+            className="admin-modal-overlay fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-5"
             onMouseDown={(event) => {
               if (event.target === event.currentTarget) setSelectedStoreId(null);
             }}
@@ -784,7 +784,7 @@ function StoresContent() {
 
       {isDetailsError && selectedStoreId && (
         <AnimatePresence>
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
@@ -810,7 +810,7 @@ function StoresContent() {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteModal && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <motion.div 
               initial={{ scale: 0.95, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
@@ -844,7 +844,7 @@ function StoresContent() {
       {/* Create/Edit Store Modal */}
       <AnimatePresence>
         {isUpsertOpen && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
+          <div className="admin-modal-overlay fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 

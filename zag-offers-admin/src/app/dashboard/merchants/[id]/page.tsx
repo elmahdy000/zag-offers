@@ -349,7 +349,7 @@ export default function MerchantDetailPage() {
       {/* Delete Confirmation Modal */}
       <AnimatePresence>
         {deleteModalOpen && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><Trash2 size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">حذف المتجر نهائياً؟</h3>
@@ -368,7 +368,7 @@ export default function MerchantDetailPage() {
       {/* Reject Modal */}
       <AnimatePresence>
         {rejectModal && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><ShieldOff size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">رفض طلب التفعيل</h3>

@@ -460,7 +460,7 @@ export default function ApprovalsPage() {
       {/* Details Modals */}
       <AnimatePresence>
         {selectedStoreId && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-bold text-slate-900">مراجعة بيانات المتجر</h2>
@@ -525,7 +525,7 @@ export default function ApprovalsPage() {
         )}
 
         {selectedOfferId && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="max-h-[90vh] w-full max-w-2xl overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-bold text-slate-900 leading-tight">مراجعة بيانات العرض</h2>
@@ -617,7 +617,7 @@ export default function ApprovalsPage() {
       {/* Reject Modal */}
       <AnimatePresence>
         {rejectModal && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><XCircle size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">تأكيد رفض الطلب</h3>
@@ -649,7 +649,7 @@ export default function ApprovalsPage() {
       </AnimatePresence>
 
       {fullscreenImage && (
-        <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 lg:p-12" onClick={() => setFullscreenImage(null)}>
+        <div className="admin-media-viewer fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/90 backdrop-blur-md p-4 lg:p-12" onClick={() => setFullscreenImage(null)}>
           <motion.div 
             initial={{ opacity: 0, scale: 0.9 }} 
             animate={{ opacity: 1, scale: 1 }} 

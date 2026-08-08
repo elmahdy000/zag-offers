@@ -332,7 +332,7 @@ export default function UsersPage() {
       {/* Delete Confirmation Modal (Professional) */}
       <AnimatePresence>
         {deleteModal && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[120] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-[2rem] bg-white p-10 shadow-2xl text-center relative overflow-hidden border border-slate-100">
               <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-[2rem] bg-rose-50 text-rose-600 mb-6 border border-rose-100">
                  <Trash2 size={36} />
@@ -357,7 +357,7 @@ export default function UsersPage() {
       {/* ADMIN Role Confirmation Modal */}
       <AnimatePresence>
         {adminRoleConfirm && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-amber-50 text-amber-600 mb-6 border border-amber-100">
                 <Shield size={32} />
@@ -378,7 +378,7 @@ export default function UsersPage() {
       {/* Create/Edit User Modal */}
       <AnimatePresence>
         {isUpsertOpen && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
+          <div className="admin-modal-overlay fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
             <motion.div initial={{ scale: 0.9, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.9, opacity: 0 }} className="w-full max-w-lg rounded-[2.5rem] bg-white p-10 shadow-2xl relative border border-slate-100">
               <div className="flex items-center justify-between mb-8">
                 <div>

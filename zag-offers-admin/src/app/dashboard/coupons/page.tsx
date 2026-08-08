@@ -245,7 +245,7 @@ export default function CouponsManagementPage() {
       {/* Details Modal (Premium) */}
       <AnimatePresence>
         {selectedCouponId && (
-          <div className="fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[110] flex items-center justify-center bg-slate-950/20 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="max-h-[90vh] w-full max-w-xl overflow-y-auto rounded-2xl bg-white p-8 shadow-2xl">
               <div className="flex items-center justify-between mb-8">
                 <h2 className="text-xl font-bold text-slate-900 leading-tight">تفاصيل الكوبون الصادر</h2>
@@ -321,7 +321,7 @@ export default function CouponsManagementPage() {
       {/* Delete Modal */}
       <AnimatePresence>
         {deleteModal && (
-          <div className="fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
+          <div className="admin-modal-overlay fixed inset-0 z-[120] flex items-center justify-center bg-slate-950/40 backdrop-blur-sm p-4">
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><AlertTriangle size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">حذف الكوبون؟</h3>

@@ -239,7 +239,7 @@ export default function CategoriesPage() {
       {/* Upsert Modal */}
       <AnimatePresence>
         {isUpsertOpen && (
-          <div className="fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
+          <div className="admin-modal-overlay fixed inset-0 z-[250] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 font-cairo">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 
@@ -346,7 +346,7 @@ export default function CategoriesPage() {
       {/* Delete Confirmation */}
       <AnimatePresence>
         {deleteModal && (
-          <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 font-cairo">
+          <div className="admin-modal-overlay fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4 font-cairo">
             <motion.div 
               initial={{ scale: 0.9, opacity: 0 }} 
               animate={{ scale: 1, opacity: 1 }} 

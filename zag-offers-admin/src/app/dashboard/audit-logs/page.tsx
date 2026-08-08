@@ -106,7 +106,7 @@ function LogDetailsModal({ log, onClose }: { log: AuditLog; onClose: () => void 
   return (
     <motion.div 
       initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }}
-      className="fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-[2px] sm:p-6"
+      className="admin-modal-overlay fixed inset-0 z-[100] flex items-center justify-center bg-slate-950/55 p-3 backdrop-blur-[2px] sm:p-6"
     >
       <motion.div 
         ref={modalRef}

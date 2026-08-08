@@ -304,7 +304,7 @@ export default function BannersPage() {
       </div>
 
       {isOpen && (
-        <div className="fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/50 p-4">
+        <div className="admin-modal-overlay fixed inset-0 z-[300] flex items-center justify-center bg-slate-900/50 p-4">
           <div className="w-full max-w-xl rounded-3xl bg-white p-6 max-h-[90vh] overflow-y-auto">
             <h3 className="mb-4 text-lg font-bold">{editing ? 'تعديل بانر' : 'إضافة بانر'}</h3>
             <div className="space-y-3">
