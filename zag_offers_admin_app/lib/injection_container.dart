@@ -4,6 +4,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'core/network/api_client.dart';
 import 'core/services/notification_service.dart';
 import 'core/services/realtime_service.dart';
+import 'core/storage/token_storage.dart';
 import 'features/auth/data/datasources/auth_remote_datasource.dart';
 import 'features/auth/data/repositories/auth_repository_impl.dart';
 import 'features/auth/domain/repositories/auth_repository.dart';
@@ -65,7 +66,11 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<AuthRepository>(
-    () => AuthRepositoryImpl(remoteDataSource: sl(), prefs: sl()),
+    () => AuthRepositoryImpl(
+      remoteDataSource: sl(),
+      tokenStorage: sl(),
+      apiClient: sl(),
+    ),
   );
   sl.registerLazySingleton<DashboardRepository>(
     () => DashboardRepositoryImpl(remoteDataSource: sl()),
@@ -131,6 +136,7 @@ Future<void> init() async {
   );
 
   //! Core
+  sl.registerLazySingleton(() => TokenStorage(sl()));
   sl.registerLazySingleton(() => ApiClient(sl(), sl()));
   sl.registerLazySingleton(() => NotificationService());
   sl.registerLazySingleton(() => RealtimeService(sl()));
@@ -139,4 +145,5 @@ Future<void> init() async {
   final sharedPreferences = await SharedPreferences.getInstance();
   sl.registerLazySingleton(() => sharedPreferences);
   sl.registerLazySingleton(() => Dio());
+  ApiClient.onUnauthorized = () => sl<AuthBloc>().add(CheckAuthEvent());
 }

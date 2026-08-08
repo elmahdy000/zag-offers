@@ -4,8 +4,9 @@ import '../constants/app_constants.dart';
 
 class ApiClient {
   final Dio dio;
+  final SharedPreferences sharedPreferences;
 
-  ApiClient({required this.dio}) {
+  ApiClient({required this.dio, required this.sharedPreferences}) {
     dio.options.baseUrl = AppConstants.baseUrl;
     dio.options.connectTimeout = const Duration(seconds: 10);
     dio.options.receiveTimeout = const Duration(seconds: 15);
@@ -18,8 +19,7 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final prefs = await SharedPreferences.getInstance();
-          final token = prefs.getString('auth_token');
+          final token = sharedPreferences.getString('auth_token');
           if (token != null && token.isNotEmpty) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -29,8 +29,7 @@ class ApiClient {
           // لو السيرفر رد بـ 401 (التوكن انتهى أو غلط)
           // نمسح التوكن المحلي حتى المستخدم يسجل دخول من جديد
           if (error.response?.statusCode == 401) {
-            final prefs = await SharedPreferences.getInstance();
-            await prefs.remove('auth_token');
+            await sharedPreferences.remove('auth_token');
           }
           return handler.next(error);
         },

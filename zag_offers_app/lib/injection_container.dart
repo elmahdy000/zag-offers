@@ -66,8 +66,9 @@ final sl = GetIt.instance;
 Future<void> init() async {
   //! Features - Notifications
   sl.registerLazySingleton(() => NotificationBloc(repository: sl()));
-  sl.registerLazySingleton<NotificationsRepository>(() => NotificationsRepositoryImpl(apiClient: sl()));
-  
+  sl.registerLazySingleton<NotificationsRepository>(
+      () => NotificationsRepositoryImpl(apiClient: sl()));
+
   //! Features - Auth
   sl.registerFactory(() => AuthBloc(
         loginUseCase: sl(),
@@ -90,8 +91,10 @@ Future<void> init() async {
         remoteDataSource: sl(),
         localDataSource: sl(),
       ));
-  sl.registerLazySingleton<AuthRemoteDataSource>(() => AuthRemoteDataSourceImpl(apiClient: sl()));
-  sl.registerLazySingleton<AuthLocalDataSource>(() => AuthLocalDataSourceImpl(sharedPreferences: sl()));
+  sl.registerLazySingleton<AuthRemoteDataSource>(
+      () => AuthRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<AuthLocalDataSource>(
+      () => AuthLocalDataSourceImpl(sharedPreferences: sl()));
 
   //! Features - Offers
   sl.registerFactory(() => OffersBloc(
@@ -114,8 +117,10 @@ Future<void> init() async {
         remoteDataSource: sl(),
         localDataSource: sl(),
       ));
-  sl.registerLazySingleton<OffersRemoteDataSource>(() => OffersRemoteDataSourceImpl(apiClient: sl()));
-  sl.registerLazySingleton<OffersLocalDataSource>(() => OffersLocalDataSourceImpl(sharedPreferences: sl()));
+  sl.registerLazySingleton<OffersRemoteDataSource>(
+      () => OffersRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<OffersLocalDataSource>(
+      () => OffersLocalDataSourceImpl(sharedPreferences: sl()));
 
   //! Features - Coupons
   sl.registerFactory(
@@ -127,8 +132,10 @@ Future<void> init() async {
   sl.registerLazySingleton(() => GenerateCouponUseCase(sl()));
   sl.registerLazySingleton(() => GetUserCouponsUseCase(sl()));
 
-  sl.registerLazySingleton<CouponsRepository>(() => CouponsRepositoryImpl(remoteDataSource: sl()));
-  sl.registerLazySingleton<CouponsRemoteDataSource>(() => CouponsRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<CouponsRepository>(
+      () => CouponsRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<CouponsRemoteDataSource>(
+      () => CouponsRemoteDataSourceImpl(apiClient: sl()));
 
   //! Features - Favorites
   sl.registerLazySingleton(() => FavoritesBloc(
@@ -137,8 +144,10 @@ Future<void> init() async {
       ));
   sl.registerLazySingleton(() => GetFavoritesUseCase(sl()));
   sl.registerLazySingleton(() => ToggleFavoriteUseCase(sl()));
-  sl.registerLazySingleton<FavoritesRepository>(() => FavoritesRepositoryImpl(remoteDataSource: sl()));
-  sl.registerLazySingleton<FavoritesRemoteDataSource>(() => FavoritesRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<FavoritesRepository>(
+      () => FavoritesRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<FavoritesRemoteDataSource>(
+      () => FavoritesRemoteDataSourceImpl(apiClient: sl()));
 
   //! Features - Reviews
   sl.registerFactory(() => ReviewsBloc(
@@ -147,11 +156,15 @@ Future<void> init() async {
       ));
   sl.registerLazySingleton(() => AddReviewUseCase(sl()));
   sl.registerLazySingleton(() => GetStoreReviewsUseCase(sl()));
-  sl.registerLazySingleton<ReviewsRepository>(() => ReviewsRepositoryImpl(remoteDataSource: sl()));
-  sl.registerLazySingleton<ReviewsRemoteDataSource>(() => ReviewsRemoteDataSourceImpl(apiClient: sl()));
+  sl.registerLazySingleton<ReviewsRepository>(
+      () => ReviewsRepositoryImpl(remoteDataSource: sl()));
+  sl.registerLazySingleton<ReviewsRemoteDataSource>(
+      () => ReviewsRemoteDataSourceImpl(apiClient: sl()));
 
   //! Core
-  sl.registerLazySingleton(() => ApiClient(dio: sl()));
+  sl.registerLazySingleton(
+    () => ApiClient(dio: sl(), sharedPreferences: sl()),
+  );
   sl.registerLazySingleton(() => SocketService());
 
   //! External

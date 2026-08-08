@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:convert';
 import 'dart:developer';
 import 'dart:io';
@@ -11,13 +12,17 @@ import '../utils/navigation_service.dart';
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
   static String? _fcmToken;
   static Map<String, dynamic>? _pendingNotificationData;
+  static final Completer<void> _initializationCompleter = Completer<void>();
 
   /// Callbacks to decouple core from feature layer
-  static void Function(String? type, Map<String, dynamic> data)? onCouponRedeemed;
-  static void Function(String? type, Map<String, dynamic> data)? onNotificationTap;
+  static void Function(String? type, Map<String, dynamic> data)?
+  onCouponRedeemed;
+  static void Function(String? type, Map<String, dynamic> data)?
+  onNotificationTap;
 
   static String? get currentToken => _fcmToken;
 
@@ -58,7 +63,8 @@ class NotificationService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
   }
 
@@ -103,20 +109,27 @@ class NotificationService {
       }
     } catch (e) {
       log('Notification Initialization Error: $e');
+    } finally {
+      if (!_initializationCompleter.isCompleted) {
+        _initializationCompleter.complete();
+      }
     }
   }
 
   static Future<void> sendTokenToBackend() async {
-    if (_fcmToken == null) {
-      _fcmToken = await _messaging.getToken();
-    }
-    final token = _fcmToken;
-    if (token != null) {
-      try {
-        await di.sl<AuthRemoteDataSource>().updateFcmToken(token);
-      } catch (e) {
-        debugPrint('FCM token update failed: $e');
+    try {
+      await _initializationCompleter.future.timeout(
+        const Duration(seconds: 10),
+      );
+      if (_fcmToken == null) {
+        _fcmToken = await _messaging.getToken();
       }
+      final token = _fcmToken;
+      if (token != null) {
+        await di.sl<AuthRemoteDataSource>().updateFcmToken(token);
+      }
+    } catch (e) {
+      debugPrint('FCM token update failed: $e');
     }
   }
 
@@ -135,9 +148,11 @@ class NotificationService {
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {
-    final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
+    final title =
+        message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
     final body = message.notification?.body ?? message.data['body'] ?? '';
-    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    final imageUrl =
+        message.notification?.android?.imageUrl ?? message.data['imageUrl'];
 
     showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
     saveToHistory(title, body, message.data);
@@ -165,7 +180,11 @@ class NotificationService {
     callback(data['type']?.toString(), data);
   }
 
-  static Future<void> saveToHistory(String title, String body, Map<String, dynamic> data) async {
+  static Future<void> saveToHistory(
+    String title,
+    String body,
+    Map<String, dynamic> data,
+  ) async {
     try {
       final prefs = await SharedPreferences.getInstance();
       final String? existingData = prefs.getString('notifications_history');
@@ -204,10 +223,14 @@ class NotificationService {
       final client = HttpClient();
       final request = await client.getUrl(uri);
       final response = await request.close();
-      final bytes = await response.fold<List<int>>(<int>[], (prev, chunk) => prev..addAll(chunk));
+      final bytes = await response.fold<List<int>>(
+        <int>[],
+        (prev, chunk) => prev..addAll(chunk),
+      );
       client.close();
       final tempDir = Directory.systemTemp;
-      final filePath = '${tempDir.path}/notif_${DateTime.now().millisecondsSinceEpoch}.png';
+      final filePath =
+          '${tempDir.path}/notif_${DateTime.now().millisecondsSinceEpoch}.png';
       await File(filePath).writeAsBytes(bytes);
       return filePath;
     } catch (e) {
@@ -216,7 +239,12 @@ class NotificationService {
     }
   }
 
-  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data, String? imageUrl}) async {
+  static Future<void> showLocalNotification(
+    String title,
+    String body, {
+    Map<String, dynamic>? data,
+    String? imageUrl,
+  }) async {
     StyleInformation? styleInformation;
     if (imageUrl != null && imageUrl.isNotEmpty) {
       final filePath = await _downloadImage(imageUrl);
@@ -241,26 +269,27 @@ class NotificationService {
 
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'merchants_channel',
-      'تنبيهات التجار',
-      channelDescription: 'إشعارات العمليات والطلبات الجديدة',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: 'ic_notification',
-      styleInformation: styleInformation,
-      playSound: true,
-      sound: const RawResourceAndroidNotificationSound('notification_sound'),
-    );
-
-    final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(
-          android: androidPlatformChannelSpecifics,
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
+          'merchants_channel',
+          'تنبيهات التجار',
+          channelDescription: 'إشعارات العمليات والطلبات الجديدة',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: 'ic_notification',
+          styleInformation: styleInformation,
+          playSound: true,
+          sound: const RawResourceAndroidNotificationSound(
+            'notification_sound',
           ),
         );
+
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
 
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
@@ -270,5 +299,4 @@ class NotificationService {
       payload: data != null ? jsonEncode(data) : null,
     );
   }
-
 }

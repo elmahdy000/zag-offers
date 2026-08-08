@@ -1,7 +1,7 @@
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:socket_io_client/socket_io_client.dart' as io;
 import 'package:zag_offers_admin_app/core/config/app_config.dart';
+import 'package:zag_offers_admin_app/core/storage/token_storage.dart';
 
 class AdminRealtimeNotification {
   final String type;
@@ -30,18 +30,20 @@ class AdminRealtimeNotification {
 }
 
 class RealtimeService {
-  final SharedPreferences _prefs;
+  final TokenStorage _tokenStorage;
   io.Socket? _socket;
+  int _connectionGeneration = 0;
 
-  RealtimeService(this._prefs);
+  RealtimeService(this._tokenStorage);
 
   bool get isConnected => _socket?.connected == true;
 
-  void connect({
+  Future<void> connect({
     required ValueChanged<AdminRealtimeNotification> onAdminNotification,
-  }) {
-    final token = _prefs.getString('token');
-    if (token == null || token.isEmpty) {
+  }) async {
+    final generation = ++_connectionGeneration;
+    final token = await _tokenStorage.read();
+    if (generation != _connectionGeneration || token == null || token.isEmpty) {
       return;
     }
 
@@ -87,6 +89,7 @@ class RealtimeService {
   }
 
   void disconnect() {
+    _connectionGeneration++;
     final socket = _socket;
     if (socket == null) return;
 

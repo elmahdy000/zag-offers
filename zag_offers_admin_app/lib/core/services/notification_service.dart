@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 import 'package:firebase_messaging/firebase_messaging.dart';
@@ -10,10 +10,12 @@ import '../utils/navigation_service.dart';
 import '../../injection_container.dart' as di;
 import '../../features/dashboard/presentation/pages/main_shell.dart';
 import '../../features/notifications/presentation/pages/notifications_page.dart';
+import '../storage/token_storage.dart';
 
 class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
-  static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
+  static final FlutterLocalNotificationsPlugin _localNotifications =
+      FlutterLocalNotificationsPlugin();
 
   Future<void> init() => NotificationService.initStatic();
 
@@ -54,53 +56,66 @@ class NotificationService {
 
     await _localNotifications
         .resolvePlatformSpecificImplementation<
-            AndroidFlutterLocalNotificationsPlugin>()
+          AndroidFlutterLocalNotificationsPlugin
+        >()
         ?.createNotificationChannel(channel);
-        
   }
 
   static StreamSubscription<RemoteMessage>? _onMessageSub;
   static StreamSubscription<RemoteMessage>? _onMessageOpenedAppSub;
   static StreamSubscription<String>? _tokenRefreshSub;
   static Map<String, dynamic>? _pendingNotificationData;
+  static final Completer<void> _initializationCompleter = Completer<void>();
 
   static Future<void> initStatic() async {
-    await initializeLocalNotifications();
+    try {
+      await initializeLocalNotifications();
 
-    final settings = await _messaging.requestPermission(
-      alert: true,
-      badge: true,
-      sound: true,
-    );
+      final settings = await _messaging.requestPermission(
+        alert: true,
+        badge: true,
+        sound: true,
+      );
 
-    if (settings.authorizationStatus == AuthorizationStatus.authorized) {
-      await _messaging.subscribeToTopic('all_users');
-      await _messaging.subscribeToTopic('all_admins');
-      
-      final token = await _messaging.getToken();
-      if (token != null) {
-        final prefs = await SharedPreferences.getInstance();
-        await prefs.setString('fcm_token', token);
-        await _sendTokenToServer(token);
+      if (settings.authorizationStatus == AuthorizationStatus.authorized) {
+        await _messaging.subscribeToTopic('all_users');
+        await _messaging.subscribeToTopic('all_admins');
+
+        final token = await _messaging.getToken();
+        if (token != null) {
+          final prefs = await SharedPreferences.getInstance();
+          await prefs.setString('fcm_token', token);
+          await _sendTokenToServer(token);
+        }
       }
-    }
 
-    await _tokenRefreshSub?.cancel();
-    _tokenRefreshSub = _messaging.onTokenRefresh.listen(_sendTokenToServer);
+      await _tokenRefreshSub?.cancel();
+      _tokenRefreshSub = _messaging.onTokenRefresh.listen(_sendTokenToServer);
 
-    _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
-    _onMessageOpenedAppSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
-      handleNotificationTapFromData(message.data);
-    });
+      _onMessageSub = FirebaseMessaging.onMessage.listen(
+        _handleForegroundMessage,
+      );
+      _onMessageOpenedAppSub = FirebaseMessaging.onMessageOpenedApp.listen((
+        message,
+      ) {
+        handleNotificationTapFromData(message.data);
+      });
 
-    final initialMessage = await _messaging.getInitialMessage();
-    if (initialMessage != null) {
-      handleNotificationTapFromData(initialMessage.data);
+      final initialMessage = await _messaging.getInitialMessage();
+      if (initialMessage != null) {
+        handleNotificationTapFromData(initialMessage.data);
+      }
+    } finally {
+      if (!_initializationCompleter.isCompleted) {
+        _initializationCompleter.complete();
+      }
     }
   }
 
   static Future<void> _sendTokenToServer(String token) async {
     try {
+      final authToken = await di.sl<TokenStorage>().read();
+      if (authToken == null || authToken.isEmpty) return;
       await di.sl<ApiClient>().post(
         '/notifications/fcm-token',
         data: {'fcmToken': token},
@@ -109,14 +124,22 @@ class NotificationService {
   }
 
   static Future<void> sendTokenToBackend() async {
-    final token = await _messaging.getToken();
-    if (token != null) await _sendTokenToServer(token);
+    try {
+      await _initializationCompleter.future.timeout(
+        const Duration(seconds: 10),
+      );
+      final token = await _messaging.getToken();
+      if (token != null) await _sendTokenToServer(token);
+    } catch (e) {
+      debugPrint('FCM token update failed: $e');
+    }
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {
     final title = message.notification?.title ?? 'تنبيه إداري';
     final body = message.notification?.body ?? '';
-    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    final imageUrl =
+        message.notification?.android?.imageUrl ?? message.data['imageUrl'];
     showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
   }
 
@@ -126,10 +149,14 @@ class NotificationService {
       final client = HttpClient();
       final request = await client.getUrl(uri);
       final response = await request.close();
-      final bytes = await response.fold<List<int>>(<int>[], (prev, chunk) => prev..addAll(chunk));
+      final bytes = await response.fold<List<int>>(
+        <int>[],
+        (prev, chunk) => prev..addAll(chunk),
+      );
       client.close();
       final tempDir = Directory.systemTemp;
-      final filePath = '${tempDir.path}/notif_${DateTime.now().millisecondsSinceEpoch}.png';
+      final filePath =
+          '${tempDir.path}/notif_${DateTime.now().millisecondsSinceEpoch}.png';
       await File(filePath).writeAsBytes(bytes);
       return filePath;
     } catch (e) {
@@ -138,7 +165,12 @@ class NotificationService {
     }
   }
 
-  static Future<void> showLocalNotification(String title, String body, {Map<String, dynamic>? data, String? imageUrl}) async {
+  static Future<void> showLocalNotification(
+    String title,
+    String body, {
+    Map<String, dynamic>? data,
+    String? imageUrl,
+  }) async {
     StyleInformation? styleInformation;
     if (imageUrl != null && imageUrl.isNotEmpty) {
       final filePath = await _downloadImage(imageUrl);
@@ -163,27 +195,26 @@ class NotificationService {
 
     final AndroidNotificationDetails androidPlatformChannelSpecifics =
         AndroidNotificationDetails(
-      'admin_channel',
-      'إشعارات الإدارة',
-      channelDescription: 'إشعارات طلبات المتاجر والعروض الجديدة',
-      importance: Importance.max,
-      priority: Priority.high,
-      icon: 'ic_notification',
-      styleInformation: styleInformation,
-      playSound: true,
-      sound: RawResourceAndroidNotificationSound('notification_sound'),
-    );
-    
-    final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(
-          android: androidPlatformChannelSpecifics,
-          iOS: const DarwinNotificationDetails(
-            presentAlert: true,
-            presentBadge: true,
-            presentSound: true,
-          ),
+          'admin_channel',
+          'إشعارات الإدارة',
+          channelDescription: 'إشعارات طلبات المتاجر والعروض الجديدة',
+          importance: Importance.max,
+          priority: Priority.high,
+          icon: 'ic_notification',
+          styleInformation: styleInformation,
+          playSound: true,
+          sound: RawResourceAndroidNotificationSound('notification_sound'),
         );
-    
+
+    final NotificationDetails platformChannelSpecifics = NotificationDetails(
+      android: androidPlatformChannelSpecifics,
+      iOS: const DarwinNotificationDetails(
+        presentAlert: true,
+        presentBadge: true,
+        presentSound: true,
+      ),
+    );
+
     await _localNotifications.show(
       DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
@@ -216,7 +247,7 @@ class NotificationService {
 
   static void handleNotificationTapFromData(Map<String, dynamic> data) {
     final type = data['type']?.toString();
-    
+
     final context = NavigationService.navigatorKey.currentContext;
     if (context == null) {
       _pendingNotificationData = data;
@@ -229,9 +260,9 @@ class NotificationService {
       MainShell.of(context)?.setSelectedIndex(2); // Offers tab
     } else {
       // Navigate to Notifications Page
-      Navigator.of(context).push(
-        MaterialPageRoute(builder: (_) => const NotificationsPage()),
-      );
+      Navigator.of(
+        context,
+      ).push(MaterialPageRoute(builder: (_) => const NotificationsPage()));
     }
   }
 

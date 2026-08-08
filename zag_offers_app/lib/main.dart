@@ -10,7 +10,6 @@ import 'package:zag_offers_app/core/theme/app_theme.dart';
 import 'package:zag_offers_app/core/theme/theme_cubit.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/animated_splash_page.dart';
 import 'package:zag_offers_app/core/services/notification_service.dart';
-import 'package:zag_offers_app/core/services/location_service.dart';
 import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/injection_container.dart' as di;
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -31,19 +30,22 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
-  
+
   // Initialize local notifications for this isolate
   await NotificationService.initializeLocalNotifications();
-  
+
   // Messages that already contain a notification payload are displayed by
   // Android/iOS. Only data-only messages need a local notification here.
-  final title = message.notification?.title ?? message.data['title'] ?? 'تحديث جديد';
+  final title =
+      message.notification?.title ?? message.data['title'] ?? 'تحديث جديد';
   final body = message.notification?.body ?? message.data['body'] ?? '';
-  
+
   if (message.notification == null && (title.isNotEmpty || body.isNotEmpty)) {
-    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
-    await NotificationService.showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
-    
+    final imageUrl =
+        message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    await NotificationService.showLocalNotification(title, body,
+        data: message.data, imageUrl: imageUrl);
+
     // حفظ الإشعار في الـ Background لضمان ظهوره في السجل
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -53,9 +55,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       if (data != null) {
         items = json.decode(data);
       }
-      
+
       final newItem = {
-        'id': message.messageId ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        'id': message.messageId ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
         'title': title,
         'message': body,
         'createdAt': DateTime.now().toIso8601String(),
@@ -64,41 +67,42 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'data': message.data.isNotEmpty ? message.data : null,
         'imageUrl': message.notification?.android?.imageUrl,
       };
-      
+
       items.insert(0, newItem);
       // الاحتفاظ بآخر 50 إشعار فقط
       if (items.length > 50) items = items.sublist(0, 50);
-      
+
       await prefs.setString(storageKey, json.encode(items));
     } catch (e) {
       debugPrint("Error saving background notification: $e");
     }
   }
-  
+
   debugPrint("Handling a background message: ${message.messageId}");
 }
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  
+
   // Lock portrait orientation globally
   await SystemChrome.setPreferredOrientations([
     DeviceOrientation.portraitUp,
     DeviceOrientation.portraitDown,
   ]);
-  
+
   await di.init();
   await initializeDateFormatting('ar', null);
+  runApp(const ZagOffersApp());
 
   // تهيئة Firebase
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
-    
+
     // إعداد معالج الرسائل في الخلفية
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    
+
     // تهيئة خدمة التنبيهات الخاصة بنا
     await NotificationService.initialize();
   } catch (e) {
@@ -106,9 +110,6 @@ void main() async {
   }
 
   // تهيئة خدمات الموقع الجغرافي عند بداية تشغيل التطبيق
-  await LocationService.initialize();
-
-  runApp(const ZagOffersApp());
 }
 
 class ZagOffersApp extends StatelessWidget {
@@ -135,30 +136,30 @@ class ZagOffersApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeMode,
             home: const AnimatedSplashPage(),
-        routes: {
-          '/home': (context) => const MainScreen(),
-          '/onboarding': (context) => const OnboardingPage(),
-          '/coupons': (context) => const MyCouponsPage(),
-          '/notifications': (context) => const NotificationsPage(),
-        },
-        builder: (context, child) {
-          final data = MediaQuery.of(context);
-          return MediaQuery(
-            data: data.copyWith(
-              textScaler: data.textScaler.clamp(
-                minScaleFactor: 0.8,
-                maxScaleFactor: 1.15,
-              ),
-            ),
-            child: Directionality(
-              textDirection: TextDirection.rtl,
-              child: child!,
-            ),
+            routes: {
+              '/home': (context) => const MainScreen(),
+              '/onboarding': (context) => const OnboardingPage(),
+              '/coupons': (context) => const MyCouponsPage(),
+              '/notifications': (context) => const NotificationsPage(),
+            },
+            builder: (context, child) {
+              final data = MediaQuery.of(context);
+              return MediaQuery(
+                data: data.copyWith(
+                  textScaler: data.textScaler.clamp(
+                    minScaleFactor: 0.8,
+                    maxScaleFactor: 1.15,
+                  ),
+                ),
+                child: Directionality(
+                  textDirection: TextDirection.rtl,
+                  child: child!,
+                ),
+              );
+            },
           );
         },
-      );
-    },
-  ),
-);
+      ),
+    );
   }
 }

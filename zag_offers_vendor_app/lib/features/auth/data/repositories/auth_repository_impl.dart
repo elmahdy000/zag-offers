@@ -1,4 +1,4 @@
-﻿import 'dart:convert';
+import 'dart:convert';
 import 'package:flutter_secure_storage/flutter_secure_storage.dart';
 import '../../data/models/user_model.dart';
 import '../../domain/entities/user_entity.dart';
@@ -53,6 +53,6 @@ class AuthRepositoryImpl implements AuthRepository {
   Future<void> logout() async {
     await secureStorage.delete(key: 'auth_token');
     await secureStorage.delete(key: 'user_data');
+    remoteDataSource.clearCachedAuth();
   }
 }
-

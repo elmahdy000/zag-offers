@@ -1,18 +1,24 @@
 import 'package:dartz/dartz.dart';
 import 'package:flutter/foundation.dart';
-import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_admin_app/core/error/failures.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/entities/admin_user.dart';
 import 'package:zag_offers_admin_app/features/auth/domain/repositories/auth_repository.dart';
 import 'package:zag_offers_admin_app/features/auth/data/datasources/auth_remote_datasource.dart';
 import 'package:zag_offers_admin_app/features/auth/data/models/admin_user_model.dart';
 import 'package:zag_offers_admin_app/core/error/error_handler.dart';
+import 'package:zag_offers_admin_app/core/network/api_client.dart';
+import 'package:zag_offers_admin_app/core/storage/token_storage.dart';
 
 class AuthRepositoryImpl implements AuthRepository {
   final AuthRemoteDataSource remoteDataSource;
-  final SharedPreferences prefs;
+  final TokenStorage tokenStorage;
+  final ApiClient apiClient;
 
-  AuthRepositoryImpl({required this.remoteDataSource, required this.prefs});
+  AuthRepositoryImpl({
+    required this.remoteDataSource,
+    required this.tokenStorage,
+    required this.apiClient,
+  });
 
   @override
   Future<Either<Failure, AdminUser>> login(
@@ -24,7 +30,8 @@ class AuthRepositoryImpl implements AuthRepository {
       final token = response['access_token'];
       final user = AdminUserModel.fromJson(response['user']);
 
-      await prefs.setString('token', token);
+      await tokenStorage.write(token);
+      apiClient.setAuthToken(token);
 
       return Right(user);
     } catch (e) {
@@ -35,7 +42,7 @@ class AuthRepositoryImpl implements AuthRepository {
   @override
   Future<Either<Failure, AdminUser>> getProfile() async {
     try {
-      final token = prefs.getString('token');
+      final token = await tokenStorage.read();
       if (token == null || token.isEmpty) {
         return Left(ServerFailure('No saved session'));
       }
@@ -80,7 +87,8 @@ class AuthRepositoryImpl implements AuthRepository {
       } catch (e) {
         debugPrint('Logout remote call failed: $e');
       }
-      await prefs.remove('token');
+      await tokenStorage.clear();
+      apiClient.setAuthToken(null);
     } catch (e) {
       debugPrint('Logout local failed: $e');
     }

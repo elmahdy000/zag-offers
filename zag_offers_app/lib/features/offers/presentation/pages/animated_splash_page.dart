@@ -21,7 +21,7 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
 
     _controller = AnimationController(
       vsync: this,
-      duration: const Duration(milliseconds: 1800),
+      duration: const Duration(milliseconds: 1200),
     );
 
     // Cursor blink effect
@@ -35,7 +35,7 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
 
     _controller.forward();
 
-    Future.delayed(const Duration(milliseconds: 2400), () {
+    Future.delayed(const Duration(milliseconds: 1500), () {
       if (mounted) _navigate();
     });
   }
@@ -77,7 +77,8 @@ class _AnimatedSplashPageState extends State<AnimatedSplashPage>
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   Opacity(
-                    opacity: Curves.easeOut.transform((_controller.value * 1.5).clamp(0.0, 1.0)),
+                    opacity: Curves.easeOut
+                        .transform((_controller.value * 1.5).clamp(0.0, 1.0)),
                     child: Image.asset(
                       'assets/branding/splash_logo.png',
                       width: 132,

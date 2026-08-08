@@ -52,8 +52,6 @@
 	<string>نحتاج للوصول إلى الكاميرا لالتقاط الصور لتحديث المتاجر والعروض.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>نحتاج للوصول إلى مكتبة الصور لاختيار صور للمتاجر والعروض الجديدة.</string>
-	<key>FirebaseAppDelegateProxyEnabled</key>
-	<false/>
 	<key>UIBackgroundModes</key>
 	<array>
 		<string>fetch</string>

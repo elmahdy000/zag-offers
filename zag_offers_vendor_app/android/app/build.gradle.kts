@@ -14,6 +14,12 @@ val keystoreProperties = Properties()
 if (keystorePropertiesFile.exists()) {
     keystoreProperties.load(FileInputStream(keystorePropertiesFile))
 }
+val isReleaseBuild = gradle.startParameter.taskNames.any {
+    it.contains("Release", ignoreCase = true)
+}
+if (isReleaseBuild && !keystorePropertiesFile.exists()) {
+    throw GradleException("Missing android/key.properties for the release build.")
+}
 
 android {
     namespace = "com.zag.offers.vendor.zag_offers_vendor_app"
@@ -51,11 +57,7 @@ android {
 
     buildTypes {
         release {
-            signingConfig = if (signingConfigs.names.contains("release")) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.findByName("release")
         }
     }
 }

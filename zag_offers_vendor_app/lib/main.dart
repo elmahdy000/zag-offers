@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -26,25 +27,31 @@ import 'core/utils/navigation_service.dart';
 import 'core/network/notification_service.dart';
 import 'injection_container.dart' as di;
 import 'core/widgets/splash_screen.dart';
-import 'core/services/location_service.dart';
 
 /// Top-level background handler — must be annotated so the VM keeps it alive.
 @pragma('vm:entry-point')
 Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   await Firebase.initializeApp(options: DefaultFirebaseOptions.currentPlatform);
-  
+
   // Initialize local notifications for background
   await NotificationService.initializeLocalNotifications();
-  
-  final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
+
+  final title =
+      message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
   final body = message.notification?.body ?? message.data['body'] ?? '';
 
   // Avoid showing a second local notification for notification payloads;
   // Firebase already displays those while the app is backgrounded.
   if (message.notification == null && (title.isNotEmpty || body.isNotEmpty)) {
-    final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
-    await NotificationService.showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
-    
+    final imageUrl =
+        message.notification?.android?.imageUrl ?? message.data['imageUrl'];
+    await NotificationService.showLocalNotification(
+      title,
+      body,
+      data: message.data,
+      imageUrl: imageUrl,
+    );
+
     // حفظ الإشعار في الـ Background
     try {
       final prefs = await SharedPreferences.getInstance();
@@ -54,9 +61,11 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
       if (data != null) {
         items = json.decode(data);
       }
-      
+
       final newItem = {
-        'id': message.messageId ?? DateTime.now().microsecondsSinceEpoch.toString(),
+        'id':
+            message.messageId ??
+            DateTime.now().microsecondsSinceEpoch.toString(),
         'title': title,
         'body': body,
         'type': message.data['type'],
@@ -65,10 +74,10 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
         'imageUrl': message.notification?.android?.imageUrl,
         'createdAt': DateTime.now().toIso8601String(),
       };
-      
+
       items.insert(0, newItem);
       if (items.length > 50) items = items.sublist(0, 50);
-      
+
       await prefs.setString(storageKey, json.encode(items));
     } catch (e) {
       debugPrint('Failed to persist notification: $e');
@@ -76,27 +85,28 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   }
 }
 
-
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
   await initializeDateFormatting('ar', null);
+  await di.init();
+  runApp(const ZagOffersVendorApp());
+  unawaited(_initializeFirebaseServices());
+}
 
+Future<void> _initializeFirebaseServices() async {
   try {
     await Firebase.initializeApp(
       options: DefaultFirebaseOptions.currentPlatform,
     );
     FirebaseMessaging.onBackgroundMessage(_firebaseMessagingBackgroundHandler);
-    
+
     // Initialize our NotificationService
     await NotificationService.initialize();
   } catch (e) {
     debugPrint('Firebase initialization error: $e');
   }
 
-  await di.init();
   // تهيئة خدمة تحديد الموقع للتاجر لتخزين إحداثيات محله تلقائياً
-  await LocationService.initialize();
-  runApp(const ZagOffersVendorApp());
 }
 
 class ZagOffersVendorApp extends StatelessWidget {
@@ -106,27 +116,13 @@ class ZagOffersVendorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MultiBlocProvider(
       providers: [
-        BlocProvider(
-          create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatus()),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<DashboardBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<QRScannerBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<OffersBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<ProfileBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<NotificationsBloc>(),
-        ),
-        BlocProvider(
-          create: (_) => di.sl<ReviewsBloc>(),
-        ),
+        BlocProvider(create: (_) => di.sl<AuthBloc>()..add(CheckAuthStatus())),
+        BlocProvider(create: (_) => di.sl<DashboardBloc>()),
+        BlocProvider(create: (_) => di.sl<QRScannerBloc>()),
+        BlocProvider(create: (_) => di.sl<OffersBloc>()),
+        BlocProvider(create: (_) => di.sl<ProfileBloc>()),
+        BlocProvider(create: (_) => di.sl<NotificationsBloc>()),
+        BlocProvider(create: (_) => di.sl<ReviewsBloc>()),
       ],
       child: MaterialApp(
         title: 'Zag Offers Vendor',
@@ -152,7 +148,10 @@ class ZagOffersVendorApp extends StatelessWidget {
               borderRadius: BorderRadius.circular(20),
               borderSide: const BorderSide(color: AppColors.error),
             ),
-            contentPadding: const EdgeInsets.symmetric(horizontal: 20, vertical: 16),
+            contentPadding: const EdgeInsets.symmetric(
+              horizontal: 20,
+              vertical: 16,
+            ),
             hintStyle: GoogleFonts.cairo(
               color: AppColors.textDimmer,
               fontWeight: FontWeight.w700,
@@ -183,25 +182,20 @@ class AuthWrapper extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AuthBloc, AuthState>(
-      listenWhen: (_, next) => next is AuthAuthenticated,
-      listener: (context, state) {
+    return BlocBuilder<AuthBloc, AuthState>(
+      buildWhen: (prev, next) =>
+          next is AuthAuthenticated ||
+          next is AuthUnauthenticated ||
+          next is AuthInitial ||
+          next is AuthLoading,
+      builder: (context, state) {
         if (state is AuthAuthenticated) {
-          context.read<DashboardBloc>().add(GetDashboardStatsRequested());
-          NotificationService.sendTokenToBackend();
+          return const MainLayout();
+        } else if (state is AuthInitial || state is AuthLoading) {
+          return const SplashScreen();
         }
+        return const LoginPage();
       },
-      child: BlocBuilder<AuthBloc, AuthState>(
-        buildWhen: (prev, next) => next is AuthAuthenticated || next is AuthUnauthenticated || next is AuthInitial || next is AuthLoading,
-        builder: (context, state) {
-          if (state is AuthAuthenticated) {
-            return const MainLayout();
-          } else if (state is AuthInitial || state is AuthLoading) {
-            return const SplashScreen();
-          }
-          return const LoginPage();
-        },
-      ),
     );
   }
 }

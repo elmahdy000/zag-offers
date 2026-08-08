@@ -9,6 +9,7 @@ abstract class AuthRemoteDataSource {
   Future<UserModel> login(String identifier, String password);
   Future<void> updateFcmToken(String fcmToken);
   Future<void> removeFcmToken();
+  void clearCachedAuth();
 }
 
 class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
@@ -19,6 +20,9 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
     required this.apiClient,
     required this.secureStorage,
   });
+
+  @override
+  void clearCachedAuth() => apiClient.setAuthToken(null);
 
   @override
   Future<UserModel> login(String identifier, String password) async {
@@ -32,13 +36,18 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
       final user = UserModel.fromJson(response.data['user']);
 
       await secureStorage.write(key: 'auth_token', value: token);
-      await secureStorage.write(key: 'user_data', value: jsonEncode(response.data['user']));
+      await secureStorage.write(
+        key: 'user_data',
+        value: jsonEncode(response.data['user']),
+      );
+      apiClient.setAuthToken(token);
 
       // Vendor mobile app must use merchant accounts only.
       // Most vendor endpoints are protected with MERCHANT role on backend.
       if (user.role != 'MERCHANT' && user.role != 'ADMIN') {
         await secureStorage.delete(key: 'auth_token');
         await secureStorage.delete(key: 'user_data');
+        apiClient.setAuthToken(null);
         throw Exception('هذا التطبيق مخصص لحسابات التجار فقط.');
       }
 
@@ -51,7 +60,10 @@ class AuthRemoteDataSourceImpl implements AuthRemoteDataSource {
   @override
   Future<void> updateFcmToken(String fcmToken) async {
     try {
-      await apiClient.dio.post('/notifications/fcm-token', data: {'fcmToken': fcmToken});
+      await apiClient.dio.post(
+        '/notifications/fcm-token',
+        data: {'fcmToken': fcmToken},
+      );
     } on DioException catch (e) {
       log('Failed to update FCM token: ${e.message}');
     }

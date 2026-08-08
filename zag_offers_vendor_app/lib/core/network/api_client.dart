@@ -9,6 +9,8 @@ class ApiClient {
 
   late final Dio dio;
   final FlutterSecureStorage secureStorage;
+  String? _cachedToken;
+  bool _tokenLoaded = false;
 
   ApiClient({required this.secureStorage}) {
     dio = Dio(
@@ -26,7 +28,11 @@ class ApiClient {
     dio.interceptors.add(
       InterceptorsWrapper(
         onRequest: (options, handler) async {
-          final token = await secureStorage.read(key: 'auth_token');
+          if (!_tokenLoaded) {
+            _cachedToken = await secureStorage.read(key: 'auth_token');
+            _tokenLoaded = true;
+          }
+          final token = _cachedToken;
           if (token != null) {
             options.headers['Authorization'] = 'Bearer $token';
           }
@@ -35,7 +41,9 @@ class ApiClient {
         onError: (DioException e, handler) async {
           if (e.response?.statusCode == 401) {
             await secureStorage.delete(key: 'auth_token');
-            await secureStorage.delete(key: 'vendor_user');
+            await secureStorage.delete(key: 'user_data');
+            _cachedToken = null;
+            _tokenLoaded = true;
             ApiClient.onUnauthorized?.call();
           }
           return handler.next(e);
@@ -44,19 +52,58 @@ class ApiClient {
     );
   }
 
-  Future<Response> get(String path, {Map<String, dynamic>? queryParameters, Options? options}) {
+  void setAuthToken(String? token) {
+    _cachedToken = token;
+    _tokenLoaded = true;
+  }
+
+  Future<Response> get(
+    String path, {
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
     return dio.get(path, queryParameters: queryParameters, options: options);
   }
 
-  Future<Response> post(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) {
-    return dio.post(path, data: data, queryParameters: queryParameters, options: options);
+  Future<Response> post(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return dio.post(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 
-  Future<Response> put(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) {
-    return dio.put(path, data: data, queryParameters: queryParameters, options: options);
+  Future<Response> put(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return dio.put(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 
-  Future<Response> delete(String path, {dynamic data, Map<String, dynamic>? queryParameters, Options? options}) {
-    return dio.delete(path, data: data, queryParameters: queryParameters, options: options);
+  Future<Response> delete(
+    String path, {
+    dynamic data,
+    Map<String, dynamic>? queryParameters,
+    Options? options,
+  }) {
+    return dio.delete(
+      path,
+      data: data,
+      queryParameters: queryParameters,
+      options: options,
+    );
   }
 }

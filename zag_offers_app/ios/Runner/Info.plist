@@ -5,7 +5,7 @@
 		<key>CFBundleDevelopmentRegion</key>
 		<string>$(DEVELOPMENT_LANGUAGE)</string>
 		<key>CFBundleDisplayName</key>
-		<string>Zag Offers App</string>
+		<string>Zag Offers</string>
 		<key>CFBundleExecutable</key>
 		<string>$(EXECUTABLE_NAME)</string>
 		<key>CFBundleIdentifier</key>
@@ -13,7 +13,7 @@
 		<key>CFBundleInfoDictionaryVersion</key>
 		<string>6.0</string>
 		<key>CFBundleName</key>
-		<string>zag_offers_app</string>
+		<string>Zag Offers</string>
 		<key>CFBundlePackageType</key>
 		<string>APPL</string>
 		<key>CFBundleShortVersionString</key>
@@ -52,14 +52,10 @@
 		</array>
 		<key>NSLocationWhenInUseUsageDescription</key>
 		<string>نحتاج للوصول إلى موقعك لعرض العروض والمتاجر القريبة منك.</string>
-		<key>NSLocationAlwaysAndWhenInUseUsageDescription</key>
-		<string>نحتاج للوصول إلى موقعك لعرض العروض والمتاجر القريبة منك بشكل دقيق.</string>
 		<key>NSCameraUsageDescription</key>
 		<string>نحتاج للوصول إلى الكاميرا لالتقاط الصور الشخصية وتحديث حسابك.</string>
 		<key>NSPhotoLibraryUsageDescription</key>
 		<string>نحتاج للوصول إلى مكتبة الصور لاختيار صور لملفك الشخصي.</string>
-		<key>FirebaseAppDelegateProxyEnabled</key>
-		<false/>
 		<key>UIBackgroundModes</key>
 		<array>
 			<string>fetch</string>

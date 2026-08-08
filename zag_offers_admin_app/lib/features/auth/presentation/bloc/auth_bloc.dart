@@ -1,4 +1,4 @@
-﻿import 'package:equatable/equatable.dart';
+import 'package:equatable/equatable.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_admin_app/core/error/error_handler.dart';
@@ -17,12 +17,16 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     on<LoginEvent>((event, emit) async {
       emit(AuthLoading());
       final result = await repository.login(event.identifier, event.password);
-      result.fold(
-        (failure) => emit(AuthError(message: failure.message)),
-        (user) {
+      await result.fold<Future<void>>(
+        (failure) async => emit(AuthError(message: failure.message)),
+        (user) async {
           if (user.role != 'ADMIN') {
-            repository.logout();
-            emit(const AuthError(message: 'عفواً، لا تملك صلاحية الدخول لبوابة الإدارة'));
+            await repository.logout();
+            emit(
+              const AuthError(
+                message: 'عفواً، لا تملك صلاحية الدخول لبوابة الإدارة',
+              ),
+            );
           } else {
             NotificationService.sendTokenToBackend();
             emit(AuthAuthenticated(user: user));
@@ -36,12 +40,17 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
         final result = await repository.getProfile().timeout(
           const Duration(seconds: 3),
         );
-        result.fold(
-          (failure) {
+        await result.fold<Future<void>>(
+          (failure) async {
             debugPrint('Auth check failed: ${failure.message}');
             emit(AuthUnauthenticated());
           },
-          (user) {
+          (user) async {
+            if (user.role != 'ADMIN') {
+              await repository.logout();
+              emit(AuthUnauthenticated());
+              return;
+            }
             debugPrint('Auth check success: ${user.name}');
             NotificationService.sendTokenToBackend();
             emit(AuthAuthenticated(user: user));
@@ -58,7 +67,11 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       try {
         await repository.logout();
       } catch (e) {
-        emit(AuthError(message: ErrorHandler.handle(e).replaceAll('Exception: ', '')));
+        emit(
+          AuthError(
+            message: ErrorHandler.handle(e).replaceAll('Exception: ', ''),
+          ),
+        );
       }
       emit(AuthUnauthenticated());
     });
@@ -85,5 +98,3 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
   }
 }
-
-
