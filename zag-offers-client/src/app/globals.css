@@ -1246,11 +1246,11 @@ html[data-theme="light"] .home-offers-empty button { color:#d95400 !important; }
 .homepage .ad-carousel-main,.homepage .ad-carousel-preview { border-color:var(--home-border); border-radius:18px; background:var(--home-surface); box-shadow:0 12px 30px rgba(0,0,0,.16); }
 .homepage .ad-carousel-main,.homepage .ad-carousel-preview { height:100%; }
 .homepage .ad-carousel-shade { background:linear-gradient(90deg,rgba(5,14,28,.03) 28%,rgba(5,14,28,.42) 100%); }
-.homepage .ad-carousel-copy { right:28px; bottom:26px; left:auto; width:clamp(360px,49%,680px); max-width:52%; padding:20px 22px; border-radius:14px; background:rgba(7,20,38,.72); }
-.homepage .ad-carousel-copy h3 { font-size:clamp(32px,2.75vw,44px); font-weight:700; line-height:1.35; }
-.homepage .ad-carousel-copy p { color:#e2e8f0; font-size:14px; font-weight:500; line-height:1.8; }
-.homepage .ad-carousel-tag { padding:7px 12px; font-size:12px; font-weight:700; }
-.homepage .ad-carousel-action { display:inline-flex; min-height:42px; align-items:center; margin-top:14px; border-radius:10px; background:#ff6b00; padding:9px 15px; color:#fff; font-size:13px; font-weight:700; }
+.homepage .ad-carousel-copy { right:24px; bottom:22px; left:auto; width:clamp(330px,42%,560px); max-width:46%; padding:16px 18px; border:1px solid rgba(255,255,255,.08); border-radius:12px; background:rgba(7,20,38,.68); backdrop-filter:blur(3px); }
+.homepage .ad-carousel-copy h3 { font-size:clamp(28px,2.25vw,38px); font-weight:700; line-height:1.35; }
+.homepage .ad-carousel-copy p { margin-top:3px; color:#e2e8f0; font-size:13px; font-weight:500; line-height:1.7; }
+.homepage .ad-carousel-tag { margin-bottom:7px; padding:5px 10px; font-size:11px; font-weight:700; }
+.homepage .ad-carousel-action { display:inline-flex; min-height:38px; align-items:center; margin-top:10px; border-radius:9px; background:#ff6b00; padding:7px 13px; color:#fff; font-size:12px; font-weight:700; }
 .homepage .ad-carousel-action svg { color:#fff; }
 .homepage .ad-carousel-preview strong { font-weight:700; }
 .homepage .ad-carousel-controls button { width:44px; height:44px; border-color:var(--home-border); background:var(--home-surface); }
@@ -1310,7 +1310,7 @@ html[data-theme="light"] .homepage .home-featured-store-name { color:var(--home-
   .homepage .brand-hero-market { height:clamp(440px,58vw,500px); min-height:440px; }
   .home-offers-grid { grid-template-columns:repeat(2,minmax(0,1fr)); }
   .homepage .ad-carousel-stage { grid-template-columns:minmax(0,2.2fr) minmax(220px,1fr); height:380px; }
-  .homepage .ad-carousel-copy { width:52%; max-width:52%; }
+  .homepage .ad-carousel-copy { width:46%; max-width:48%; }
   .home-stores-row { display:grid; grid-template-columns:repeat(3,minmax(0,1fr)); }
   .home-featured-store-card { width:100%; }
 }
@@ -1337,8 +1337,8 @@ html[data-theme="light"] .homepage .home-featured-store-name { color:var(--home-
   .homepage .ad-carousel-heading h2 { font-size:24px; }
   .homepage .ad-carousel-stage { display:block; height:320px; min-height:0; }
   .homepage .ad-carousel-main { height:320px; }
-  .homepage .ad-carousel-copy { right:12px; bottom:12px; left:12px; width:auto; max-width:none; padding:14px; }
-  .homepage .ad-carousel-copy h3 { font-size:25px; }
+  .homepage .ad-carousel-copy { right:12px; bottom:12px; left:12px; width:auto; max-width:none; padding:12px 13px; }
+  .homepage .ad-carousel-copy h3 { font-size:23px; }
   .homepage .ad-carousel-copy p { font-size:12px; line-height:1.7; -webkit-line-clamp:2; }
   .homepage .ad-carousel-count { display:none; }
   .home-offers-grid { grid-template-columns:1fr; gap:18px; }
