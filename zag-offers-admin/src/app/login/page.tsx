@@ -16,6 +16,7 @@ export default function AdminLoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
+  const normalizePhone = (value: string) => value.replace(/\D/g, '').slice(0, 11);
   const isValidEgyptianPhone = (p: string) => /^01[0125][0-9]{8}$/.test(p.trim());
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -64,7 +65,7 @@ export default function AdminLoginPage() {
           <div className="admin-auth-brand-top">
             <span className="flex items-center gap-3">
               <span className="relative block h-12 w-12 overflow-hidden rounded-2xl">
-                <Image src="/brand/zag-mark.png" alt="" fill priority className="object-contain" sizes="48px" />
+                <Image src="/brand/zag-mark-dark.png" alt="" fill priority className="object-contain" sizes="48px" />
               </span>
               <span>
                 <b className="block text-base font-black text-white">Zag Offers</b>
@@ -88,7 +89,7 @@ export default function AdminLoginPage() {
 
         <section className="admin-auth-form-panel">
           <div className="admin-auth-topbar"><AdminThemeToggle compact /></div>
-          <div className="admin-auth-content w-full max-w-[430px]">
+          <div className="admin-auth-content w-full max-w-[390px]">
             <div className="mb-8">
               <span className="admin-auth-kicker">بوابة المسؤولين</span>
               <h1 className="admin-auth-title">مرحبًا بعودتك</h1>
@@ -102,7 +103,7 @@ export default function AdminLoginPage() {
                 <label htmlFor="admin-phone" className="admin-auth-label">رقم الموبايل</label>
                 <div className="admin-auth-input-wrap">
                   <Smartphone size={17} />
-                  <input id="admin-phone" type="tel" value={phone} onChange={(event) => setPhone(event.target.value)} placeholder="01xxxxxxxxx" autoComplete="tel" required />
+                  <input id="admin-phone" dir="ltr" type="tel" inputMode="numeric" pattern="01[0125][0-9]{8}" maxLength={11} value={phone} onChange={(event) => setPhone(normalizePhone(event.target.value))} onPaste={(event) => { event.preventDefault(); setPhone(normalizePhone(event.clipboardData.getData('text'))); }} placeholder="01xxxxxxxxx" autoComplete="tel" required />
                 </div>
               </div>
 

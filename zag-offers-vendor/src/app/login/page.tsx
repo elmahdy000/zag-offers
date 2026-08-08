@@ -20,6 +20,7 @@ export default function LoginPage() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [theme, setTheme] = useState<'dark' | 'light'>('dark');
+  const normalizePhone = (value: string) => value.replace(/\D/g, '').slice(0, 11);
 
   useEffect(() => {
     const active = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
@@ -107,7 +108,7 @@ export default function LoginPage() {
             <button className="icon-button" onClick={toggleTheme} aria-label="تغيير المظهر">{theme === 'dark' ? <Sun size={18} /> : <Moon size={18} />}</button>
           </div>
 
-          <div className="vendor-auth-content w-full max-w-[430px]">
+          <div className="vendor-auth-content w-full max-w-[390px]">
             <span className="vendor-auth-kicker">بوابة شركاء Zag Offers</span>
             <h1 className="vendor-auth-title">أهلًا بعودتك</h1>
             <p className="vendor-auth-subtitle">أدر عروضك، تابع الكوبونات، وراقب أداء متجرك من مكان واحد.</p>
@@ -116,7 +117,7 @@ export default function LoginPage() {
               {error && <div className="vendor-auth-error" role="alert">{error}</div>}
               <div>
                 <label className="vendor-auth-label" htmlFor="phone">رقم الموبايل</label>
-                <div className="vendor-auth-input-wrap"><Smartphone size={18} /><input id="phone" type="tel" inputMode="tel" autoComplete="tel" autoFocus placeholder="01xxxxxxxxx" value={phone} onChange={(event) => setPhone(event.target.value)} required /></div>
+                <div className="vendor-auth-input-wrap"><Smartphone size={18} /><input id="phone" dir="ltr" type="tel" inputMode="numeric" pattern="01[0125][0-9]{8}" maxLength={11} autoComplete="tel" autoFocus placeholder="01xxxxxxxxx" value={phone} onChange={(event) => setPhone(normalizePhone(event.target.value))} onPaste={(event) => { event.preventDefault(); setPhone(normalizePhone(event.clipboardData.getData('text'))); }} required /></div>
               </div>
               <div>
                 <label className="vendor-auth-label" htmlFor="password">كلمة المرور</label>
