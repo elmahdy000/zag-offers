@@ -49,7 +49,22 @@ function getNotifRoute(n: Notification): string {
     case 'COUPON_REDEEMED':
     case 'COUPON_UPDATE':
     case 'COUPON_GENERATED':
+    case 'COUPON_SHARED':
       return '/coupons';
+    case 'OPEN_OFFER':
+      return typeof d.actionValue === 'string'
+        ? `/offers/${d.actionValue}`
+        : typeof d.offerId === 'string' ? `/offers/${d.offerId}` : '/offers';
+    case 'OPEN_STORE':
+      return typeof d.actionValue === 'string'
+        ? `/stores/${d.actionValue}`
+        : typeof d.storeId === 'string' ? `/stores/${d.storeId}` : '/stores';
+    case 'OPEN_LINK':
+      return typeof d.actionValue === 'string' && d.actionValue.startsWith('/')
+        ? d.actionValue
+        : '/notifications';
+    case 'REVIEW_REPLY':
+      return typeof d.storeId === 'string' ? `/stores/${d.storeId}` : '/stores';
     default:
       return '/';
   }

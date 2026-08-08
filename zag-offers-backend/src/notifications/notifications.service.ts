@@ -1,6 +1,7 @@
 import { Injectable, Logger, OnModuleInit } from '@nestjs/common';
 import * as admin from 'firebase-admin';
 import { PrismaService } from '../prisma/prisma.service';
+import { Role } from '@prisma/client';
 
 export interface NotificationPayload {
   title: string;
@@ -212,7 +213,7 @@ export class NotificationsService implements OnModuleInit {
               .messaging()
               .unsubscribeFromTopic(
                 [existing.fcmToken],
-                `area_${existing.area.replace(/\s+/g, '_')}`,
+                this.areaTopic(existing.area),
               );
           }
         } catch (e) {
@@ -231,7 +232,7 @@ export class NotificationsService implements OnModuleInit {
       await admin.messaging().subscribeToTopic([token], roleTopic);
 
       if (user?.area) {
-        const areaTopic = `area_${user.area.replace(/\s+/g, '_')}`;
+        const areaTopic = this.areaTopic(user.area);
         await admin.messaging().subscribeToTopic([token], areaTopic);
       }
     } catch (error) {
@@ -259,12 +260,16 @@ export class NotificationsService implements OnModuleInit {
           .messaging()
           .unsubscribeFromTopic([user.fcmToken], roleTopic);
 
+        await admin
+          .messaging()
+          .unsubscribeFromTopic([user.fcmToken], 'all_users');
+
         if (user.area) {
           await admin
             .messaging()
             .unsubscribeFromTopic(
               [user.fcmToken],
-              `area_${user.area.replace(/\s+/g, '_')}`,
+              this.areaTopic(user.area),
             );
         }
       } catch (e) {
@@ -382,7 +387,9 @@ export class NotificationsService implements OnModuleInit {
               channelId:
                 topic === 'all_merchants'
                   ? 'merchants_channel'
-                  : 'offers_channel',
+                  : topic === 'all_admins'
+                    ? 'admin_channel'
+                    : 'offers_channel',
               ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
             },
           },
@@ -433,7 +440,7 @@ export class NotificationsService implements OnModuleInit {
 
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
-      const topic = `area_${area.replace(/\s+/g, '_')}`;
+      const topic = this.areaTopic(area);
       const message: admin.messaging.Message = {
         notification: {
           title,
@@ -504,6 +511,10 @@ export class NotificationsService implements OnModuleInit {
 
     try {
       const sanitizedImageUrl = this.sanitizeImageUrl(imageUrl);
+      const user = await this.prisma.user.findFirst({
+        where: { fcmToken },
+        select: { role: true },
+      });
       const message: admin.messaging.Message = {
         notification: { 
           title, 
@@ -521,7 +532,7 @@ export class NotificationsService implements OnModuleInit {
           priority: 'high',
           notification: {
             sound: 'default',
-            channelId: 'offers_channel',
+            channelId: this.channelForRole(user?.role),
             ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
           },
         },
@@ -569,7 +580,7 @@ export class NotificationsService implements OnModuleInit {
 
     const user = await this.prisma.user.findUnique({
       where: { id: userId },
-      select: { fcmToken: true },
+      select: { fcmToken: true, role: true },
     });
 
     if (!user?.fcmToken) return;
@@ -594,7 +605,7 @@ export class NotificationsService implements OnModuleInit {
           priority: 'high',
           notification: {
             sound: 'default',
-            channelId: 'offers_channel',
+            channelId: this.channelForRole(user.role),
             ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
           },
         },
@@ -644,7 +655,7 @@ export class NotificationsService implements OnModuleInit {
 
     const users = await this.prisma.user.findMany({
       where: { id: { in: userIds } },
-      select: { id: true, fcmToken: true },
+      select: { id: true, fcmToken: true, role: true },
     });
 
     let sent = 0;
@@ -676,7 +687,7 @@ export class NotificationsService implements OnModuleInit {
             priority: 'high',
             notification: {
               sound: 'default',
-              channelId: 'offers_channel',
+              channelId: this.channelForRole(user.role),
               ...(sanitizedImageUrl ? { imageUrl: sanitizedImageUrl } : {}),
             },
           },
@@ -710,6 +721,30 @@ export class NotificationsService implements OnModuleInit {
     skipped += notFound;
 
     return { sent, skipped };
+  }
+
+  private areaTopic(area: string): string {
+    return `area_${encodeURIComponent(area.trim()).replace(/%20/g, '_')}`;
+  }
+
+  async sendToRole(
+    role: Role,
+    notification: NotificationPayload,
+  ): Promise<{ sent: number; skipped: number }> {
+    const users = await this.prisma.user.findMany({
+      where: { role },
+      select: { id: true },
+    });
+    return this.sendToUserIds(
+      users.map((user) => user.id),
+      notification,
+    );
+  }
+
+  private channelForRole(role?: Role): string {
+    if (role === Role.MERCHANT) return 'merchants_channel';
+    if (role === Role.ADMIN) return 'admin_channel';
+    return 'offers_channel';
   }
 
   async notifyNewOfferInArea(

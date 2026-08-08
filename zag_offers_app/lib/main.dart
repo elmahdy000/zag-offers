@@ -35,11 +35,12 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   // Initialize local notifications for this isolate
   await NotificationService.initializeLocalNotifications();
   
-  // Show local notification if it has content
+  // Messages that already contain a notification payload are displayed by
+  // Android/iOS. Only data-only messages need a local notification here.
   final title = message.notification?.title ?? message.data['title'] ?? 'تحديث جديد';
   final body = message.notification?.body ?? message.data['body'] ?? '';
   
-  if (title.isNotEmpty || body.isNotEmpty) {
+  if (message.notification == null && (title.isNotEmpty || body.isNotEmpty)) {
     final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
     await NotificationService.showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
     

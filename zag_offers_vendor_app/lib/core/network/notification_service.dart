@@ -13,6 +13,7 @@ class NotificationService {
   static final FirebaseMessaging _messaging = FirebaseMessaging.instance;
   static final FlutterLocalNotificationsPlugin _localNotifications = FlutterLocalNotificationsPlugin();
   static String? _fcmToken;
+  static Map<String, dynamic>? _pendingNotificationData;
 
   /// Callbacks to decouple core from feature layer
   static void Function(String? type, Map<String, dynamic> data)? onCouponRedeemed;
@@ -23,8 +24,13 @@ class NotificationService {
   static Future<void> initializeLocalNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('ic_notification');
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings();
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+        );
 
     await _localNotifications.initialize(
       initializationSettings,
@@ -143,7 +149,20 @@ class NotificationService {
   }
 
   static void _handleTap(Map<String, dynamic> data) {
-    onNotificationTap?.call(data['type']?.toString(), data);
+    final callback = onNotificationTap;
+    if (callback == null) {
+      _pendingNotificationData = data;
+      return;
+    }
+    callback(data['type']?.toString(), data);
+  }
+
+  static void checkPendingNotification() {
+    final data = _pendingNotificationData;
+    final callback = onNotificationTap;
+    if (data == null || callback == null) return;
+    _pendingNotificationData = null;
+    callback(data['type']?.toString(), data);
   }
 
   static Future<void> saveToHistory(String title, String body, Map<String, dynamic> data) async {
@@ -234,10 +253,17 @@ class NotificationService {
     );
 
     final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(
+          android: androidPlatformChannelSpecifics,
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        );
 
     await _localNotifications.show(
-      DateTime.now().millisecondsSinceEpoch.remainder(100000),
+      DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformChannelSpecifics,

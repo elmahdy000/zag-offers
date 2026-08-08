@@ -24,6 +24,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
             repository.logout();
             emit(const AuthError(message: 'عفواً، لا تملك صلاحية الدخول لبوابة الإدارة'));
           } else {
+            NotificationService.sendTokenToBackend();
             emit(AuthAuthenticated(user: user));
           }
         },
@@ -42,6 +43,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
           },
           (user) {
             debugPrint('Auth check success: ${user.name}');
+            NotificationService.sendTokenToBackend();
             emit(AuthAuthenticated(user: user));
           },
         );
@@ -52,12 +54,12 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     });
 
     on<LogoutEvent>((event, emit) async {
+      await sl<NotificationService>().reset();
       try {
         await repository.logout();
       } catch (e) {
         emit(AuthError(message: ErrorHandler.handle(e).replaceAll('Exception: ', '')));
       }
-      sl<NotificationService>().reset();
       emit(AuthUnauthenticated());
     });
 

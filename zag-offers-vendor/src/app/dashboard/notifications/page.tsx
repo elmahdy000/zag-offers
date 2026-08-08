@@ -5,6 +5,7 @@ import { vendorApi } from '@/lib/api';
 import { motion, AnimatePresence } from 'framer-motion';
 import { DashboardSkeleton } from '@/components/Skeleton';
 import EmptyState from '@/components/EmptyState';
+import { useRouter } from 'next/navigation';
 
 interface Notification {
   id: string;
@@ -13,10 +14,37 @@ interface Notification {
   type: string;
   isRead: boolean;
   createdAt: string;
-  metadata?: Record<string, unknown>;
+  data?: Record<string, unknown> | string;
+}
+
+function notificationRoute(notification: Notification): string | null {
+  let data: Record<string, unknown> = {};
+  if (typeof notification.data === 'string') {
+    try { data = JSON.parse(notification.data) as Record<string, unknown>; } catch { data = {}; }
+  } else if (notification.data) data = notification.data;
+
+  switch (notification.type) {
+    case 'OFFER_APPROVED':
+    case 'OFFER_REJECTED':
+    case 'OFFER_UPDATED':
+      return typeof data.offerId === 'string'
+        ? `/dashboard/offers/${data.offerId}`
+        : '/dashboard/offers';
+    case 'COUPON_GENERATED':
+    case 'COUPON_REDEEMED':
+    case 'COUPON_SHARED':
+      return '/dashboard/coupons';
+    case 'STORE_APPROVED':
+    case 'STORE_REJECTED':
+    case 'STORE_SUSPENDED':
+      return '/dashboard/profile';
+    default:
+      return null;
+  }
 }
 
 export default function NotificationsPage() {
+  const router = useRouter();
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -48,6 +76,21 @@ export default function NotificationsPage() {
       console.error('Failed to mark all as read:', e);
       setError('تعذر تحديث التنبيهات. حاول مرة أخرى.');
     }
+  };
+
+  const openNotification = async (notification: Notification) => {
+    if (!notification.isRead) {
+      try {
+        await vendorApi().post(`/notifications/${notification.id}/read`);
+        setNotifications(prev => prev.map(item =>
+          item.id === notification.id ? { ...item, isRead: true } : item
+        ));
+      } catch (error) {
+        console.error('Failed to mark notification as read:', error);
+      }
+    }
+    const route = notificationRoute(notification);
+    if (route) router.push(route);
   };
 
   const getIcon = (type: string) => {
@@ -109,6 +152,12 @@ export default function NotificationsPage() {
                 initial={{ opacity: 0, x: -20 }}
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: idx * 0.05 }}
+                onClick={() => void openNotification(n)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(event) => {
+                  if (event.key === 'Enter' || event.key === ' ') void openNotification(n);
+                }}
                 className={`glass p-5 rounded-[1.8rem] border flex items-center gap-5 transition-all group ${
                   n.isRead ? 'bg-glass border-glass-border' : 'bg-primary/5 border-primary/20 shadow-lg shadow-primary/5'
                 }`}

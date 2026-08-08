@@ -127,6 +127,7 @@ interface JoinRoomPayload {
 }
 
 import { NotificationsService } from '../notifications/notifications.service';
+import { Role } from '@prisma/client';
 
 @WebSocketGateway({
   cors: {
@@ -382,13 +383,12 @@ export class EventsGateway
       }
     }
 
-    // Send FCM push to all admins
-    void this.notificationsService.sendToTopic(
-      'all_admins',
-      data.title,
-      data.body,
-      fcmData,
-    );
+    // Persist the alert for every admin and send push to registered devices.
+    void this.notificationsService.sendToRole(Role.ADMIN, {
+      title: data.title,
+      body: data.body,
+      data: fcmData,
+    });
 
     this.logger.log(`Admin notified: ${data.type} - ${data.title}`);
   }

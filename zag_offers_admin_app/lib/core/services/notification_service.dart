@@ -20,8 +20,13 @@ class NotificationService {
   static Future<void> initializeLocalNotifications() async {
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('ic_notification');
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings();
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+        );
 
     await _localNotifications.initialize(
       initializationSettings,
@@ -56,6 +61,8 @@ class NotificationService {
 
   static StreamSubscription<RemoteMessage>? _onMessageSub;
   static StreamSubscription<RemoteMessage>? _onMessageOpenedAppSub;
+  static StreamSubscription<String>? _tokenRefreshSub;
+  static Map<String, dynamic>? _pendingNotificationData;
 
   static Future<void> initStatic() async {
     await initializeLocalNotifications();
@@ -78,6 +85,9 @@ class NotificationService {
       }
     }
 
+    await _tokenRefreshSub?.cancel();
+    _tokenRefreshSub = _messaging.onTokenRefresh.listen(_sendTokenToServer);
+
     _onMessageSub = FirebaseMessaging.onMessage.listen(_handleForegroundMessage);
     _onMessageOpenedAppSub = FirebaseMessaging.onMessageOpenedApp.listen((message) {
       handleNotificationTapFromData(message.data);
@@ -96,6 +106,11 @@ class NotificationService {
         data: {'fcmToken': token},
       );
     } catch (_) {}
+  }
+
+  static Future<void> sendTokenToBackend() async {
+    final token = await _messaging.getToken();
+    if (token != null) await _sendTokenToServer(token);
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {
@@ -160,10 +175,17 @@ class NotificationService {
     );
     
     final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(
+          android: androidPlatformChannelSpecifics,
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        );
     
     await _localNotifications.show(
-      DateTime.now().millisecond,
+      DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformChannelSpecifics,
@@ -177,8 +199,13 @@ class NotificationService {
     try {
       _onMessageSub?.cancel();
       _onMessageOpenedAppSub?.cancel();
+      _tokenRefreshSub?.cancel();
       _onMessageSub = null;
       _onMessageOpenedAppSub = null;
+      _tokenRefreshSub = null;
+      try {
+        await di.sl<ApiClient>().delete('/notifications/fcm-token');
+      } catch (_) {}
       await _messaging.unsubscribeFromTopic('all_users');
       await _messaging.unsubscribeFromTopic('all_admins');
       await _messaging.deleteToken();
@@ -191,7 +218,10 @@ class NotificationService {
     final type = data['type']?.toString();
     
     final context = NavigationService.navigatorKey.currentContext;
-    if (context == null) return;
+    if (context == null) {
+      _pendingNotificationData = data;
+      return;
+    }
 
     if (type == 'NEW_PENDING_STORE') {
       MainShell.of(context)?.setSelectedIndex(1); // Merchants tab
@@ -203,5 +233,12 @@ class NotificationService {
         MaterialPageRoute(builder: (_) => const NotificationsPage()),
       );
     }
+  }
+
+  static void checkPendingNotification() {
+    final data = _pendingNotificationData;
+    if (data == null) return;
+    _pendingNotificationData = null;
+    handleNotificationTapFromData(data);
   }
 }

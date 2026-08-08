@@ -9,6 +9,7 @@ import 'package:zag_offers_admin_app/features/merchants/presentation/pages/merch
 import 'package:zag_offers_admin_app/features/offers/presentation/pages/offers_page.dart';
 import 'package:zag_offers_admin_app/features/coupons/presentation/pages/coupons_page.dart';
 import 'package:zag_offers_admin_app/features/broadcast/presentation/pages/broadcast_page.dart';
+import 'package:zag_offers_admin_app/core/services/notification_service.dart';
 
 class MainShell extends StatefulWidget {
   const MainShell({super.key});
@@ -42,6 +43,9 @@ class MainShellState extends State<MainShell> {
       const CouponsPage(),
       const BroadcastPage(),
     ];
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      NotificationService.checkPendingNotification();
+    });
   }
 
   void _onItemTapped(int index) {

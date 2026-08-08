@@ -39,7 +39,9 @@ Future<void> _firebaseMessagingBackgroundHandler(RemoteMessage message) async {
   final title = message.notification?.title ?? message.data['title'] ?? 'تنبيه جديد';
   final body = message.notification?.body ?? message.data['body'] ?? '';
 
-  if (title.isNotEmpty || body.isNotEmpty) {
+  // Avoid showing a second local notification for notification payloads;
+  // Firebase already displays those while the app is backgrounded.
+  if (message.notification == null && (title.isNotEmpty || body.isNotEmpty)) {
     final imageUrl = message.notification?.android?.imageUrl ?? message.data['imageUrl'];
     await NotificationService.showLocalNotification(title, body, data: message.data, imageUrl: imageUrl);
     

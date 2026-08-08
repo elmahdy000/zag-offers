@@ -25,8 +25,13 @@ class NotificationService {
     // إعداد الإشعارات المحلية للقنوات والصوت
     const AndroidInitializationSettings initializationSettingsAndroid =
         AndroidInitializationSettings('ic_notification');
+    const DarwinInitializationSettings initializationSettingsDarwin =
+        DarwinInitializationSettings();
     const InitializationSettings initializationSettings =
-        InitializationSettings(android: initializationSettingsAndroid);
+        InitializationSettings(
+          android: initializationSettingsAndroid,
+          iOS: initializationSettingsDarwin,
+        );
 
     await _localNotifications.initialize(
       initializationSettings,
@@ -177,7 +182,7 @@ class NotificationService {
   }
 
   static String _formatTopic(String name) {
-    return 'area_${name.trim().replaceAll(' ', '_')}';
+    return 'area_${Uri.encodeComponent(name.trim()).replaceAll('%20', '_')}';
   }
 
   static void _handleForegroundMessage(RemoteMessage message) {
@@ -250,10 +255,17 @@ class NotificationService {
     );
     
     final NotificationDetails platformChannelSpecifics =
-        NotificationDetails(android: androidPlatformChannelSpecifics);
+        NotificationDetails(
+          android: androidPlatformChannelSpecifics,
+          iOS: const DarwinNotificationDetails(
+            presentAlert: true,
+            presentBadge: true,
+            presentSound: true,
+          ),
+        );
     
     await _localNotifications.show(
-      DateTime.now().microsecondsSinceEpoch,
+      DateTime.now().millisecondsSinceEpoch.remainder(2147483647),
       title,
       body,
       platformChannelSpecifics,

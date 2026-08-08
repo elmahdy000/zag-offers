@@ -97,6 +97,7 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
           );
       }
     };
+    NotificationService.checkPendingNotification();
   }
 
   void _setupSocketListeners() {

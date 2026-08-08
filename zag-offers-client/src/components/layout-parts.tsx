@@ -47,7 +47,14 @@ function getNotifRoute(n: ClientNotification): string {
     case 'STORE_APPROVED':
       return d.storeId ? `/stores/${d.storeId}` : '/stores';
     case 'COUPON_REDEEMED':
+    case 'COUPON_GENERATED':
+    case 'COUPON_SHARED':
+    case 'COUPON_UPDATE':
       return '/coupons';
+    case 'OPEN_OFFER':
+      return d.offerId ? `/offers/${d.offerId}` : '/offers';
+    case 'REVIEW_REPLY':
+      return d.storeId ? `/stores/${d.storeId}` : '/stores';
     default:
       return '/';
   }
