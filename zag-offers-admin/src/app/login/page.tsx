@@ -2,7 +2,6 @@
 
 import { useState } from 'react';
 import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, BarChart3, Users2, Store } from 'lucide-react';
-import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { api } from '@/lib/api';
@@ -46,7 +45,7 @@ export default function AdminLoginPage() {
       }
 
       const isSecure = window.location.protocol === 'https:';
-      document.cookie = `admin_token=${encodeURIComponent(access_token)}; path=/; SameSite=Strict${isSecure ? '; Secure' : ''}`;
+      document.cookie = `admin_token=${encodeURIComponent(access_token)}; path=/; max-age=86400; SameSite=Strict${isSecure ? '; Secure' : ''}`;
       sessionStorage.setItem('admin_user', JSON.stringify(user));
       localStorage.setItem('admin_user', JSON.stringify(user));
 
@@ -89,7 +88,7 @@ export default function AdminLoginPage() {
 
         <section className="admin-auth-form-panel">
           <div className="admin-auth-topbar"><AdminThemeToggle compact /></div>
-          <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }} className="w-full max-w-[430px]">
+          <div className="admin-auth-content w-full max-w-[430px]">
             <div className="mb-8">
               <span className="admin-auth-kicker">بوابة المسؤولين</span>
               <h1 className="admin-auth-title">مرحبًا بعودتك</h1>
@@ -124,7 +123,7 @@ export default function AdminLoginPage() {
             </form>
 
             <p className="admin-auth-security"><Lock size={13} /> جلسة آمنة ومخصصة لحسابات الإدارة فقط</p>
-          </motion.div>
+          </div>
         </section>
       </div>
     </main>

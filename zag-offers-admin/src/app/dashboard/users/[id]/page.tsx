@@ -25,6 +25,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useState } from 'react';
+import type { ComponentType } from 'react';
+import type { AxiosError } from 'axios';
 import Link from 'next/link';
 import { useToast } from '@/components/shared/Toast';
 
@@ -110,7 +112,7 @@ export default function UserDetailPage() {
       router.push('/dashboard/users');
       showToast('تم حذف المستخدم نهائياً');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل حذف المستخدم', 'error');
     }
   });
@@ -125,7 +127,7 @@ export default function UserDetailPage() {
       setPointsModalOpen(false);
       showToast('تم تعديل النقاط بنجاح');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل تعديل النقاط', 'error');
     }
   });
@@ -469,7 +471,7 @@ export default function UserDetailPage() {
                 <Trash2 size={36} />
               </div>
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">تأكيد الحذف النهائي</h3>
-              <p className="mt-4 text-sm font-medium text-slate-500 leading-relaxed px-2">أنت على وشك حذف حساب "{user.name}" بشكل نهائي. لا يمكن التراجع عن هذا الإجراء.</p>
+              <p className="mt-4 text-sm font-medium text-slate-500 leading-relaxed px-2">أنت على وشك حذف حساب «{user.name}» بشكل نهائي. لا يمكن التراجع عن هذا الإجراء.</p>
               <div className="mt-8 flex gap-3">
                 <button
                   onClick={() => { setDeleteModalOpen(false); deleteMutation.mutate(); }}
@@ -555,7 +557,7 @@ export default function UserDetailPage() {
   );
 }
 
-function StatBox({ label, value, color, bg, icon: Icon }: { label: string; value: number; color: string; bg: string; icon: any }) {
+function StatBox({ label, value, color, bg, icon: Icon }: { label: string; value: number; color: string; bg: string; icon: ComponentType<{ size?: number; className?: string }> }) {
   return (
     <div className="space-y-3">
       <div className={`w-10 h-10 rounded-xl ${bg} flex items-center justify-center ${color} border border-current/10`}>
@@ -569,7 +571,7 @@ function StatBox({ label, value, color, bg, icon: Icon }: { label: string; value
   );
 }
 
-function ContactItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function ContactItem({ icon: Icon, label, value }: { icon: ComponentType<{ size?: number; className?: string }>; label: string; value: string }) {
   return (
     <div className="flex items-start gap-4 group/item">
       <div className="h-10 w-10 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 border border-slate-100 group-hover/item:text-orange-600 group-hover/item:bg-orange-50 transition-all">

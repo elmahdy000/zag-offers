@@ -27,6 +27,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useState } from 'react';
+import type { ComponentType } from 'react';
+import type { AxiosError } from 'axios';
 import Link from 'next/link';
 
 // Shared Components
@@ -90,7 +92,7 @@ export default function OfferDetailPage() {
       queryClient.invalidateQueries({ queryKey: ['offer-details', id] });
       showToast('تم تحديث حالة العرض بنجاح');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل تحديث حالة العرض', 'error');
     },
   });
@@ -103,7 +105,7 @@ export default function OfferDetailPage() {
       router.push('/dashboard/offers');
       showToast('تم حذف العرض نهائياً');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل حذف العرض', 'error');
     },
   });
@@ -383,7 +385,7 @@ export default function OfferDetailPage() {
   );
 }
 
-function OfferStat({ label, value, icon: Icon, color, bg }: { label: string; value: string | number; icon: any; color: string; bg: string }) {
+function OfferStat({ label, value, icon: Icon, color, bg }: { label: string; value: string | number; icon: ComponentType<{ size?: number; className?: string }>; color: string; bg: string }) {
    return (
       <div className="rounded-2xl border border-slate-200 bg-white p-6 shadow-sm text-center">
          <div className={`h-10 w-10 rounded-xl ${bg} ${color} flex items-center justify-center mx-auto mb-4`}>

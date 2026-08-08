@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, type ComponentType } from 'react';
 import {
   History,
   Loader2,
@@ -44,7 +44,7 @@ interface AuditLog {
   };
 }
 
-const actionConfig: Record<string, { label: string; color: string; icon: any }> = {
+const actionConfig: Record<string, { label: string; color: string; icon: ComponentType<{ size?: number; className?: string }> }> = {
   APPROVE_STORE: { label: 'اعتماد متجر', color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: ShieldCheck },
   REJECT_STORE: { label: 'رفض متجر', color: 'text-rose-600 bg-rose-50 border-rose-100', icon: XCircle },
   APPROVE_OFFER: { label: 'اعتماد عرض', color: 'text-emerald-600 bg-emerald-50 border-emerald-100', icon: ShieldCheck },

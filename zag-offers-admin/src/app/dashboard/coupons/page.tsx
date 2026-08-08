@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, type ComponentType } from 'react';
 import {
   Loader2,
   RefreshCw,
@@ -58,7 +58,7 @@ const formatDate = (dateString?: string) => {
   });
 };
 
-function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }: { label: string; value: string; icon?: any, colorClass?: string }) {
+function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }: { label: string; value: string; icon?: ComponentType<{ size?: number; className?: string }>, colorClass?: string }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md">
       <div className="flex items-center gap-2 mb-1.5">
@@ -209,7 +209,7 @@ export default function CouponsManagementPage() {
         <div className="flex flex-col items-center justify-center py-24 bg-white rounded-2xl border border-dashed border-red-200 text-slate-400">
           <AlertTriangle size={48} className="mb-4 text-red-400" />
           <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل البيانات</h3>
-          <p className="text-sm font-medium mt-1 text-slate-500">{(error as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+          <p className="text-sm font-medium mt-1 text-slate-500">{error instanceof Error ? error.message : 'يرجى المحاولة مرة أخرى'}</p>
           <button onClick={() => refetch()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
             <RefreshCw size={16} /> إعادة المحاولة
           </button>
@@ -258,7 +258,7 @@ export default function CouponsManagementPage() {
                 <div className="flex flex-col items-center justify-center py-20 text-slate-400">
                   <AlertTriangle size={48} className="mb-4 text-red-400" />
                   <h3 className="text-lg font-bold text-red-600">حدث خطأ أثناء تحميل التفاصيل</h3>
-                  <p className="text-sm font-medium mt-1 text-slate-500">{(detailsError as any)?.message || 'يرجى المحاولة مرة أخرى'}</p>
+                  <p className="text-sm font-medium mt-1 text-slate-500">{detailsError instanceof Error ? detailsError.message : 'يرجى المحاولة مرة أخرى'}</p>
                   <button onClick={() => refetchDetails()} className="mt-4 px-6 py-2.5 rounded-xl bg-orange-600 text-white font-bold text-sm hover:bg-orange-700 transition-all flex items-center gap-2">
                     <RefreshCw size={16} /> إعادة المحاولة
                   </button>
@@ -325,7 +325,7 @@ export default function CouponsManagementPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><AlertTriangle size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">حذف الكوبون؟</h3>
-              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">هل أنت متأكد من حذف الكوبون "{deleteModal.code}"؟ سيتم مسح السجل الخاص به نهائياً.</p>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">هل أنت متأكد من حذف الكوبون «{deleteModal.code}»؟ سيتم مسح السجل الخاص به نهائياً.</p>
               <div className="mt-8 flex gap-4">
                 <button onClick={() => { setBusyId(deleteModal.id); deleteMutation.mutate(deleteModal.id); }} disabled={!!busyId} className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg shadow-rose-900/10">
                   {busyId === deleteModal.id ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'نعم، احذف'}

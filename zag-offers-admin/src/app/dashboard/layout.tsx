@@ -2,6 +2,7 @@ import AdminSidebar from '@/components/AdminSidebar';
 import DashboardHeader from '@/components/DashboardHeader';
 import ErrorBoundary from '@/components/ErrorBoundary';
 import BottomNav from '@/components/BottomNav';
+import Providers from '@/components/Providers';
 
 export default function AdminLayout({
   children,
@@ -9,8 +10,9 @@ export default function AdminLayout({
   children: React.ReactNode;
 }) {
   return (
-    <ErrorBoundary>
-      <div className="admin-shell min-h-screen flex flex-row-reverse">
+    <Providers>
+      <ErrorBoundary>
+        <div className="admin-shell min-h-screen flex flex-row-reverse">
         {/* Sidebar - Fixed width on Desktop, positioned Right (RTL) */}
         <AdminSidebar />
         
@@ -22,7 +24,8 @@ export default function AdminLayout({
           </main>
           <BottomNav />
         </div>
-      </div>
-    </ErrorBoundary>
+        </div>
+      </ErrorBoundary>
+    </Providers>
   );
 }

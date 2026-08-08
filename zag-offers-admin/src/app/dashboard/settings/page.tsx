@@ -19,6 +19,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '@/lib/api';
+import type { AxiosError } from 'axios';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/components/shared/Toast';
 
@@ -30,6 +31,7 @@ interface ProfileData {
 }
 
 type TabType = 'account' | 'system';
+type PasswordPayload = { currentPassword: string; newPassword: string };
 
 export default function SettingsPage() {
   const queryClient = useQueryClient();
@@ -64,18 +66,18 @@ export default function SettingsPage() {
       queryClient.invalidateQueries({ queryKey: ['me'] });
       showToast('تم تحديث الملف الشخصي بنجاح');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل تحديث الملف الشخصي', 'error');
     }
   });
 
   const updatePasswordMutation = useMutation({
-    mutationFn: (payload: any) => adminApi().post('/auth/password', payload),
+    mutationFn: (payload: PasswordPayload) => adminApi().post('/auth/password', payload),
     onSuccess: () => {
       showToast('تم تغيير كلمة السر بنجاح');
       // Reset form or clear fields if needed
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل تغيير كلمة السر', 'error');
     }
   });

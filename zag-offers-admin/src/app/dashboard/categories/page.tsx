@@ -17,6 +17,7 @@ import {
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import type { AxiosError } from 'axios';
 import { useSocketContext } from '@/components/SocketProvider';
 
 // Components
@@ -32,6 +33,7 @@ interface CategoryItem {
     stores: number;
   };
 }
+type CategoryPayload = { name: string; image: string | null; priority: number };
 
 export default function CategoriesPage() {
   const queryClient = useQueryClient();
@@ -79,7 +81,7 @@ export default function CategoriesPage() {
 
   // Mutations
   const upsertMutation = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: (data: CategoryPayload) => {
       return editingCategory
         ? adminApi().patch(`/admin/categories/${editingCategory.id}`, data)
         : adminApi().post('/admin/categories', data);
@@ -89,7 +91,7 @@ export default function CategoriesPage() {
       showToast(editingCategory ? 'تم تحديث الفئة بنجاح' : 'تم إضافة الفئة بنجاح');
       setIsUpsertOpen(false);
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       showToast(error.response?.data?.message || 'فشل تنفيذ العملية', 'error');
     }
   });
@@ -101,7 +103,7 @@ export default function CategoriesPage() {
       showToast('تم حذف الفئة بنجاح');
       setDeleteModal(null);
     },
-    onError: (error: any) => {
+    onError: (error: AxiosError<{ message?: string }>) => {
       showToast(error.response?.data?.message || 'فشل حذف الفئة', 'error');
     }
   });
@@ -356,7 +358,7 @@ export default function CategoriesPage() {
               </div>
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">حذف الفئة</h3>
               <p className="mt-4 text-sm font-medium text-slate-500 leading-relaxed px-2">
-                أنت على وشك حذف فئة "{deleteModal.name}". سيؤثر هذا على جميع المتاجر المرتبطة بها. هل أنت متأكد؟
+                أنت على وشك حذف فئة «{deleteModal.name}». سيؤثر هذا على جميع المتاجر المرتبطة بها. هل أنت متأكد؟
               </p>
               <div className="mt-8 flex gap-3">
                 <button 

@@ -5,6 +5,7 @@ import { useState } from 'react';
 
 import { ToastProvider } from './shared/Toast';
 import { SocketProvider } from './SocketProvider';
+import ServiceWorkerRegistration from './service-worker-registration';
 
 export default function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
@@ -31,6 +32,7 @@ export default function Providers({ children }: { children: React.ReactNode }) {
       {process.env.NODE_ENV === 'development' && (
         <ReactQueryDevtools initialIsOpen={false} />
       )}
+      <ServiceWorkerRegistration />
     </QueryClientProvider>
   );
 }

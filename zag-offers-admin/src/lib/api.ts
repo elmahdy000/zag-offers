@@ -1,4 +1,5 @@
 import axios from 'axios';
+import type { AxiosError } from 'axios';
 import { optimizeUploadFormData } from './image-upload';
 
 function resolveApiUrl() {
@@ -92,3 +93,8 @@ export function adminApi() {
 }
 
 export const api = _axiosInstance;
+
+export function getApiErrorMessage(error: unknown, fallback: string): string {
+  const message = (error as AxiosError<{ message?: string | string[] }>).response?.data?.message;
+  return Array.isArray(message) ? message.join('، ') : message || fallback;
+}

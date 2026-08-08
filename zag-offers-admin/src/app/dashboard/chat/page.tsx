@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect, useRef, useCallback, memo, useMemo } from 'react';
+import React, { useState, useEffect, useRef, memo, useMemo } from 'react';
 import { 
   Send, Search, MessageSquare, User, Store, MoreVertical,
   CheckCheck, Phone, Info, ChevronLeft, Plus, X, Loader2
@@ -8,9 +8,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { adminApi, resolveImageUrl } from '@/lib/api';
-import { io, Socket } from 'socket.io-client';
-
-const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '');
+import { useSocketContext } from '@/components/SocketProvider';
 
 interface Participant {
   id: string;
@@ -42,10 +40,6 @@ function getAdminId(): string {
     const u = JSON.parse(sessionStorage.getItem('admin_user') || '{}');
     return u.id || '';
   } catch { return ''; }
-}
-
-function getAdminToken(): string {
-  return document.cookie.split('; ').find(r => r.startsWith('admin_token='))?.split('=')[1] || '';
 }
 
 function timeAgo(iso: string) {
@@ -119,11 +113,14 @@ export default function AdminChatPage() {
   const [search, setSearch] = useState('');
   const [filter, setFilter] = useState<'all' | 'CUSTOMER' | 'MERCHANT'>('all');
   
-  const socketRef = useRef<Socket | null>(null);
   const scrollRef = useRef<HTMLDivElement>(null);
   const selectedConvIdRef = useRef(selectedConvId);
-  selectedConvIdRef.current = selectedConvId;
+  const { socket } = useSocketContext();
   const adminId = getAdminId();
+
+  useEffect(() => {
+    selectedConvIdRef.current = selectedConvId;
+  }, [selectedConvId]);
 
   const selectedConv = useMemo(() => 
     conversations.find(c => c.id === selectedConvId) || null
@@ -142,10 +139,7 @@ export default function AdminChatPage() {
 
   // Load Messages on selection
   useEffect(() => {
-    if (!selectedConvId) {
-      setMessages([]);
-      return;
-    }
+    if (!selectedConvId) return;
     const fetchMsgs = async () => {
       try {
         const res = await adminApi().get<ConversationMessage[]>(`/chat/messages/${selectedConvId}`);
@@ -157,32 +151,17 @@ export default function AdminChatPage() {
 
   // WebSocket — single connection, no reconnect on conversation switch
   useEffect(() => {
-    const token = getAdminToken();
-    if (!token) return;
-    const s = io(API_URL, { 
-      auth: { token }, 
-      transports: ['websocket'],
-      reconnection: true,
-      forceNew: true 
-    });
-    socketRef.current = s;
-
-    s.on('connect', () => {
-      console.log('Admin Chat Connected! Joining room:', adminId);
-      s.emit('join_room', { token, userId: adminId });
-    });
-
-    s.on('new_message', (msg: ConversationMessage & { conversationId: string }) => {
-      console.log('Admin received new message:', msg);
+    if (!socket) return;
+    const onNewMessage = (msg: ConversationMessage & { conversationId: string }) => {
       if (msg.conversationId === selectedConvIdRef.current) {
         setMessages(prev => prev.some(m => m.id === msg.id || (m.isOptimistic && m.text === msg.text)) 
           ? prev.map(m => (m.isOptimistic && m.text === msg.text) ? msg : m)
           : [...prev, msg]
         );
       }
-    });
+    };
 
-    s.on('conversation_update', (data: { conversationId: string, lastMessage: any }) => {
+    const onConversationUpdate = (data: { conversationId: string, lastMessage: ConversationMessage }) => {
       setConversations(prev => {
         const index = prev.findIndex(c => c.id === data.conversationId);
         if (index === -1) return prev;
@@ -194,10 +173,15 @@ export default function AdminChatPage() {
         };
         return updated.sort((a,b) => new Date(b.lastMessageAt).getTime() - new Date(a.lastMessageAt).getTime());
       });
-    });
+    };
 
-    return () => { s.disconnect(); };
-  }, [adminId]);
+    socket.on('new_message', onNewMessage);
+    socket.on('conversation_update', onConversationUpdate);
+    return () => {
+      socket.off('new_message', onNewMessage);
+      socket.off('conversation_update', onConversationUpdate);
+    };
+  }, [socket]);
 
   useEffect(() => {
     if (scrollRef.current) scrollRef.current.scrollTop = scrollRef.current.scrollHeight;
@@ -267,9 +251,9 @@ export default function AdminChatPage() {
           <div className="flex-1 overflow-y-auto scrollbar-none py-2">
             {loading ? <div className="p-10 text-center"><Loader2 className="animate-spin mx-auto text-orange-500" /></div> : 
              filtered.map(conv => (
-               <button key={conv.id} onClick={() => setSelectedConvId(conv.id)} className={`w-full flex items-center gap-3 px-5 py-4 transition-all text-right border-r-4 ${selectedConvId === conv.id ? 'bg-orange-50 border-orange-500' : 'border-transparent hover:bg-slate-50'}`}>
+               <button key={conv.id} onClick={() => { setMessages([]); setSelectedConvId(conv.id); }} className={`w-full flex items-center gap-3 px-5 py-4 transition-all text-right border-r-4 ${selectedConvId === conv.id ? 'bg-orange-50 border-orange-500' : 'border-transparent hover:bg-slate-50'}`}>
                   <div className={`h-11 w-11 rounded-2xl flex items-center justify-center font-bold text-white shrink-0 shadow-sm ${conv.participant.role === 'MERCHANT' ? 'bg-orange-500' : 'bg-indigo-500'}`}>
-                    {conv.participant.avatar ? <img src={resolveImageUrl(conv.participant.avatar)} className="h-full w-full object-cover rounded-2xl" /> : conv.participant.name[0]}
+                    {conv.participant.avatar ? <img src={resolveImageUrl(conv.participant.avatar)} alt={conv.participant.name} loading="lazy" decoding="async" className="h-full w-full object-cover rounded-2xl" /> : conv.participant.name[0]}
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex justify-between items-center"><h4 className="text-sm font-bold text-slate-800 truncate">{conv.participant.name}</h4><span className="text-[9px] text-slate-400 font-bold">{timeAgo(conv.lastMessageAt)}</span></div>

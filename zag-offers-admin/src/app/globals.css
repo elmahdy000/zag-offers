@@ -781,3 +781,13 @@ html[data-theme="dark"] .admin-auth-form-panel { background: #0b1729; }
   .admin-sidebar-panel { border-radius: 22px; }
 }
 
+@keyframes admin-auth-enter {
+  from { opacity: 0; transform: translateY(12px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.admin-auth-content { animation: admin-auth-enter 260ms ease-out both; }
+
+@media (prefers-reduced-motion: reduce) {
+  .admin-auth-content { animation: none; }
+}

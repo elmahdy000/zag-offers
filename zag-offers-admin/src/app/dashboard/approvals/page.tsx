@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useState, type ComponentType } from 'react';
 import {
   Check,
   Eye,
@@ -83,7 +83,7 @@ type TabType = 'stores' | 'offers' | 'history';
 const formatDate = (value?: string | null) =>
   value ? new Date(value).toLocaleDateString('ar-EG') : 'غير محدد';
 
-function DetailCard({ label, value, icon: Icon }: { label: string; value: string; icon?: any }) {
+function DetailCard({ label, value, icon: Icon }: { label: string; value: string; icon?: ComponentType<{ size?: number; className?: string }> }) {
   return (
     <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 shadow-sm transition-all hover:bg-white hover:shadow-md">
       <div className="flex items-center gap-2 mb-1.5">
@@ -434,11 +434,11 @@ export default function ApprovalsPage() {
                       </div>
                     </td>
                     <td className="px-6 py-5 text-xs font-bold text-slate-700">
-                      {item.type === 'store' ? (item as any).owner?.name : (item as any).store?.name}
+                      {item.type === 'store' ? item.owner?.name : item.store?.name}
                     </td>
                     <td className="px-6 py-5">
                       <span className="inline-flex rounded-lg bg-white border border-slate-200 px-2.5 py-1 text-xs font-bold text-slate-500 uppercase tracking-tight">
-                        {item.type === 'store' ? (item as any).category?.name : ((item as any).store?.category?.name || 'عام')}
+                        {item.type === 'store' ? item.category?.name : (item.store?.category?.name || 'عام')}
                       </span>
                     </td>
                     <td className="px-6 py-5 text-[11px] font-bold text-emerald-600">{formatDate(item.updatedAt)}</td>
@@ -621,7 +621,7 @@ export default function ApprovalsPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><XCircle size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">تأكيد رفض الطلب</h3>
-              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">يرجى توضيح سبب الرفض لـ "{rejectModal.label}" لمساعدتهم على تعديل الطلب.</p>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">يرجى توضيح سبب الرفض لـ «{rejectModal.label}» لمساعدتهم على تعديل الطلب.</p>
 
               <textarea
                 value={rejectReason}

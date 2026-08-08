@@ -160,10 +160,12 @@ export default function AdminSidebar() {
     staleTime: 30000,
   });
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
+    try { await adminApi().post('/auth/logout'); } catch { /* Keep local logout available offline. */ }
     document.cookie =
       'admin_token=; path=/; expires=Thu, 01 Jan 1970 00:00:00 GMT; SameSite=Strict';
     sessionStorage.removeItem('admin_user');
+    localStorage.removeItem('admin_user');
     router.replace('/login');
   };
 

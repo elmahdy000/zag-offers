@@ -1,6 +1,6 @@
 'use client';
 
-import { useEffect, useState, Suspense } from 'react';
+import { useEffect, useState, Suspense, type ComponentType } from 'react';
 import {
   Loader2,
   Search,
@@ -29,6 +29,7 @@ import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useSearchParams } from 'next/navigation';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import type { AxiosError } from 'axios';
 import { ZAGAZIG_AREAS, DISPLAY_NAMES } from '@/lib/constants';
 
 // Components
@@ -49,7 +50,15 @@ interface StoreItem {
   createdAt: string;
   logo?: string | null;
   whatsapp?: string;
+  address?: string;
+  coverImage?: string;
+  images?: string[];
 }
+
+type StoreFormData = {
+  name: string; categoryId: string; area: string; address: string; phone: string;
+  whatsapp: string; email: string; ownerId: string; logo: string; coverImage: string; images: string[];
+};
 
 interface StoreDetails extends StoreItem {
   owner: {
@@ -77,7 +86,7 @@ interface StoreDetails extends StoreItem {
 function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }: { 
   label: string; 
   value: string; 
-  icon?: any, 
+  icon?: ComponentType<{ size?: number; className?: string }>,
   colorClass?: string 
 }) {
   return (
@@ -103,9 +112,11 @@ function StoresContent() {
   const [deleteModal, setDeleteModal] = useState<{ id: string; name: string } | null>(null);
   const [mutatingId, setMutatingId] = useState<string | null>(null);
   const [selectedStoreId, setSelectedStoreId] = useState<string | null>(null);
-  const [isUpsertOpen, setIsUpsertOpen] = useState(false);
+  const searchParams = useSearchParams();
+  const requestedOwnerId = searchParams.get('openCreate') === 'true' ? searchParams.get('ownerId') || '' : '';
+  const [isUpsertOpen, setIsUpsertOpen] = useState(Boolean(requestedOwnerId));
   const [editingStore, setEditingStore] = useState<StoreItem | null>(null);
-  const [formData, setFormData] = useState({
+  const [formData, setFormData] = useState<StoreFormData>({
     name: '',
     categoryId: '',
     area: '',
@@ -113,7 +124,7 @@ function StoresContent() {
     phone: '',
     whatsapp: '',
     email: '',
-    ownerId: '',
+    ownerId: requestedOwnerId,
     logo: '',
     coverImage: '',
     images: [] as string[],
@@ -122,16 +133,6 @@ function StoresContent() {
   const [isUploadingLogo, setIsUploadingLogo] = useState(false);
   const [isUploadingCover, setIsUploadingCover] = useState(false);
   const [isUploadingGallery, setIsUploadingGallery] = useState(false);
-  const searchParams = useSearchParams();
-
-  useEffect(() => {
-    const ownerId = searchParams.get('ownerId');
-    const openCreate = searchParams.get('openCreate');
-    if (ownerId && openCreate === 'true') {
-      setFormData(prev => ({ ...prev, ownerId }));
-      setIsUpsertOpen(true);
-    }
-  }, [searchParams]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -227,7 +228,7 @@ function StoresContent() {
   });
 
   const upsertMutation = useMutation({
-    mutationFn: (data: any) => {
+    mutationFn: (data: StoreFormData) => {
       return editingStore
         ? adminApi().patch(`/admin/stores/${editingStore.id}`, data)
         : adminApi().post('/admin/stores', data);
@@ -238,7 +239,7 @@ function StoresContent() {
       setIsUpsertOpen(false);
       setEditingStore(null);
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'حدث خطأ ما', 'error');
     }
   });
@@ -268,14 +269,14 @@ function StoresContent() {
         name: store.name,
         categoryId: typeof store.category === 'string' ? store.category : store.category.id,
         area: store.area,
-        address: (store as any).address || '',
+        address: store.address || '',
         phone: store.phone || '',
         whatsapp: store.whatsapp || '',
         email: store.email || '',
         ownerId: store.ownerId,
         logo: store.logo || '',
-        coverImage: (store as any).coverImage || '',
-        images: (store as any).images || [],
+        coverImage: store.coverImage || '',
+        images: store.images || [],
       });
     } else {
       setEditingStore(null);
@@ -752,7 +753,7 @@ function StoresContent() {
               </div>
               <h3 className="text-xl font-bold text-slate-900 tracking-tight">تأكيد الحذف النهائي</h3>
               <p className="mt-4 text-sm font-medium text-slate-500 leading-relaxed px-2">
-                أنت على وشك حذف متجر "{deleteModal.name}" بشكل نهائي. سيتم حذف جميع العروض والكوبونات المرتبطة به.
+                أنت على وشك حذف متجر «{deleteModal.name}» بشكل نهائي. سيتم حذف جميع العروض والكوبونات المرتبطة به.
               </p>
               <div className="mt-8 flex gap-3">
                 <button 
@@ -884,7 +885,7 @@ function StoresContent() {
                   <div className="grid grid-cols-4 gap-3">
                     {formData.images.map((url, index) => (
                       <div key={index} className="relative aspect-square rounded-xl border border-slate-200 overflow-hidden group">
-                        <img src={resolveImageUrl(url)} className="w-full h-full object-cover" />
+                        <img src={resolveImageUrl(url)} alt="صورة المتجر" loading="lazy" decoding="async" className="w-full h-full object-cover" />
                         <button 
                           type="button"
                           onClick={() => removeGalleryImage(index)}

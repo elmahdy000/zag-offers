@@ -1,7 +1,7 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useRef, type ReactNode } from 'react';
-import { io, Socket } from 'socket.io-client';
+import { createContext, useContext, useEffect, useState, type ReactNode } from 'react';
+import type { Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/components/shared/Toast';
 
@@ -21,63 +21,56 @@ export function useSocketContext() {
 export function SocketProvider({ children }: { children: ReactNode }) {
   const [socket, setSocket] = useState<Socket | null>(null);
   const [isConnected, setIsConnected] = useState(false);
-  const [authData, setAuthData] = useState<{ token: string; userId: string } | null>(null);
   const queryClient = useQueryClient();
-  const queryClientRef = useRef(queryClient);
-  queryClientRef.current = queryClient;
   const { showToast } = useToast();
 
   useEffect(() => {
-    if (typeof window === 'undefined') return;
     const token = document.cookie.split('; ').find(row => row.startsWith('admin_token='))?.split('=')[1];
     const userStr = localStorage.getItem('admin_user');
-    if (token && userStr) {
-      try {
-        const user = JSON.parse(userStr);
-        setAuthData({ token, userId: user.id });
-      } catch { /* ignore */ }
-    }
-  }, []);
+    if (!token || !userStr) return;
+    let active = true;
+    let newSocket: Socket | null = null;
+    let userId = '';
+    try { userId = JSON.parse(userStr).id || ''; } catch { return; }
+    if (!userId) return;
 
-  useEffect(() => {
-    if (!authData?.token || !authData?.userId) return;
+    void import('socket.io-client').then(({ io }) => {
+      if (!active) return;
+      newSocket = io(SOCKET_URL, {
+        auth: { token },
+        transports: ['websocket', 'polling'],
+        reconnectionAttempts: 5,
+      });
 
-    const newSocket = io(SOCKET_URL, {
-      auth: { token: authData.token },
-      transports: ['websocket', 'polling'],
+      newSocket.on('connect', () => {
+        setIsConnected(true);
+        newSocket?.emit('join_room', { token, room: 'admin_room' });
+      });
+
+      newSocket.on('disconnect', () => setIsConnected(false));
+
+      newSocket.on('admin_notification', (notification: { type: string; body?: string }) => {
+        if (notification.type === 'ANNOUNCEMENT' && notification.body) showToast(notification.body, 'info');
+        if (notification.type === 'NEW_PENDING_OFFER') {
+          void queryClient.invalidateQueries({ queryKey: ['all-offers'] });
+          void queryClient.invalidateQueries({ queryKey: ['pending-offers'] });
+        } else if (notification.type === 'NEW_PENDING_STORE' || notification.type === 'SYSTEM') {
+          void queryClient.invalidateQueries({ queryKey: ['admin-stores'] });
+          if (notification.type === 'NEW_PENDING_STORE') void queryClient.invalidateQueries({ queryKey: ['pending-stores'] });
+        }
+        void queryClient.invalidateQueries({ queryKey: ['pending-count'] });
+        void queryClient.invalidateQueries({ queryKey: ['global-stats'] });
+      });
+
+      setSocket(newSocket);
     });
-
-    newSocket.on('connect', () => {
-      setIsConnected(true);
-      newSocket.emit('join_room', { token: authData.token, room: 'admin_room' });
-    });
-
-    newSocket.on('disconnect', () => setIsConnected(false));
-
-    newSocket.on('admin_notification', (notification: { type: string; body?: string }) => {
-      if (notification.type === 'ANNOUNCEMENT' && notification.body) {
-        showToast(notification.body, 'info');
-      }
-      if (notification.type === 'NEW_PENDING_OFFER') {
-        queryClientRef.current.invalidateQueries({ queryKey: ['all-offers'] });
-        queryClientRef.current.invalidateQueries({ queryKey: ['pending-offers'] });
-      } else if (notification.type === 'NEW_PENDING_STORE') {
-        queryClientRef.current.invalidateQueries({ queryKey: ['admin-stores'] });
-        queryClientRef.current.invalidateQueries({ queryKey: ['pending-stores'] });
-      } else if (notification.type === 'SYSTEM') {
-        queryClientRef.current.invalidateQueries({ queryKey: ['admin-stores'] });
-      }
-      queryClientRef.current.invalidateQueries({ queryKey: ['pending-count'] });
-      queryClientRef.current.invalidateQueries({ queryKey: ['global-stats'] });
-    });
-
-    setSocket(newSocket);
 
     return () => {
-      newSocket.off('admin_notification');
-      newSocket.disconnect();
+      active = false;
+      newSocket?.off('admin_notification');
+      newSocket?.disconnect();
     };
-  }, [authData?.token, authData?.userId]);
+  }, [queryClient, showToast]);
 
   return (
     <SocketContext.Provider value={{ socket, isConnected }}>

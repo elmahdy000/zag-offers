@@ -29,6 +29,8 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
 import { useState } from 'react';
+import type { ComponentType } from 'react';
+import type { AxiosError } from 'axios';
 import Link from 'next/link';
 
 // Shared Components
@@ -83,7 +85,7 @@ export default function MerchantDetailPage() {
     queryKey: ['merchant-details', id],
     queryFn: async () => {
       const response = await adminApi().get<MerchantDetails>(`/admin/stores/${id}`);
-      const offersResponse = await adminApi().get<any>('/admin/offers', { params: { storeId: id, limit: 100 } });
+      const offersResponse = await adminApi().get<{ items: Offer[] }>('/admin/offers', { params: { storeId: id, limit: 100 } });
       return { ...response.data, offers: offersResponse.data.items || [] };
     },
     enabled: !!id,
@@ -111,7 +113,7 @@ export default function MerchantDetailPage() {
       router.push('/dashboard/merchants');
       showToast('تم حذف المتجر نهائياً');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل حذف المتجر', 'error');
     },
   });
@@ -124,7 +126,7 @@ export default function MerchantDetailPage() {
       setRejectModal(false);
       setRejectReason('');
     },
-    onError: (err: any) => {
+    onError: (err: AxiosError<{ message?: string }>) => {
       showToast(err.response?.data?.message || 'فشل رفض المتجر', 'error');
     },
   });
@@ -351,7 +353,7 @@ export default function MerchantDetailPage() {
             <motion.div initial={{ scale: 0.95, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} exit={{ scale: 0.95, opacity: 0 }} className="w-full max-w-sm rounded-2xl bg-white p-8 shadow-2xl text-center">
               <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-xl bg-rose-50 text-rose-600 mb-6"><Trash2 size={32} /></div>
               <h3 className="text-xl font-bold text-slate-900">حذف المتجر نهائياً؟</h3>
-              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">سيتم حذف المتجر "{store.name}" وجميع بياناته بشكل دائم.</p>
+              <p className="mt-3 text-sm font-medium text-slate-500 leading-relaxed">سيتم حذف المتجر «{store.name}» وجميع بياناته بشكل دائم.</p>
               <div className="mt-8 flex gap-4">
                 <button onClick={() => { setDeleteModalOpen(false); deleteMutation.mutate(); }} disabled={deleteMutation.isPending} className="flex-1 h-12 rounded-xl bg-rose-600 text-sm font-bold text-white hover:bg-rose-700 transition-all shadow-lg">
                   {deleteMutation.isPending ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'نعم، احذف'}
@@ -400,7 +402,7 @@ function StatItem({ label, value, color }: { label: string; value: string | numb
    );
 }
 
-function SidebarInfoItem({ icon: Icon, label, value }: { icon: any; label: string; value: string }) {
+function SidebarInfoItem({ icon: Icon, label, value }: { icon: ComponentType<{ size?: number; className?: string }>; label: string; value: string }) {
    return (
       <div className="flex items-start gap-4">
          <div className="h-9 w-9 rounded-xl bg-slate-50 flex items-center justify-center text-slate-400 shrink-0 border border-slate-100">
