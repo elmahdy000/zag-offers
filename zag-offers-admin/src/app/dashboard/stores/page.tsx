@@ -28,7 +28,7 @@ import {
 } from 'lucide-react';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
-import { useSearchParams } from 'next/navigation';
+import { useRouter, useSearchParams } from 'next/navigation';
 import { adminApi, resolveImageUrl } from '@/lib/api';
 import type { AxiosError } from 'axios';
 import { ZAGAZIG_AREAS, DISPLAY_NAMES } from '@/lib/constants';
@@ -1150,6 +1150,27 @@ function StoresContent() {
   );
 }
 
+function StoresRouteGate() {
+  const router = useRouter();
+  const searchParams = useSearchParams();
+  const isInternalStoreAction = searchParams.get('openCreate') === 'true' && Boolean(searchParams.get('ownerId'));
+
+  useEffect(() => {
+    if (!isInternalStoreAction) router.replace('/dashboard/merchants');
+  }, [isInternalStoreAction, router]);
+
+  if (!isInternalStoreAction) {
+    return (
+      <div className="flex min-h-[320px] items-center justify-center text-slate-400">
+        <Loader2 size={28} className="animate-spin text-orange-600" />
+        <span className="mr-3 text-sm font-bold">جاري فتح إدارة التجار...</span>
+      </div>
+    );
+  }
+
+  return <StoresContent />;
+}
+
 export default function StoresPage() {
   return (
     <Suspense fallback={
@@ -1158,7 +1179,7 @@ export default function StoresPage() {
         <p className="text-sm font-bold">جاري تحميل البيانات...</p>
       </div>
     }>
-      <StoresContent />
+      <StoresRouteGate />
     </Suspense>
   );
 }

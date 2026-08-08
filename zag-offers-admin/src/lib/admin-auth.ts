@@ -47,7 +47,7 @@ export function firstAllowedAdminRoute(user: AdminUser) {
   const routes: Array<[AdminPermission, string]> = [
     [ADMIN_PERMISSIONS.DASHBOARD_VIEW, '/dashboard'],
     [ADMIN_PERMISSIONS.APPROVALS_MANAGE, '/dashboard/approvals'],
-    [ADMIN_PERMISSIONS.STORES_VIEW, '/dashboard/stores'],
+    [ADMIN_PERMISSIONS.STORES_VIEW, '/dashboard/merchants'],
     [ADMIN_PERMISSIONS.OFFERS_VIEW, '/dashboard/offers'],
     [ADMIN_PERMISSIONS.USERS_VIEW, '/dashboard/users'],
     [ADMIN_PERMISSIONS.CATEGORIES_MANAGE, '/dashboard/categories'],

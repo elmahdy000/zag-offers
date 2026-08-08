@@ -14,8 +14,6 @@ import {
   MoreHorizontal,
   Settings,
   ShieldCheck,
-  ShoppingBag,
-  Store,
   Tags,
   TicketPercent,
   Users,
@@ -30,12 +28,11 @@ import { ADMIN_PERMISSIONS as P, canAccess, readAdminUser, type AdminPermission 
 const primaryItems = [
   { icon: LayoutDashboard, label: 'الرئيسية', path: '/dashboard', permission: P.DASHBOARD_VIEW },
   { icon: ShieldCheck, label: 'الموافقات', path: '/dashboard/approvals', permission: P.APPROVALS_MANAGE },
-  { icon: Store, label: 'المتاجر', path: '/dashboard/stores', permission: P.STORES_VIEW },
+  { icon: Users, label: 'التجار', path: '/dashboard/merchants', permission: P.STORES_VIEW },
   { icon: Users, label: 'المستخدمون', path: '/dashboard/users', permission: P.USERS_VIEW },
 ] as const;
 
 const moreItems = [
-  { icon: ShoppingBag, label: 'التجار', path: '/dashboard/merchants', permission: P.STORES_VIEW },
   { icon: Tags, label: 'العروض', path: '/dashboard/offers', permission: P.OFFERS_VIEW },
   { icon: ListFilter, label: 'التصنيفات', path: '/dashboard/categories', permission: P.CATEGORIES_MANAGE },
   { icon: ImageIcon, label: 'البانرات', path: '/dashboard/banners', permission: P.BANNERS_MANAGE },
