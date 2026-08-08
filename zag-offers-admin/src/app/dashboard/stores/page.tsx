@@ -90,12 +90,12 @@ function DetailItem({ label, value, icon: Icon, colorClass = "text-slate-900" }:
   colorClass?: string 
 }) {
   return (
-    <div className="rounded-xl border border-slate-100 bg-slate-50 p-4 transition-all hover:bg-white hover:shadow-md">
-      <div className="flex items-center gap-2 mb-1.5">
-        {Icon && <Icon size={14} className="text-slate-300" />}
-        <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">{label}</p>
+    <div className="min-w-0 rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3">
+      <div className="mb-1 flex items-center gap-1.5">
+        {Icon && <Icon size={14} className="shrink-0 text-slate-400" />}
+        <p className="truncate text-[11px] font-bold text-slate-500">{label}</p>
       </div>
-      <p className={`text-sm font-bold ${colorClass} truncate`}>{value}</p>
+      <p className={`truncate text-[13px] font-bold leading-6 ${colorClass}`} title={value}>{value}</p>
     </div>
   );
 }
@@ -216,6 +216,20 @@ function StoresContent() {
     enabled: !!selectedStoreId,
     retry: 1,
   });
+
+  useEffect(() => {
+    if (!selectedStoreId) return;
+    const previousOverflow = document.body.style.overflow;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setSelectedStoreId(null);
+    };
+    document.body.style.overflow = 'hidden';
+    window.addEventListener('keydown', closeOnEscape);
+    return () => {
+      document.body.style.overflow = previousOverflow;
+      window.removeEventListener('keydown', closeOnEscape);
+    };
+  }, [selectedStoreId]);
 
   const deleteMutation = useMutation({
     mutationFn: (id: string) => adminApi().delete(`/admin/stores/${id}`),
@@ -556,23 +570,61 @@ function StoresContent() {
 
       {/* Store Details Modal */}
       <AnimatePresence>
-        {selectedStoreId && storeDetails && (
-          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4">
-            <motion.div 
-              initial={{ scale: 0.9, opacity: 0 }} 
-              animate={{ scale: 1, opacity: 1 }} 
-              exit={{ scale: 0.9, opacity: 0 }}
-              className="w-full max-w-2xl max-h-[90vh] overflow-y-auto rounded-[2rem] bg-white p-8 shadow-2xl border border-slate-100"
+        {selectedStoreId && detailsLoading && (
+          <div className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-5">
+            <motion.div
+              role="dialog"
+              aria-modal="true"
+              aria-label="جاري تحميل تفاصيل المتجر"
+              initial={{ y: 10, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              exit={{ y: 8, opacity: 0 }}
+              className="w-full max-w-[600px] rounded-2xl border border-slate-200 bg-white p-5 shadow-[0_24px_70px_rgba(15,23,42,0.22)]"
             >
-              <div className="flex items-center justify-between mb-8">
-                <div className="flex items-center gap-4">
-                  <div className="h-16 w-16 rounded-2xl bg-orange-50 flex items-center justify-center text-orange-600 font-bold text-xl border border-orange-100">
-                    {storeDetails.name?.[0] || 'S'}
+              <div className="flex items-center gap-3">
+                <div className="h-12 w-12 animate-pulse rounded-xl bg-slate-100" />
+                <div className="flex-1 space-y-2">
+                  <div className="h-4 w-2/5 animate-pulse rounded bg-slate-100" />
+                  <div className="h-3 w-1/4 animate-pulse rounded bg-slate-100" />
+                </div>
+                <Loader2 className="animate-spin text-orange-600" size={22} />
+              </div>
+              <div className="mt-5 grid gap-2.5 sm:grid-cols-2">
+                {Array.from({ length: 6 }).map((_, index) => (
+                  <div key={index} className="h-[70px] animate-pulse rounded-xl bg-slate-100" />
+                ))}
+              </div>
+            </motion.div>
+          </div>
+        )}
+        {selectedStoreId && storeDetails && (
+          <div
+            className="fixed inset-0 z-[200] flex items-center justify-center bg-slate-950/45 p-3 backdrop-blur-[2px] sm:p-5"
+            onMouseDown={(event) => {
+              if (event.target === event.currentTarget) setSelectedStoreId(null);
+            }}
+          >
+            <motion.div 
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="store-details-title"
+              initial={{ y: 12, scale: 0.98, opacity: 0 }}
+              animate={{ scale: 1, opacity: 1 }} 
+              exit={{ y: 8, scale: 0.98, opacity: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="flex max-h-[min(86vh,760px)] w-full max-w-[600px] flex-col overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-[0_24px_70px_rgba(15,23,42,0.22)]"
+            >
+              <div className="flex shrink-0 items-start justify-between gap-3 border-b border-slate-100 px-4 py-4 sm:px-5">
+                <div className="flex min-w-0 items-center gap-3">
+                  <div className="flex h-12 w-12 shrink-0 items-center justify-center overflow-hidden rounded-xl border border-orange-100 bg-orange-50 text-lg font-bold text-orange-600">
+                    {storeDetails.logo ? (
+                      <img src={resolveImageUrl(storeDetails.logo)} alt="" className="h-full w-full object-cover" />
+                    ) : (storeDetails.name?.[0] || 'م')}
                   </div>
-                  <div>
-                    <h3 className="text-xl font-bold text-slate-900">{storeDetails.name}</h3>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded uppercase tracking-wider ${
+                  <div className="min-w-0">
+                    <h3 id="store-details-title" className="truncate text-lg font-bold leading-7 text-slate-900">{storeDetails.name}</h3>
+                    <div className="mt-1 flex flex-wrap items-center gap-2">
+                      <span className={`rounded-md px-2 py-0.5 text-[11px] font-bold ${
                         storeDetails.status === 'APPROVED' ? 'bg-emerald-100 text-emerald-600' :
                         storeDetails.status === 'PENDING' ? 'bg-amber-100 text-amber-600' :
                         'bg-rose-100 text-rose-600'
@@ -580,18 +632,17 @@ function StoresContent() {
                         {storeDetails.status === 'APPROVED' ? 'معتمد' : 
                          storeDetails.status === 'PENDING' ? 'بانتظار' : 'مرفوض'}
                       </span>
-                      <span className="text-xs text-slate-400">•</span>
-                      <span className="text-xs text-slate-400">{new Date(storeDetails.createdAt).toLocaleDateString('ar-EG')}</span>
+                      <span className="text-[11px] text-slate-400">{new Date(storeDetails.createdAt).toLocaleDateString('ar-EG')}</span>
                     </div>
                   </div>
                 </div>
-                <button onClick={() => setSelectedStoreId(null)} className="rounded-xl bg-slate-50 p-2 text-slate-400 hover:text-slate-900 transition-colors">
-                  <X size={20} />
+                <button aria-label="إغلاق" onClick={() => setSelectedStoreId(null)} className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg border border-slate-200 bg-white text-slate-500 transition-colors hover:border-slate-300 hover:bg-slate-50 hover:text-slate-900 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500">
+                  <X size={18} />
                 </button>
               </div>
 
-              {/* Info Grid */}
-              <div className="grid gap-4 sm:grid-cols-2 mb-8">
+              <div className="overflow-y-auto px-4 py-4 sm:px-5">
+              <div className="grid gap-2.5 sm:grid-cols-2">
                 <DetailItem 
                   label="الفئة" 
                   value={typeof storeDetails.category === 'string' 
@@ -604,29 +655,30 @@ function StoresContent() {
                 <DetailItem label="واتساب" value={storeDetails.whatsapp || 'غير متوفر'} icon={MessageCircle} colorClass={storeDetails.whatsapp ? 'text-slate-900' : 'text-slate-400'} />
                 <DetailItem label="البريد الإلكتروني" value={storeDetails.email || 'غير متوفر'} icon={Mail} colorClass={storeDetails.email ? 'text-slate-900' : 'text-slate-400'} />
                 <DetailItem label="اسم المالك" value={storeDetails.owner?.name || 'غير متوفر'} />
-                <DetailItem label="هاتف المالك" value={storeDetails.owner?.phone || 'غير متوفر'} icon={Phone} />
+                {storeDetails.owner?.phone !== storeDetails.phone && (
+                  <DetailItem label="هاتف المالك" value={storeDetails.owner?.phone || 'غير متوفر'} icon={Phone} />
+                )}
               </div>
 
-              {/* Stats */}
-              <div className="grid grid-cols-3 gap-4 mb-8 p-4 bg-slate-50 rounded-2xl border border-slate-100">
+              <div className="mt-4 grid grid-cols-3 rounded-xl border border-slate-200 bg-slate-50/70 px-2 py-3">
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-orange-600">{storeDetails._count?.offers || 0}</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">عروض</div>
+                  <div className="text-lg font-bold text-orange-600">{storeDetails._count?.offers || 0}</div>
+                  <div className="text-[11px] font-bold text-slate-500">عروض</div>
                 </div>
                 <div className="text-center border-x border-slate-200">
-                  <div className="text-2xl font-bold text-emerald-600">{storeDetails._count?.coupons || 0}</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">كوبونات</div>
+                  <div className="text-lg font-bold text-emerald-600">{storeDetails._count?.coupons || 0}</div>
+                  <div className="text-[11px] font-bold text-slate-500">كوبونات</div>
                 </div>
                 <div className="text-center">
-                  <div className="text-2xl font-bold text-blue-600">{storeDetails._count?.reviews || 0}</div>
-                  <div className="text-xs font-bold text-slate-400 uppercase tracking-wider">تقييم</div>
+                  <div className="text-lg font-bold text-blue-600">{storeDetails._count?.reviews || 0}</div>
+                  <div className="text-[11px] font-bold text-slate-500">تقييم</div>
                 </div>
               </div>
 
               {/* Offers Section */}
               {storeDetails.offers && storeDetails.offers.length > 0 && (
-                <div className="mb-6">
-                  <h4 className="text-sm font-bold text-slate-900 mb-4">عروض المتجر</h4>
+                <div className="mt-5">
+                  <h4 className="mb-2.5 text-sm font-bold text-slate-900">عروض المتجر</h4>
                   <div className="space-y-2 max-h-40 overflow-y-auto">
                     {storeDetails.offers.map((offer) => (
                       <div key={offer.id} className="flex items-center justify-between p-3 bg-slate-50 rounded-xl border border-slate-100">
@@ -652,7 +704,7 @@ function StoresContent() {
 
               {/* Reviews Section */}
               {storeDetails.reviews && storeDetails.reviews.length > 0 && (
-                <div className="mb-6">
+                <div className="mt-5">
                   <h4 className="text-sm font-bold text-slate-900 mb-4 flex items-center gap-2">
                     <Star size={18} className="text-yellow-500" /> آخر التقييمات
                   </h4>
@@ -675,11 +727,12 @@ function StoresContent() {
                 </div>
               )}
 
-              {/* Actions */}
-              <div className="flex gap-3 pt-6 border-t border-slate-100">
+              </div>
+
+              <div className="flex shrink-0 flex-wrap gap-2 border-t border-slate-100 bg-white px-4 py-3 sm:px-5">
                 <button 
                   onClick={() => { openUpsert(storeDetails); setSelectedStoreId(null); }}
-                  className="flex-1 h-11 rounded-xl bg-orange-600 text-white text-sm font-bold hover:bg-orange-700 transition-all"
+                  className="h-10 min-w-[140px] flex-1 rounded-lg bg-orange-600 px-4 text-[13px] font-bold text-white transition-colors hover:bg-orange-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-orange-500 focus-visible:ring-offset-2"
                 >
                   تعديل البيانات
                 </button>
@@ -688,14 +741,14 @@ function StoresContent() {
                     <button 
                       onClick={() => { setMutatingId(storeDetails.id); approveMutation.mutate(storeDetails.id); setSelectedStoreId(null); }}
                       disabled={!!mutatingId}
-                      className="flex-1 h-11 rounded-xl bg-emerald-50 text-emerald-600 text-sm font-bold hover:bg-emerald-600 hover:text-white transition-all border border-emerald-100 disabled:opacity-50"
+                      className="h-10 flex-1 rounded-lg border border-emerald-100 bg-emerald-50 px-4 text-[13px] font-bold text-emerald-600 transition-colors hover:bg-emerald-600 hover:text-white disabled:opacity-50"
                     >
                       {mutatingId === storeDetails.id ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'موافقة'}
                     </button>
                     <button 
                       onClick={() => { setMutatingId(storeDetails.id); rejectMutation.mutate(storeDetails.id); setSelectedStoreId(null); }}
                       disabled={!!mutatingId}
-                      className="flex-1 h-11 rounded-xl bg-rose-50 text-rose-600 text-sm font-bold hover:bg-rose-600 hover:text-white transition-all border border-rose-100 disabled:opacity-50"
+                      className="h-10 flex-1 rounded-lg border border-rose-100 bg-rose-50 px-4 text-[13px] font-bold text-rose-600 transition-colors hover:bg-rose-600 hover:text-white disabled:opacity-50"
                     >
                       {mutatingId === storeDetails.id ? <Loader2 className="animate-spin mx-auto" size={20} /> : 'رفض'}
                     </button>
@@ -703,7 +756,8 @@ function StoresContent() {
                 )}
                 <button 
                   onClick={() => { setDeleteModal({ id: storeDetails.id, name: storeDetails.name }); setSelectedStoreId(null); }}
-                  className="h-11 px-4 rounded-xl bg-rose-50 text-rose-600 text-sm font-bold hover:bg-rose-600 hover:text-white transition-all border border-rose-100"
+                  aria-label="حذف المتجر"
+                  className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg border border-rose-100 bg-rose-50 text-rose-600 transition-colors hover:bg-rose-600 hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-rose-500"
                 >
                   <Trash2 size={16} />
                 </button>

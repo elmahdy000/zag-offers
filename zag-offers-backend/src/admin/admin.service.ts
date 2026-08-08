@@ -385,6 +385,8 @@ export class AdminService {
       throw new NotFoundException('Store not found');
     }
 
+    // Offers shown above are intentionally capped at 20, so keep this aggregate
+    // query separate to return the accurate coupon total for the whole store.
     const couponCount = await this.prisma.coupon.count({
       where: { offer: { storeId: id } },
     });
@@ -413,13 +415,34 @@ export class AdminService {
       }
     }
 
+    const normalizedName = payload.name?.trim();
+    const normalizedPhone = payload.phone?.trim();
+    if (normalizedName || normalizedPhone) {
+      const duplicate = await this.prisma.store.findFirst({
+        where: {
+          id: { not: id },
+          ownerId: store.ownerId,
+          OR: [
+            ...(normalizedName
+              ? [{ name: { equals: normalizedName, mode: 'insensitive' as const } }]
+              : []),
+            ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+          ],
+        },
+        select: { id: true },
+      });
+      if (duplicate) {
+        throw new BadRequestException('يوجد متجر آخر بنفس الاسم أو رقم الهاتف لهذا المالك');
+      }
+    }
+
     const updated = await this.prisma.store.update({
       where: { id },
       data: {
-        ...(payload.name !== undefined ? { name: payload.name } : {}),
+        ...(normalizedName !== undefined ? { name: normalizedName } : {}),
         ...(payload.address !== undefined ? { address: payload.address } : {}),
         ...(payload.area !== undefined ? { area: payload.area } : {}),
-        ...(payload.phone !== undefined ? { phone: payload.phone } : {}),
+        ...(normalizedPhone !== undefined ? { phone: normalizedPhone } : {}),
         ...(payload.whatsapp !== undefined
           ? { whatsapp: payload.whatsapp }
           : {}),
@@ -1698,12 +1721,28 @@ export class AdminService {
       throw new BadRequestException('Owner not found');
     }
 
+    const normalizedName = payload.name.trim();
+    const normalizedPhone = payload.phone?.trim() || '';
+    const duplicate = await this.prisma.store.findFirst({
+      where: {
+        ownerId: payload.ownerId,
+        OR: [
+          { name: { equals: normalizedName, mode: 'insensitive' } },
+          ...(normalizedPhone ? [{ phone: normalizedPhone }] : []),
+        ],
+      },
+      select: { id: true },
+    });
+    if (duplicate) {
+      throw new BadRequestException('يوجد متجر بنفس الاسم أو رقم الهاتف لهذا المالك');
+    }
+
     const createdStore = await this.prisma.store.create({
       data: {
-        name: payload.name,
+        name: normalizedName,
         address: payload.address || '',
         area: payload.area || '',
-        phone: payload.phone || '',
+        phone: normalizedPhone,
         whatsapp: payload.whatsapp || '',
         logo: payload.logo || null,
         coverImage: payload.coverImage || null,
