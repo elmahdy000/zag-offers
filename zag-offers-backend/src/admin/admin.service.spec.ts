@@ -6,6 +6,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { StoreStatus, OfferStatus } from '@prisma/client';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 describe('AdminService', () => {
   let service: AdminService;
@@ -47,6 +48,7 @@ describe('AdminService', () => {
         { provide: EventsGateway, useValue: mockEvents },
         { provide: NotificationsService, useValue: mockNotifications },
         { provide: AuditLogService, useValue: mockAuditLog },
+        { provide: SubscriptionsService, useValue: { assertCanCreateBranch: jest.fn() } },
         {
           provide: CACHE_MANAGER,
           useValue: {

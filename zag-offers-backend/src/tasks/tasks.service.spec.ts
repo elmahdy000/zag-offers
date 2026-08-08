@@ -2,6 +2,7 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { PrismaService } from '../prisma/prisma.service';
 import { TasksService } from './tasks.service';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 describe('TasksService', () => {
   let service: TasksService;
@@ -31,6 +32,7 @@ describe('TasksService', () => {
         TasksService,
         { provide: PrismaService, useValue: mockPrisma },
         { provide: NotificationsService, useValue: mockNotifications },
+        { provide: SubscriptionsService, useValue: { expireSubscriptions: jest.fn().mockResolvedValue({ count: 0 }), remindExpiringSubscriptions: jest.fn().mockResolvedValue({ count: 0 }) } },
       ],
     }).compile();
 

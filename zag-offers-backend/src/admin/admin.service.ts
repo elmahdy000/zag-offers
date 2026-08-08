@@ -25,6 +25,7 @@ import { UpdateOfferDto } from './dto/update-offer.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { ALL_ADMIN_PERMISSIONS } from '../common/permissions/admin-permissions';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 type StoreUpdatePayload = {
   name?: string;
@@ -139,6 +140,7 @@ export class AdminService {
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
     private auditLogService: AuditLogService,
+    private subscriptions: SubscriptionsService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 

@@ -22,6 +22,7 @@ import {
   X,
   MapPinned,
   MessageSquareWarning,
+  CreditCard,
 } from 'lucide-react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { ADMIN_PERMISSIONS as P, canAccess, readAdminUser, type AdminPermission } from '@/lib/admin-auth';
@@ -45,6 +46,7 @@ const moreItems = [
   { icon: Grid2X2, label: 'سجل العمليات', path: '/dashboard/audit-logs', permission: P.AUDIT_VIEW },
   { icon: MessageSquareWarning, label: 'البلاغات', path: '/dashboard/moderation', permission: P.REVIEWS_MANAGE },
   { icon: MapPinned, label: 'المناطق', path: '/dashboard/locations', permission: P.LOCATIONS_MANAGE },
+  { icon: CreditCard, label: 'الباقات', path: '/dashboard/subscriptions', permission: P.SUBSCRIPTIONS_MANAGE },
   { icon: Settings, label: 'الإعدادات', path: '/dashboard/settings', permission: P.SETTINGS_MANAGE },
 ] as const;
 

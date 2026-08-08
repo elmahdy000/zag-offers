@@ -27,6 +27,7 @@ import { AuditLogModule } from './audit-log/audit-log.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { AnalyticsModule } from './analytics/analytics.module';
 import { ChatModule } from './chat/chat.module';
+import { SubscriptionsModule } from './subscriptions/subscriptions.module';
 import { SecurityMiddleware } from './common/middleware/security.middleware';
 import { redisStore } from 'cache-manager-redis-yet';
 
@@ -89,6 +90,7 @@ import { redisStore } from 'cache-manager-redis-yet';
     AuditLogModule,
     AnalyticsModule,
     ChatModule,
+    SubscriptionsModule,
   ],
   controllers: [AppController, HealthController, RecommendationsController],
   providers: [

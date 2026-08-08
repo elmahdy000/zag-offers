@@ -23,6 +23,7 @@ import {
   X,
   MapPinned,
   MessageSquareWarning,
+  CreditCard,
 } from 'lucide-react';
 import Link from 'next/link';
 import Image from 'next/image';
@@ -48,6 +49,7 @@ const menuItems = [
   { name: 'سجل العمليات', icon: ListFilter, href: '/dashboard/audit-logs', permission: P.AUDIT_VIEW },
   { name: 'المحتوى والبلاغات', icon: MessageSquareWarning, href: '/dashboard/moderation', permission: P.REVIEWS_MANAGE },
   { name: 'المدن والمناطق', icon: MapPinned, href: '/dashboard/locations', permission: P.LOCATIONS_MANAGE },
+  { name: 'الباقات والاشتراكات', icon: CreditCard, href: '/dashboard/subscriptions', permission: P.SUBSCRIPTIONS_MANAGE },
   { name: 'إعدادات المنصة', icon: Settings, href: '/dashboard/settings', permission: P.SETTINGS_MANAGE },
 ] as const;
 

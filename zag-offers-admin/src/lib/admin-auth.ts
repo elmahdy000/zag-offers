@@ -24,6 +24,7 @@ export const ADMIN_PERMISSIONS = {
   CHAT_MANAGE: 'chat.manage',
   REVIEWS_MANAGE: 'reviews.manage',
   LOCATIONS_MANAGE: 'locations.manage',
+  SUBSCRIPTIONS_MANAGE: 'subscriptions.manage',
 } as const;
 
 export type AdminPermission = typeof ADMIN_PERMISSIONS[keyof typeof ADMIN_PERMISSIONS];
@@ -58,6 +59,7 @@ export function firstAllowedAdminRoute(user: AdminUser) {
     [ADMIN_PERMISSIONS.AUDIT_VIEW, '/dashboard/audit-logs'],
     [ADMIN_PERMISSIONS.REVIEWS_MANAGE, '/dashboard/moderation'],
     [ADMIN_PERMISSIONS.LOCATIONS_MANAGE, '/dashboard/locations'],
+    [ADMIN_PERMISSIONS.SUBSCRIPTIONS_MANAGE, '/dashboard/subscriptions'],
     [ADMIN_PERMISSIONS.SETTINGS_MANAGE, '/dashboard/settings'],
   ];
   return routes.find(([permission]) => canAccess(user, permission))?.[1] ?? '/login';

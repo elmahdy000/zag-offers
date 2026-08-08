@@ -18,6 +18,7 @@ export const ADMIN_PERMISSIONS = {
   CHAT_MANAGE: 'chat.manage',
   REVIEWS_MANAGE: 'reviews.manage',
   LOCATIONS_MANAGE: 'locations.manage',
+  SUBSCRIPTIONS_MANAGE: 'subscriptions.manage',
 } as const;
 
 export type AdminPermission =

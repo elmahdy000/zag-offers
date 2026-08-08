@@ -12,6 +12,7 @@ import { Prisma, Offer, OfferStatus, StoreStatus } from '@prisma/client';
 import { EventsGateway } from '../events/events.gateway';
 import { NotificationsService } from '../notifications/notifications.service';
 import { UploadService } from '../upload/upload.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class OffersService {
@@ -20,6 +21,7 @@ export class OffersService {
     private eventsGateway: EventsGateway,
     private notificationsService: NotificationsService,
     private uploadService: UploadService,
+    private subscriptions: SubscriptionsService,
     @Inject(CACHE_MANAGER) private cacheManager: Cache,
   ) {}
 
@@ -67,6 +69,10 @@ export class OffersService {
     });
 
     if (!store) throw new NotFoundException('المحل غير موجود');
+
+    if (store.ownerId === merchantId) {
+      await this.subscriptions.assertCanCreateOffer(store.id);
+    }
 
     if (store.ownerId !== merchantId) {
       const user = await this.prisma.user.findUnique({

@@ -13,6 +13,7 @@ import { NotificationsService } from '../notifications/notifications.service';
 import { AuditLogService } from '../audit-log/audit-log.service';
 import { AnalyticsService } from '../analytics/analytics.service';
 import { UsersService } from '../users/users.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class CouponsService {
@@ -23,6 +24,7 @@ export class CouponsService {
     private auditLogService: AuditLogService,
     private analyticsService: AnalyticsService,
     private usersService: UsersService,
+    private subscriptions: SubscriptionsService,
   ) {}
 
   async generate(offerId: string, customerId: string): Promise<Coupon> {
@@ -44,6 +46,8 @@ export class CouponsService {
     if (offer.status !== OfferStatus.ACTIVE) {
       throw new BadRequestException('عفواً، العرض ده مش متاح حالياً');
     }
+
+    await this.subscriptions.assertCanGenerateCoupon(offer.storeId);
 
     // التحقق من تاريخ انتهاء العرض
     if (offer.endDate && new Date() > offer.endDate) {

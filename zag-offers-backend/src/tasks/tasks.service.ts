@@ -3,6 +3,7 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { PrismaService } from '../prisma/prisma.service';
 import { OfferStatus, CouponStatus } from '@prisma/client';
 import { NotificationsService } from '../notifications/notifications.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class TasksService {
@@ -11,6 +12,7 @@ export class TasksService {
   constructor(
     private prisma: PrismaService,
     private notificationsService: NotificationsService,
+    private subscriptions: SubscriptionsService,
   ) {}
 
   @Cron(CronExpression.EVERY_HOUR)
@@ -72,6 +74,14 @@ export class TasksService {
         this.logger.log(
           `Automatically expired ${expiredCoupons.count} coupons.`,
         );
+      }
+      const expiredSubscriptions = await this.subscriptions.expireSubscriptions();
+      if (expiredSubscriptions.count > 0) {
+        this.logger.log(`Automatically expired ${expiredSubscriptions.count} subscriptions.`);
+      }
+      const subscriptionReminders = await this.subscriptions.remindExpiringSubscriptions();
+      if (subscriptionReminders.count > 0) {
+        this.logger.log(`Sent ${subscriptionReminders.count} subscription expiry reminders.`);
       }
     } catch (error) {
       this.logger.error('Cron job failed:', error);

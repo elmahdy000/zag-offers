@@ -13,6 +13,7 @@ import {
   Settings,
   Store,
   Tag,
+  CreditCard,
   X,
 } from 'lucide-react';
 import Link from 'next/link';
@@ -76,6 +77,7 @@ export default function Sidebar({ onClose }: { onClose?: () => void }) {
     { name: 'بيانات المتجر', icon: Store, href: '/dashboard/profile' },
     { name: 'الدعم الفني', icon: MessageSquare, href: '/dashboard/chat' },
     { name: 'الإعدادات', icon: Settings, href: '/dashboard/settings' },
+    { name: 'الباقة والاشتراك', icon: CreditCard, href: '/dashboard/subscription' },
   ];
 
   const handleLogout = async () => {

@@ -27,6 +27,7 @@ const routePermissions: Array<[string, AdminPermission]> = [
   ['/dashboard/audit-logs', P.AUDIT_VIEW],
   ['/dashboard/moderation', P.REVIEWS_MANAGE],
   ['/dashboard/locations', P.LOCATIONS_MANAGE],
+  ['/dashboard/subscriptions', P.SUBSCRIPTIONS_MANAGE],
   ['/dashboard/settings', P.SETTINGS_MANAGE],
   ['/dashboard', P.DASHBOARD_VIEW],
 ];

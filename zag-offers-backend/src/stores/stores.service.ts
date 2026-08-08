@@ -7,6 +7,7 @@ import { PrismaService } from '../prisma/prisma.service';
 import { EventsGateway } from '../events/events.gateway';
 import { UploadService } from '../upload/upload.service';
 import { Prisma, Store, StoreStatus } from '@prisma/client';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class StoresService {
@@ -14,9 +15,15 @@ export class StoresService {
     private prisma: PrismaService,
     private events: EventsGateway,
     private uploadService: UploadService,
+    private subscriptions: SubscriptionsService,
   ) {}
 
-  async create(data: Prisma.StoreCreateInput): Promise<Store> {
+  async create(
+    data: Prisma.StoreCreateInput,
+    ownerId: string,
+    isAdmin = false,
+  ): Promise<Store> {
+    if (!isAdmin) await this.subscriptions.assertCanCreateStore(ownerId);
     const store = await this.prisma.store.create({
       data,
     });

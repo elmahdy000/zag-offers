@@ -37,7 +37,7 @@ export class StoresController {
   @ApiOperation({ summary: 'إنشاء محل جديد' })
   async create(
     @Body() dto: CreateStoreDto,
-    @Request() req: { user: { id: string } },
+    @Request() req: { user: { id: string; role: Role } },
   ) {
     try {
       return await this.storesService.create({
@@ -57,7 +57,7 @@ export class StoresController {
         workingHours: dto.workingHours,
         category: { connect: { id: dto.categoryId } },
         owner: { connect: { id: req.user.id } },
-      });
+      }, req.user.id, req.user.role === Role.ADMIN);
     } catch (e: unknown) {
       const error = e as Error;
       this.logger.error(

@@ -52,6 +52,7 @@ const permissionLabels: Record<string, string> = {
   'audit.view': 'عرض سجل العمليات', 'settings.manage': 'إدارة الإعدادات',
   'chat.manage': 'إدارة المحادثات', 'reviews.manage': 'إدارة المحتوى والبلاغات',
   'locations.manage': 'إدارة المدن والمناطق',
+  'subscriptions.manage': 'إدارة الباقات والاشتراكات',
 };
 
 function apiErrorMessage(error: unknown, fallback: string) {

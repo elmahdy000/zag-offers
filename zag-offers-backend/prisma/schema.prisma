@@ -55,6 +55,22 @@ enum ReportStatus {
   DISMISSED
 }
 
+enum SubscriptionStatus {
+  PENDING
+  ACTIVE
+  EXPIRED
+  REJECTED
+  CANCELLED
+  SUSPENDED
+}
+
+enum SubscriptionPaymentStatus {
+  PENDING
+  PAID
+  REJECTED
+  REFUNDED
+}
+
 model User {
   id               String   @id @default(uuid())
   phone            String?  @unique
@@ -76,17 +92,19 @@ model User {
   gender         String?
   lastLoginAt    DateTime?
 
-  stores          Store[]
-  coupons         Coupon[]
-  reviews         Review[]
-  favorites       Favorite[]
-  auditLogs       AuditLog[]      @relation("AdminLogs")
-  broadcastLogs   BroadcastLog[]  @relation("BroadcastLogs")
-  contentReports  ContentReport[] @relation("ContentReports")
-  resolvedReports ContentReport[] @relation("ResolvedReports")
-  notifications   Notification[]
-  points          Int             @default(0)
-  tier            UserTier        @default(BRONZE)
+  stores                       Store[]
+  coupons                      Coupon[]
+  reviews                      Review[]
+  favorites                    Favorite[]
+  auditLogs                    AuditLog[]            @relation("AdminLogs")
+  broadcastLogs                BroadcastLog[]        @relation("BroadcastLogs")
+  contentReports               ContentReport[]       @relation("ContentReports")
+  resolvedReports              ContentReport[]       @relation("ResolvedReports")
+  reviewedSubscriptions        StoreSubscription[]   @relation("SubscriptionReviewer")
+  reviewedSubscriptionPayments SubscriptionPayment[] @relation("SubscriptionPaymentReviewer")
+  notifications                Notification[]
+  points                       Int                   @default(0)
+  tier                         UserTier              @default(BRONZE)
 
   pointLogs PointLog[]
 
@@ -166,9 +184,10 @@ model Store {
   ownerId String
   owner   User   @relation(fields: [ownerId], references: [id])
 
-  offers   Offer[]
-  reviews  Review[]
-  branches StoreBranch[]
+  offers        Offer[]
+  reviews       Review[]
+  branches      StoreBranch[]
+  subscriptions StoreSubscription[]
 
   images    String[] // معرض صور المحل
   createdAt DateTime @default(now())
@@ -182,6 +201,94 @@ model Store {
   @@index([ownerId])
   @@index([cityId])
   @@index([areaId])
+}
+
+model SubscriptionPlan {
+  id                 String              @id @default(uuid())
+  name               String
+  description        String?
+  price              Float               @default(0)
+  currency           String              @default("EGP")
+  durationDays       Int
+  maxStores          Int?
+  maxActiveOffers    Int?
+  maxBranches        Int?
+  maxCouponsPerMonth Int?
+  features           String[]            @default([])
+  isActive           Boolean             @default(true)
+  isPublic           Boolean             @default(true)
+  isFeatured         Boolean             @default(false)
+  priority           Int                 @default(0)
+  subscriptions      StoreSubscription[]
+  createdAt          DateTime            @default(now())
+  updatedAt          DateTime            @updatedAt
+
+  @@index([isActive, isPublic, priority])
+}
+
+model StoreSubscription {
+  id                      String                @id @default(uuid())
+  storeId                 String
+  store                   Store                 @relation(fields: [storeId], references: [id], onDelete: Cascade)
+  planId                  String
+  plan                    SubscriptionPlan      @relation(fields: [planId], references: [id])
+  status                  SubscriptionStatus    @default(PENDING)
+  startsAt                DateTime?
+  endsAt                  DateTime?
+  requestedAt             DateTime              @default(now())
+  reviewedAt              DateTime?
+  expiryReminderSentAt    DateTime?
+  reviewedById            String?
+  reviewedBy              User?                 @relation("SubscriptionReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  reviewNote              String?
+  merchantNote            String?
+  priceSnapshot           Float
+  currencySnapshot        String
+  durationDaysSnapshot    Int
+  maxStoresSnapshot       Int?
+  maxActiveOffersSnapshot Int?
+  maxBranchesSnapshot     Int?
+  maxCouponsSnapshot      Int?
+  featuresSnapshot        String[]              @default([])
+  payments                SubscriptionPayment[]
+  createdAt               DateTime              @default(now())
+  updatedAt               DateTime              @updatedAt
+
+  @@index([storeId, status])
+  @@index([status, requestedAt])
+  @@index([endsAt])
+}
+
+model SubscriptionPayment {
+  id             String                    @id @default(uuid())
+  subscriptionId String
+  subscription   StoreSubscription         @relation(fields: [subscriptionId], references: [id], onDelete: Cascade)
+  amount         Float
+  currency       String                    @default("EGP")
+  method         String                    @default("MANUAL")
+  reference      String?
+  proofUrl       String?
+  status         SubscriptionPaymentStatus @default(PENDING)
+  merchantNote   String?
+  reviewNote     String?
+  reviewedAt     DateTime?
+  reviewedById   String?
+  reviewedBy     User?                     @relation("SubscriptionPaymentReviewer", fields: [reviewedById], references: [id], onDelete: SetNull)
+  createdAt      DateTime                  @default(now())
+  updatedAt      DateTime                  @updatedAt
+
+  @@index([subscriptionId])
+  @@index([status, createdAt])
+}
+
+model SubscriptionSettings {
+  id                  String   @id @default("default")
+  enforcementEnabled  Boolean  @default(false)
+  allowManualRequests Boolean  @default(true)
+  gracePeriodDays     Int      @default(0)
+  expiryReminderDays  Int      @default(3)
+  paymentInstructions String?
+  updatedAt           DateTime @updatedAt
 }
 
 model City {
