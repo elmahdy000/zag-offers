@@ -4,7 +4,7 @@ import { useState } from 'react';
 import { Smartphone, Lock, Eye, EyeOff, Loader2, ArrowRight, ShieldCheck, BarChart3, Users2, Store } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
-import { api } from '@/lib/api';
+import { api, saveAdminSessionToken } from '@/lib/api';
 import AdminThemeToggle from '@/components/AdminThemeToggle';
 import { firstAllowedAdminRoute } from '@/lib/admin-auth';
 
@@ -38,7 +38,7 @@ export default function AdminLoginPage() {
         phone: phone.trim(),
         password,
       });
-      const { user } = res.data;
+      const { access_token, user } = res.data;
 
       if (user.role !== 'ADMIN' && user.role !== 'STAFF') {
         await api.post('/auth/logout').catch(() => undefined);
@@ -46,6 +46,8 @@ export default function AdminLoginPage() {
         setLoading(false);
         return;
       }
+
+      saveAdminSessionToken(access_token);
 
       sessionStorage.setItem('admin_user', JSON.stringify(user));
       localStorage.setItem('admin_user', JSON.stringify(user));

@@ -71,9 +71,23 @@ function signRequest(url: string, timestamp: number) {
 /** Axios instance مع Authorization header وتتبع الأداء وتوقيع الطلبات */
 let sharedVendorApi: ReturnType<typeof axios.create> | null = null;
 
+const VENDOR_SESSION_TOKEN_KEY = 'zag_vendor_session_token';
+
+export function saveVendorSessionToken(token: string) {
+  if (typeof window !== 'undefined') sessionStorage.setItem(VENDOR_SESSION_TOKEN_KEY, token);
+}
+
+export function clearVendorSessionToken() {
+  if (typeof window !== 'undefined') sessionStorage.removeItem(VENDOR_SESSION_TOKEN_KEY);
+}
+
+function getVendorSessionToken() {
+  return typeof window !== 'undefined' ? sessionStorage.getItem(VENDOR_SESSION_TOKEN_KEY) : null;
+}
+
 export function vendorApi() {
   if (sharedVendorApi) return sharedVendorApi;
-  const token = getCookie('auth_token');
+  const token = getVendorSessionToken() || getCookie('auth_token');
   const instance = axios.create({
     baseURL: API_URL,
     withCredentials: true,
@@ -87,7 +101,7 @@ export function vendorApi() {
   instance.interceptors.request.use(async (config) => {
     const timestamp = Date.now();
     (config as TimedRequestConfig).metadata = { startTime: timestamp };
-    const activeToken = getCookie('auth_token');
+    const activeToken = getVendorSessionToken() || getCookie('auth_token');
     if (activeToken) config.headers.Authorization = `Bearer ${activeToken}`;
     else delete config.headers.Authorization;
     if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
@@ -124,9 +138,14 @@ export function vendorApi() {
         });
       }
       if (error.response?.status === 401 && typeof window !== 'undefined' && !window.location.pathname.includes('/login')) {
+        clearVendorSessionToken();
         deleteCookie('auth_token');
         if (typeof secureStorage !== 'undefined') secureStorage.clear();
         window.location.replace('/login?reason=session-expired');
+      }
+      if (error.response?.status === 403 && typeof window !== 'undefined' && !getVendorSessionToken() && !window.location.pathname.includes('/login')) {
+        if (typeof secureStorage !== 'undefined') secureStorage.clear();
+        window.location.replace('/login?reason=session-conflict');
       }
       return Promise.reject(error);
     }

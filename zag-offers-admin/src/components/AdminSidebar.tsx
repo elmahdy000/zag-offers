@@ -28,7 +28,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { usePathname, useRouter } from 'next/navigation';
 import { useQuery } from '@tanstack/react-query';
-import { adminApi } from '@/lib/api';
+import { adminApi, clearAdminSessionToken } from '@/lib/api';
 import AdminThemeToggle from '@/components/AdminThemeToggle';
 import { ADMIN_PERMISSIONS as P, canAccess, readAdminUser, type AdminPermission } from '@/lib/admin-auth';
 
@@ -176,6 +176,7 @@ export default function AdminSidebar() {
   const handleLogout = async () => {
     try { await adminApi().post('/auth/logout'); } catch { /* Keep local logout available offline. */ }
     sessionStorage.removeItem('admin_user');
+    clearAdminSessionToken();
     localStorage.removeItem('admin_user');
     router.replace('/login');
   };

@@ -9,6 +9,7 @@ import { handleApiError, logError } from '@/lib/errorHandler';
 import { secureUserData, secureStoreData } from '@/lib/crypto';
 import BrandMark from '@/components/BrandMark';
 import { deleteCookie } from '@/lib/cookie-utils';
+import { saveVendorSessionToken } from '@/lib/api';
 
 const API_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online').replace(/\/$/, '') + '/api';
 
@@ -30,6 +31,7 @@ export default function LoginPage() {
       if (reason === 'admin-account') setError('هذا حساب إدارة. افتح لوحة الإدارة لتسجيل الدخول.');
       if (reason === 'session-expired') setError('انتهت الجلسة. سجّل الدخول مرة أخرى.');
       if (reason === 'unauthorized') setError('الجلسة لا تملك صلاحية لوحة التاجر. سجّل الدخول بحساب تاجر.');
+      if (reason === 'session-conflict') setError('تم تبديل الجلسة من لوحة أخرى. سجّل دخول التاجر مرة واحدة لاستعادة الجلسة المستقلة.');
     }, 0);
     return () => window.clearTimeout(timer);
   }, []);
@@ -78,6 +80,7 @@ export default function LoginPage() {
         setLoading(false);
         return;
       }
+      saveVendorSessionToken(access_token);
       secureUserData.save(user);
       try {
         const statsResponse = await axios.get(`${API_URL}/stores/my-dashboard`, {

@@ -40,6 +40,9 @@ export default function PWAInstallPrompt() {
     // 3. Detect Platform
     // 4. Listen for Android Install Prompt
     const handler = (event: Event) => {
+      // The custom action is mobile-only. Keep Chromium's native desktop
+      // installation UI available instead of cancelling it without a button.
+      if (platform !== 'android') return;
       const e = event as BeforeInstallPromptEvent;
       e.preventDefault();
       setDeferredPrompt(e);
@@ -60,7 +63,7 @@ export default function PWAInstallPrompt() {
 
   const handleInstall = async () => {
     if (platform === 'android' && deferredPrompt) {
-      deferredPrompt.prompt();
+      await deferredPrompt.prompt();
       const { outcome } = await deferredPrompt.userChoice;
       if (outcome === 'accepted') {
         setShow(false);

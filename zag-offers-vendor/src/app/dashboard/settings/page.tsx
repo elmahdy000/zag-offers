@@ -2,7 +2,7 @@
 import { Store, Bell, ChevronLeft, Lock, MessageSquare, LogOut, ExternalLink, HelpCircle, Activity, Wifi, Zap } from 'lucide-react';
 import Link from 'next/link';
 import { motion } from 'framer-motion';
-import { deleteCookie, vendorApi } from '@/lib/api';
+import { clearVendorSessionToken, deleteCookie, vendorApi } from '@/lib/api';
 import { useEffect, useState } from 'react';
 import { PerformanceMonitor } from '@/lib/performance-monitor';
 import { ConfirmModal } from '@/components/ConfirmModal';
@@ -40,6 +40,7 @@ export default function SettingsPage() {
       await vendorApi().post('/auth/logout');
     } finally {
       deleteCookie('auth_token');
+      clearVendorSessionToken();
       secureStorage.clear();
       window.location.href = '/login';
     }

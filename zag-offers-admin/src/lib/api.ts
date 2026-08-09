@@ -23,6 +23,15 @@ function resolveApiUrl() {
 }
 
 const API_URL = resolveApiUrl();
+const ADMIN_SESSION_TOKEN_KEY = 'zag_admin_session_token';
+
+export function saveAdminSessionToken(token: string) {
+  if (typeof window !== 'undefined') sessionStorage.setItem(ADMIN_SESSION_TOKEN_KEY, token);
+}
+
+export function clearAdminSessionToken() {
+  if (typeof window !== 'undefined') sessionStorage.removeItem(ADMIN_SESSION_TOKEN_KEY);
+}
 
 /** تحويل المسار النسبي لصورة إلى رابط كامل */
 export function resolveImageUrl(path: string | null | undefined): string {
@@ -51,6 +60,8 @@ const _axiosInstance = axios.create({
 });
 
 _axiosInstance.interceptors.request.use(async (config) => {
+  const sessionToken = typeof window !== 'undefined' ? sessionStorage.getItem(ADMIN_SESSION_TOKEN_KEY) : null;
+  if (sessionToken) config.headers.Authorization = `Bearer ${sessionToken}`;
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
     config.data = await optimizeUploadFormData(config.data);
   }
@@ -61,6 +72,7 @@ _axiosInstance.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
+      clearAdminSessionToken();
       localStorage.removeItem('admin_user');
       if (typeof window !== 'undefined' && !window.location.pathname.startsWith('/login')) {
         window.location.href = '/login';
