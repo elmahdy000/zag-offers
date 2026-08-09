@@ -81,7 +81,7 @@ export function clearVendorSessionToken() {
   if (typeof window !== 'undefined') sessionStorage.removeItem(VENDOR_SESSION_TOKEN_KEY);
 }
 
-function getVendorSessionToken() {
+export function getVendorSessionToken() {
   return typeof window !== 'undefined' ? sessionStorage.getItem(VENDOR_SESSION_TOKEN_KEY) : null;
 }
 

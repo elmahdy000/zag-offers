@@ -4,6 +4,7 @@ import { createContext, useContext, useEffect, useState, type ReactNode } from '
 import type { Socket } from 'socket.io-client';
 import { useQueryClient } from '@tanstack/react-query';
 import { useToast } from '@/components/shared/Toast';
+import { getAdminSessionToken } from '@/lib/api';
 
 const SOCKET_URL = (process.env.NEXT_PUBLIC_API_URL || 'https://api.zagoffers.online/api').replace(/\/api$/, '');
 
@@ -38,21 +39,28 @@ export function SocketProvider({ children }: { children: ReactNode }) {
     } catch { return; }
     if (!userId) return;
 
-    void import('socket.io-client').then(({ io }) => {
-      if (!active) return;
-      newSocket = io(SOCKET_URL, {
-        withCredentials: true,
-        transports: ['websocket', 'polling'],
-        reconnectionAttempts: 5,
-      });
+    const connectTimer = window.setTimeout(() => {
+      void import('socket.io-client').then(({ io }) => {
+        if (!active) return;
+        const token = getAdminSessionToken();
+        newSocket = io(SOCKET_URL, {
+          auth: token ? { token } : undefined,
+          withCredentials: true,
+          transports: ['polling', 'websocket'],
+          upgrade: true,
+          reconnection: true,
+          reconnectionDelay: 1500,
+          reconnectionDelayMax: 10000,
+          reconnectionAttempts: 5,
+        });
 
-      newSocket.on('connect', () => {
-        setIsConnected(true);
-      });
+        newSocket.on('connect', () => {
+          setIsConnected(true);
+        });
 
-      newSocket.on('disconnect', () => setIsConnected(false));
+        newSocket.on('disconnect', () => setIsConnected(false));
 
-      newSocket.on('admin_notification', (notification: { type: string; body?: string }) => {
+        newSocket.on('admin_notification', (notification: { type: string; body?: string }) => {
         if (!canReceiveAdminNotifications) return;
         if (notification.type === 'ANNOUNCEMENT' && notification.body) showToast(notification.body, 'info');
         if (notification.type === 'NEW_PENDING_OFFER') {
@@ -64,13 +72,15 @@ export function SocketProvider({ children }: { children: ReactNode }) {
         }
         void queryClient.invalidateQueries({ queryKey: ['pending-count'] });
         void queryClient.invalidateQueries({ queryKey: ['global-stats'] });
-      });
+        });
 
-      setSocket(newSocket);
-    });
+        setSocket(newSocket);
+      });
+    }, 250);
 
     return () => {
       active = false;
+      window.clearTimeout(connectTimer);
       newSocket?.off('admin_notification');
       newSocket?.disconnect();
     };

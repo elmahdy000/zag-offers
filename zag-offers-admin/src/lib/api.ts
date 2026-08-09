@@ -33,6 +33,10 @@ export function clearAdminSessionToken() {
   if (typeof window !== 'undefined') sessionStorage.removeItem(ADMIN_SESSION_TOKEN_KEY);
 }
 
+export function getAdminSessionToken() {
+  return typeof window !== 'undefined' ? sessionStorage.getItem(ADMIN_SESSION_TOKEN_KEY) : null;
+}
+
 /** تحويل المسار النسبي لصورة إلى رابط كامل */
 export function resolveImageUrl(path: string | null | undefined): string {
   if (!path) return '';
@@ -60,7 +64,7 @@ const _axiosInstance = axios.create({
 });
 
 _axiosInstance.interceptors.request.use(async (config) => {
-  const sessionToken = typeof window !== 'undefined' ? sessionStorage.getItem(ADMIN_SESSION_TOKEN_KEY) : null;
+  const sessionToken = getAdminSessionToken();
   if (sessionToken) config.headers.Authorization = `Bearer ${sessionToken}`;
   if (typeof FormData !== 'undefined' && config.data instanceof FormData) {
     config.data = await optimizeUploadFormData(config.data);
