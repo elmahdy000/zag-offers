@@ -11,6 +11,7 @@ export const useSocket = (token?: string | null, enabled = true) => {
   const [connectionStatus, setConnectionStatus] = useState<'connecting' | 'connected' | 'disconnected' | 'error'>('disconnected');
   const reconnectAttempts = useRef(0);
   const reconnectTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const pageIsHidden = useRef(false);
 
   useEffect(() => {
     if (!enabled) return;
@@ -26,6 +27,21 @@ export const useSocket = (token?: string | null, enabled = true) => {
       reconnectionAttempts: MAX_RECONNECT_ATTEMPTS,
     });
 
+    const handlePageHide = () => {
+      pageIsHidden.current = true;
+      newSocket.io.reconnection(false);
+      newSocket.disconnect();
+    };
+
+    const handlePageShow = (event: PageTransitionEvent) => {
+      pageIsHidden.current = false;
+      newSocket.io.reconnection(true);
+      if (event.persisted && !newSocket.connected) newSocket.connect();
+    };
+
+    window.addEventListener('pagehide', handlePageHide);
+    window.addEventListener('pageshow', handlePageShow);
+
     newSocket.on('connect', () => {
       console.log('Client Socket connected:', newSocket.id);
       setIsConnected(true);
@@ -35,13 +51,13 @@ export const useSocket = (token?: string | null, enabled = true) => {
     });
 
     newSocket.on('disconnect', (reason) => {
-      console.log('Client Socket disconnected:', reason);
+      if (!pageIsHidden.current) console.log('Client Socket disconnected:', reason);
       setIsConnected(false);
       setConnectionStatus('disconnected');
     });
 
     newSocket.on('connect_error', (error) => {
-      console.error('Client Socket connection error:', error);
+      if (!pageIsHidden.current) console.error('Client Socket connection error:', error);
       setIsConnected(false);
       setConnectionStatus('error');
       reconnectAttempts.current++;
@@ -79,6 +95,8 @@ export const useSocket = (token?: string | null, enabled = true) => {
       if (reconnectTimeout) {
         clearTimeout(reconnectTimeout);
       }
+      window.removeEventListener('pagehide', handlePageHide);
+      window.removeEventListener('pageshow', handlePageShow);
       newSocket.disconnect();
       setTimeout(() => {
         setIsConnected(false);
