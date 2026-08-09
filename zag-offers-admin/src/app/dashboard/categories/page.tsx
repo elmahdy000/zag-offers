@@ -19,6 +19,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
 import type { AxiosError } from 'axios';
 import { useSocketContext } from '@/components/SocketProvider';
+import { parseIntegerInput } from '@/lib/numeric-input';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -47,7 +48,7 @@ export default function CategoriesPage() {
   const [formData, setFormData] = useState({
     name: '',
     image: '',
-    priority: 0,
+    priority: '0',
   });
 
   const { socket } = useSocketContext();
@@ -138,11 +139,11 @@ export default function CategoriesPage() {
       setFormData({
         name: category.name,
         image: category.image || '',
-        priority: category.priority ?? 0,
+        priority: String(category.priority ?? 0),
       });
     } else {
       setEditingCategory(null);
-      setFormData({ name: '', image: '', priority: 0 });
+      setFormData({ name: '', image: '', priority: '0' });
     }
     setIsUpsertOpen(true);
   };
@@ -266,7 +267,7 @@ export default function CategoriesPage() {
               <form 
                 onSubmit={(e) => {
                   e.preventDefault();
-                  upsertMutation.mutate({ ...formData, image: formData.image || null });
+                  upsertMutation.mutate({ ...formData, image: formData.image || null, priority: parseIntegerInput(formData.priority) });
                 }}
                 className="space-y-6"
               >
@@ -321,10 +322,11 @@ export default function CategoriesPage() {
                     الأولوية (رقم أعلى = ظهور أولاً)
                   </label>
                   <input 
-                    type="number" 
-                    min="0"
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9٠-٩۰-۹]*"
                     value={formData.priority} 
-                    onChange={e => setFormData({...formData, priority: parseInt(e.target.value) || 0})} 
+                    onChange={e => setFormData({...formData, priority: e.target.value})}
                     placeholder="0"
                     className="h-12 w-full rounded-xl bg-slate-50 px-4 text-sm font-bold text-slate-900 border border-slate-100 focus:ring-2 focus:ring-orange-500/20 focus:bg-white transition-all" 
                   />

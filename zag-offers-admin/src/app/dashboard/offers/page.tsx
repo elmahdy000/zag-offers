@@ -26,6 +26,7 @@ import Link from 'next/link';
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import { parseNumericInput } from '@/lib/numeric-input';
 
 // Components
 import { PageHeader } from '@/components/shared/PageHeader';
@@ -136,8 +137,8 @@ export default function OffersManagementPage() {
 
     if (!originalInput || !newInput || !discountInput) return;
 
-    const origVal = parseFloat(originalInput.value);
-    const newVal = parseFloat(newInput.value);
+    const origVal = parseNumericInput(originalInput.value, Number.NaN);
+    const newVal = parseNumericInput(newInput.value, Number.NaN);
     const discValStr = discountInput.value.trim();
 
     if (field === 'discount') {
@@ -440,8 +441,8 @@ export default function OffersManagementPage() {
                       }
                       const data = {
                         ...formData,
-                        originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
-                        newPrice: formData.newPrice ? Number(formData.newPrice) : null,
+                        originalPrice: formData.originalPrice ? parseNumericInput(formData.originalPrice) : null,
+                        newPrice: formData.newPrice ? parseNumericInput(formData.newPrice) : null,
                         images: tempImages
                       };
                       updateOfferMutation.mutate({ id: offerDetails!.id, data }); 
@@ -459,11 +460,11 @@ export default function OffersManagementPage() {
                       <div className="grid gap-4 sm:grid-cols-2">
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
-                          <input type="number" step="0.01" name="originalPrice" defaultValue={offerDetails?.originalPrice} onChange={() => handlePriceCalc('edit', 'original')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                          <input type="text" inputMode="decimal" name="originalPrice" defaultValue={offerDetails?.originalPrice} onChange={() => handlePriceCalc('edit', 'original')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                         <div className="space-y-2">
                           <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
-                          <input type="number" step="0.01" name="newPrice" defaultValue={offerDetails?.newPrice} onChange={() => handlePriceCalc('edit', 'new')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                          <input type="text" inputMode="decimal" name="newPrice" defaultValue={offerDetails?.newPrice} onChange={() => handlePriceCalc('edit', 'new')} className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                         </div>
                       </div>
                       <div className="space-y-2">
@@ -651,8 +652,8 @@ export default function OffersManagementPage() {
                 const data = {
                   ...payloadWithoutStatus,
                   discount: discountVal,
-                  originalPrice: formData.originalPrice ? Number(formData.originalPrice) : null,
-                  newPrice: formData.newPrice ? Number(formData.newPrice) : null,
+                  originalPrice: formData.originalPrice ? parseNumericInput(formData.originalPrice) : null,
+                  newPrice: formData.newPrice ? parseNumericInput(formData.newPrice) : null,
                   images: tempImages,
                 };
                 createOfferMutation.mutate(data);
@@ -668,11 +669,11 @@ export default function OffersManagementPage() {
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر قبل</label>
-                    <input type="number" step="0.01" name="originalPrice" onChange={() => handlePriceCalc('create', 'original')} placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                    <input type="text" inputMode="decimal" name="originalPrice" onChange={() => handlePriceCalc('create', 'original')} placeholder="السعر الأصلي" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">السعر بعد</label>
-                    <input type="number" step="0.01" name="newPrice" onChange={() => handlePriceCalc('create', 'new')} placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
+                    <input type="text" inputMode="decimal" name="newPrice" onChange={() => handlePriceCalc('create', 'new')} placeholder="السعر بعد الخصم" className="h-12 w-full rounded-xl border border-slate-200 bg-slate-50/50 px-4 text-sm font-bold focus:border-orange-500 focus:outline-none transition-all shadow-sm" />
                   </div>
                   <div className="sm:col-span-2 space-y-2">
                     <label className="text-xs font-bold text-slate-500 uppercase tracking-wider">اختر المتجر</label>

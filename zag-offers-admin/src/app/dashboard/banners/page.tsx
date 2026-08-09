@@ -9,6 +9,7 @@ import { useSocketContext } from '@/components/SocketProvider';
 import { PageHeader } from '@/components/shared/PageHeader';
 import { useToast } from '@/components/shared/Toast';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import { parseIntegerInput } from '@/lib/numeric-input';
 
 type BannerItem = {
   id: string;
@@ -41,7 +42,7 @@ const initialForm = {
   tag: '',
   image: '',
   actionUrl: '',
-  priority: 0,
+  priority: '0',
   isActive: true,
 };
 
@@ -119,7 +120,7 @@ export default function BannersPage() {
         image: form.image || undefined,
         actionUrl: finalActionUrl,
         offerId: finalOfferId,
-        priority: Number(form.priority || 0),
+        priority: parseIntegerInput(form.priority),
         isActive: form.isActive,
       };
 
@@ -193,7 +194,7 @@ export default function BannersPage() {
       tag: banner.tag || '',
       image: banner.image || '',
       actionUrl: banner.actionUrl || '',
-      priority: banner.priority || 0,
+      priority: String(banner.priority || 0),
       isActive: banner.isActive,
     });
     setIsOpen(true);
@@ -375,7 +376,7 @@ export default function BannersPage() {
                 </div>
               )}
 
-              <input className="w-full rounded-xl border px-3 py-2" type="number" placeholder="الأولوية" value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: Number(e.target.value) }))} />
+              <input className="w-full rounded-xl border px-3 py-2" type="text" inputMode="numeric" pattern="[0-9٠-٩۰-۹]*" placeholder="الأولوية" value={form.priority} onChange={(e) => setForm((p) => ({ ...p, priority: e.target.value }))} />
               <label className="block text-xs font-bold text-slate-500">الصورة</label>
               <input type="file" accept="image/*" onChange={uploadImage} />
               {isUploading && <Loader2 className="animate-spin text-orange-600" size={16} />}

@@ -24,6 +24,7 @@ import {
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { adminApi, resolveImageUrl } from '@/lib/api';
+import { parseIntegerInput } from '@/lib/numeric-input';
 import { useState } from 'react';
 import type { ComponentType } from 'react';
 import type { AxiosError } from 'axios';
@@ -118,10 +119,13 @@ export default function UserDetailPage() {
   });
 
   const [pointsModalOpen, setPointsModalOpen] = useState(false);
-  const [pointsForm, setPointsForm] = useState({ action: 'ADD', amount: 0, reason: '' });
+  const [pointsForm, setPointsForm] = useState({ action: 'ADD', amount: '', reason: '' });
 
   const pointsMutation = useMutation({
-    mutationFn: () => adminApi().patch(`/admin/users/${id}/points`, pointsForm),
+    mutationFn: () => adminApi().patch(`/admin/users/${id}/points`, {
+      ...pointsForm,
+      amount: parseIntegerInput(pointsForm.amount),
+    }),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: ['admin-user-details', id] });
       setPointsModalOpen(false);
@@ -519,10 +523,11 @@ export default function UserDetailPage() {
                 <div className="space-y-1.5">
                   <label className="text-xs font-bold text-slate-500">مقدار النقاط</label>
                   <input 
-                    type="number" 
-                    min="1"
-                    value={pointsForm.amount || ''} 
-                    onChange={e => setPointsForm({ ...pointsForm, amount: parseInt(e.target.value) || 0 })}
+                    type="text"
+                    inputMode="numeric"
+                    pattern="[0-9٠-٩۰-۹]*"
+                    value={pointsForm.amount}
+                    onChange={e => setPointsForm({ ...pointsForm, amount: e.target.value })}
                     className="w-full h-12 rounded-xl bg-slate-50 border border-slate-200 px-4 text-slate-900 font-bold focus:bg-white focus:border-slate-400 outline-none transition-colors"
                   />
                 </div>
@@ -542,7 +547,7 @@ export default function UserDetailPage() {
               <div className="mt-8 flex gap-3">
                 <button
                   onClick={() => pointsMutation.mutate()}
-                  disabled={pointsMutation.isPending || pointsForm.amount <= 0 || !pointsForm.reason.trim()}
+                  disabled={pointsMutation.isPending || parseIntegerInput(pointsForm.amount) <= 0 || !pointsForm.reason.trim()}
                   className="flex-[2] h-12 rounded-xl bg-slate-900 text-sm font-bold text-white hover:bg-slate-800 transition-all shadow-md disabled:opacity-50 flex items-center justify-center gap-2"
                 >
                   {pointsMutation.isPending ? <Loader2 className="animate-spin" size={18} /> : 'تأكيد العملية'}
