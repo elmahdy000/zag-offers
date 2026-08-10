@@ -57,7 +57,7 @@ export function ConfirmModal({
   return (
     <AnimatePresence>
       {isOpen && (
-        <div className="fixed inset-0 z-[100] flex items-center justify-center p-4">
+        <div className="vendor-modal-overlay">
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
@@ -72,9 +72,14 @@ export function ConfirmModal({
             exit={{ opacity: 0, scale: 0.9, y: 20 }}
             className="relative w-full max-w-md glass rounded-[2.5rem] border border-glass-border p-8 shadow-2xl bg-bg/90"
             dir="rtl"
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="confirm-modal-title"
+            aria-describedby="confirm-modal-message"
           >
             <button 
               onClick={onClose}
+              aria-label="إغلاق نافذة التأكيد"
               className="absolute left-6 top-6 p-2 text-text-dim hover:text-white transition-colors"
             >
               <X size={20} />
@@ -85,8 +90,8 @@ export function ConfirmModal({
                 {styles.icon}
               </div>
  
-              <h3 className="text-2xl font-black text-text mb-3 tracking-tight">{title}</h3>
-              <p className="text-text-dim font-bold text-sm leading-relaxed mb-10 max-w-[280px]">
+              <h3 id="confirm-modal-title" className="text-2xl font-black text-text mb-3 tracking-tight">{title}</h3>
+              <p id="confirm-modal-message" className="text-text-dim font-bold text-sm leading-relaxed mb-10 max-w-[280px]">
                 {message}
               </p>
  

@@ -1,5 +1,29 @@
 @import "tailwindcss";
 
+.vendor-modal-overlay {
+  position: fixed;
+  z-index: 100;
+  inset: 76px 0 0;
+  display: grid;
+  place-items: center;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 16px 16px max(24px, env(safe-area-inset-bottom));
+}
+
+.vendor-modal-overlay > [role="dialog"] {
+  max-height: calc(100dvh - 108px);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+@media (max-width: 767px) {
+  .vendor-modal-overlay {
+    align-items: start;
+    padding-bottom: calc(92px + env(safe-area-inset-bottom));
+  }
+}
+
 @theme {
   --font-cairo: "Cairo Variable", "Cairo", sans-serif;
   --color-primary: #ff6500;

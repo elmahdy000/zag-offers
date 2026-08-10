@@ -603,7 +603,7 @@ export default function OfferDetailsPage() {
       {/* ─── Locations Modal ─────────────────────────────────── */}
       <AnimatePresence>
         {showLocations && (
-          <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 sm:p-6">
+          <div className="app-modal-overlay z-[100] sm:px-6">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -617,6 +617,9 @@ export default function OfferDetailsPage() {
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="relative bg-[#1A1A1A] p-8 w-full max-w-sm border border-white/10 rounded-[32px] overflow-hidden shadow-2xl shadow-black"
               dir="rtl"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="locations-modal-title"
             >
               {/* Background Glow */}
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#FF6B00]/20 blur-[60px] -z-10" />
@@ -626,7 +629,7 @@ export default function OfferDetailsPage() {
                   <RiMapPin2Fill size={32} />
                 </div>
                 
-                <h3 className="text-2xl font-black text-white mb-2">موقع المحل</h3>
+                <h3 id="locations-modal-title" className="text-2xl font-black text-white mb-2">موقع المحل</h3>
                 <p className="text-white/40 text-[10px] font-black uppercase tracking-[2px] mb-8">زورونا في فرع الزقازيق</p>
 
                 <div className="w-full bg-white/5 p-6 rounded-2xl border border-white/5 mb-8 text-right">

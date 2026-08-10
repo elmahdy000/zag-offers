@@ -203,7 +203,7 @@ export default function MyCouponsPage() {
       {/* QR Code Modal */}
       <AnimatePresence>
         {selectedCoupon && (
-          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="app-modal-overlay">
             <motion.div 
               initial={{ opacity: 0 }}
               animate={{ opacity: 1 }}
@@ -216,12 +216,16 @@ export default function MyCouponsPage() {
               animate={{ scale: 1, opacity: 1, y: 0 }}
               exit={{ scale: 0.9, opacity: 0, y: 20 }}
               className="coupon-redeem-modal"
+              role="dialog"
+              aria-modal="true"
+              aria-labelledby="coupon-modal-title"
             >
               {/* Background Glow */}
               <div className="absolute -top-24 -right-24 w-48 h-48 bg-[#FF6B00]/10 blur-[80px] -z-10" />
 
               <button 
                 onClick={() => setSelectedCoupon(null)}
+                aria-label="إغلاق نافذة الكوبون"
                 className="absolute top-6 right-6 w-10 h-10 bg-white/5 rounded-full flex items-center justify-center text-white/40 hover:text-white transition-colors border border-white/5"
               >
                 <RiCloseLine size={20} />
@@ -231,7 +235,7 @@ export default function MyCouponsPage() {
                 <div className="coupon-modal-icon">
                   <RiQrCodeLine size={40} />
                 </div>
-                <h3 className="text-2xl font-black text-white">كود التفعيل</h3>
+                <h3 id="coupon-modal-title" className="text-2xl font-black text-white">كود التفعيل</h3>
                 <p className="text-white/40 text-sm font-bold mt-1">اعرض الكود للتاجر لتفعيل الخصم</p>
               </div>
 

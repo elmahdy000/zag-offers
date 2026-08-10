@@ -158,7 +158,7 @@ class AppTheme {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-            minimumSize: const Size(40, 40),
+            minimumSize: const Size(44, 44),
             iconSize: 20,
             padding: const EdgeInsets.all(8)),
       ),
@@ -343,7 +343,7 @@ class AppTheme {
       ),
       iconButtonTheme: IconButtonThemeData(
         style: IconButton.styleFrom(
-            minimumSize: const Size(40, 40),
+            minimumSize: const Size(44, 44),
             iconSize: 20,
             padding: const EdgeInsets.all(8)),
       ),

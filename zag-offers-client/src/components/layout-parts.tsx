@@ -80,10 +80,14 @@ function NotificationPortal({
       <div
         className="fixed inset-0 bg-black/40 backdrop-blur-sm z-[9998]"
         onClick={onClose}
+        aria-hidden="true"
       />
       {/* Panel */}
       <div
         dir="rtl"
+        role="dialog"
+        aria-modal="true"
+        aria-label="الإشعارات"
         style={{
           position: 'fixed',
           zIndex: 9999,
@@ -124,6 +128,7 @@ function NotificationPortal({
             )}
             <button
               onClick={onClose}
+              aria-label="إغلاق الإشعارات"
               className="p-1.5 rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all"
             >
               <RiCloseLine size={16} />
@@ -356,7 +361,7 @@ export function Navbar() {
               prefetch={false}
               href="/favorites"
               aria-label="المفضلة"
-              className="rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
             >
               <RiHeart3Fill size={19} />
             </Link>
@@ -364,7 +369,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="theme-toggle rounded-lg p-2 transition-colors"
+              className="theme-toggle flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 transition-colors"
               aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
               title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
             >
@@ -404,7 +409,7 @@ export function Navbar() {
                 prefetch={false}
                 href="/login"
                 aria-label="تسجيل الدخول"
-                className="rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
               >
                 <RiUser3Fill size={19} />
               </Link>
@@ -420,8 +425,11 @@ export function Navbar() {
 
             {/* Hamburger */}
             <button
-              className="p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5 lg:hidden"
+              className="flex min-h-11 min-w-11 items-center justify-center p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5 lg:hidden"
               onClick={() => setIsMobileMenuOpen(v => !v)}
+              aria-label={isMobileMenuOpen ? 'إغلاق قائمة التنقل' : 'فتح قائمة التنقل'}
+              aria-expanded={isMobileMenuOpen}
+              aria-controls="mobile-navigation"
             >
               {isMobileMenuOpen ? <RiCloseLine size={22} /> : <RiMenu3Line size={22} />}
             </button>
@@ -432,6 +440,7 @@ export function Navbar() {
         <AnimatePresence>
           {isMobileMenuOpen && (
             <motion.div
+              id="mobile-navigation"
               initial={{ opacity: 0, height: 0 }}
               animate={{ opacity: 1, height: 'auto' }}
               exit={{ opacity: 0, height: 0 }}
