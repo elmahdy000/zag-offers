@@ -20,7 +20,8 @@ class UserModel extends Equatable {
       id: json['id']?.toString() ?? '',
       email: json['email']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
-      role: json['role']?.toString() ?? 'MERCHANT',
+      // Missing roles must fail closed; callers explicitly require MERCHANT.
+      role: json['role']?.toString() ?? '',
       phone: json['phone']?.toString(),
     );
   }

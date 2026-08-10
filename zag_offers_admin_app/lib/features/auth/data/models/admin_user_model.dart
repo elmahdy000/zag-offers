@@ -14,7 +14,8 @@ class AdminUserModel extends AdminUser {
       id: json['id']?.toString() ?? '',
       name: json['name']?.toString() ?? '',
       phone: json['phone']?.toString() ?? '',
-      role: json['role']?.toString() ?? 'ADMIN',
+      // Missing roles must fail closed; authentication explicitly requires ADMIN.
+      role: json['role']?.toString() ?? '',
       email: json['email']?.toString(),
     );
   }

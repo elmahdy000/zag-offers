@@ -30,6 +30,12 @@ class AuthRepositoryImpl implements AuthRepository {
       final token = response['access_token'];
       final user = AdminUserModel.fromJson(response['user']);
 
+      if (user.role != 'ADMIN') {
+        await tokenStorage.clear();
+        apiClient.setAuthToken(null);
+        return Left(ServerFailure('هذا التطبيق مخصص لحسابات الإدارة فقط'));
+      }
+
       await tokenStorage.write(token);
       apiClient.setAuthToken(token);
 
