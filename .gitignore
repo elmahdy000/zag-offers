@@ -26,5 +26,27 @@ zag-offers-backend/uploads/
 *.tsbuildinfo
 *.py
 
+# Local UX audit caches and review artifacts
+.codex-tmp-paramiko/
+.lh-temp*/
+run_all.ps1
+logo-audit-*.png
+*_AUDIT_REPORT.md
+NEXTJS_PAGES_FULL_REPORT.md
+ZAG_OFFERS_NEXTJS_ALL_PAGES_FUNCTIONS_AR.md
+ZAG_OFFERS_ROLES_AND_PAGES.md
+zag_offers_report.html
+zag-offers-client/*-preview.png
+zag-offers-client/*-production.png
+zag-offers-client/*-production-*.png
+zag-offers-client/*-refined-*.png
+zag-offers-client/screenshot-*.png
+zag-offers-client/hero-market-*.png
+zag-offers-client/home-light-fixed.png
+zag-offers-client/oppo-*.png
+zag-offers-client/stores-*.png
+zag-offers-client/pw-*.mjs
+zag-offers-client/edu-verse-logo.webp
+
 # Firebase Service Account
 zagoffers-firebase-*.json

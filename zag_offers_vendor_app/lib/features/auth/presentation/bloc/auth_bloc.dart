@@ -1,4 +1,4 @@
-﻿import 'package:zag_offers_vendor_app/core/error/error_handler.dart';
+import 'package:zag_offers_vendor_app/core/error/error_handler.dart';
 import 'package:equatable/equatable.dart';
 import 'package:dio/dio.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -60,7 +60,7 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
   final AuthRepository authRepository;
 
   AuthBloc({required this.loginUseCase, required this.authRepository})
-      : super(AuthInitial()) {
+    : super(AuthInitial()) {
     on<LoginRequested>(_onLoginRequested);
     on<CheckAuthStatus>(_onCheckAuthStatus);
     on<LogoutRequested>(_onLogoutRequested);
@@ -75,13 +75,13 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
       final user = await loginUseCase(
         LoginParams(identifier: event.identifier, password: event.password),
       );
-      // Enforce merchant/admin role for this app
-      if (user.role != 'MERCHANT' && user.role != 'ADMIN') {
+      // The vendor app must never accept admin or customer sessions.
+      if (user.role != 'MERCHANT') {
         await authRepository.logout();
         emit(AuthError('عفواً، لا تملك صلاحية الدخول لبوابة التجار'));
         return;
       }
-      
+
       emit(AuthAuthenticated(user));
     } on DioException catch (e) {
       emit(AuthError(ErrorHandler.handle(e)));
@@ -97,9 +97,10 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthLoading());
     try {
       final user = await authRepository.checkAuthStatus();
-      if (user != null) {
+      if (user != null && user.role == 'MERCHANT') {
         emit(AuthAuthenticated(user));
       } else {
+        if (user != null) await authRepository.logout();
         emit(AuthUnauthenticated());
       }
     } catch (_) {
@@ -120,9 +121,3 @@ class AuthBloc extends Bloc<AuthEvent, AuthState> {
     emit(AuthUnauthenticated());
   }
 }
-
-
-
-
-
-
