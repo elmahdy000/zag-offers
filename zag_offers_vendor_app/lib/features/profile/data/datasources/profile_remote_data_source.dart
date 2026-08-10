@@ -1,11 +1,15 @@
-﻿import 'package:dio/dio.dart';
+import 'package:dio/dio.dart';
 import 'package:zag_offers_vendor_app/features/auth/data/models/user_model.dart';
 import 'package:zag_offers_vendor_app/core/network/api_client.dart';
 
 abstract class ProfileRemoteDataSource {
   Future<UserModel> getProfile();
   Future<UserModel> updateProfile(Map<String, dynamic> data);
-  Future<void> changePassword({required String currentPassword, required String newPassword});
+  Future<void> changePassword({
+    required String currentPassword,
+    required String newPassword,
+  });
+  Future<void> deleteAccount();
 }
 
 class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
@@ -30,10 +34,14 @@ class ProfileRemoteDataSourceImpl implements ProfileRemoteDataSource {
     required String currentPassword,
     required String newPassword,
   }) async {
-    await apiClient.dio.post('/auth/password', data: {
-      'currentPassword': currentPassword,
-      'newPassword': newPassword,
-    });
+    await apiClient.dio.post(
+      '/auth/password',
+      data: {'currentPassword': currentPassword, 'newPassword': newPassword},
+    );
+  }
+
+  @override
+  Future<void> deleteAccount() async {
+    await apiClient.dio.delete('/users/profile');
   }
 }
-

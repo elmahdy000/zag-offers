@@ -23,10 +23,15 @@ class UpdateProfileRequested extends ProfileEvent {
 class ChangePasswordRequested extends ProfileEvent {
   final String currentPassword;
   final String newPassword;
-  ChangePasswordRequested({required this.currentPassword, required this.newPassword});
+  ChangePasswordRequested({
+    required this.currentPassword,
+    required this.newPassword,
+  });
   @override
   List<Object?> get props => [currentPassword, newPassword];
 }
+
+class DeleteAccountRequested extends ProfileEvent {}
 
 // --- States ---
 abstract class ProfileState extends Equatable {
@@ -74,24 +79,46 @@ class PasswordChangeError extends ProfileState {
   List<Object?> get props => [user, message];
 }
 
+class AccountDeleting extends ProfileState {
+  final UserEntity user;
+  AccountDeleting(this.user);
+  @override
+  List<Object?> get props => [user];
+}
+
+class AccountDeleted extends ProfileState {}
+
+class AccountDeleteError extends ProfileState {
+  final UserEntity user;
+  final String message;
+  AccountDeleteError(this.user, this.message);
+  @override
+  List<Object?> get props => [user, message];
+}
+
 // --- BLoC ---
 class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   final GetProfileUseCase getProfileUseCase;
   final UpdateProfileUseCase updateProfileUseCase;
   final ChangePasswordUseCase changePasswordUseCase;
+  final DeleteAccountUseCase deleteAccountUseCase;
 
   ProfileBloc({
     required this.getProfileUseCase,
     required this.updateProfileUseCase,
     required this.changePasswordUseCase,
+    required this.deleteAccountUseCase,
   }) : super(ProfileInitial()) {
     on<GetProfileRequested>(_onGetProfileRequested);
     on<UpdateProfileRequested>(_onUpdateProfileRequested);
     on<ChangePasswordRequested>(_onChangePasswordRequested);
+    on<DeleteAccountRequested>(_onDeleteAccountRequested);
   }
 
   Future<void> _onGetProfileRequested(
-      GetProfileRequested event, Emitter<ProfileState> emit) async {
+    GetProfileRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(ProfileLoading());
     try {
       final user = await getProfileUseCase(NoParams());
@@ -102,7 +129,9 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onUpdateProfileRequested(
-      UpdateProfileRequested event, Emitter<ProfileState> emit) async {
+    UpdateProfileRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
     emit(ProfileLoading());
     try {
       final user = await updateProfileUseCase(
@@ -115,29 +144,60 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
   }
 
   Future<void> _onChangePasswordRequested(
-      ChangePasswordRequested event, Emitter<ProfileState> emit) async {
+    ChangePasswordRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
     // Keep current user visible while changing password
     final currentUser = state is ProfileLoaded
         ? (state as ProfileLoaded).user
         : state is PasswordChanged
-            ? (state as PasswordChanged).user
-            : state is PasswordChangeError
-                ? (state as PasswordChangeError).user
-                : null;
+        ? (state as PasswordChanged).user
+        : state is PasswordChangeError
+        ? (state as PasswordChangeError).user
+        : null;
     if (currentUser == null) return;
 
     emit(PasswordChanging(currentUser));
     try {
-      await changePasswordUseCase(ChangePasswordParams(
-        currentPassword: event.currentPassword,
-        newPassword: event.newPassword,
-      ));
+      await changePasswordUseCase(
+        ChangePasswordParams(
+          currentPassword: event.currentPassword,
+          newPassword: event.newPassword,
+        ),
+      );
       emit(PasswordChanged(currentUser));
     } catch (e) {
-      emit(PasswordChangeError(
-        currentUser,
-        e.toString().replaceAll('Exception: ', ''),
-      ));
+      emit(
+        PasswordChangeError(
+          currentUser,
+          e.toString().replaceAll('Exception: ', ''),
+        ),
+      );
+    }
+  }
+
+  Future<void> _onDeleteAccountRequested(
+    DeleteAccountRequested event,
+    Emitter<ProfileState> emit,
+  ) async {
+    final currentUser = state is ProfileLoaded
+        ? (state as ProfileLoaded).user
+        : state is AccountDeleteError
+        ? (state as AccountDeleteError).user
+        : null;
+    if (currentUser == null) return;
+
+    emit(AccountDeleting(currentUser));
+    try {
+      await deleteAccountUseCase(NoParams());
+      emit(AccountDeleted());
+    } catch (e) {
+      emit(
+        AccountDeleteError(
+          currentUser,
+          e.toString().replaceAll('Exception: ', ''),
+        ),
+      );
     }
   }
 }

@@ -69,10 +69,25 @@ export default function PrivacyPage() {
             </ul>
           </section>
 
+          <section className="space-y-3">
+            <h2 className="text-lg font-black text-[#FF6B00] border-b border-white/10 pb-2">5. حذف الحساب والاحتفاظ بالبيانات</h2>
+            <p className="text-sm font-semibold leading-relaxed">
+              يمكنك حذف الحساب مباشرة من الملف الشخصي داخل التطبيق، أو الاطلاع على{' '}
+              <Link href="/account-deletion" className="text-[#FF6B00] underline">
+                خطوات حذف الحساب
+              </Link>
+              . تُحذف البيانات المرتبطة بالحساب، عدا ما يلزم الاحتفاظ به مؤقتاً للالتزامات القانونية أو منع الاحتيال.
+            </p>
+          </section>
+
           <section className="p-4 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-2xl flex gap-3 items-start mt-8">
             <Lock className="text-[#FF6B00] flex-shrink-0" size={24} />
             <p className="text-xs font-bold text-white/80 leading-relaxed">
-              خصوصيتك هي أولويتنا القصوى. إذا كان لديك أي استفسارات بخصوص سياسة الخصوصية أو كيفية تعاملنا مع بياناتك، نرجو عدم التردد في التواصل معنا.
+              للاستفسارات المتعلقة بالخصوصية أو البيانات تواصل معنا عبر{' '}
+              <a href="mailto:support@zagoffers.online" className="text-[#FF6B00] underline">
+                support@zagoffers.online
+              </a>
+              .
             </p>
           </section>
         </div>

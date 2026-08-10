@@ -1,5 +1,13 @@
 import java.util.Properties
 
+val keystorePropertiesFile = rootProject.file("key.properties")
+val isReleaseBuild = gradle.startParameter.taskNames.any {
+    it.contains("Release", ignoreCase = true)
+}
+if (isReleaseBuild && !keystorePropertiesFile.exists()) {
+    throw GradleException("Missing android/key.properties for the release build.")
+}
+
 plugins {
     id("com.android.application")
     // START: FlutterFire Configuration
@@ -35,7 +43,6 @@ android {
 
     signingConfigs {
         create("release") {
-            val keystorePropertiesFile = rootProject.file("key.properties")
             if (keystorePropertiesFile.exists()) {
                 val keystoreProperties = Properties()
                 keystoreProperties.load(keystorePropertiesFile.inputStream())
@@ -50,12 +57,7 @@ android {
 
     buildTypes {
         release {
-            val keystorePropertiesFile = rootProject.file("key.properties")
-            signingConfig = if (keystorePropertiesFile.exists()) {
-                signingConfigs.getByName("release")
-            } else {
-                signingConfigs.getByName("debug")
-            }
+            signingConfig = signingConfigs.getByName("release")
         }
     }
 }

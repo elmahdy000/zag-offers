@@ -6,7 +6,8 @@ class GetProfileUseCase implements UseCase<UserEntity, NoParams> {
   final ProfileRepository repository;
   GetProfileUseCase(this.repository);
   @override
-  Future<UserEntity> call(NoParams params) async => await repository.getProfile();
+  Future<UserEntity> call(NoParams params) async =>
+      await repository.getProfile();
 }
 
 class UpdateProfileUseCase implements UseCase<UserEntity, UpdateProfileParams> {
@@ -14,7 +15,10 @@ class UpdateProfileUseCase implements UseCase<UserEntity, UpdateProfileParams> {
   UpdateProfileUseCase(this.repository);
   @override
   Future<UserEntity> call(UpdateProfileParams params) async {
-    return await repository.updateProfile(name: params.name, phone: params.phone);
+    return await repository.updateProfile(
+      name: params.name,
+      phone: params.phone,
+    );
   }
 }
 
@@ -39,5 +43,16 @@ class ChangePasswordUseCase implements UseCase<void, ChangePasswordParams> {
 class ChangePasswordParams {
   final String currentPassword;
   final String newPassword;
-  ChangePasswordParams({required this.currentPassword, required this.newPassword});
+  ChangePasswordParams({
+    required this.currentPassword,
+    required this.newPassword,
+  });
+}
+
+class DeleteAccountUseCase implements UseCase<void, NoParams> {
+  final ProfileRepository repository;
+  DeleteAccountUseCase(this.repository);
+
+  @override
+  Future<void> call(NoParams params) => repository.deleteAccount();
 }

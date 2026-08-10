@@ -76,18 +76,22 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<DashboardRepository>(
-      () => DashboardRepositoryImpl(remoteDataSource: sl()));
+    () => DashboardRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<DashboardRemoteDataSource>(
-      () => DashboardRemoteDataSourceImpl(apiClient: sl()));
+    () => DashboardRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Features - Store Setup ---
   sl.registerFactory(() => StoreSetupBloc(repository: sl()));
   sl.registerLazySingleton<StoreSetupRepository>(
-      () => StoreSetupRepositoryImpl(remoteDataSource: sl()));
+    () => StoreSetupRepositoryImpl(remoteDataSource: sl()),
+  );
   sl.registerLazySingleton<StoreSetupRemoteDataSource>(
-      () => StoreSetupRemoteDataSourceImpl(apiClient: sl()));
+    () => StoreSetupRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Features - QR Scanner ---
   // BLoC
@@ -98,20 +102,24 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<QRScannerRepository>(
-      () => QRScannerRepositoryImpl(remoteDataSource: sl()));
+    () => QRScannerRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<QRScannerRemoteDataSource>(
-      () => QRScannerRemoteDataSourceImpl(apiClient: sl()));
+    () => QRScannerRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Features - Offers ---
   // BLoC
-  sl.registerFactory(() => OffersBloc(
-        getMyOffersUseCase: sl(),
-        createOfferUseCase: sl(),
-        updateOfferUseCase: sl(),
-        deleteOfferUseCase: sl(),
-      ));
+  sl.registerFactory(
+    () => OffersBloc(
+      getMyOffersUseCase: sl(),
+      createOfferUseCase: sl(),
+      updateOfferUseCase: sl(),
+      deleteOfferUseCase: sl(),
+    ),
+  );
 
   // Use cases
   sl.registerLazySingleton(() => GetMyOffersUseCase(sl()));
@@ -121,39 +129,49 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<OfferRepository>(
-      () => OfferRepositoryImpl(remoteDataSource: sl()));
+    () => OfferRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<OfferRemoteDataSource>(
-      () => OfferRemoteDataSourceImpl(apiClient: sl()));
+    () => OfferRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Features - Profile ---
   // BLoC
-  sl.registerFactory(() => ProfileBloc(
-        getProfileUseCase: sl(),
-        updateProfileUseCase: sl(),
-        changePasswordUseCase: sl(),
-      ));
+  sl.registerFactory(
+    () => ProfileBloc(
+      getProfileUseCase: sl(),
+      updateProfileUseCase: sl(),
+      changePasswordUseCase: sl(),
+      deleteAccountUseCase: sl(),
+    ),
+  );
 
   // Use cases
   sl.registerLazySingleton(() => GetProfileUseCase(sl()));
   sl.registerLazySingleton(() => UpdateProfileUseCase(sl()));
   sl.registerLazySingleton(() => ChangePasswordUseCase(sl()));
+  sl.registerLazySingleton(() => DeleteAccountUseCase(sl()));
 
   // Repository
   sl.registerLazySingleton<ProfileRepository>(
-      () => ProfileRepositoryImpl(remoteDataSource: sl()));
+    () => ProfileRepositoryImpl(remoteDataSource: sl()),
+  );
 
   // Data sources
   sl.registerLazySingleton<ProfileRemoteDataSource>(
-      () => ProfileRemoteDataSourceImpl(apiClient: sl()));
+    () => ProfileRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Features - Upload ---
   sl.registerLazySingleton<UploadUseCase>(() => UploadUseCase(sl()));
   sl.registerLazySingleton<UploadRepository>(
-      () => UploadRepositoryImpl(remoteDataSource: sl()));
+    () => UploadRepositoryImpl(remoteDataSource: sl()),
+  );
   sl.registerLazySingleton<UploadRemoteDataSource>(
-      () => UploadRemoteDataSourceImpl(apiClient: sl()));
+    () => UploadRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Features - Notifications ---
   // BLoC
@@ -161,14 +179,17 @@ Future<void> init() async {
 
   // Repository
   sl.registerLazySingleton<NotificationsRepository>(
-      () => NotificationsRepositoryImpl(apiClient: sl()));
+    () => NotificationsRepositoryImpl(apiClient: sl()),
+  );
 
   // --- Features - Reviews ---
   sl.registerFactory(() => ReviewsBloc(repository: sl()));
   sl.registerLazySingleton<ReviewsRepository>(
-      () => ReviewsRepositoryImpl(remoteDataSource: sl()));
+    () => ReviewsRepositoryImpl(remoteDataSource: sl()),
+  );
   sl.registerLazySingleton<ReviewsRemoteDataSource>(
-      () => ReviewsRemoteDataSourceImpl(apiClient: sl()));
+    () => ReviewsRemoteDataSourceImpl(apiClient: sl()),
+  );
 
   // --- Core ---
   sl.registerLazySingleton(() => ApiClient(secureStorage: sl()));

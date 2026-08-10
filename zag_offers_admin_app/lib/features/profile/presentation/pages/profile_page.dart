@@ -9,6 +9,7 @@ import 'package:zag_offers_admin_app/injection_container.dart';
 import 'package:zag_offers_admin_app/core/theme/app_colors.dart';
 import 'package:flutter_animate/flutter_animate.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatelessWidget {
   const ProfilePage({super.key});
@@ -155,6 +156,23 @@ class ProfilePage extends StatelessWidget {
                     AppColors.primary,
                     onTap: () => _showChangePasswordDialog(context),
                   ),
+                  const SizedBox(height: 12),
+                  _buildProfileAction(
+                    context,
+                    'سياسة الخصوصية',
+                    Icons.privacy_tip_outlined,
+                    AppColors.primary,
+                    onTap: () => _openUrl('https://zagoffers.online/privacy'),
+                  ),
+                  const SizedBox(height: 12),
+                  _buildProfileAction(
+                    context,
+                    'الدعم وطلبات البيانات',
+                    Icons.support_agent_rounded,
+                    AppColors.primary,
+                    onTap: () =>
+                        _openUrl('https://zagoffers.online/account-deletion'),
+                  ),
                   const SizedBox(height: 40),
 
                   // ── System Status (live) ─────────────────────────────────
@@ -260,6 +278,10 @@ class ProfilePage extends StatelessWidget {
         ),
       ],
     );
+  }
+
+  Future<void> _openUrl(String value) async {
+    await launchUrl(Uri.parse(value), mode: LaunchMode.externalApplication);
   }
 
   Widget _buildProfileAction(

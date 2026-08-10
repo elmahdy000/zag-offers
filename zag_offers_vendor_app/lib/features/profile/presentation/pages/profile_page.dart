@@ -7,6 +7,7 @@ import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashb
 import 'package:zag_offers_vendor_app/features/profile/presentation/bloc/profile_bloc.dart';
 import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 class ProfilePage extends StatefulWidget {
   const ProfilePage({super.key});
@@ -16,19 +17,59 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage> {
-  static final _dialogTitle = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 18, color: AppColors.textPrimary);
+  static final _dialogTitle = GoogleFonts.cairo(
+    fontWeight: FontWeight.w900,
+    fontSize: 18,
+    color: AppColors.textPrimary,
+  );
   static final _cancelBtn = GoogleFonts.cairo(color: AppColors.textTertiary);
-  static final _updateBtn = GoogleFonts.cairo(fontWeight: FontWeight.bold, color: Colors.white);
-  static final _fieldInput = GoogleFonts.cairo(fontSize: 14, color: AppColors.textPrimary);
-  static final _fieldLabel = GoogleFonts.cairo(fontSize: 12, color: AppColors.textSecondary);
-  static final _logoutContent = GoogleFonts.cairo(color: AppColors.textSecondary);
-  static final _logoutBtn = GoogleFonts.cairo(color: AppColors.error, fontWeight: FontWeight.bold);
-  static final _userNameHeader = GoogleFonts.cairo(fontSize: 20, fontWeight: FontWeight.w900, color: AppColors.textPrimary);
-  static final _userRole = GoogleFonts.cairo(fontSize: 12, fontWeight: FontWeight.bold, color: AppColors.textTertiary);
-  static final _sectionTitleInfo = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.w900, color: AppColors.primary);
-  static final _infoLabel = GoogleFonts.cairo(fontSize: 10, color: AppColors.textTertiary);
-  static final _infoValue = GoogleFonts.cairo(fontSize: 13, fontWeight: FontWeight.bold, color: AppColors.textPrimary);
-  static final _actionBtnBase = GoogleFonts.cairo(fontSize: 14, fontWeight: FontWeight.bold);
+  static final _updateBtn = GoogleFonts.cairo(
+    fontWeight: FontWeight.bold,
+    color: Colors.white,
+  );
+  static final _fieldInput = GoogleFonts.cairo(
+    fontSize: 14,
+    color: AppColors.textPrimary,
+  );
+  static final _fieldLabel = GoogleFonts.cairo(
+    fontSize: 12,
+    color: AppColors.textSecondary,
+  );
+  static final _logoutContent = GoogleFonts.cairo(
+    color: AppColors.textSecondary,
+  );
+  static final _logoutBtn = GoogleFonts.cairo(
+    color: AppColors.error,
+    fontWeight: FontWeight.bold,
+  );
+  static final _userNameHeader = GoogleFonts.cairo(
+    fontSize: 20,
+    fontWeight: FontWeight.w900,
+    color: AppColors.textPrimary,
+  );
+  static final _userRole = GoogleFonts.cairo(
+    fontSize: 12,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textTertiary,
+  );
+  static final _sectionTitleInfo = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.w900,
+    color: AppColors.primary,
+  );
+  static final _infoLabel = GoogleFonts.cairo(
+    fontSize: 10,
+    color: AppColors.textTertiary,
+  );
+  static final _infoValue = GoogleFonts.cairo(
+    fontSize: 13,
+    fontWeight: FontWeight.bold,
+    color: AppColors.textPrimary,
+  );
+  static final _actionBtnBase = GoogleFonts.cairo(
+    fontSize: 14,
+    fontWeight: FontWeight.bold,
+  );
   static final _errorMsg = GoogleFonts.cairo(color: AppColors.textPrimary);
 
   final currentCtrl = TextEditingController();
@@ -64,8 +105,12 @@ class _ProfilePageState extends State<ProfilePage> {
       barrierDismissible: false,
       builder: (dialogCtx) {
         return BlocConsumer<ProfileBloc, ProfileState>(
-          listenWhen: (_, next) => next is PasswordChanged || next is PasswordChangeError,
-          buildWhen: (prev, next) => next is PasswordChanging || next is PasswordChanged || next is PasswordChangeError,
+          listenWhen: (_, next) =>
+              next is PasswordChanged || next is PasswordChangeError,
+          buildWhen: (prev, next) =>
+              next is PasswordChanging ||
+              next is PasswordChanged ||
+              next is PasswordChangeError,
           listener: (listenerCtx, state) {
             if (state is PasswordChanged) {
               Navigator.of(dialogCtx).pop();
@@ -80,11 +125,10 @@ class _ProfilePageState extends State<ProfilePage> {
               builder: (_, setDialogState) {
                 return AlertDialog(
                   backgroundColor: AppColors.card,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
-                    title: Text(
-                      'تغيير كلمة المرور',
-                      style: _dialogTitle,
-                    ),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(20),
+                  ),
+                  title: Text('تغيير كلمة المرور', style: _dialogTitle),
                   content: Form(
                     key: formKey,
                     child: Column(
@@ -95,7 +139,9 @@ class _ProfilePageState extends State<ProfilePage> {
                           label: 'كلمة المرور الحالية',
                           obscure: obscureCurrent,
                           enabled: !isChanging,
-                          onToggle: () => setDialogState(() => obscureCurrent = !obscureCurrent),
+                          onToggle: () => setDialogState(
+                            () => obscureCurrent = !obscureCurrent,
+                          ),
                         ),
                         const SizedBox(height: 12),
                         _buildPasswordField(
@@ -103,8 +149,11 @@ class _ProfilePageState extends State<ProfilePage> {
                           label: 'كلمة المرور الجديدة',
                           obscure: obscureNew,
                           enabled: !isChanging,
-                          onToggle: () => setDialogState(() => obscureNew = !obscureNew),
-                          validator: (v) => (v == null || v.length < 6) ? 'يجب أن تكون 6 أحرف على الأقل' : null,
+                          onToggle: () =>
+                              setDialogState(() => obscureNew = !obscureNew),
+                          validator: (v) => (v == null || v.length < 6)
+                              ? 'يجب أن تكون 6 أحرف على الأقل'
+                              : null,
                         ),
                         const SizedBox(height: 12),
                         _buildPasswordField(
@@ -112,15 +161,21 @@ class _ProfilePageState extends State<ProfilePage> {
                           label: 'تأكيد كلمة المرور',
                           obscure: obscureConfirm,
                           enabled: !isChanging,
-                          onToggle: () => setDialogState(() => obscureConfirm = !obscureConfirm),
-                          validator: (v) => v != newCtrl.text ? 'كلمتا المرور غير متطابقتين' : null,
+                          onToggle: () => setDialogState(
+                            () => obscureConfirm = !obscureConfirm,
+                          ),
+                          validator: (v) => v != newCtrl.text
+                              ? 'كلمتا المرور غير متطابقتين'
+                              : null,
                         ),
                       ],
                     ),
                   ),
                   actions: [
                     TextButton(
-                      onPressed: isChanging ? null : () => Navigator.of(dialogCtx).pop(),
+                      onPressed: isChanging
+                          ? null
+                          : () => Navigator.of(dialogCtx).pop(),
                       child: Text('إلغاء', style: _cancelBtn),
                     ),
                     ElevatedButton(
@@ -129,19 +184,28 @@ class _ProfilePageState extends State<ProfilePage> {
                           : () {
                               if (formKey.currentState?.validate() ?? false) {
                                 context.read<ProfileBloc>().add(
-                                      ChangePasswordRequested(
-                                        currentPassword: currentCtrl.text.trim(),
-                                        newPassword: newCtrl.text.trim(),
-                                      ),
-                                    );
+                                  ChangePasswordRequested(
+                                    currentPassword: currentCtrl.text.trim(),
+                                    newPassword: newCtrl.text.trim(),
+                                  ),
+                                );
                               }
                             },
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.primary,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(10),
+                        ),
                       ),
                       child: isChanging
-                          ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                          ? const SizedBox(
+                              width: 20,
+                              height: 20,
+                              child: CircularProgressIndicator(
+                                strokeWidth: 2,
+                                color: Colors.white,
+                              ),
+                            )
                           : Text('تحديث', style: _updateBtn),
                     ),
                   ],
@@ -176,9 +240,16 @@ class _ProfilePageState extends State<ProfilePage> {
         labelStyle: _fieldLabel,
         filled: true,
         fillColor: AppColors.surface,
-        border: OutlineInputBorder(borderRadius: BorderRadius.circular(10), borderSide: BorderSide.none),
+        border: OutlineInputBorder(
+          borderRadius: BorderRadius.circular(10),
+          borderSide: BorderSide.none,
+        ),
         suffixIcon: IconButton(
-          icon: Icon(obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded, size: 20, color: AppColors.textTertiary),
+          icon: Icon(
+            obscure ? Icons.visibility_off_rounded : Icons.visibility_rounded,
+            size: 20,
+            color: AppColors.textTertiary,
+          ),
           onPressed: onToggle,
         ),
       ),
@@ -193,9 +264,15 @@ class _ProfilePageState extends State<ProfilePage> {
         backgroundColor: AppColors.card,
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
         title: Text('تسجيل الخروج', style: _dialogTitle),
-        content: Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟', style: _logoutContent),
+        content: Text(
+          'هل أنت متأكد من رغبتك في تسجيل الخروج؟',
+          style: _logoutContent,
+        ),
         actions: [
-          TextButton(onPressed: () => Navigator.pop(context), child: Text('إلغاء', style: _cancelBtn)),
+          TextButton(
+            onPressed: () => Navigator.pop(context),
+            child: Text('إلغاء', style: _cancelBtn),
+          ),
           TextButton(
             onPressed: () {
               context.read<AuthBloc>().add(LogoutRequested());
@@ -208,26 +285,93 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _openExternalUrl(String url, String errorMessage) async {
+    final uri = Uri.parse(url);
+    if (!await launchUrl(uri, mode: LaunchMode.externalApplication) &&
+        mounted) {
+      SnackBarUtils.showError(context, errorMessage);
+    }
+  }
+
+  void _showDeleteAccountConfirm(BuildContext context) {
+    showDialog<void>(
+      context: context,
+      barrierDismissible: false,
+      builder: (dialogContext) => AlertDialog(
+        backgroundColor: AppColors.card,
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Text('حذف الحساب نهائياً', style: _dialogTitle),
+        content: Text(
+          'سيتم حذف حساب التاجر والمتجر والعروض والكوبونات والبيانات المرتبطة به نهائياً. لا يمكن التراجع عن هذا الإجراء.',
+          style: _logoutContent,
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(dialogContext),
+            child: Text('إلغاء', style: _cancelBtn),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.pop(dialogContext);
+              context.read<ProfileBloc>().add(DeleteAccountRequested());
+            },
+            child: Text('حذف نهائي', style: _logoutBtn),
+          ),
+        ],
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: AppColors.background,
-      body: BlocBuilder<ProfileBloc, ProfileState>(
-        buildWhen: (prev, next) => next is ProfileLoading || next is ProfileLoaded || next is ProfileError,
+      body: BlocConsumer<ProfileBloc, ProfileState>(
+        listenWhen: (_, next) =>
+            next is AccountDeleted || next is AccountDeleteError,
+        listener: (context, state) {
+          if (state is AccountDeleted) {
+            context.read<AuthBloc>().add(LogoutRequested());
+            SnackBarUtils.showSuccess(
+              context,
+              'تم حذف الحساب والبيانات المرتبطة به',
+            );
+          } else if (state is AccountDeleteError) {
+            SnackBarUtils.showError(context, state.message);
+          }
+        },
+        buildWhen: (prev, next) =>
+            next is ProfileLoading ||
+            next is ProfileLoaded ||
+            next is ProfileError ||
+            next is PasswordChanging ||
+            next is PasswordChanged ||
+            next is PasswordChangeError ||
+            next is AccountDeleting ||
+            next is AccountDeleteError,
         builder: (context, state) {
-          if (state is ProfileLoading) return const Center(child: CardSkeleton());
+          if (state is ProfileLoading)
+            return const Center(child: CardSkeleton());
           if (state is ProfileError) return _buildErrorState(state.message);
 
           // Identify the user from the state safely
           dynamic user;
-          if (state is ProfileLoaded) user = state.user;
-          else if (state is PasswordChanging) user = state.user;
-          else if (state is PasswordChanged) user = state.user;
-          else if (state is PasswordChangeError) user = state.user;
+          if (state is ProfileLoaded)
+            user = state.user;
+          else if (state is PasswordChanging)
+            user = state.user;
+          else if (state is PasswordChanged)
+            user = state.user;
+          else if (state is PasswordChangeError)
+            user = state.user;
+          else if (state is AccountDeleting)
+            user = state.user;
+          else if (state is AccountDeleteError)
+            user = state.user;
 
           if (user == null) {
-             if (state is ProfileError) return _buildErrorState(state.message);
-             return const Center(child: CardSkeleton());
+            if (state is ProfileError) return _buildErrorState(state.message);
+            return const Center(child: CardSkeleton());
           }
 
           return CustomScrollView(
@@ -244,7 +388,10 @@ class _ProfilePageState extends State<ProfilePage> {
                       gradient: LinearGradient(
                         begin: Alignment.topCenter,
                         end: Alignment.bottomCenter,
-                        colors: [AppColors.primary.withValues(alpha: 0.1), AppColors.background],
+                        colors: [
+                          AppColors.primary.withValues(alpha: 0.1),
+                          AppColors.background,
+                        ],
                       ),
                     ),
                     child: Column(
@@ -256,21 +403,32 @@ class _ProfilePageState extends State<ProfilePage> {
                           height: 80,
                           decoration: BoxDecoration(
                             shape: BoxShape.circle,
-                            border: Border.all(color: AppColors.primary, width: 2),
-                            boxShadow: [BoxShadow(color: AppColors.primary.withValues(alpha: 0.2), blurRadius: 15)],
+                            border: Border.all(
+                              color: AppColors.primary,
+                              width: 2,
+                            ),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.2),
+                                blurRadius: 15,
+                              ),
+                            ],
                           ),
                           child: const CircleAvatar(
                             backgroundColor: AppColors.surface,
-                            child: Icon(Icons.person_rounded, size: 50, color: AppColors.primary),
+                            child: Icon(
+                              Icons.person_rounded,
+                              size: 50,
+                              color: AppColors.primary,
+                            ),
                           ),
                         ),
                         const SizedBox(height: 12),
+                        Text(user.name, style: _userNameHeader),
                         Text(
-                          user.name,
-                          style: _userNameHeader,
-                        ),
-                        Text(
-                          user.role == 'MERCHANT' ? 'تاجر معتمد' : 'مدير النظام',
+                          user.role == 'MERCHANT'
+                              ? 'تاجر معتمد'
+                              : 'مدير النظام',
                           style: _userRole,
                         ),
                       ],
@@ -285,32 +443,85 @@ class _ProfilePageState extends State<ProfilePage> {
                   padding: const EdgeInsets.all(20),
                   child: Column(
                     children: [
-                      _buildInfoSection(
-                        'معلومات الحساب',
-                        [
-                          _buildInfoRow(Icons.phone_rounded, 'رقم الهاتف', user.phone ?? 'غير مسجل'),
-                          _buildInfoRow(Icons.email_rounded, 'البريد الإلكتروني', user.email),
-                        ],
-                      ),
+                      _buildInfoSection('معلومات الحساب', [
+                        _buildInfoRow(
+                          Icons.phone_rounded,
+                          'رقم الهاتف',
+                          user.phone ?? 'غير مسجل',
+                        ),
+                        _buildInfoRow(
+                          Icons.email_rounded,
+                          'البريد الإلكتروني',
+                          user.email,
+                        ),
+                      ]),
                       const SizedBox(height: 20),
                       BlocBuilder<DashboardBloc, DashboardState>(
                         buildWhen: (prev, next) => next is DashboardLoaded,
                         builder: (context, dashState) {
-                          final storeName = dashState is DashboardLoaded ? (dashState.stats.storeName ?? '...') : '...';
-                          return _buildInfoSection(
-                            'إعدادات المتجر',
-                            [
-                              _buildInfoRow(Icons.storefront_rounded, 'اسم المتجر', storeName),
-                              _buildInfoRow(Icons.location_on_rounded, 'المنطقة', 'الزقازيق'),
-                            ],
-                          );
+                          final storeName = dashState is DashboardLoaded
+                              ? (dashState.stats.storeName ?? '...')
+                              : '...';
+                          return _buildInfoSection('إعدادات المتجر', [
+                            _buildInfoRow(
+                              Icons.storefront_rounded,
+                              'اسم المتجر',
+                              storeName,
+                            ),
+                            _buildInfoRow(
+                              Icons.location_on_rounded,
+                              'المنطقة',
+                              'الزقازيق',
+                            ),
+                          ]);
                         },
                       ),
                       const SizedBox(height: 40),
                       // Action Buttons
-                      _buildActionButton(Icons.lock_rounded, 'تغيير كلمة المرور', AppColors.primary, () => _showChangePasswordDialog(context)),
+                      _buildActionButton(
+                        Icons.lock_rounded,
+                        'تغيير كلمة المرور',
+                        AppColors.primary,
+                        () => _showChangePasswordDialog(context),
+                      ),
                       const SizedBox(height: 12),
-                      _buildActionButton(Icons.logout_rounded, 'تسجيل الخروج', AppColors.error, () => _showLogoutConfirm(context)),
+                      _buildActionButton(
+                        Icons.privacy_tip_outlined,
+                        'سياسة الخصوصية',
+                        AppColors.primary,
+                        () => _openExternalUrl(
+                          'https://zagoffers.online/privacy',
+                          'تعذر فتح سياسة الخصوصية',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        Icons.support_agent_rounded,
+                        'الدعم وطلب حذف البيانات',
+                        AppColors.primary,
+                        () => _openExternalUrl(
+                          'https://zagoffers.online/account-deletion',
+                          'تعذر فتح صفحة الدعم',
+                        ),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        Icons.logout_rounded,
+                        'تسجيل الخروج',
+                        AppColors.error,
+                        () => _showLogoutConfirm(context),
+                      ),
+                      const SizedBox(height: 12),
+                      _buildActionButton(
+                        Icons.delete_forever_rounded,
+                        state is AccountDeleting
+                            ? 'جاري حذف الحساب...'
+                            : 'حذف الحساب نهائياً',
+                        AppColors.error,
+                        state is AccountDeleting
+                            ? () {}
+                            : () => _showDeleteAccountConfirm(context),
+                      ),
                     ],
                   ),
                 ),
@@ -362,7 +573,12 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
-  Widget _buildActionButton(IconData icon, String label, Color color, VoidCallback onTap) {
+  Widget _buildActionButton(
+    IconData icon,
+    String label,
+    Color color,
+    VoidCallback onTap,
+  ) {
     return InkWell(
       onTap: onTap,
       borderRadius: BorderRadius.circular(12),
@@ -393,7 +609,11 @@ class _ProfilePageState extends State<ProfilePage> {
           Icon(Icons.error_outline_rounded, size: 48, color: AppColors.error),
           const SizedBox(height: 16),
           Text(message, style: _errorMsg),
-          TextButton(onPressed: () => context.read<ProfileBloc>().add(GetProfileRequested()), child: const Text('إعادة المحاولة')),
+          TextButton(
+            onPressed: () =>
+                context.read<ProfileBloc>().add(GetProfileRequested()),
+            child: const Text('إعادة المحاولة'),
+          ),
         ],
       ),
     );
