@@ -383,7 +383,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       context.read<CouponsBloc>().add(FetchUserCoupons());
                     },
                     child: ListView.builder(
-                      padding: const EdgeInsets.all(20),
+                      padding: const EdgeInsets.fromLTRB(20, 20, 20, 120),
                       itemCount: coupons.length,
                       itemBuilder: (context, index) {
                         final coupon = coupons[index];

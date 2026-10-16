@@ -5,6 +5,7 @@ import '../../../../core/utils/category_utils.dart';
 import '../../domain/entities/category_entity.dart';
 import '../pages/all_offers_page.dart';
 import '../pages/categories_page.dart';
+import '../constants/offer_categories.dart';
 
 class CategoriesSection extends StatelessWidget {
   final List<CategoryEntity> categories;
@@ -81,24 +82,42 @@ class _CategoriesListView extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
-    final items = categories.take(limit).map((cat) => _CategoryItemData(
-      name: CategoryUtils.getDisplayName(cat.name),
-      image: cat.image,
-      color: CategoryUtils.getColor(cat.name),
-      icon: CategoryUtils.getIcon(cat.name),
-      filterName: cat.name,
-    )).toList(growable: false);
+    final isDark = theme.brightness == Brightness.dark;
+
+    final items = categories.take(limit).map((cat) {
+      final categoryItem = browseCategories.firstWhere(
+        (c) => c.name == cat.name || c.backendName == cat.name,
+        orElse: () => browseCategories.firstWhere(
+          (c) => c.name == CategoryUtils.getDisplayName(cat.name),
+          orElse: () => browseCategories.first,
+        ),
+      );
+
+      final String fallbackAsset = categoryItem.imagePath ?? 'assets/categories/food.png';
+      final String imageToUse = (cat.image != null && cat.image!.startsWith('http'))
+          ? cat.image!
+          : fallbackAsset;
+
+      return _CategoryItemData(
+        name: CategoryUtils.getDisplayName(cat.name),
+        image: imageToUse,
+        color: CategoryUtils.getColor(cat.name),
+        icon: CategoryUtils.getIcon(cat.name),
+        filterName: cat.name,
+      );
+    }).toList(growable: false);
 
     return SizedBox(
-      height: 135,
+      height: 140,
       child: ListView.builder(
         scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
         padding: const EdgeInsets.symmetric(horizontal: 16),
         itemCount: items.length,
         itemBuilder: (context, index) {
           final item = items[index];
           return Padding(
-            padding: const EdgeInsets.only(right: 16),
+            padding: const EdgeInsets.only(right: 14),
             child: GestureDetector(
               onTap: () {
                 Navigator.push(
@@ -113,69 +132,72 @@ class _CategoriesListView extends StatelessWidget {
               child: Column(
                 children: [
                   Container(
-                    width: 82,
-                    height: 82,
+                    width: 84,
+                    height: 84,
                     padding: const EdgeInsets.all(3),
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       gradient: LinearGradient(
                         colors: [
                           item.color,
-                          item.color.withValues(alpha: 0.3),
+                          item.color.withValues(alpha: 0.35),
+                          AppColors.primary.withValues(alpha: 0.2),
                         ],
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                       ),
                       boxShadow: [
                         BoxShadow(
-                          color: item.color.withValues(alpha: 0.2),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          color: item.color.withValues(alpha: 0.25),
+                          blurRadius: 14,
+                          spreadRadius: 1,
+                          offset: const Offset(0, 5),
                         ),
                       ],
                     ),
                     child: Container(
-                      decoration: const BoxDecoration(
-                        color: Colors.white,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF1E2433) : Colors.white,
                         shape: BoxShape.circle,
                       ),
-                      padding: const EdgeInsets.all(2),
+                      padding: const EdgeInsets.all(2.5),
                       child: ClipRRect(
-                        borderRadius: BorderRadius.circular(40),
-                        child: item.image != null
-                            ? (item.image!.startsWith('http') || item.image!.startsWith('/')
+                        borderRadius: BorderRadius.circular(42),
+                        child: item.image != null && item.image!.startsWith('assets/')
+                            ? Image.asset(
+                                item.image!,
+                                fit: BoxFit.cover,
+                                errorBuilder: (ctx, err, stack) => Container(
+                                  color: item.color.withValues(alpha: 0.12),
+                                  child: Icon(item.icon, color: item.color, size: 32),
+                                ),
+                              )
+                            : (item.image != null && item.image!.startsWith('http')
                                 ? NetworkImageWidget(
                                     imageUrl: item.image!,
                                     fit: BoxFit.cover,
                                   )
-                                : Image.asset(
-                                    item.image!,
-                                    fit: BoxFit.cover,
-                                  ))
-                            : Container(
-                                color: item.color.withValues(alpha: 0.1),
-                                child: Icon(
-                                  item.icon,
-                                  color: item.color,
-                                  size: 30,
-                                ),
-                              ),
+                                : Container(
+                                    color: item.color.withValues(alpha: 0.12),
+                                    child: Icon(item.icon, color: item.color, size: 32),
+                                  )),
                       ),
                     ),
                   ),
-                  const SizedBox(height: 10),
-                  Text(
-                    item.name,
-                    textAlign: TextAlign.center,
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                    style: theme.textTheme.labelMedium?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      fontSize: 12,
-                      letterSpacing: -0.2,
-                      color: theme.brightness == Brightness.dark
-                          ? Colors.white
-                          : AppColors.textPrimary.withValues(alpha: 0.9),
+                  const SizedBox(height: 8),
+                  SizedBox(
+                    width: 84,
+                    child: Text(
+                      item.name,
+                      textAlign: TextAlign.center,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: theme.textTheme.labelMedium?.copyWith(
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12.5,
+                        letterSpacing: -0.2,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      ),
                     ),
                   ),
                 ],

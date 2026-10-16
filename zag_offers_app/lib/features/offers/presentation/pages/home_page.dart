@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -13,6 +14,7 @@ import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.da
 import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/map_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
+import 'package:zag_offers_app/features/offers/presentation/pages/all_offers_page.dart';
 
 import 'package:zag_offers_app/features/offers/presentation/widgets/ads_slider.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/categories_section.dart';
@@ -105,8 +107,9 @@ class _HomePageState extends State<HomePage> {
                             const SizedBox(height: 12),
                             _buildNoticeBanner(context, state.noticeMessage!),
                           ],
-                          const SizedBox(height: 24),
-                          // _buildSearchBar(context, state), // Removed search bar
+                          const SizedBox(height: 18),
+                          _buildHeroSearchBar(context),
+                          const SizedBox(height: 20),
                           const AdsSlider(),
                           const SizedBox(height: 20),
                           CategoriesSection(categories: state.categories),
@@ -151,6 +154,7 @@ class _HomePageState extends State<HomePage> {
                             title: 'اختيارات الموضة',
                             subtitle: 'عروض مختارة على الملابس والإطلالات',
                           ),
+                          const SizedBox(height: 120),
                         ],
                       ),
                     ),
@@ -169,36 +173,72 @@ class _HomePageState extends State<HomePage> {
   Widget _buildSliverAppBar(BuildContext context, OffersLoaded state) {
     final canOpenMap = AppConstants.mapsEnabled;
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
 
     return SliverAppBar(
       expandedHeight: 80,
       floating: true,
       pinned: true,
       elevation: 0,
+      backgroundColor: Colors.transparent,
+      flexibleSpace: ClipRect(
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+          child: Container(
+            decoration: BoxDecoration(
+              color: theme.scaffoldBackgroundColor.withValues(alpha: isDark ? 0.82 : 0.88),
+              border: Border(
+                bottom: BorderSide(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.06)
+                      : Colors.black.withValues(alpha: 0.05),
+                  width: 0.8,
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
       centerTitle: false,
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Row(
-            children: [
-              const Icon(IconlyBold.location, color: AppColors.primary, size: 16),
-              const SizedBox(width: 4),
-              Text(
-                'الزقازيق، الشرقية',
-                style: theme.textTheme.labelLarge?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+            decoration: BoxDecoration(
+              color: AppColors.primary.withValues(alpha: 0.1),
+              borderRadius: BorderRadius.circular(20),
+              border: Border.all(
+                color: AppColors.primary.withValues(alpha: 0.22),
+                width: 0.8,
               ),
-              const Icon(Icons.keyboard_arrow_down_rounded, size: 18, color: AppColors.textSecondary),
-            ],
-          ),
-          Text(
-            'ZAG OFFERS',
-            style: theme.textTheme.labelSmall?.copyWith(
-                  color: AppColors.primary,
-                  fontWeight: FontWeight.w900,
-                  letterSpacing: 2,
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(IconlyBold.location, color: AppColors.primary, size: 14),
+                const SizedBox(width: 4),
+                Text(
+                  'الزقازيق، الشرقية',
+                  style: theme.textTheme.labelMedium?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    color: isDark ? Colors.white : AppColors.textPrimary,
+                  ),
                 ),
+                const SizedBox(width: 2),
+                const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.primary),
+              ],
+            ),
+          ),
+          const SizedBox(height: 3),
+          Text(
+            'ZAG OFFERS • وفر مع كل خروجة',
+            style: theme.textTheme.labelSmall?.copyWith(
+              color: AppColors.primary,
+              fontWeight: FontWeight.w900,
+              letterSpacing: 1.2,
+              fontSize: 9.5,
+            ),
           ),
         ],
       ),
@@ -217,70 +257,174 @@ class _HomePageState extends State<HomePage> {
             if (notifState is NotificationFeedState) {
               unreadCount = notifState.items.where((e) => !e.isRead).length;
             }
-            return Stack(
-              alignment: Alignment.center,
-              children: [
-                IconButton(
-                  icon: const Icon(IconlyLight.notification),
-                  onPressed: () {
-                    HapticFeedback.lightImpact();
-                    Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
-                  },
+            return Container(
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              decoration: BoxDecoration(
+                color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+                shape: BoxShape.circle,
+                border: Border.all(
+                  color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
                 ),
-                if (unreadCount > 0)
-                  Positioned(
-                    top: 10,
-                    right: 12,
-                    child: Container(
-                      padding: const EdgeInsets.all(4),
-                      decoration: BoxDecoration(
-                        color: Colors.red,
-                        shape: BoxShape.circle,
-                        border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 1.5),
-                      ),
-                      child: Text(
-                        unreadCount > 9 ? '9+' : unreadCount.toString(),
-                        style: const TextStyle(
-                          color: Colors.white,
-                          fontSize: 8,
-                          fontWeight: FontWeight.bold,
-                          height: 1,
+              ),
+              child: Stack(
+                alignment: Alignment.center,
+                children: [
+                  IconButton(
+                    icon: const Icon(IconlyLight.notification, size: 20),
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      Navigator.push(context, MaterialPageRoute(builder: (context) => const NotificationsPage()));
+                    },
+                  ),
+                  if (unreadCount > 0)
+                    Positioned(
+                      top: 8,
+                      right: 8,
+                      child: Container(
+                        padding: const EdgeInsets.all(4),
+                        decoration: BoxDecoration(
+                          color: Colors.red,
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Theme.of(context).scaffoldBackgroundColor, width: 1.5),
                         ),
-                        textAlign: TextAlign.center,
+                        child: Text(
+                          unreadCount > 9 ? '9+' : unreadCount.toString(),
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 8,
+                            fontWeight: FontWeight.bold,
+                            height: 1,
+                          ),
+                          textAlign: TextAlign.center,
+                        ),
                       ),
                     ),
-                  ),
-              ],
+                ],
+              ),
             );
           },
         ),
-        IconButton(
-          icon: const Icon(Icons.explore_rounded, color: AppColors.primary, size: 26),
-          tooltip: 'استكشف العروض على الرادار',
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            if (canOpenMap) {
-               Navigator.push(
-                 context,
-                 MaterialPageRoute(
-                   builder: (context) => MapPage(
-                     stores: state.featuredStores,
-                     offers: state.allOffers,
+        Container(
+          margin: const EdgeInsets.symmetric(horizontal: 4),
+          decoration: BoxDecoration(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+            ),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.explore_rounded, color: AppColors.primary, size: 22),
+            tooltip: 'استكشف العروض على الرادار',
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              if (canOpenMap) {
+                 Navigator.push(
+                   context,
+                   MaterialPageRoute(
+                     builder: (context) => MapPage(
+                       stores: state.featuredStores,
+                       offers: state.allOffers,
+                     ),
                    ),
-                 ),
-               );
-            }
-          },
+                 );
+              }
+            },
+          ),
         ),
-        IconButton(
-          icon: const Icon(Icons.tune_rounded),
-          onPressed: () {
-            HapticFeedback.lightImpact();
-            _showFilterSheet(context, state);
-          },
+        Container(
+          margin: const EdgeInsets.only(left: 12, right: 4),
+          decoration: BoxDecoration(
+            color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.05),
+            shape: BoxShape.circle,
+            border: Border.all(
+              color: (isDark ? Colors.white : Colors.black).withValues(alpha: 0.08),
+            ),
+          ),
+          child: IconButton(
+            icon: const Icon(Icons.tune_rounded, size: 20),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              _showFilterSheet(context, state);
+            },
+          ),
         ),
-        const SizedBox(width: 8),
       ],
+    );
+  }
+
+  Widget _buildHeroSearchBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 20),
+      child: GestureDetector(
+        onTap: () {
+          HapticFeedback.lightImpact();
+          Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (context) => const AllOffersPage(),
+            ),
+          );
+        },
+        child: Container(
+          height: 52,
+          padding: const EdgeInsets.symmetric(horizontal: 16),
+          decoration: BoxDecoration(
+            color: isDark ? const Color(0xFF19202E) : Colors.white,
+            borderRadius: BorderRadius.circular(16),
+            border: Border.all(
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : AppColors.primary.withValues(alpha: 0.18),
+              width: 1,
+            ),
+            boxShadow: [
+              BoxShadow(
+                color: isDark
+                    ? Colors.black.withValues(alpha: 0.25)
+                    : AppColors.primary.withValues(alpha: 0.07),
+                blurRadius: 18,
+                offset: const Offset(0, 4),
+              ),
+            ],
+          ),
+          child: Row(
+            children: [
+              const Icon(
+                IconlyLight.search,
+                color: AppColors.primary,
+                size: 22,
+              ),
+              const SizedBox(width: 12),
+              Expanded(
+                child: Text(
+                  'بتدور على مطعم، كافيه، أو براند معين؟',
+                  style: theme.textTheme.bodyMedium?.copyWith(
+                    color: AppColors.textSecondary.withValues(alpha: 0.85),
+                    fontSize: 13,
+                    fontWeight: FontWeight.w500,
+                  ),
+                ),
+              ),
+              Container(
+                padding: const EdgeInsets.all(7),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(
+                  Icons.tune_rounded,
+                  color: AppColors.primary,
+                  size: 16,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 
@@ -506,7 +650,7 @@ Widget _buildOffersSectionWidget(
         ),
       ),
       SizedBox(
-        height: 270,
+        height: 350,
         child: ListView.builder(
           scrollDirection: Axis.horizontal,
           padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -515,9 +659,9 @@ Widget _buildOffersSectionWidget(
             final offer = offers[index];
             return RepaintBoundary(
               child: Padding(
-                padding: const EdgeInsets.only(right: 12),
+                padding: const EdgeInsets.only(right: 14),
                 child: SizedBox(
-                  width: 165,
+                  width: 275,
                   child: OfferCard(
                     offer: offer,
                     isWide: true,

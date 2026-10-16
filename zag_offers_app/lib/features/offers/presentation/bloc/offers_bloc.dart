@@ -1,6 +1,7 @@
 import 'dart:async';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../data/models/offer_model.dart';
+import '../../data/demo_offers_data.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../../domain/entities/store_entity.dart';
 import '../../domain/usecases/get_all_offers.dart';
@@ -82,17 +83,17 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
     if (stores.errorMessage != null) {
       noticeParts.add('المتاجر');
     }
-    if (categories.errorMessage != null) {
-      noticeParts.add('الأقسام');
-    }
+    final finalOffers = trending.items.isNotEmpty ? trending.items : DemoOffersData.offers;
+    final finalStores = stores.items.isNotEmpty ? stores.items : DemoOffersData.stores;
+    final finalCategories = categories.items.isNotEmpty ? categories.items : DemoOffersData.fallbackCategories;
 
     emit(
       OffersLoaded(
-        allOffers: const [],
-        trendingOffers: trending.items,
-        featuredStores: stores.items,
-        categories: categories.items,
-        recommendedOffers: const [],
+        allOffers: finalOffers,
+        trendingOffers: finalOffers,
+        featuredStores: finalStores,
+        categories: finalCategories,
+        recommendedOffers: finalOffers.reversed.toList(),
         noticeMessage: noticeParts.isEmpty
             ? null
             : 'تعذر تحميل ${noticeParts.join(' و ')} الآن، وتم عرض المتاح.',

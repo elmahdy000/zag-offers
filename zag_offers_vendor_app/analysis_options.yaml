@@ -1,10 +1,18 @@
-﻿include: package:flutter_lints/flutter.yaml
+include: package:flutter_lints/flutter.yaml
 
 analyzer:
   errors:
     deprecated_member_use: ignore
     unused_import: ignore
     unused_local_variable: ignore
+  exclude:
+    - build/**
+    - android/**
+    - ios/**
+    - web/**
+    - windows/**
+    - macos/**
+    - linux/**
 
 linter:
   rules:

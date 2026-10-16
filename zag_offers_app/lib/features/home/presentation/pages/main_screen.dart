@@ -1,7 +1,9 @@
 import 'dart:async';
+import 'dart:ui';
 
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zag_offers_app/core/theme/app_colors.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/services/socket_service.dart';
@@ -45,6 +47,7 @@ class MainScreenState extends State<MainScreen> {
   @override
   void initState() {
     super.initState();
+    _loadedTabs.add(_selectedIndex);
     _loadUserRole();
     _initSocket();
     // جلب المفضلة مبكراً لضمان ظهور حالة القلوب بشكل صحيح في كل الصفحات
@@ -243,28 +246,60 @@ class MainScreenState extends State<MainScreen> {
         }
       },
       child: Scaffold(
+        extendBody: true,
         body: IndexedStack(
-        index: _selectedIndex,
-        children: _pages,
-      ),
-      bottomNavigationBar: Container(
-        decoration: BoxDecoration(
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withValues(alpha: 0.1),
-              blurRadius: 15,
-              offset: const Offset(0, -5),
+          index: _selectedIndex,
+          children: _pages,
+        ),
+        bottomNavigationBar: Container(
+          decoration: BoxDecoration(
+            color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.88),
+            boxShadow: [
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.06),
+                blurRadius: 24,
+                offset: const Offset(0, -6),
+              ),
+              BoxShadow(
+                color: Colors.black.withValues(alpha: 0.06),
+                blurRadius: 16,
+                offset: const Offset(0, -2),
+              ),
+            ],
+            border: Border(
+              top: BorderSide(
+                color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
+                width: 0.8,
+              ),
             ),
-          ],
+          ),
+          child: ClipRect(
+            child: BackdropFilter(
+              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
+              child: BottomNavigationBar(
+                currentIndex: _selectedIndex,
+                onTap: setSelectedIndex,
+                elevation: 0,
+                backgroundColor: Colors.transparent,
+                selectedItemColor: AppColors.primary,
+                unselectedItemColor: AppColors.textSecondary,
+                selectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 11.5,
+                  height: 1.2,
+                ),
+                unselectedLabelStyle: const TextStyle(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 11,
+                  height: 1.2,
+                ),
+                type: BottomNavigationBarType.fixed,
+                items: _items,
+              ),
+            ),
+          ),
         ),
-        child: BottomNavigationBar(
-          currentIndex: _selectedIndex,
-          onTap: setSelectedIndex,
-          elevation: 0,
-          items: _items,
-        ),
-      ),
-    ),   // Scaffold
+      ),   // Scaffold
     );   // BlocListener
   }
 }

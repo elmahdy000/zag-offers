@@ -509,6 +509,7 @@ class _ProfilePageState extends State<ProfilePage> {
                     _buildPremiumMenu(context),
                     const SizedBox(height: 40),
                     _buildLogoutButton(),
+                    const SizedBox(height: 120),
                   ],
                 ),
               ),

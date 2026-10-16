@@ -135,18 +135,32 @@ class _FavoritesPageState extends State<FavoritesPage> {
                     );
                   }
 
+                  final screenWidth = MediaQuery.sizeOf(context).width;
+                  final int crossAxisCount = screenWidth > 900
+                      ? 4
+                      : screenWidth > 600
+                          ? 3
+                          : screenWidth < 340
+                              ? 1
+                              : 2;
+                  final double childAspectRatio = screenWidth > 600
+                      ? 0.78
+                      : screenWidth < 360
+                          ? 0.64
+                          : 0.67;
+
                   return RefreshIndicator(
                     onRefresh: () async {
                       context.read<FavoritesBloc>().add(FetchFavorites());
                     },
                     child: GridView.builder(
-                      padding: const EdgeInsets.all(16),
+                      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
                       gridDelegate:
-                          const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                          SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
                         mainAxisSpacing: 16,
                         crossAxisSpacing: 16,
-                        childAspectRatio: 0.70,
+                        childAspectRatio: childAspectRatio,
                       ),
                       itemCount: favorites.length,
                       itemBuilder: (context, index) {

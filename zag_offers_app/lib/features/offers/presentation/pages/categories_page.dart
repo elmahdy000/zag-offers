@@ -78,6 +78,15 @@ class CategoriesPage extends StatelessWidget {
               }
               final items = state is OffersLoaded ? state.categories : const [];
               final isDynamic = items.isNotEmpty;
+              final screenWidth = MediaQuery.sizeOf(context).width;
+              final int crossAxisCount = screenWidth > 900
+                  ? 5
+                  : screenWidth > 600
+                      ? 4
+                      : screenWidth < 340
+                          ? 1
+                          : 2;
+              final double childAspectRatio = screenWidth > 600 ? 0.95 : 0.85;
 
               return CustomScrollView(
                 physics: const BouncingScrollPhysics(),
@@ -97,13 +106,13 @@ class CategoriesPage extends StatelessWidget {
                     )
                   else
                   SliverPadding(
-                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 40),
+                    padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
                     sliver: SliverGrid(
-                      gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                        crossAxisCount: 2,
+                      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: crossAxisCount,
                         crossAxisSpacing: 14,
                         mainAxisSpacing: 14,
-                        childAspectRatio: 0.85,
+                        childAspectRatio: childAspectRatio,
                       ),
                       delegate: SliverChildBuilderDelegate(
                         (context, index) {
