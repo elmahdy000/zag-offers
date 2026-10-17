@@ -29,5 +29,21 @@
 ---
 
 ## 5. Pricing Display & Savings Invariants
-- **Decision**: Real backend prices (`newPrice`, `oldPrice`) are strictly honored. When `newPrice` is absent but `discountPercentage` is present, `effectiveNewPrice = oldPrice * (1 - discountPercentage / 100)` is calculated for display so customers see accurate savings.
-- **Rule**: Single prices are never struck through. Strikethrough is only applied when an actual lower price is actively displayed alongside it.
+- **Decision**: Real backend prices (`newPrice`, `oldPrice`) are strictly honored through the centralized `OfferPricingResult.compute()` calculation engine.
+- **Rule**:
+  - `discountPercentage = ((originalPrice - finalPrice) / originalPrice) * 100`.
+  - When `rawOld` and `rawNew` are provided, the badge, strikethrough, and savings pill are strictly tied to this mathematical formula.
+  - Single prices are never struck through. Strikethrough is only applied when an actual lower price is actively displayed alongside it.
+  - Store-wide offers without specific item prices suppress the product before/after price box, showing only the verified discount badge.
+
+---
+
+## 6. Non-Interactive Redeemed Status Banner
+- **Decision**: When a coupon is in the `USED` state, the sticky bottom bar must render as an informative, clearly non-interactive container with a verified checkmark and redemption timestamp, rather than a disabled button.
+- **Rationale**: Disabled buttons often look like interactive elements that are temporarily locked or malfunctioning, causing users to tap repeatedly trying to re-redeem. An informational status card makes it unambiguous that the coupon has already been successfully redeemed at the store.
+
+---
+
+## 7. RTL Numeric and Counter Isolation
+- **Decision**: All numeric percentages `(X%)` and fractional counters `current / total` in Arabic layouts must be rendered with explicit `textDirection: TextDirection.ltr`.
+- **Rationale**: The Unicode bidirectional algorithm automatically flips surrounding ASCII punctuation in RTL text, causing `(20%)` to appear as `%20)` or `1 / 3` to appear as `3 / 1`. Enforcing LTR prevents any unintended glyph inversion.

@@ -149,13 +149,16 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   Future<void> _openExternalMap() async {
     final store = widget.offer.store;
     Uri? uri;
-    if (store.locationUrl != null && store.locationUrl!.isNotEmpty) {
-      uri = Uri.tryParse(store.locationUrl!);
-    } else if (store.latitude != null && store.longitude != null) {
+    if (store.locationUrl != null && store.locationUrl!.trim().isNotEmpty) {
+      uri = Uri.tryParse(store.locationUrl!.trim());
+    } else if (store.latitude != null &&
+        store.longitude != null &&
+        store.latitude != 0 &&
+        store.longitude != 0) {
       uri = Uri.parse(
           'https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}');
     } else {
-      final queryText = '${store.address ?? store.area}, الزقازيق';
+      final queryText = '${store.name}, ${store.address ?? store.area}, الزقازيق';
       uri = Uri.parse(
           'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(queryText)}');
     }
@@ -285,6 +288,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       expandedHeight: hasImages ? 280 : 210,
       pinned: true,
       stretch: true,
+      systemOverlayStyle: SystemUiOverlayStyle.light,
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF131B2A),
       leading: _buildCircleIconButton(
         icon: Directionality.of(context) == TextDirection.rtl
@@ -483,16 +487,18 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             );
           },
         ),
-        const DecoratedBox(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              begin: Alignment.topCenter,
-              end: Alignment.bottomCenter,
-              colors: [
-                Colors.black45,
-                Colors.transparent,
-                Colors.black54,
-              ],
+        const IgnorePointer(
+          child: DecoratedBox(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                begin: Alignment.topCenter,
+                end: Alignment.bottomCenter,
+                colors: [
+                  Colors.black45,
+                  Colors.transparent,
+                  Colors.black54,
+                ],
+              ),
             ),
           ),
         ),
@@ -501,20 +507,22 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             bottom: 45,
             left: 0,
             right: 0,
-            child: Row(
-              mainAxisAlignment: MainAxisAlignment.center,
-              children: List.generate(
-                images.length,
-                (index) => AnimatedContainer(
-                  duration: const Duration(milliseconds: 300),
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  height: 6,
-                  width: _selectedImageIndex == index ? 24 : 6,
-                  decoration: BoxDecoration(
-                    color: _selectedImageIndex == index
-                        ? AppColors.primary
-                        : Colors.white60,
-                    borderRadius: BorderRadius.circular(3),
+            child: IgnorePointer(
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: List.generate(
+                  images.length,
+                  (index) => AnimatedContainer(
+                    duration: const Duration(milliseconds: 300),
+                    margin: const EdgeInsets.symmetric(horizontal: 4),
+                    height: 6,
+                    width: _selectedImageIndex == index ? 24 : 6,
+                    decoration: BoxDecoration(
+                      color: _selectedImageIndex == index
+                          ? AppColors.primary
+                          : Colors.white60,
+                      borderRadius: BorderRadius.circular(3),
+                    ),
                   ),
                 ),
               ),
@@ -529,25 +537,61 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (context) => Scaffold(
-          backgroundColor: Colors.black,
-          appBar: AppBar(
-            backgroundColor: Colors.transparent,
-            elevation: 0,
-            leading: IconButton(
-              icon: const Icon(Icons.close, color: Colors.white),
-              onPressed: () => Navigator.pop(context),
-            ),
-          ),
-          body: Center(
-            child: InteractiveViewer(
-              child: NetworkImageWidget(
-                imageUrl: images[initialIndex],
-                fit: BoxFit.contain,
-              ),
-            ),
-          ),
-        ),
+        builder: (context) {
+          int currentIndex = initialIndex;
+          final pageCtrl = PageController(initialPage: initialIndex);
+          return StatefulBuilder(
+            builder: (context, setModalState) {
+              return Scaffold(
+                backgroundColor: Colors.black,
+                appBar: AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  systemOverlayStyle: SystemUiOverlayStyle.light,
+                  title: images.length > 1
+                      ? Text(
+                          '${currentIndex + 1} / ${images.length}',
+                          textDirection: TextDirection.ltr,
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 15,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        )
+                      : null,
+                  centerTitle: true,
+                  leading: IconButton(
+                    icon: const Icon(Icons.close_rounded, color: Colors.white, size: 24),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                ),
+                body: PageView.builder(
+                  controller: pageCtrl,
+                  itemCount: images.length,
+                  onPageChanged: (i) {
+                    setModalState(() => currentIndex = i);
+                    if (_pageController.hasClients) {
+                      _pageController.jumpToPage(i);
+                    }
+                    setState(() => _selectedImageIndex = i);
+                  },
+                  itemBuilder: (context, idx) {
+                    return InteractiveViewer(
+                      minScale: 0.8,
+                      maxScale: 4.0,
+                      child: Center(
+                        child: NetworkImageWidget(
+                          imageUrl: images[idx],
+                          fit: BoxFit.contain,
+                        ),
+                      ),
+                    );
+                  },
+                ),
+              );
+            },
+          );
+        },
       ),
     );
   }
@@ -566,30 +610,30 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
           padding: EdgeInsets.fromLTRB(
             18,
-            24,
+            20,
             18,
-            170 + bottomInset,
+            85 + bottomInset,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_allImages.length > 1) _buildThumbnailsRow(),
-              if (_allImages.length > 1) const SizedBox(height: 18),
+              if (_allImages.length > 1) const SizedBox(height: 14),
               _buildOfferHeaderHierarchy(usageCount),
-              const SizedBox(height: 18),
-              _buildStoreCard(),
               const SizedBox(height: 14),
+              _buildStoreCard(),
+              const SizedBox(height: 12),
               _buildStoreLocationCard(),
-              const SizedBox(height: 22),
+              const SizedBox(height: 16),
               _buildDescriptionSection(),
               if (widget.offer.terms != null &&
                   widget.offer.terms!.isNotEmpty) ...[
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
                 _buildTermsSection(),
               ],
-              const SizedBox(height: 18),
+              const SizedBox(height: 14),
               _buildExpirySection(),
-              const SizedBox(height: 26),
+              const SizedBox(height: 18),
               _buildReviewsSection(),
             ],
           ),
@@ -598,54 +642,17 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  double? get _effectiveNewPrice {
-    double? newP = widget.offer.newPrice;
-    final oldP = widget.offer.oldPrice;
-    if (newP == null && oldP != null && widget.offer.discountPercentage > 0) {
-      if (widget.offer.discount.contains('%')) {
-        newP = oldP * (1 - (widget.offer.discountPercentage / 100));
-      } else {
-        newP = oldP - widget.offer.discountPercentage;
-      }
-    } else if (newP == null && oldP != null) {
-      newP = oldP;
-    }
-    return newP;
-  }
-
-  double? get _effectiveOldPrice {
-    final newP = widget.offer.newPrice;
-    double? oldP = widget.offer.oldPrice;
-    if (oldP == null && newP != null && widget.offer.discountPercentage > 0) {
-      if (widget.offer.discount.contains('%')) {
-        oldP = newP / (1 - (widget.offer.discountPercentage / 100));
-      } else {
-        oldP = newP + widget.offer.discountPercentage;
-      }
-    }
-    if (oldP != null && _effectiveNewPrice != null && (oldP - _effectiveNewPrice!).abs() < 0.01) {
-      return null;
-    }
-    return oldP;
-  }
+  OfferPricingResult get _pricing => OfferPricingResult.compute(
+        newPrice: widget.offer.newPrice,
+        oldPrice: widget.offer.oldPrice,
+        discountString: widget.offer.discount,
+        discountPercentage: widget.offer.discountPercentage,
+      );
 
   Widget _buildOfferHeaderHierarchy(String usageCount) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
-    final discountStr = widget.offer.discount.isNotEmpty
-        ? (widget.offer.discount.contains('%')
-            ? widget.offer.discount
-            : '${widget.offer.discount}%')
-        : (widget.offer.discountPercentage > 0
-            ? '${widget.offer.discountPercentage.toInt()}%'
-            : '');
-
-    final displayNewPrice = _effectiveNewPrice;
-    final displayOldPrice = _effectiveOldPrice;
-    final hasNewPrice = displayNewPrice != null && displayNewPrice > 0;
-    final hasOldPrice = displayOldPrice != null && displayOldPrice > 0;
-    final hasSavings = hasNewPrice && hasOldPrice && displayOldPrice > displayNewPrice;
-    final savings = hasSavings ? (displayOldPrice - displayNewPrice) : 0.0;
+    final pricing = _pricing;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -654,7 +661,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
           children: [
-            if (discountStr.isNotEmpty)
+            if (pricing.topDiscountBadge.isNotEmpty)
               Container(
                 padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
                 decoration: BoxDecoration(
@@ -676,7 +683,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     const Icon(Icons.local_offer_rounded, color: Colors.white, size: 14),
                     const SizedBox(width: 5),
                     Text(
-                      'خصم $discountStr',
+                      'خصم ${pricing.topDiscountBadge}',
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -735,8 +742,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
         ),
 
-        // 3. Pricing & Savings (Only from actual data, no inferred prices)
-        if (hasNewPrice || hasOldPrice) ...[
+        // 3. Pricing & Savings (Only displayed for products with actual prices)
+        if (pricing.hasExplicitPrices) ...[
           const SizedBox(height: 12),
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
@@ -749,30 +756,59 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             ),
             child: Row(
               children: [
-                if (hasNewPrice) ...[
-                  Text(
-                    '${displayNewPrice.toStringAsFixed(0)} ج.م',
-                    style: const TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 22,
+                if (pricing.finalPrice != null) ...[
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${pricing.finalPrice!.toStringAsFixed(0)} ',
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 22,
+                          ),
+                        ),
+                        const TextSpan(
+                          text: 'ج.م',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
-                if (hasOldPrice) ...[
+                if (pricing.originalPrice != null) ...[
                   const SizedBox(width: 10),
-                  Text(
-                    '${displayOldPrice.toStringAsFixed(0)} ج.م',
-                    style: TextStyle(
-                      decoration: TextDecoration.lineThrough,
-                      color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 15,
+                  Text.rich(
+                    TextSpan(
+                      children: [
+                        TextSpan(
+                          text: '${pricing.originalPrice!.toStringAsFixed(0)} ',
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                          ),
+                        ),
+                        TextSpan(
+                          text: 'ج.م',
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
                 const Spacer(),
-                if (hasSavings) ...[
+                if (pricing.hasSavings) ...[
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
                     decoration: BoxDecoration(
@@ -780,13 +816,28 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                       borderRadius: BorderRadius.circular(8),
                       border: Border.all(color: const Color(0x3510B981)),
                     ),
-                    child: Text(
-                      'وفرت ${savings.toStringAsFixed(0)} ج.م${discountStr.isNotEmpty ? ' ($discountStr)' : ''}',
-                      style: const TextStyle(
-                        color: Color(0xFF10B981),
-                        fontWeight: FontWeight.w800,
-                        fontSize: 12,
-                      ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          'وفرت ${pricing.savingsAmount.toStringAsFixed(0)} ج.م',
+                          style: const TextStyle(
+                            color: Color(0xFF10B981),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        Text(
+                          '(${pricing.savingsPercentage}%)',
+                          textDirection: TextDirection.ltr,
+                          style: const TextStyle(
+                            color: Color(0xFF10B981),
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ],
@@ -1036,13 +1087,20 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           Row(
             children: [
               Expanded(
-                child: OutlinedButton.icon(
+                child: ElevatedButton.icon(
                   onPressed: _openExternalMap,
-                  icon: const Icon(Icons.navigation_rounded, size: 16),
-                  label: const Text('طريق الوصول'),
-                  style: OutlinedButton.styleFrom(
-                    foregroundColor: AppColors.primary,
-                    side: const BorderSide(color: AppColors.primary, width: 1.2),
+                  icon: const Icon(Icons.navigation_rounded, size: 16, color: Colors.white),
+                  label: const Text(
+                    'طريق الوصول',
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                      fontSize: 13,
+                      color: Colors.white,
+                    ),
+                  ),
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: AppColors.primary,
+                    elevation: 0,
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     padding: const EdgeInsets.symmetric(vertical: 9),
                   ),
@@ -1095,6 +1153,48 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildDescriptionSection() {
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final store = widget.offer.store;
+    final category = store.category;
+    final usageLimit = widget.offer.usageLimit;
+    final isFlash = widget.offer.isFlashSale;
+
+    final chips = <Widget>[];
+    if (category != null && category.trim().isNotEmpty) {
+      chips.add(_buildCompactFeatureChip(
+        icon: Icons.category_outlined,
+        label: category.trim(),
+        isDark: isDark,
+      ));
+    }
+    if (usageLimit != null && usageLimit > 0) {
+      chips.add(_buildCompactFeatureChip(
+        icon: Icons.person_outline_rounded,
+        label: usageLimit == 1 ? 'كوبون واحد لكل عميل' : 'حد أقصى $usageLimit مرات',
+        isDark: isDark,
+      ));
+    }
+    if (isFlash) {
+      chips.add(_buildCompactFeatureChip(
+        icon: Icons.bolt_rounded,
+        label: 'عرض فلاش محدود ⚡',
+        isDark: isDark,
+        highlight: true,
+      ));
+    }
+    if (store.area.trim().isNotEmpty) {
+      chips.add(_buildCompactFeatureChip(
+        icon: Icons.storefront_outlined,
+        label: 'فرع: ${store.area.trim()}',
+        isDark: isDark,
+      ));
+    }
+
+    final meaningfulDesc = (widget.offer.description != null &&
+            widget.offer.description!.trim().isNotEmpty)
+        ? widget.offer.description!.trim()
+        : 'استمتع بخصم حصري ومباشر لدى ${store.name} على جميع الخدمات والمنتجات المشمولة بالعرض داخل الفرع.';
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1105,13 +1205,70 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             fontSize: 15,
           ),
         ),
+        if (chips.isNotEmpty) ...[
+          const SizedBox(height: 8),
+          Wrap(
+            spacing: 8,
+            runSpacing: 6,
+            children: chips,
+          ),
+        ],
         const SizedBox(height: 8),
         Text(
-          widget.offer.description ??
-              'استمتع بخصم مميز لفترة محدودة في ${widget.offer.store.name}.',
-          style: textTheme.bodyMedium?.copyWith(height: 1.6, fontSize: 13),
+          meaningfulDesc,
+          style: textTheme.bodyMedium?.copyWith(
+            height: 1.55,
+            fontSize: 13,
+            color: isDark ? Colors.grey.shade300 : AppColors.textPrimary,
+          ),
         ),
       ],
+    );
+  }
+
+  Widget _buildCompactFeatureChip({
+    required IconData icon,
+    required String label,
+    required bool isDark,
+    bool highlight = false,
+  }) {
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
+      decoration: BoxDecoration(
+        color: highlight
+            ? AppColors.primary.withValues(alpha: 0.12)
+            : (isDark ? const Color(0xFF162032) : const Color(0xFFF1F5F9)),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: highlight
+              ? AppColors.primary.withValues(alpha: 0.35)
+              : (isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade300),
+          width: 0.8,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Icon(
+            icon,
+            size: 13,
+            color: highlight
+                ? AppColors.primary
+                : (isDark ? Colors.grey.shade400 : AppColors.textSecondary),
+          ),
+          const SizedBox(width: 4),
+          Text(
+            label,
+            style: TextStyle(
+              fontSize: 11,
+              fontWeight: FontWeight.w600,
+              color: highlight
+                  ? AppColors.primary
+                  : (isDark ? Colors.grey.shade300 : AppColors.textPrimary),
+            ),
+          ),
+        ],
+      ),
     );
   }
 
@@ -1223,6 +1380,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildStickyActionArea(String usageCount) {
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
     return Positioned(
@@ -1234,12 +1392,113 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         builder: (context, snapshot) {
           final canGenerate = snapshot.data ?? false;
           final existing = _existingCoupon;
+          final redeemedAt = existing?.redeemedAt;
           final isOfferExpired = widget.offer.expiryDate.isBefore(DateTime.now()) ||
               _isFlashSaleFinished() ||
               existing?.status == 'EXPIRED';
           final isRedeemed = existing?.status == 'USED';
           final hasActiveCoupon = existing != null && existing.isActive;
 
+          // 1. Redeemed State: Clearly Non-Interactive Information Banner
+          if (isRedeemed) {
+            return Container(
+              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF132321) : const Color(0xFFECFDF5),
+                borderRadius: BorderRadius.circular(16),
+                border: Border.all(
+                  color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.35 : 0.4),
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.12),
+                    blurRadius: 10,
+                    offset: const Offset(0, 3),
+                  ),
+                ],
+              ),
+              child: Row(
+                children: [
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(
+                      Icons.verified_rounded,
+                      color: Color(0xFF10B981),
+                      size: 20,
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Text(
+                          'تم استخدام هذا الكوبون بنجاح ✓',
+                          style: TextStyle(
+                            color: Color(0xFF10B981),
+                            fontWeight: FontWeight.w900,
+                            fontSize: 13.5,
+                          ),
+                        ),
+                        const SizedBox(height: 2),
+                        Text(
+                          redeemedAt != null
+                              ? 'تم الخصم لدى المتجر بتاريخ ${DateFormat('d MMMM yyyy - h:mm a', 'ar').format(redeemedAt)}'
+                              : 'تم تأكيد الاستفادة من الخصم لدى المتجر بنجاح',
+                          style: TextStyle(
+                            color: isDark ? Colors.grey.shade400 : const Color(0xFF065F46),
+                            fontSize: 11,
+                            fontWeight: FontWeight.w500,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 2. Expired Offer State: Muted Non-Interactive Banner
+          if (isOfferExpired) {
+            return Container(
+              height: 50,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                color: isDark ? Colors.white12 : Colors.grey.shade300,
+                borderRadius: BorderRadius.circular(16),
+              ),
+              alignment: Alignment.center,
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.timer_off_outlined,
+                    size: 18,
+                    color: isDark ? Colors.white54 : Colors.grey.shade600,
+                  ),
+                  const SizedBox(width: 8),
+                  Text(
+                    'انتهت صلاحية العرض',
+                    style: TextStyle(
+                      color: isDark ? Colors.white54 : Colors.grey.shade600,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 14,
+                    ),
+                  ),
+                ],
+              ),
+            );
+          }
+
+          // 3. Active States: Claim or View Coupon
           return BlocBuilder<CouponsBloc, CouponsState>(
             buildWhen: (prev, next) =>
                 next is CouponsLoading ||
@@ -1249,27 +1508,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             builder: (context, state) {
               final isLoading = state is CouponsLoading;
 
-              String buttonText;
-              IconData buttonIcon;
-              VoidCallback? onPressed;
-              bool isActionable = true;
-              Color? customBgColor;
+              final String buttonText;
+              final IconData buttonIcon;
+              final VoidCallback? onPressed;
 
-              if (isOfferExpired) {
-                buttonText = 'انتهت صلاحية العرض';
-                buttonIcon = Icons.timer_off_outlined;
-                isActionable = false;
-                onPressed = null;
-              } else if (isRedeemed) {
-                buttonText = 'تم استخدام الكوبون ✓';
-                buttonIcon = Icons.check_circle_rounded;
-                isActionable = false;
-                onPressed = null;
-                customBgColor = const Color(0xFF10B981).withValues(alpha: 0.2);
-              } else if (hasActiveCoupon) {
+              if (hasActiveCoupon) {
                 buttonText = 'عرض الكوبون 🎟️';
                 buttonIcon = Icons.qr_code_2_rounded;
-                isActionable = true;
                 onPressed = () {
                   HapticFeedback.lightImpact();
                   _showCouponDialog(
@@ -1281,7 +1526,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               } else {
                 buttonText = canGenerate ? 'احصل على الكوبون 🎟️' : 'سجّل حسابك واستمتع بالخصم';
                 buttonIcon = Icons.confirmation_num_rounded;
-                isActionable = true;
                 onPressed = () async {
                   if (!canGenerate) {
                     HapticFeedback.lightImpact();
@@ -1307,30 +1551,21 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   BouncyTap(
-                    scaleFactor: isActionable ? 0.97 : 1.0,
+                    scaleFactor: 0.97,
                     child: Container(
                       height: 52,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: isActionable
-                            ? const LinearGradient(
-                                colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
-                              )
-                            : null,
-                        color: !isActionable
-                            ? (customBgColor ??
-                                (Theme.of(context).brightness == Brightness.dark
-                                    ? Colors.white12
-                                    : Colors.grey.shade300))
-                            : null,
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                        ),
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
-                          if (isActionable)
-                            BoxShadow(
-                              color: AppColors.primary.withValues(alpha: 0.38),
-                              blurRadius: 18,
-                              offset: const Offset(0, 6),
-                            ),
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.38),
+                            blurRadius: 18,
+                            offset: const Offset(0, 6),
+                          ),
                         ],
                       ),
                       child: ElevatedButton(
@@ -1339,12 +1574,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
                           shadowColor: Colors.transparent,
-                          disabledBackgroundColor: Colors.transparent,
-                          disabledForegroundColor: isRedeemed
-                              ? const Color(0xFF10B981)
-                              : (Theme.of(context).brightness == Brightness.dark
-                                  ? Colors.white54
-                                  : Colors.grey.shade600),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
@@ -1369,14 +1598,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                     style: textTheme.labelLarge?.copyWith(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 15,
-                                      color: isRedeemed
-                                          ? const Color(0xFF10B981)
-                                          : (isActionable
-                                              ? Colors.white
-                                              : (Theme.of(context).brightness ==
-                                                      Brightness.dark
-                                                  ? Colors.white60
-                                                  : Colors.grey.shade700)),
+                                      color: Colors.white,
                                     ),
                                   ),
                                 ],
@@ -1384,7 +1606,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                       ),
                     ),
                   ),
-                  if (!canGenerate) ...[
+                  if (!canGenerate && !hasActiveCoupon) ...[
                     const SizedBox(height: 8),
                     Text(
                       'سجّل حسابك في ثواني ووفّر مع كل خروجة',
@@ -1410,8 +1632,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     return false;
   }
 
-
   void _showCouponDialog(BuildContext context, String code, {String status = 'GENERATED'}) {
+    final pricing = _pricing;
     CouponCelebrationDialog.show(
       context: context,
       code: code,
@@ -1419,9 +1641,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       storeLogo: widget.offer.store.logo,
       storeArea: widget.offer.store.area,
       offerTitle: widget.offer.title,
-      newPrice: _effectiveNewPrice,
-      oldPrice: _effectiveOldPrice,
-      discount: widget.offer.discount,
+      newPrice: pricing.finalPrice,
+      oldPrice: pricing.originalPrice,
+      discount: pricing.topDiscountBadge,
       status: status,
       onViewCoupons: () {
         Navigator.popUntil(context, (route) => route.isFirst);
@@ -1481,6 +1703,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildReviewsSection() {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -1490,37 +1714,79 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             Text(
               'آراء العملاء',
               style: theme.textTheme.titleMedium
-                  ?.copyWith(fontWeight: FontWeight.bold),
+                  ?.copyWith(fontWeight: FontWeight.w800, fontSize: 15),
             ),
             TextButton(
               onPressed: _showAddReviewBottomSheet,
+              style: TextButton.styleFrom(
+                padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                minimumSize: Size.zero,
+                tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+              ),
               child: Text(
                 'أضف تقييمك',
                 style: theme.textTheme.labelLarge?.copyWith(
                   color: AppColors.primary,
                   fontWeight: FontWeight.bold,
+                  fontSize: 12.5,
                 ),
               ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 10),
         BlocBuilder<ReviewsBloc, ReviewsState>(
           buildWhen: (prev, next) =>
               next is ReviewsLoaded || next is ReviewsLoading,
           builder: (context, state) {
             if (state is ReviewsLoading) {
-              return const Center(child: CircularProgressIndicator());
+              return const Center(
+                child: Padding(
+                  padding: EdgeInsets.symmetric(vertical: 16),
+                  child: CircularProgressIndicator(strokeWidth: 2.5),
+                ),
+              );
             }
             if (state is ReviewsLoaded) {
               if (state.reviews.isEmpty) {
-                return Center(
-                  child: Padding(
-                    padding: const EdgeInsets.symmetric(vertical: 20),
-                    child: Text(
-                      'لا توجد تقييمات بعد. كن أول من يقيّم',
-                      style: theme.textTheme.bodyMedium,
+                return Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: theme.cardColor,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: isDark
+                          ? Colors.white.withValues(alpha: 0.08)
+                          : theme.dividerColor.withValues(alpha: 0.08),
                     ),
+                  ),
+                  child: Row(
+                    children: [
+                      Container(
+                        padding: const EdgeInsets.all(7),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.1),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.chat_bubble_outline_rounded,
+                          size: 16,
+                          color: AppColors.primary,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          'لا توجد تقييمات بعد — كن أول من يقيّم هذا العرض!',
+                          style: theme.textTheme.bodySmall?.copyWith(
+                            fontSize: 12,
+                            fontWeight: FontWeight.w600,
+                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                          ),
+                        ),
+                      ),
+                    ],
                   ),
                 );
               }
@@ -1529,41 +1795,52 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: state.reviews.length,
                 separatorBuilder: (context, index) =>
-                    const SizedBox(height: 16),
+                    const SizedBox(height: 10),
                 itemBuilder: (context, index) {
                   final review = state.reviews[index];
                   return Container(
-                    padding: const EdgeInsets.all(16),
+                    padding: const EdgeInsets.all(12),
                     decoration: BoxDecoration(
                       color: theme.cardColor,
-                      borderRadius: BorderRadius.circular(16),
+                      borderRadius: BorderRadius.circular(14),
                       border: Border.all(
-                          color: theme.dividerColor.withValues(alpha: 0.1)),
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : theme.dividerColor.withValues(alpha: 0.08),
+                      ),
                     ),
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
                         Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
                           children: [
                             Expanded(
                               child: Text(
                                 review.customerName,
                                 style: theme.textTheme.titleSmall?.copyWith(
                                   fontWeight: FontWeight.bold,
+                                  fontSize: 13,
                                 ),
                               ),
                             ),
+                            Text(
+                              DateFormat.yMMMd('ar').format(review.createdAt),
+                              style: TextStyle(
+                                fontSize: 11,
+                                color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                              ),
+                            ),
+                            const SizedBox(width: 6),
                             Row(
                               children: List.generate(
                                 5,
                                 (i) => Icon(
                                   Icons.star_rounded,
-                                  size: 16,
+                                  size: 15,
                                   color: i < review.rating
                                       ? Colors.amber
                                       : theme.disabledColor
-                                          .withValues(alpha: 0.3),
+                                          .withValues(alpha: 0.25),
                                 ),
                               ),
                             ),
@@ -1571,20 +1848,22 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         ),
                         if (review.comment != null &&
                             review.comment!.trim().isNotEmpty) ...[
-                          const SizedBox(height: 10),
+                          const SizedBox(height: 8),
                           Text(
                             review.comment!,
-                            style: theme.textTheme.bodySmall
-                                ?.copyWith(height: 1.5),
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              height: 1.45,
+                              fontSize: 12,
+                            ),
                           ),
                         ],
                         if (review.merchantReply != null) ...[
-                          const SizedBox(height: 12),
+                          const SizedBox(height: 10),
                           Container(
-                            padding: const EdgeInsets.all(12),
+                            padding: const EdgeInsets.all(10),
                             decoration: BoxDecoration(
                               color: AppColors.primary.withValues(alpha: 0.05),
-                              borderRadius: BorderRadius.circular(12),
+                              borderRadius: BorderRadius.circular(10),
                               border: Border.all(
                                   color: AppColors.primary
                                       .withValues(alpha: 0.15)),
@@ -1594,7 +1873,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                               children: [
                                 Row(
                                   children: [
-                                    Icon(Icons.store_rounded,
+                                    const Icon(Icons.store_rounded,
                                         size: 14, color: AppColors.primary),
                                     const SizedBox(width: 6),
                                     Text(
@@ -1607,12 +1886,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                                     ),
                                   ],
                                 ),
-                                const SizedBox(height: 6),
+                                const SizedBox(height: 4),
                                 Text(
                                   review.merchantReply!,
                                   style: theme.textTheme.bodySmall?.copyWith(
                                     color: AppColors.textSecondary,
-                                    height: 1.4,
+                                    height: 1.35,
+                                    fontSize: 11.5,
                                   ),
                                 ),
                               ],
@@ -1626,7 +1906,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               );
             }
             return Padding(
-              padding: const EdgeInsets.symmetric(vertical: 32),
+              padding: const EdgeInsets.symmetric(vertical: 20),
               child: Center(
                 child: Text(
                   'تعذر تحميل التقييمات',
@@ -1775,6 +2055,133 @@ class _AddReviewSheetState extends State<_AddReviewSheet> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class OfferPricingResult {
+  final double? finalPrice;
+  final double? originalPrice;
+  final double savingsAmount;
+  final int savingsPercentage;
+  final bool hasSavings;
+  final bool hasExplicitPrices;
+  final String topDiscountBadge;
+
+  const OfferPricingResult({
+    this.finalPrice,
+    this.originalPrice,
+    required this.savingsAmount,
+    required this.savingsPercentage,
+    required this.hasSavings,
+    required this.hasExplicitPrices,
+    required this.topDiscountBadge,
+  });
+
+  static OfferPricingResult compute({
+    required double? newPrice,
+    required double? oldPrice,
+    required String discountString,
+    required double discountPercentage,
+  }) {
+    final rawNew = (newPrice != null && newPrice > 0 && newPrice.isFinite) ? newPrice : null;
+    final rawOld = (oldPrice != null && oldPrice > 0 && oldPrice.isFinite) ? oldPrice : null;
+
+    double parsedPercent = discountPercentage > 0 ? discountPercentage : 0;
+    if (parsedPercent == 0 && discountString.isNotEmpty) {
+      final clean = discountString.replaceAll(RegExp(r'[^0-9.]'), '');
+      final p = double.tryParse(clean);
+      if (p != null && p > 0 && p < 100) {
+        parsedPercent = p;
+      }
+    }
+
+    // Case 1: Both prices explicitly provided
+    if (rawNew != null && rawOld != null) {
+      if (rawOld > rawNew) {
+        final savings = rawOld - rawNew;
+        // Strict formula: ((originalPrice - finalPrice) / originalPrice) * 100
+        final mathPercent = ((savings / rawOld) * 100).round();
+        return OfferPricingResult(
+          finalPrice: rawNew,
+          originalPrice: rawOld,
+          savingsAmount: savings,
+          savingsPercentage: mathPercent,
+          hasSavings: true,
+          hasExplicitPrices: true,
+          topDiscountBadge: '$mathPercent%',
+        );
+      } else {
+        return OfferPricingResult(
+          finalPrice: rawNew,
+          originalPrice: null,
+          savingsAmount: 0,
+          savingsPercentage: 0,
+          hasSavings: false,
+          hasExplicitPrices: true,
+          topDiscountBadge: parsedPercent > 0 ? '${parsedPercent.toInt()}%' : '',
+        );
+      }
+    }
+
+    // Case 2: Only oldPrice provided, with valid percentage discount
+    if (rawOld != null && rawNew == null && parsedPercent > 0) {
+      final effectiveFinal = rawOld * (1 - (parsedPercent / 100));
+      final savings = rawOld - effectiveFinal;
+      final mathPercent = parsedPercent.round();
+      return OfferPricingResult(
+        finalPrice: effectiveFinal,
+        originalPrice: rawOld,
+        savingsAmount: savings,
+        savingsPercentage: mathPercent,
+        hasSavings: savings > 0,
+        hasExplicitPrices: true,
+        topDiscountBadge: '$mathPercent%',
+      );
+    }
+
+    // Case 3: Only newPrice provided, with valid percentage discount
+    if (rawNew != null && rawOld == null && parsedPercent > 0 && parsedPercent < 100) {
+      final effectiveOriginal = rawNew / (1 - (parsedPercent / 100));
+      final savings = effectiveOriginal - rawNew;
+      final mathPercent = parsedPercent.round();
+      return OfferPricingResult(
+        finalPrice: rawNew,
+        originalPrice: effectiveOriginal,
+        savingsAmount: savings,
+        savingsPercentage: mathPercent,
+        hasSavings: savings > 0,
+        hasExplicitPrices: true,
+        topDiscountBadge: '$mathPercent%',
+      );
+    }
+
+    // Case 4: Single price only (no discount percentage to derive counterpart)
+    if (rawNew != null || rawOld != null) {
+      final single = rawNew ?? rawOld;
+      return OfferPricingResult(
+        finalPrice: single,
+        originalPrice: null,
+        savingsAmount: 0,
+        savingsPercentage: 0,
+        hasSavings: false,
+        hasExplicitPrices: true,
+        topDiscountBadge: parsedPercent > 0 ? '${parsedPercent.toInt()}%' : '',
+      );
+    }
+
+    // Case 5: Store-wide offer with NO specific prices (e.g. 20% off whole store)
+    final badge = parsedPercent > 0
+        ? '${parsedPercent.toInt()}%'
+        : (discountString.trim().isNotEmpty ? discountString.trim() : '');
+    return OfferPricingResult(
+      finalPrice: null,
+      originalPrice: null,
+      savingsAmount: 0,
+      savingsPercentage: parsedPercent.round(),
+      hasSavings: false,
+      hasExplicitPrices: false,
+      topDiscountBadge: badge,
     );
   }
 }

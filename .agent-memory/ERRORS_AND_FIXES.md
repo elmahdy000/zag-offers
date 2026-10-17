@@ -50,3 +50,27 @@
 - **Error**: Offer details displayed an old price with strikethrough (e.g. `3000 ج.م` struck out) with no current price next to it because `newPrice` in DB was null.
 - **Root Cause**: Strikethrough was unconditionally tied to `hasOldPrice` rather than the existence of both an old price AND a lower new price.
 - **Fix**: Calculate `effectiveNewPrice = oldPrice * (1 - discountPercentage / 100)` when only `oldPrice` and `discountPercentage` exist. Only apply strikethrough if `effectiveOldPrice > effectiveNewPrice`.
+
+---
+
+## 5. Touch Event Interception by Full-Screen Stack Overlays
+- **Error**: Tapping on the hero image carousel in `OfferDetailPage` failed to trigger the full-screen modal GestureDetector.
+- **Root Cause**: A `DecoratedBox` providing a subtle top/bottom gradient overlay was placed above `PageView` inside the `Stack` without `IgnorePointer`, capturing touch gestures.
+- **Fix**: Wrap visual overlays, gradients, and non-interactive indicators inside `IgnorePointer`:
+  ```dart
+  const IgnorePointer(
+    child: DecoratedBox(decoration: BoxDecoration(...)),
+  )
+  ```
+- **Prevention Invariant**: Any decorative element or container placed on top of interactive widgets in a `Stack` MUST be wrapped in `IgnorePointer`.
+
+---
+
+## 6. RTL Inversion of ASCII Fraction Counters and Enclosed Percentages
+- **Error**: Gallery counters rendered as `3 / 1` instead of `1 / 3`, and savings percentages inverted parenthesis placement.
+- **Root Cause**: BiDi algorithm flips characters when ASCII numerals and slashes or parentheses appear in an Arabic RTL paragraph context.
+- **Fix**: Enforce `textDirection: TextDirection.ltr` on all fraction and percentage tokens:
+  ```dart
+  Text('${currentIndex + 1} / ${images.length}', textDirection: TextDirection.ltr)
+  ```
+- **Prevention Invariant**: Any numeric label containing slashes, hyphens, or brackets must explicitly declare `TextDirection.ltr`.

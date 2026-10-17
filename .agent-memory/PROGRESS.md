@@ -24,17 +24,15 @@
 - Monospaced code container: `ZAG-XXXXXX` strictly LTR with instant haptic copy feedback.
 - Two distinct action buttons: Primary `عرض في كوبوناتي 🎟️` (switches to tab 2) and `تم، العودة` (dismisses modal).
 
-### C. Offer Details Screen Modernization (`OfferDetailPage`)
-- **Adaptive Header**: 280px photo carousel with full-screen zoom (`InteractiveViewer`); falls back to 210px elegant navy monogram hero when images are absent (no flat orange blocks).
-- **RTL-Aware Back Button**: Points rightwards in RTL mode (`Icons.arrow_forward_ios_rounded`).
-- **Pricing & Hierarchy**: Real prices, strikethrough logic, and dynamic green savings pill (`وفرت 1200 ج.م (40%)`).
-- **Simplified Location Card**: Deduplicated address, `نسخ العنوان` button, and primary `طريق الوصول` navigation action.
-- **Genuine Expiry Badge**: Neutral calendar badge when validity is > 3 days; amber warning only when <= 3 days; red when expired.
-- **State-Aware Sticky CTA**:
-  - Unclaimed offer: `احصل على الكوبون 🎟️`.
-  - Already claimed & active: `عرض الكوبون 🎟️` (opens modal with existing code; avoids duplicate generation).
-  - Redeemed: `تم استخدام الكوبون ✓` (disabled, emerald tint).
-  - Expired: `انتهت صلاحية العرض` (disabled).
+### C. Offer Details Screen Modernization & Refinement (`OfferDetailPage`)
+- **Mathematical Pricing Consistency**: Implemented `OfferPricingResult` single calculation authority. Formula `((originalPrice - finalPrice) / originalPrice) * 100` eliminates mathematical inconsistencies (e.g. 200 EGP original, 160 EGP final ➜ 20% discount & 40 EGP (20%) savings). Store-wide offers without explicit item prices suppress the product pricing box.
+- **RTL Numeric Integrity**: Strictly enforced `TextDirection.ltr` on percentages e.g. `(20%)` and image page counters `1 / 3` to prevent RTL glyph inversion.
+- **Image Gallery & Full-Screen Zoom**: Synchronized thumbnails with active orange border; swipeable full-screen `PageView` with pinch-to-zoom (`InteractiveViewer`) and non-blocking `IgnorePointer` overlay.
+- **Collapsing Sticky Header**: Fluid scroll transition with preserved button positioning and light system overlay.
+- **Merchant & Location Cards**: Verified store badge, monogram avatar, address deduplication with instant copy feedback, and a filled Egyptian Orange primary `طريق الوصول` button.
+- **Informative Offer Description**: Added compact feature chips (category, limits, flash sale, branch) and high-quality fallback text.
+- **Natural Vertical Flow & Reviews**: Replaced rigid empty sections with a compact inline card, added review timestamps, and optimized spacing rhythm (12-16px).
+- **Used Coupon Bottom State**: Clearly non-interactive emerald container with verification checkmark and timestamp, replacing ambiguous button styling.
 
 ---
 
