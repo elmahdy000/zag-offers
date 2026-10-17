@@ -306,17 +306,17 @@ class _NotificationCard extends StatelessWidget {
   }
 
   Widget _buildLeading(BuildContext context, _CategoryInfo? info) {
-    final t = Theme.of(context);
+    final color = info?.color ?? AppColors.primary;
     return Container(
       width: 48,
       height: 48,
       decoration: BoxDecoration(
-        color: (info?.color ?? AppColors.primary).withValues(alpha: 0.05),
+        color: color.withValues(alpha: 0.12),
         borderRadius: BorderRadius.circular(14),
       ),
       child: Icon(
-        info?.icon ?? Icons.notifications_none_outlined,
-        color: info?.color ?? t.textTheme.bodySmall?.color ?? AppColors.textSecondary,
+        info?.icon ?? Icons.notifications_none_rounded,
+        color: color,
         size: 22,
       ),
     );
@@ -337,48 +337,48 @@ class _NotificationCard extends StatelessWidget {
     if (type == 'NEW_OFFER' || type == 'OFFER_APPROVED') {
       return _CategoryInfo(
         label: area ?? 'عرض جديد',
-        icon: Icons.local_offer_outlined,
-        color: AppColors.textSecondary,
+        icon: Icons.local_offer_rounded,
+        color: AppColors.primary,
       );
     }
 
     if (type == 'DIGEST_NEW_OFFERS') {
       return _CategoryInfo(
         label: 'ملخص العروض',
-        icon: Icons.dashboard_customize_outlined,
-        color: AppColors.textSecondary,
+        icon: Icons.dashboard_customize_rounded,
+        color: AppColors.warning,
       );
     }
     
     if (type == 'COUPON_REDEEMED' || type == 'COUPON_GENERATED' || type == 'COUPON_SHARED') {
       return _CategoryInfo(
         label: 'كوبونات',
-        icon: Icons.confirmation_number_outlined,
-        color: AppColors.textSecondary,
+        icon: Icons.confirmation_number_rounded,
+        color: AppColors.success,
       );
     }
     
     if (type == 'STORE_APPROVED') {
       return _CategoryInfo(
         label: 'المتجر',
-        icon: Icons.storefront_outlined,
-        color: AppColors.textSecondary,
+        icon: Icons.storefront_rounded,
+        color: AppColors.info,
       );
     }
 
     if (type == 'REVIEW_REPLY') {
       return _CategoryInfo(
         label: 'رد التاجر',
-        icon: Icons.reply_outlined,
-        color: AppColors.textSecondary,
+        icon: Icons.reply_rounded,
+        color: const Color(0xFF8B5CF6),
       );
     }
 
     if (type == 'ANNOUNCEMENT') {
       return _CategoryInfo(
         label: 'إعلان',
-        icon: Icons.campaign_outlined,
-        color: AppColors.textSecondary,
+        icon: Icons.campaign_rounded,
+        color: const Color(0xFFEC4899),
       );
     }
 

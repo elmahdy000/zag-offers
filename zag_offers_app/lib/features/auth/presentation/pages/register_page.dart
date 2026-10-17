@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_state.dart';
@@ -74,7 +77,6 @@ class _RegisterPageState extends State<RegisterPage> {
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
     return BlocProvider(
       create: (_) => sl<AuthBloc>(),
       child: BlocListener<AuthBloc, AuthState>(
@@ -105,25 +107,39 @@ class _RegisterPageState extends State<RegisterPage> {
                   children: [
                     Container(
                       width: double.infinity,
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(28),
                       decoration: BoxDecoration(
-                        color: theme.cardColor,
-                        borderRadius: BorderRadius.circular(24),
-                        border: Border.all(color: theme.dividerColor),
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF7E26), AppColors.primary],
+                        ),
+                        borderRadius: BorderRadius.circular(28),
                       ),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Text(
+                          const CircleAvatar(
+                            radius: 28,
+                            backgroundColor: Colors.white24,
+                            child: Icon(
+                              Icons.person_add_alt_1_rounded,
+                              size: 28,
+                              color: Colors.white,
+                            ),
+                          ),
+                          const SizedBox(height: 20),
+                          const Text(
                             'انضم إلينا الآن',
-                            style: theme.textTheme.headlineSmall?.copyWith(
+                            style: TextStyle(
+                              color: Colors.white,
+                              fontSize: 28,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
                           const SizedBox(height: 8),
                           Text(
                             'أنشئ حسابك مرة واحدة وابدأ في حفظ العروض والحصول على الكوبونات مباشرة.',
-                            style: theme.textTheme.bodyMedium?.copyWith(
+                            style: TextStyle(
+                              color: Colors.white.withValues(alpha: 0.9),
                               height: 1.45,
                             ),
                           ),
@@ -196,20 +212,31 @@ class _RegisterPageState extends State<RegisterPage> {
                     BlocBuilder<AuthBloc, AuthState>(
                       buildWhen: (prev, next) => (prev is AuthLoading) != (next is AuthLoading),
                       builder: (context, state) {
-                        return ElevatedButton(
-                          onPressed: state is AuthLoading
+                        return BouncyTap(
+                          onTap: state is AuthLoading
                               ? null
-                              : () => _submit(context),
-                          child: state is AuthLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text('إنشاء الحساب'),
+                              : () {
+                                  HapticFeedback.mediumImpact();
+                                  _submit(context);
+                                },
+                          child: ElevatedButton(
+                            onPressed: state is AuthLoading
+                                ? null
+                                : () {
+                                    HapticFeedback.mediumImpact();
+                                    _submit(context);
+                                  },
+                            child: state is AuthLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('إنشاء الحساب'),
+                          ),
                         );
                       },
                     ),

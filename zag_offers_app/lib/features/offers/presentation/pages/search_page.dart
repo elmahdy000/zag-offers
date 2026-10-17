@@ -290,8 +290,8 @@ class _SearchPageState extends State<SearchPage> {
       width: 96,
       decoration: BoxDecoration(
         color: theme.cardColor.withValues(alpha: 0.8),
-        border: Border(
-          left: BorderSide(
+        border: BorderDirectional(
+          end: BorderSide(
             color: theme.dividerColor.withValues(alpha: 0.1),
             width: 1,
           ),

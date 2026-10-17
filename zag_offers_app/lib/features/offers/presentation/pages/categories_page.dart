@@ -1,8 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
 import 'package:zag_offers_app/core/widgets/glassmorphism_card.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
 import '../bloc/offers_bloc.dart';
 import '../bloc/offers_state.dart';
@@ -38,7 +40,10 @@ class CategoriesPage extends StatelessWidget {
           ),
           child: IconButton(
             icon: const Icon(Icons.arrow_back_ios_new_rounded, size: 18),
-            onPressed: () => Navigator.pop(context),
+            onPressed: () {
+              HapticFeedback.lightImpact();
+              Navigator.pop(context);
+            },
           ),
         ),
       ),
@@ -129,12 +134,10 @@ class CategoriesPage extends StatelessWidget {
                           icon = CategoryUtils.getIcon(cat.name);
                           filterName = cat.name;
 
-                          return GlassmorphismCard(
-                            borderRadius: 28,
-                            opacity: isDark ? 0.4 : 0.7,
-                            padding: EdgeInsets.zero,
-                            borderColor: color.withValues(alpha: 0.2),
+                          return BouncyTap(
+                            scaleFactor: 0.95,
                             onTap: () {
+                              HapticFeedback.lightImpact();
                               Navigator.push(
                                 context,
                                 MaterialPageRoute(
@@ -144,7 +147,12 @@ class CategoriesPage extends StatelessWidget {
                                 ),
                               );
                             },
-                            child: Column(
+                            child: GlassmorphismCard(
+                              borderRadius: 28,
+                              opacity: isDark ? 0.4 : 0.7,
+                              padding: EdgeInsets.zero,
+                              borderColor: color.withValues(alpha: 0.2),
+                              child: Column(
                               mainAxisAlignment: MainAxisAlignment.center,
                               mainAxisSize: MainAxisSize.min,
                               children: [
@@ -194,8 +202,9 @@ class CategoriesPage extends StatelessWidget {
                                 ),
                               ],
                             ),
-                          );
-                        },
+                          ),
+                        );
+                      },
                         childCount: items.length,
                       ),
                     ),

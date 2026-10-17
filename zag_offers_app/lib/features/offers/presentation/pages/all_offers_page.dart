@@ -16,6 +16,7 @@ import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.d
 
 import 'offer_detail_page.dart';
 import 'package:zag_offers_app/core/constants/app_strings.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 
 class AllOffersPage extends StatefulWidget {
   final String? initialCategory;
@@ -227,10 +228,11 @@ class _AllOffersPageState extends State<AllOffersPage> {
                               final isSelected =
                                   _selectedCategory == categoryBackendName;
                               return Padding(
-                                padding: const EdgeInsets.only(right: 16),
-                                child: GestureDetector(
+                                padding: const EdgeInsetsDirectional.only(end: 14),
+                                child: BouncyTap(
+                                  scaleFactor: 0.93,
                                   onTap: () {
-                                    HapticFeedback.lightImpact();
+                                    HapticFeedback.selectionClick();
                                     setState(() => _selectedCategory =
                                         categoryBackendName);
                                     if (!isAll &&
@@ -447,14 +449,34 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   ),
                 ),
                 const SizedBox(height: 24),
-                TextButton(
-                  onPressed: () => _resetAllFilters(context),
-                  child: const Text(
-                    AppStrings.resetAll,
-                    style: TextStyle(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.bold,
-                      fontSize: 13,
+                BouncyTap(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _resetAllFilters(context);
+                  },
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                      ),
+                    ),
+                    child: const Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Icon(Icons.restart_alt_rounded, color: AppColors.primary, size: 18),
+                        SizedBox(width: 8),
+                        Text(
+                          AppStrings.resetAll,
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                            fontSize: 13,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),

@@ -274,7 +274,7 @@ class OfferCard extends StatelessWidget {
                     Icon(
                       Icons.location_on_rounded,
                       size: 11,
-                      color: isDark ? Colors.white54 : AppColors.textSecondary,
+                      color: isDark ? AppColors.textDarkDim : AppColors.textSecondary,
                     ),
                     const SizedBox(width: 2),
                     Flexible(
@@ -285,7 +285,7 @@ class OfferCard extends StatelessWidget {
                         style: GoogleFonts.cairo(
                           fontSize: 10,
                           fontWeight: FontWeight.w600,
-                          color: isDark ? Colors.white54 : AppColors.textSecondary,
+                          color: isDark ? AppColors.textDarkDim : AppColors.textSecondary,
                         ),
                         maxLines: 1,
                         overflow: TextOverflow.ellipsis,
@@ -383,7 +383,7 @@ class OfferCard extends StatelessWidget {
                       style: GoogleFonts.cairo(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? Colors.white38 : Colors.black45,
+                        color: isDark ? AppColors.textDarkDim.withValues(alpha: 0.65) : Colors.black45,
                         decoration: TextDecoration.lineThrough,
                         height: 1.1,
                       ),

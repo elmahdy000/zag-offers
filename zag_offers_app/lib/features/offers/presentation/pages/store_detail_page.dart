@@ -143,14 +143,15 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                           scrollDirection: Axis.horizontal,
                           itemCount: widget.store.images!.length,
                           itemBuilder: (context, index) {
-                            return GestureDetector(
+                            return BouncyTap(
+                              scaleFactor: 0.95,
                               onTap: () {
                                 HapticFeedback.lightImpact();
                                 _showFullScreenGallery(context, index);
                               },
                               child: Container(
                                 width: 160,
-                                margin: const EdgeInsets.only(left: 12),
+                                margin: const EdgeInsetsDirectional.only(end: 12),
                                 decoration: BoxDecoration(
                                   borderRadius: BorderRadius.circular(16),
                                   boxShadow: [

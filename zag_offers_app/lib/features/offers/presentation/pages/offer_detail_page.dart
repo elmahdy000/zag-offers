@@ -593,13 +593,17 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildStoreCard() {
     final theme = Theme.of(context);
-    return GestureDetector(
-      onTap: () => Navigator.push(
-        context,
-        MaterialPageRoute(
-          builder: (context) => StoreDetailPage(store: widget.offer.store),
-        ),
-      ),
+    return BouncyTap(
+      scaleFactor: 0.98,
+      onTap: () {
+        HapticFeedback.lightImpact();
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => StoreDetailPage(store: widget.offer.store),
+          ),
+        );
+      },
       child: Container(
         padding: const EdgeInsets.all(16),
         decoration: BoxDecoration(
@@ -800,28 +804,40 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               ),
               if (store.phone != null && store.phone!.isNotEmpty) ...[
                 const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  onPressed: _callStore,
-                  icon: const Icon(Icons.call_rounded, size: 18),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.blue.withValues(alpha: 0.12),
-                    foregroundColor: Colors.blue.shade700,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                BouncyTap(
+                  scaleFactor: 0.92,
+                  child: IconButton.filledTonal(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _callStore();
+                    },
+                    icon: const Icon(Icons.call_rounded, size: 18),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.blue.withValues(alpha: 0.12),
+                      foregroundColor: Colors.blue.shade700,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    tooltip: 'اتصال',
                   ),
-                  tooltip: 'اتصال',
                 ),
               ],
               if ((store.whatsapp ?? store.phone) != null) ...[
                 const SizedBox(width: 8),
-                IconButton.filledTonal(
-                  onPressed: _whatsappStore,
-                  icon: const Icon(Icons.chat_rounded, size: 18),
-                  style: IconButton.styleFrom(
-                    backgroundColor: Colors.green.withValues(alpha: 0.12),
-                    foregroundColor: Colors.green.shade700,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                BouncyTap(
+                  scaleFactor: 0.92,
+                  child: IconButton.filledTonal(
+                    onPressed: () {
+                      HapticFeedback.lightImpact();
+                      _whatsappStore();
+                    },
+                    icon: const Icon(Icons.chat_rounded, size: 18),
+                    style: IconButton.styleFrom(
+                      backgroundColor: Colors.green.withValues(alpha: 0.12),
+                      foregroundColor: Colors.green.shade700,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    tooltip: 'واتساب',
                   ),
-                  tooltip: 'واتساب',
                 ),
               ],
             ],

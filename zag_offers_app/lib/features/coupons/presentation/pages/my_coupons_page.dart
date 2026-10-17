@@ -75,16 +75,16 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     super.dispose();
   }
 
-  Color _getStatusColor(String status) {
+  Color _getStatusColor(String status, [bool isDark = false]) {
     switch (status) {
       case 'GENERATED':
-        return Colors.green;
+        return AppColors.success;
       case 'USED':
-        return Colors.blueGrey;
+        return isDark ? const Color(0xFF94A3B8) : Colors.blueGrey;
       case 'EXPIRED':
-        return Colors.red;
+        return AppColors.error;
       default:
-        return AppColors.textPrimary;
+        return isDark ? Colors.white70 : AppColors.textPrimary;
     }
   }
 

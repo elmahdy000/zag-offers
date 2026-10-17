@@ -13,7 +13,7 @@ import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.da
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
 import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
-import 'package:zag_offers_app/features/offers/presentation/pages/all_offers_page.dart';
+import 'package:zag_offers_app/features/offers/presentation/pages/search_page.dart';
 
 import 'package:zag_offers_app/features/offers/presentation/widgets/ads_slider.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/categories_section.dart';
@@ -467,13 +467,14 @@ class _HomePageState extends State<HomePage> {
 
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 20),
-      child: GestureDetector(
+      child: BouncyTap(
+        scaleFactor: 0.98,
         onTap: () {
           HapticFeedback.lightImpact();
           Navigator.push(
             context,
             MaterialPageRoute(
-              builder: (context) => const AllOffersPage(),
+              builder: (context) => const SearchPage(),
             ),
           );
         },
@@ -511,7 +512,7 @@ class _HomePageState extends State<HomePage> {
                 child: Text(
                   'بتدور على مطعم، كافيه، أو براند معين؟',
                   style: theme.textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary.withValues(alpha: 0.85),
+                    color: isDark ? AppColors.textDarkDim : AppColors.textSecondary.withValues(alpha: 0.85),
                     fontSize: 13,
                     fontWeight: FontWeight.w500,
                   ),
@@ -585,9 +586,9 @@ class _HomePageState extends State<HomePage> {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
         decoration: BoxDecoration(
-          color: Colors.green.withValues(alpha: 0.05),
+          color: AppColors.success.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(30),
-          border: Border.all(color: Colors.green.withValues(alpha: 0.1)),
+          border: Border.all(color: AppColors.success.withValues(alpha: 0.18)),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -596,7 +597,7 @@ class _HomePageState extends State<HomePage> {
               width: 8,
               height: 8,
               decoration: const BoxDecoration(
-                color: Colors.green,
+                color: AppColors.success,
                 shape: BoxShape.circle,
               ),
             ),
@@ -604,7 +605,7 @@ class _HomePageState extends State<HomePage> {
             Text(
               'مباشر: $offersCount عرض متاح الآن',
               style: textTheme.labelSmall?.copyWith(
-                    color: Colors.green,
+                    color: AppColors.success,
                     fontWeight: FontWeight.bold,
                   ),
             ),
@@ -615,22 +616,30 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildNoticeBanner(BuildContext context, String message) {
-    final textTheme = Theme.of(context).textTheme;
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
-          color: Colors.orange.withValues(alpha: 0.08),
+          color: isDark
+              ? AppColors.warning.withValues(alpha: 0.14)
+              : AppColors.warning.withValues(alpha: 0.08),
           borderRadius: BorderRadius.circular(14),
-          border: Border.all(color: Colors.orange.withValues(alpha: 0.18)),
+          border: Border.all(
+            color: isDark
+                ? AppColors.warning.withValues(alpha: 0.28)
+                : AppColors.warning.withValues(alpha: 0.2),
+          ),
         ),
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Icon(
               Icons.info_outline_rounded,
-              color: Colors.orange[800],
+              color: isDark ? const Color(0xFFFDE68A) : const Color(0xFFC2410C),
               size: 18,
             ),
             const SizedBox(width: 10),
@@ -638,7 +647,7 @@ class _HomePageState extends State<HomePage> {
               child: Text(
                 message,
                 style: textTheme.labelSmall?.copyWith(
-                  color: Colors.orange[900],
+                  color: isDark ? const Color(0xFFFEF3C7) : const Color(0xFF9A3412),
                   fontWeight: FontWeight.w700,
                   height: 1.4,
                 ),
@@ -830,7 +839,6 @@ class _HomeErrorState extends StatelessWidget {
               isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل المحتوى',
               style: textTheme.headlineSmall?.copyWith(
                 fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
               ),
             ),
             const SizedBox(height: 12),
