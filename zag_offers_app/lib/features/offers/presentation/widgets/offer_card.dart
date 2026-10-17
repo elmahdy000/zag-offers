@@ -26,7 +26,7 @@ class OfferCard extends StatelessWidget {
     
     return Container(
       width: isWide ? null : 285,
-      margin: const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+      margin: isWide ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
       decoration: BoxDecoration(
         color: theme.cardColor,
         borderRadius: BorderRadius.circular(22),
@@ -272,39 +272,35 @@ class OfferCard extends StatelessWidget {
           const SizedBox(height: 4),
           // Area & Live Interest Stats
           Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
-              Row(
-                children: [
-                  Icon(
-                    Icons.location_on_rounded,
-                    size: 11,
-                    color: isDark ? Colors.white54 : AppColors.textSecondary,
-                  ),
-                  const SizedBox(width: 2),
-                  Text(
-                    offer.store.area.isNotEmpty ? offer.store.area : 'الزقازيق',
-                    style: GoogleFonts.cairo(
-                      fontSize: 10,
-                      fontWeight: FontWeight.w600,
+              Expanded(
+                child: Row(
+                  children: [
+                    Icon(
+                      Icons.location_on_rounded,
+                      size: 11,
                       color: isDark ? Colors.white54 : AppColors.textSecondary,
                     ),
-                  ),
-                  if (offer.store.category != null && offer.store.category!.isNotEmpty) ...[
-                    Text(
-                      ' • ${offer.store.category}',
-                      style: GoogleFonts.cairo(
-                        fontSize: 10,
-                        fontWeight: FontWeight.w500,
-                        color: isDark ? Colors.white38 : Colors.grey,
+                    const SizedBox(width: 2),
+                    Flexible(
+                      child: Text(
+                        offer.store.category != null && offer.store.category!.isNotEmpty
+                            ? '${offer.store.area.isNotEmpty ? offer.store.area : "الزقازيق"} • ${offer.store.category}'
+                            : (offer.store.area.isNotEmpty ? offer.store.area : 'الزقازيق'),
+                        style: GoogleFonts.cairo(
+                          fontSize: 10,
+                          fontWeight: FontWeight.w600,
+                          color: isDark ? Colors.white54 : AppColors.textSecondary,
+                        ),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                       ),
                     ),
                   ],
-                ],
+                ),
               ),
-              Row(
-                children: _buildLiveStats(isDark),
-              ),
+              const SizedBox(width: 4),
+              ..._buildLiveStats(isDark),
             ],
           ),
         ],
@@ -423,7 +419,10 @@ class OfferCard extends StatelessWidget {
             ),
           // Chic Voucher Action Pill
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 6.5),
+            padding: EdgeInsets.symmetric(
+              horizontal: isWide ? 9 : 13,
+              vertical: isWide ? 5 : 6.5,
+            ),
             decoration: BoxDecoration(
               gradient: const LinearGradient(
                 colors: [AppColors.primary, Color(0xFFFF8C35)],
@@ -447,14 +446,14 @@ class OfferCard extends StatelessWidget {
                   style: GoogleFonts.cairo(
                     color: Colors.white,
                     fontWeight: FontWeight.w800,
-                    fontSize: 11.5,
+                    fontSize: isWide ? 10.5 : 11.5,
                     height: 1.1,
                   ),
                 ),
                 const SizedBox(width: 4),
                 const Icon(
                   Icons.arrow_back_ios_new_rounded,
-                  size: 10,
+                  size: 9,
                   color: Colors.white,
                 ),
               ],

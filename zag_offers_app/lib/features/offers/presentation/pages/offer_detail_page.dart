@@ -427,7 +427,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             color: theme.scaffoldBackgroundColor,
             borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
           ),
-          padding: const EdgeInsets.fromLTRB(24, 32, 24, 140),
+          padding: EdgeInsets.fromLTRB(
+            24,
+            32,
+            24,
+            160 + MediaQuery.of(context).padding.bottom,
+          ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
@@ -918,8 +923,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildStickyActionArea(String usageCount) {
     final textTheme = Theme.of(context).textTheme;
+    final bottomInset = MediaQuery.of(context).padding.bottom;
     return Positioned(
-      bottom: 20,
+      bottom: bottomInset > 0 ? bottomInset + 8 : 20,
       left: 20,
       right: 20,
       child: FutureBuilder<bool>(

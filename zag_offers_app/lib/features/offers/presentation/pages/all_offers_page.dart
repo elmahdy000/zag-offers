@@ -474,10 +474,10 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 ? 1
                 : 2;
     final double childAspectRatio = screenWidth > 600
-        ? 0.78
+        ? 0.76
         : screenWidth < 360
-            ? 0.64
-            : 0.67;
+            ? 0.56
+            : 0.58;
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),

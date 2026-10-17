@@ -4,7 +4,6 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
-import 'package:zag_offers_app/core/constants/app_constants.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
@@ -12,7 +11,6 @@ import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dar
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_state.dart';
 import 'package:zag_offers_app/features/notifications/presentation/bloc/notification_bloc.dart';
-import 'package:zag_offers_app/features/offers/presentation/pages/map_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/all_offers_page.dart';
 
@@ -64,6 +62,121 @@ class _HomePageState extends State<HomePage> {
         _sortBy = result['sortBy'];
       });
     }
+  }
+
+  void _showAreaPickerSheet(BuildContext context) {
+    HapticFeedback.lightImpact();
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final areas = [
+      {'name': 'الكل', 'desc': 'كل أحياء وعروض الزقازيق', 'icon': Icons.stars_rounded},
+      {'name': 'القومية', 'desc': 'أشهر المطاعم والكافيهات والبراندات', 'icon': Icons.restaurant_rounded},
+      {'name': 'فلل الجامعة', 'desc': 'أماكن روقان وكافيهات شبابية هادئة', 'icon': Icons.coffee_rounded},
+      {'name': 'طلبة عويضة', 'desc': 'أكلات سريعة وساندوتشات وجبات خفيفة', 'icon': Icons.lunch_dining_rounded},
+      {'name': 'المشاية', 'desc': 'إطلالة بحر مويس وخروجات رايقة', 'icon': Icons.water_rounded},
+      {'name': 'شارع المحافظة', 'desc': 'محلات وسط البلد ومستلزمات التسوق', 'icon': Icons.storefront_rounded},
+      {'name': 'المنتزه', 'desc': 'أماكن عائلية وأنشطة ترفيهية', 'icon': Icons.attractions_rounded},
+      {'name': 'حي الزهور', 'desc': 'خدمات وأسواق متنوعة', 'icon': Icons.local_florist_rounded},
+      {'name': 'الصيادين', 'desc': 'محلات وتجارة وخدمات محلية', 'icon': Icons.local_offer_rounded},
+    ];
+
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: isDark ? const Color(0xFF1E1E24) : Colors.white,
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
+      ),
+      builder: (ctx) => Padding(
+        padding: const EdgeInsets.fromLTRB(20, 16, 20, 32),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Center(
+              child: Container(
+                width: 44,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: Colors.grey.withValues(alpha: 0.3),
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+            ),
+            const SizedBox(height: 18),
+            Row(
+              children: [
+                Container(
+                  padding: const EdgeInsets.all(8),
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(10),
+                  ),
+                  child: const Icon(Icons.location_on_rounded, color: AppColors.primary, size: 20),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      const Text(
+                        'اختر منطقتك في الزقازيق 📍',
+                        style: TextStyle(fontWeight: FontWeight.bold, fontSize: 16),
+                      ),
+                      Text(
+                        'هنظهرلك العروض والمطاعم الأقرب ليك',
+                        style: TextStyle(fontSize: 12, color: Colors.grey),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 16),
+            Flexible(
+              child: ListView.separated(
+                shrinkWrap: true,
+                itemCount: areas.length,
+                separatorBuilder: (_, __) => const Divider(height: 1),
+                itemBuilder: (ctx, i) {
+                  final area = areas[i];
+                  final isSelected = _currentArea == area['name'];
+                  return ListTile(
+                    contentPadding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
+                    leading: CircleAvatar(
+                      backgroundColor: isSelected
+                          ? AppColors.primary
+                          : (isDark ? Colors.white10 : Colors.grey.shade100),
+                      foregroundColor: isSelected ? Colors.white : AppColors.primary,
+                      child: Icon(area['icon'] as IconData, size: 18),
+                    ),
+                    title: Text(
+                      area['name'] as String,
+                      style: TextStyle(
+                        fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+                        color: isSelected ? AppColors.primary : null,
+                      ),
+                    ),
+                    subtitle: Text(
+                      area['desc'] as String,
+                      style: const TextStyle(fontSize: 11, color: Colors.grey),
+                    ),
+                    trailing: isSelected
+                        ? const Icon(Icons.check_circle_rounded, color: AppColors.primary)
+                        : null,
+                    onTap: () {
+                      HapticFeedback.lightImpact();
+                      setState(() {
+                        _currentArea = area['name'] as String;
+                      });
+                      Navigator.pop(ctx);
+                    },
+                  );
+                },
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   @override
@@ -171,7 +284,6 @@ class _HomePageState extends State<HomePage> {
   }
 
   Widget _buildSliverAppBar(BuildContext context, OffersLoaded state) {
-    final canOpenMap = AppConstants.mapsEnabled;
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
 
@@ -203,31 +315,35 @@ class _HomePageState extends State<HomePage> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-            decoration: BoxDecoration(
-              color: AppColors.primary.withValues(alpha: 0.1),
-              borderRadius: BorderRadius.circular(20),
-              border: Border.all(
-                color: AppColors.primary.withValues(alpha: 0.22),
-                width: 0.8,
-              ),
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                const Icon(IconlyBold.location, color: AppColors.primary, size: 14),
-                const SizedBox(width: 4),
-                Text(
-                  'الزقازيق، الشرقية',
-                  style: theme.textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white : AppColors.textPrimary,
-                  ),
+          InkWell(
+            onTap: () => _showAreaPickerSheet(context),
+            borderRadius: BorderRadius.circular(20),
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.1),
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.22),
+                  width: 0.8,
                 ),
-                const SizedBox(width: 2),
-                const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.primary),
-              ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const Icon(IconlyBold.location, color: AppColors.primary, size: 14),
+                  const SizedBox(width: 4),
+                  Text(
+                    _currentArea == 'الكل' ? 'الزقازيق، الشرقية' : '$_currentArea، الزقازيق',
+                    style: theme.textTheme.labelMedium?.copyWith(
+                      fontWeight: FontWeight.w800,
+                      color: isDark ? Colors.white : AppColors.textPrimary,
+                    ),
+                  ),
+                  const SizedBox(width: 2),
+                  const Icon(Icons.keyboard_arrow_down_rounded, size: 16, color: AppColors.primary),
+                ],
+              ),
             ),
           ),
           const SizedBox(height: 3),
@@ -315,20 +431,10 @@ class _HomePageState extends State<HomePage> {
           ),
           child: IconButton(
             icon: const Icon(Icons.explore_rounded, color: AppColors.primary, size: 22),
-            tooltip: 'استكشف العروض على الرادار',
+            tooltip: 'تصفح عروض أحياء الزقازيق',
             onPressed: () {
               HapticFeedback.lightImpact();
-              if (canOpenMap) {
-                 Navigator.push(
-                   context,
-                   MaterialPageRoute(
-                     builder: (context) => MapPage(
-                       stores: state.featuredStores,
-                       offers: state.allOffers,
-                     ),
-                   ),
-                 );
-              }
+              _showAreaPickerSheet(context);
             },
           ),
         ),
