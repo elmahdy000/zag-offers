@@ -126,15 +126,21 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     double? newPrice,
     String? offerTitle,
     String? storeLogo,
+    String? storeArea,
+    String? discount,
+    String status = 'GENERATED',
   }) {
     CouponCelebrationDialog.show(
       context: context,
       code: code,
       storeName: storeName,
       storeLogo: storeLogo,
+      storeArea: storeArea,
       offerTitle: offerTitle ?? 'كوبون خصم Zag Offers',
       newPrice: newPrice,
       oldPrice: oldPrice,
+      discount: discount,
+      status: status,
     );
   }
 
@@ -934,9 +940,12 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                 coupon.code,
                                 store.name,
                                 storeLogo: store.logo,
+                                storeArea: store.area,
                                 offerTitle: offer.title,
                                 oldPrice: offer.oldPrice,
                                 newPrice: offer.newPrice,
+                                discount: offer.discount,
+                                status: coupon.status,
                               );
                             },
                             icon: const Icon(

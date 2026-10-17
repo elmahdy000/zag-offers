@@ -2,12 +2,11 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:intl/intl.dart';
+import 'package:intl/intl.dart' hide TextDirection;
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams;
 import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
-import '../../../../core/utils/category_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/services/socket_service.dart';
@@ -22,11 +21,15 @@ import '../../domain/entities/offer_entity.dart';
 import '../widgets/favorite_button.dart';
 import '../../../favorites/presentation/bloc/favorites_bloc.dart';
 import 'package:zag_offers_app/core/constants/app_strings.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'store_detail_page.dart';
 import '../../data/datasources/offers_remote_data_source.dart';
 import '../widgets/flash_sale_badge.dart';
 import '../../../../core/widgets/coupon_celebration_dialog.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
+import '../../../coupons/domain/entities/coupon_entity.dart';
+import '../../../home/presentation/pages/main_screen.dart';
+import '../../../../core/utils/navigation_service.dart';
 
 class OfferDetailPage extends StatefulWidget {
   final OfferEntity offer;
@@ -46,6 +49,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   late final PageController _pageController;
   StreamSubscription<Map<String, dynamic>>? _reviewReplySubscription;
   Timer? _flashSaleTimer;
+  List<CouponEntity> _userCoupons = [];
+
+  CouponEntity? get _existingCoupon {
+    for (final c in _userCoupons) {
+      if (c.offer.id == widget.offer.id) return c;
+    }
+    return null;
+  }
 
   List<String> get _allImages {
     final images = widget.offer.images ?? [];
@@ -60,7 +71,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     super.initState();
     _reviewsBloc = sl<ReviewsBloc>()
       ..add(FetchStoreReviews(widget.offer.store.id));
-    _couponsBloc = sl<CouponsBloc>();
+    _couponsBloc = sl<CouponsBloc>()..add(FetchUserCoupons());
     _commentController = TextEditingController();
     _canGenerateCouponFuture = _canGenerateCoupon();
     _pageController = PageController(initialPage: _selectedImageIndex);
@@ -199,7 +210,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         listeners: [
           BlocListener<CouponsBloc, CouponsState>(
             listenWhen: (_, current) =>
-                current is CouponsError || current is CouponGeneratedSuccess,
+                current is CouponsError ||
+                current is CouponGeneratedSuccess ||
+                current is UserCouponsLoaded,
             listener: _onCouponStateChange,
           ),
           BlocListener<ReviewsBloc, ReviewsState>(
@@ -244,22 +257,39 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   void _onCouponStateChange(BuildContext context, CouponsState state) {
+    if (state is UserCouponsLoaded) {
+      if (mounted) {
+        setState(() => _userCoupons = state.coupons);
+      }
+    }
     if (state is CouponsError) {
       SnackBarUtils.showError(context, state.message);
     }
     if (state is CouponGeneratedSuccess) {
-      _showCouponDialog(context, state.coupon.code);
+      if (mounted) {
+        setState(() {
+          _userCoupons.removeWhere((c) => c.offer.id == widget.offer.id);
+          _userCoupons.insert(0, state.coupon);
+        });
+      }
+      _showCouponDialog(context, state.coupon.code, status: state.coupon.status);
     }
   }
 
   Widget _buildSliverAppBar() {
+    final hasImages = _allImages.isNotEmpty;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SliverAppBar(
-      expandedHeight: 350,
+      expandedHeight: hasImages ? 280 : 210,
       pinned: true,
       stretch: true,
-      backgroundColor: AppColors.primary,
+      backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF131B2A),
       leading: _buildCircleIconButton(
-        icon: Icons.arrow_back_ios_new_rounded,
+        icon: Directionality.of(context) == TextDirection.rtl
+            ? Icons.arrow_forward_ios_rounded
+            : Icons.arrow_back_ios_new_rounded,
         onPressed: () => Navigator.pop(context),
       ),
       actions: [
@@ -283,15 +313,32 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     required VoidCallback onPressed,
   }) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     return Container(
       margin: const EdgeInsets.all(8),
       decoration: BoxDecoration(
-        color: theme.cardColor,
+        color: (isDark ? const Color(0xFF131B2A) : Colors.white)
+            .withValues(alpha: 0.85),
         shape: BoxShape.circle,
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.15)
+              : Colors.black.withValues(alpha: 0.08),
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.18),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
       ),
       child: IconButton(
-        icon: Icon(icon, size: 18, color: theme.iconTheme.color),
+        icon: Icon(
+          icon,
+          size: 17,
+          color: isDark ? Colors.white : AppColors.textPrimary,
+        ),
         onPressed: onPressed,
       ),
     );
@@ -299,6 +346,102 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildAppBarBackground() {
     final images = _allImages;
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
+    if (images.isEmpty) {
+      final initial = widget.offer.store.name.trim().isNotEmpty
+          ? widget.offer.store.name.trim().characters.first
+          : 'Z';
+
+      return Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: isDark
+                ? [
+                    const Color(0xFF1E293B),
+                    const Color(0xFF0F172A),
+                  ]
+                : [
+                    const Color(0xFF131B2A),
+                    const Color(0xFF1E293B),
+                  ],
+          ),
+        ),
+        child: SafeArea(
+          bottom: false,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                const SizedBox(height: 16),
+                Container(
+                  width: 72,
+                  height: 72,
+                  decoration: BoxDecoration(
+                    color: AppColors.primary.withValues(alpha: 0.15),
+                    shape: BoxShape.circle,
+                    border: Border.all(
+                      color: AppColors.primary.withValues(alpha: 0.4),
+                      width: 2,
+                    ),
+                    boxShadow: [
+                      BoxShadow(
+                        color: AppColors.primary.withValues(alpha: 0.25),
+                        blurRadius: 18,
+                        offset: const Offset(0, 4),
+                      ),
+                    ],
+                  ),
+                  child: Center(
+                    child: widget.offer.store.logo != null &&
+                            widget.offer.store.logo!.isNotEmpty
+                        ? ClipOval(
+                            child: NetworkImageWidget(
+                              imageUrl: widget.offer.store.logo!,
+                              width: 72,
+                              height: 72,
+                              fit: BoxFit.cover,
+                            ),
+                          )
+                        : Text(
+                            initial,
+                            style: GoogleFonts.cairo(
+                              color: AppColors.primary,
+                              fontSize: 32,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                  ),
+                ),
+                const SizedBox(height: 10),
+                Text(
+                  widget.offer.store.name,
+                  style: const TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 16,
+                  ),
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 4),
+                Text(
+                  'الزقازيق • ${widget.offer.store.area}',
+                  style: TextStyle(
+                    color: Colors.white.withValues(alpha: 0.7),
+                    fontWeight: FontWeight.w600,
+                    fontSize: 12,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
 
     return Stack(
       fit: StackFit.expand,
@@ -348,7 +491,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               colors: [
                 Colors.black45,
                 Colors.transparent,
-                Colors.black45,
+                Colors.black54,
               ],
             ),
           ),
@@ -411,42 +554,42 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildContentSection(String usageCount) {
     final theme = Theme.of(context);
+    final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return SliverToBoxAdapter(
       child: Transform.translate(
-        offset: const Offset(0, -30),
+        offset: const Offset(0, -28),
         child: Container(
           decoration: BoxDecoration(
             color: theme.scaffoldBackgroundColor,
-            borderRadius: const BorderRadius.vertical(top: Radius.circular(32)),
+            borderRadius: const BorderRadius.vertical(top: Radius.circular(28)),
           ),
           padding: EdgeInsets.fromLTRB(
+            18,
             24,
-            32,
-            24,
-            160 + MediaQuery.of(context).padding.bottom,
+            18,
+            170 + bottomInset,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_allImages.length > 1) _buildThumbnailsRow(),
-              if (_allImages.length > 1) const SizedBox(height: 24),
-              _buildStatsRow(usageCount),
-              const SizedBox(height: 24),
-              _buildTitleSection(),
-              const SizedBox(height: 20),
+              if (_allImages.length > 1) const SizedBox(height: 18),
+              _buildOfferHeaderHierarchy(usageCount),
+              const SizedBox(height: 18),
               _buildStoreCard(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildStoreLocationCard(),
-              const SizedBox(height: 28),
+              const SizedBox(height: 22),
               _buildDescriptionSection(),
               if (widget.offer.terms != null &&
                   widget.offer.terms!.isNotEmpty) ...[
-                const SizedBox(height: 24),
+                const SizedBox(height: 18),
                 _buildTermsSection(),
               ],
-              const SizedBox(height: 24),
+              const SizedBox(height: 18),
               _buildExpirySection(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 26),
               _buildReviewsSection(),
             ],
           ),
@@ -455,136 +598,200 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildStatsRow(String usageCount) {
-    final theme = Theme.of(context);
-    final textTheme = theme.textTheme;
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        Container(
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
-          decoration: BoxDecoration(
-            color: AppColors.primary,
-            borderRadius: BorderRadius.circular(12),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.25),
-                blurRadius: 8,
-                offset: const Offset(0, 4),
-              ),
-            ],
-          ),
-          child: Text(
-            widget.offer.discount.isNotEmpty
-                ? (widget.offer.discount.contains('%')
-                    ? widget.offer.discount
-                    : '${widget.offer.discount}%')
-                : 'عرض مميز',
-            style: textTheme.labelMedium?.copyWith(
-              color: Colors.white,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-        ),
-        Row(
-          children: [
-            Row(
-              children: [
-                Icon(Icons.remove_red_eye_outlined,
-                    color: theme.hintColor, size: 18),
-                const SizedBox(width: 4),
-                Text(
-                  '${widget.offer.viewCount} مشاهدة',
-                  style: textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: theme.hintColor,
-                  ),
-                ),
-              ],
-            ),
-            const SizedBox(width: 16),
-            Row(
-              children: [
-                const Icon(Icons.flash_on_rounded,
-                    color: Colors.orange, size: 18),
-                const SizedBox(width: 4),
-                Text(
-                  usageCount,
-                  style: textTheme.labelMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                  ),
-                ),
-              ],
-            ),
-          ],
-        ),
-      ],
-    );
+  double? get _effectiveNewPrice {
+    double? newP = widget.offer.newPrice;
+    final oldP = widget.offer.oldPrice;
+    if (newP == null && oldP != null && widget.offer.discountPercentage > 0) {
+      if (widget.offer.discount.contains('%')) {
+        newP = oldP * (1 - (widget.offer.discountPercentage / 100));
+      } else {
+        newP = oldP - widget.offer.discountPercentage;
+      }
+    } else if (newP == null && oldP != null) {
+      newP = oldP;
+    }
+    return newP;
   }
 
-  Widget _buildTitleSection() {
-    final textTheme = Theme.of(context).textTheme;
-    double? displayNewPrice = widget.offer.newPrice;
-    double? displayOldPrice = widget.offer.oldPrice;
-
-    if (displayOldPrice == null &&
-        displayNewPrice != null &&
-        widget.offer.discountPercentage > 0) {
+  double? get _effectiveOldPrice {
+    final newP = widget.offer.newPrice;
+    double? oldP = widget.offer.oldPrice;
+    if (oldP == null && newP != null && widget.offer.discountPercentage > 0) {
       if (widget.offer.discount.contains('%')) {
-        displayOldPrice =
-            displayNewPrice / (1 - (widget.offer.discountPercentage / 100));
+        oldP = newP / (1 - (widget.offer.discountPercentage / 100));
       } else {
-        displayOldPrice = displayNewPrice + widget.offer.discountPercentage;
-      }
-    } else if (displayNewPrice == null &&
-        displayOldPrice != null &&
-        widget.offer.discountPercentage > 0) {
-      if (widget.offer.discount.contains('%')) {
-        displayNewPrice =
-            displayOldPrice * (1 - (widget.offer.discountPercentage / 100));
-      } else {
-        displayNewPrice = displayOldPrice - widget.offer.discountPercentage;
+        oldP = newP + widget.offer.discountPercentage;
       }
     }
-
-    if (displayNewPrice == displayOldPrice) {
-      displayOldPrice = null;
+    if (oldP != null && _effectiveNewPrice != null && (oldP - _effectiveNewPrice!).abs() < 0.01) {
+      return null;
     }
+    return oldP;
+  }
+
+  Widget _buildOfferHeaderHierarchy(String usageCount) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final discountStr = widget.offer.discount.isNotEmpty
+        ? (widget.offer.discount.contains('%')
+            ? widget.offer.discount
+            : '${widget.offer.discount}%')
+        : (widget.offer.discountPercentage > 0
+            ? '${widget.offer.discountPercentage.toInt()}%'
+            : '');
+
+    final displayNewPrice = _effectiveNewPrice;
+    final displayOldPrice = _effectiveOldPrice;
+    final hasNewPrice = displayNewPrice != null && displayNewPrice > 0;
+    final hasOldPrice = displayOldPrice != null && displayOldPrice > 0;
+    final hasSavings = hasNewPrice && hasOldPrice && displayOldPrice > displayNewPrice;
+    final savings = hasSavings ? (displayOldPrice - displayNewPrice) : 0.0;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // 1. Top Meta: Prominent Discount Badge + Subtle Views
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            if (discountStr.isNotEmpty)
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                decoration: BoxDecoration(
+                  gradient: const LinearGradient(
+                    colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                  ),
+                  borderRadius: BorderRadius.circular(10),
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.28),
+                      blurRadius: 8,
+                      offset: const Offset(0, 3),
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    const Icon(Icons.local_offer_rounded, color: Colors.white, size: 14),
+                    const SizedBox(width: 5),
+                    Text(
+                      'خصم $discountStr',
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                  ],
+                ),
+              )
+            else
+              const SizedBox(),
+            // Secondary metrics (Views & Usage)
+            Row(
+              children: [
+                Icon(
+                  Icons.remove_red_eye_outlined,
+                  size: 15,
+                  color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                ),
+                const SizedBox(width: 4),
+                Text(
+                  '${widget.offer.viewCount} مشاهدة',
+                  style: TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.w600,
+                    color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                  ),
+                ),
+                if (usageCount.isNotEmpty) ...[
+                  const SizedBox(width: 12),
+                  const Icon(Icons.bolt_rounded, size: 15, color: Colors.amber),
+                  const SizedBox(width: 2),
+                  Text(
+                    usageCount,
+                    style: TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.w600,
+                      color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ],
+        ),
+
+        const SizedBox(height: 12),
+
+        // 2. Offer Title
         Text(
           widget.offer.title,
-          style: textTheme.titleLarge?.copyWith(
-            fontWeight: FontWeight.bold,
-            height: 1.4,
+          style: theme.textTheme.titleLarge?.copyWith(
+            fontWeight: FontWeight.w900,
+            fontSize: 20,
+            height: 1.35,
           ),
         ),
-        if (displayOldPrice != null || displayNewPrice != null) ...[
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              if (displayNewPrice != null)
-                Text(
-                  '${displayNewPrice.toStringAsFixed(0)} ج.م',
-                  style: textTheme.headlineSmall?.copyWith(
-                    color: AppColors.primary,
-                    fontWeight: FontWeight.w900,
+
+        // 3. Pricing & Savings (Only from actual data, no inferred prices)
+        if (hasNewPrice || hasOldPrice) ...[
+          const SizedBox(height: 12),
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            decoration: BoxDecoration(
+              color: isDark ? const Color(0xFF162032) : const Color(0xFFF8FAFC),
+              borderRadius: BorderRadius.circular(14),
+              border: Border.all(
+                color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade200,
+              ),
+            ),
+            child: Row(
+              children: [
+                if (hasNewPrice) ...[
+                  Text(
+                    '${displayNewPrice.toStringAsFixed(0)} ج.م',
+                    style: const TextStyle(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 22,
+                    ),
                   ),
-                ),
-              if (displayOldPrice != null) ...[
-                const SizedBox(width: 12),
-                Text(
-                  '${displayOldPrice.toStringAsFixed(0)} ج.م',
-                  style: textTheme.titleMedium?.copyWith(
-                    color: textTheme.bodySmall?.color?.withValues(alpha: 0.5),
-                    decoration: TextDecoration.lineThrough,
-                    fontWeight: FontWeight.bold,
+                ],
+                if (hasOldPrice) ...[
+                  const SizedBox(width: 10),
+                  Text(
+                    '${displayOldPrice.toStringAsFixed(0)} ج.م',
+                    style: TextStyle(
+                      decoration: TextDecoration.lineThrough,
+                      color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 15,
+                    ),
                   ),
-                ),
+                ],
+                const Spacer(),
+                if (hasSavings) ...[
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                    decoration: BoxDecoration(
+                      color: const Color(0x1810B981),
+                      borderRadius: BorderRadius.circular(8),
+                      border: Border.all(color: const Color(0x3510B981)),
+                    ),
+                    child: Text(
+                      'وفرت ${savings.toStringAsFixed(0)} ج.م${discountStr.isNotEmpty ? ' ($discountStr)' : ''}',
+                      style: const TextStyle(
+                        color: Color(0xFF10B981),
+                        fontWeight: FontWeight.w800,
+                        fontSize: 12,
+                      ),
+                    ),
+                  ),
+                ],
               ],
-            ],
+            ),
           ),
         ],
       ],
@@ -593,6 +800,11 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildStoreCard() {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final initial = widget.offer.store.name.trim().isNotEmpty
+        ? widget.offer.store.name.trim().characters.first
+        : 'Z';
+
     return BouncyTap(
       scaleFactor: 0.98,
       onTap: () {
@@ -605,29 +817,54 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         );
       },
       child: Container(
-        padding: const EdgeInsets.all(16),
+        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
         decoration: BoxDecoration(
           color: theme.cardColor,
-          borderRadius: BorderRadius.circular(20),
-          border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+          borderRadius: BorderRadius.circular(16),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.08)
+                : theme.dividerColor.withValues(alpha: 0.08),
+          ),
         ),
         child: Row(
           children: [
+            // Merchant avatar with smart monogram initial fallback
             Container(
-              width: 50,
-              height: 50,
+              width: 44,
+              height: 44,
               decoration: BoxDecoration(
-                color: theme.scaffoldBackgroundColor,
-                shape: BoxShape.circle,
+                gradient: LinearGradient(
+                  colors: [
+                    const Color(0xFFFF5722).withValues(alpha: 0.2),
+                    const Color(0xFFFF8C35).withValues(alpha: 0.12),
+                  ],
+                ),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
-                    color: theme.dividerColor.withValues(alpha: 0.05)),
+                  color: AppColors.primary.withValues(alpha: 0.25),
+                  width: 1,
+                ),
               ),
-              child: Icon(
-                CategoryUtils.getIcon(widget.offer.store.category ?? ''),
-                color: AppColors.primary,
-              ),
+              clipBehavior: Clip.antiAlias,
+              child: widget.offer.store.logo != null &&
+                      widget.offer.store.logo!.isNotEmpty
+                  ? NetworkImageWidget(
+                      imageUrl: widget.offer.store.logo!,
+                      fit: BoxFit.cover,
+                    )
+                  : Center(
+                      child: Text(
+                        initial,
+                        style: GoogleFonts.cairo(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w900,
+                          fontSize: 19,
+                        ),
+                      ),
+                    ),
             ),
-            const SizedBox(width: 16),
+            const SizedBox(width: 12),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -638,31 +875,39 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         child: Text(
                           widget.offer.store.name,
                           style: theme.textTheme.titleMedium?.copyWith(
-                            fontWeight: FontWeight.bold,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14.5,
                           ),
                           maxLines: 1,
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      const SizedBox(width: 6),
-                      const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF0084FF)),
+                      const SizedBox(width: 5),
+                      const Icon(
+                        Icons.verified_rounded,
+                        size: 15,
+                        color: Color(0xFF0084FF),
+                      ),
                     ],
                   ),
                   const SizedBox(height: 2),
                   Text(
                     'الزقازيق • ${widget.offer.store.area} — تفاصيل المتجر',
-                    style: theme.textTheme.bodySmall?.copyWith(
+                    style: TextStyle(
                       color: AppColors.primary,
-                      fontWeight: FontWeight.w600,
+                      fontWeight: FontWeight.w700,
+                      fontSize: 11.5,
                     ),
                   ),
                 ],
               ),
             ),
             Icon(
-              Icons.arrow_forward_ios_rounded,
-              size: 16,
-              color: theme.iconTheme.color?.withValues(alpha: 0.5),
+              Directionality.of(context) == TextDirection.rtl
+                  ? Icons.arrow_back_ios_new_rounded
+                  : Icons.arrow_forward_ios_rounded,
+              size: 14,
+              color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
             ),
           ],
         ),
@@ -672,24 +917,25 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildStoreLocationCard() {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
     final store = widget.offer.store;
     final detailedAddress = (store.address != null && store.address!.trim().isNotEmpty)
         ? store.address!
         : 'الزقازيق، ${store.area}';
 
+    final hasPhone = store.phone != null && store.phone!.trim().isNotEmpty;
+    final hasWhatsapp = (store.whatsapp != null && store.whatsapp!.trim().isNotEmpty) || hasPhone;
+
     return Container(
-      padding: const EdgeInsets.all(18),
+      padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
         color: theme.cardColor,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
-        boxShadow: [
-          BoxShadow(
-            color: Colors.black.withValues(alpha: 0.03),
-            blurRadius: 15,
-            offset: const Offset(0, 5),
-          ),
-        ],
+        borderRadius: BorderRadius.circular(18),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.08)
+              : theme.dividerColor.withValues(alpha: 0.08),
+        ),
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -697,96 +943,96 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(8),
+                padding: const EdgeInsets.all(7),
                 decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(10),
+                  color: AppColors.primary.withValues(alpha: 0.12),
+                  borderRadius: BorderRadius.circular(9),
                 ),
-                child: const Icon(Icons.place_rounded, color: AppColors.primary, size: 20),
+                child: const Icon(Icons.place_rounded, color: AppColors.primary, size: 18),
               ),
-              const SizedBox(width: 10),
+              const SizedBox(width: 8),
               Expanded(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Text(
-                      'مكانهم فين؟',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                      ),
-                    ),
-                    Text(
-                      'الزقازيق • ${store.area}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                      ),
-                    ),
-                  ],
+                child: Text(
+                  'مكانهم فين؟',
+                  style: theme.textTheme.titleSmall?.copyWith(
+                    fontWeight: FontWeight.w800,
+                    fontSize: 14,
+                  ),
                 ),
               ),
-              Material(
-                color: Colors.transparent,
-                child: InkWell(
-                  onTap: () {
-                    Clipboard.setData(ClipboardData(text: '$detailedAddress - ${store.name}'));
-                    HapticFeedback.lightImpact();
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('تم نسخ العنوان بنجاح 📋'),
-                        duration: const Duration(seconds: 2),
-                        behavior: SnackBarBehavior.floating,
-                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                      ),
-                    );
-                  },
-                  borderRadius: BorderRadius.circular(8),
-                  child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
-                    decoration: BoxDecoration(
-                      color: theme.dividerColor.withValues(alpha: 0.06),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
-                        const SizedBox(width: 4),
-                        Text(
-                          'نسخ',
-                          style: theme.textTheme.labelSmall?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.bold,
-                          ),
+              // Dedicated Copy Address Action
+              BouncyTap(
+                scaleFactor: 0.94,
+                onTap: () {
+                  Clipboard.setData(ClipboardData(text: '$detailedAddress - ${store.name}'));
+                  HapticFeedback.lightImpact();
+                  SnackBarUtils.showSuccess(context, 'تم نسخ العنوان بنجاح! 📋');
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                  decoration: BoxDecoration(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.grey.shade200,
+                    borderRadius: BorderRadius.circular(8),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.copy_rounded, size: 13, color: AppColors.primary),
+                      const SizedBox(width: 4),
+                      Text(
+                        'نسخ العنوان',
+                        style: TextStyle(
+                          color: AppColors.primary,
+                          fontWeight: FontWeight.w700,
+                          fontSize: 11,
                         ),
-                      ],
-                    ),
+                      ),
+                    ],
                   ),
                 ),
               ),
             ],
           ),
-          const SizedBox(height: 12),
+
+          const SizedBox(height: 10),
+
+          // Address displayed ONCE clearly
           Text(
             detailedAddress,
             style: theme.textTheme.bodyMedium?.copyWith(
               fontWeight: FontWeight.w600,
-              height: 1.5,
+              fontSize: 13,
+              height: 1.45,
             ),
           ),
+
           if (store.workingHours != null && store.workingHours!.isNotEmpty) ...[
             const SizedBox(height: 8),
             Row(
               children: [
-                Icon(Icons.access_time_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
+                Icon(
+                  Icons.access_time_rounded,
+                  size: 14,
+                  color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                ),
                 const SizedBox(width: 6),
                 Text(
                   'مواعيد العمل: ${store.workingHours}',
-                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                  style: TextStyle(
+                    fontSize: 11.5,
+                    fontWeight: FontWeight.w500,
+                    color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                  ),
                 ),
               ],
             ),
           ],
-          const SizedBox(height: 16),
+
+          const SizedBox(height: 12),
+
+          // Navigation and Merchant Actions
           Row(
             children: [
               Expanded(
@@ -797,12 +1043,12 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   style: OutlinedButton.styleFrom(
                     foregroundColor: AppColors.primary,
                     side: const BorderSide(color: AppColors.primary, width: 1.2),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                    padding: const EdgeInsets.symmetric(vertical: 9),
                   ),
                 ),
               ),
-              if (store.phone != null && store.phone!.isNotEmpty) ...[
+              if (hasPhone) ...[
                 const SizedBox(width: 8),
                 BouncyTap(
                   scaleFactor: 0.92,
@@ -815,13 +1061,13 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.blue.withValues(alpha: 0.12),
                       foregroundColor: Colors.blue.shade700,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     tooltip: 'اتصال',
                   ),
                 ),
               ],
-              if ((store.whatsapp ?? store.phone) != null) ...[
+              if (hasWhatsapp) ...[
                 const SizedBox(width: 8),
                 BouncyTap(
                   scaleFactor: 0.92,
@@ -834,7 +1080,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     style: IconButton.styleFrom(
                       backgroundColor: Colors.green.withValues(alpha: 0.12),
                       foregroundColor: Colors.green.shade700,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
                     ),
                     tooltip: 'واتساب',
                   ),
@@ -854,13 +1100,16 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       children: [
         Text(
           'تفاصيل العرض',
-          style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+          style: textTheme.titleMedium?.copyWith(
+            fontWeight: FontWeight.w800,
+            fontSize: 15,
+          ),
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Text(
           widget.offer.description ??
               'استمتع بخصم مميز لفترة محدودة في ${widget.offer.store.name}.',
-          style: textTheme.bodyMedium?.copyWith(height: 1.7),
+          style: textTheme.bodyMedium?.copyWith(height: 1.6, fontSize: 13),
         ),
       ],
     );
@@ -868,34 +1117,41 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   Widget _buildTermsSection() {
     final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
             const Icon(Icons.check_circle_outline_rounded,
-                size: 20, color: AppColors.primary),
-            const SizedBox(width: 8),
+                size: 18, color: AppColors.primary),
+            const SizedBox(width: 6),
             Text(
               'طريقة الاستخدام والشروط',
-              style:
-                  textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
+              style: textTheme.titleSmall?.copyWith(
+                fontWeight: FontWeight.w800,
+                fontSize: 14,
+              ),
             ),
           ],
         ),
-        const SizedBox(height: 12),
+        const SizedBox(height: 8),
         Container(
           width: double.infinity,
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.all(14),
           decoration: BoxDecoration(
             color: Theme.of(context).cardColor,
-            borderRadius: BorderRadius.circular(16),
+            borderRadius: BorderRadius.circular(14),
             border: Border.all(
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.1)),
+              color: isDark
+                  ? Colors.white.withValues(alpha: 0.08)
+                  : Theme.of(context).dividerColor.withValues(alpha: 0.08),
+            ),
           ),
           child: Text(
             widget.offer.terms!,
-            style: textTheme.bodyMedium?.copyWith(height: 1.6),
+            style: textTheme.bodyMedium?.copyWith(height: 1.55, fontSize: 12.5),
           ),
         ),
       ],
@@ -903,24 +1159,60 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   Widget _buildExpirySection() {
-    final textTheme = Theme.of(context).textTheme;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final now = DateTime.now();
+    final isExpired = widget.offer.expiryDate.isBefore(now);
+    final daysLeft = widget.offer.expiryDate.difference(now).inDays;
+    final isUrgent = !isExpired && daysLeft <= 3 && daysLeft >= 0;
+
+    Color bgColor;
+    Color borderColor;
+    Color iconColor;
+    Color textColor;
+    String text;
+    IconData icon;
+
+    if (isExpired) {
+      bgColor = AppColors.error.withValues(alpha: isDark ? 0.12 : 0.08);
+      borderColor = AppColors.error.withValues(alpha: 0.25);
+      iconColor = AppColors.error;
+      textColor = AppColors.error;
+      icon = Icons.history_rounded;
+      text = 'انتهت صلاحية هذا العرض في: ${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)}';
+    } else if (isUrgent) {
+      bgColor = Colors.amber.withValues(alpha: isDark ? 0.15 : 0.08);
+      borderColor = Colors.amber.withValues(alpha: 0.35);
+      iconColor = Colors.amber.shade700;
+      textColor = isDark ? Colors.amber.shade300 : Colors.amber.shade900;
+      icon = Icons.alarm_rounded;
+      text = 'ينتهي العرض قريباً، متبقي $daysLeft أيام (${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)})';
+    } else {
+      bgColor = isDark ? const Color(0xFF162032) : const Color(0xFFF8FAFC);
+      borderColor = isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade200;
+      iconColor = AppColors.primary;
+      textColor = isDark ? Colors.grey.shade300 : AppColors.textPrimary;
+      icon = Icons.event_available_rounded;
+      text = 'ساري حتى: ${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)}';
+    }
+
     return Container(
-      padding: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
       decoration: BoxDecoration(
-        color: AppColors.error.withValues(alpha: 0.08),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: AppColors.error.withValues(alpha: 0.15)),
+        color: bgColor,
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: borderColor, width: 1),
       ),
       child: Row(
         children: [
-          const Icon(Icons.timer_outlined, color: AppColors.error, size: 20),
-          const SizedBox(width: 12),
+          Icon(icon, color: iconColor, size: 18),
+          const SizedBox(width: 10),
           Expanded(
             child: Text(
-              'الحق العرض، ساري حتى: ${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)}',
-              style: textTheme.labelLarge?.copyWith(
-                color: AppColors.error,
-                fontWeight: FontWeight.bold,
+              text,
+              style: TextStyle(
+                color: textColor,
+                fontWeight: FontWeight.w700,
+                fontSize: 12.5,
               ),
             ),
           ),
@@ -932,111 +1224,159 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   Widget _buildStickyActionArea(String usageCount) {
     final textTheme = Theme.of(context).textTheme;
     final bottomInset = MediaQuery.of(context).padding.bottom;
+
     return Positioned(
-      bottom: bottomInset > 0 ? bottomInset + 8 : 20,
-      left: 20,
-      right: 20,
+      bottom: bottomInset > 0 ? bottomInset + 8 : 16,
+      left: 16,
+      right: 16,
       child: FutureBuilder<bool>(
         future: _canGenerateCouponFuture,
         builder: (context, snapshot) {
           final canGenerate = snapshot.data ?? false;
+          final existing = _existingCoupon;
+          final isOfferExpired = widget.offer.expiryDate.isBefore(DateTime.now()) ||
+              _isFlashSaleFinished() ||
+              existing?.status == 'EXPIRED';
+          final isRedeemed = existing?.status == 'USED';
+          final hasActiveCoupon = existing != null && existing.isActive;
+
           return BlocBuilder<CouponsBloc, CouponsState>(
             buildWhen: (prev, next) =>
                 next is CouponsLoading ||
                 next is CouponGeneratedSuccess ||
-                next is CouponsError,
+                next is CouponsError ||
+                next is UserCouponsLoaded,
             builder: (context, state) {
+              final isLoading = state is CouponsLoading;
+
+              String buttonText;
+              IconData buttonIcon;
+              VoidCallback? onPressed;
+              bool isActionable = true;
+              Color? customBgColor;
+
+              if (isOfferExpired) {
+                buttonText = 'انتهت صلاحية العرض';
+                buttonIcon = Icons.timer_off_outlined;
+                isActionable = false;
+                onPressed = null;
+              } else if (isRedeemed) {
+                buttonText = 'تم استخدام الكوبون ✓';
+                buttonIcon = Icons.check_circle_rounded;
+                isActionable = false;
+                onPressed = null;
+                customBgColor = const Color(0xFF10B981).withValues(alpha: 0.2);
+              } else if (hasActiveCoupon) {
+                buttonText = 'عرض الكوبون 🎟️';
+                buttonIcon = Icons.qr_code_2_rounded;
+                isActionable = true;
+                onPressed = () {
+                  HapticFeedback.lightImpact();
+                  _showCouponDialog(
+                    context,
+                    existing.code,
+                    status: existing.status,
+                  );
+                };
+              } else {
+                buttonText = canGenerate ? 'احصل على الكوبون 🎟️' : 'سجّل حسابك واستمتع بالخصم';
+                buttonIcon = Icons.confirmation_num_rounded;
+                isActionable = true;
+                onPressed = () async {
+                  if (!canGenerate) {
+                    HapticFeedback.lightImpact();
+                    await Navigator.push(
+                      context,
+                      MaterialPageRoute(builder: (context) => const LoginPage()),
+                    );
+                    if (mounted) {
+                      setState(() {
+                        _canGenerateCouponFuture = _canGenerateCoupon();
+                      });
+                      _couponsBloc.add(FetchUserCoupons());
+                    }
+                    return;
+                  }
+                  if (isLoading) return;
+                  HapticFeedback.mediumImpact();
+                  _couponsBloc.add(GenerateCouponRequested(widget.offer.id));
+                };
+              }
+
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   BouncyTap(
-                    scaleFactor: 0.97,
+                    scaleFactor: isActionable ? 0.97 : 1.0,
                     child: Container(
                       height: 52,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: !_isFlashSaleFinished()
+                        gradient: isActionable
                             ? const LinearGradient(
-                                colors: [AppColors.primary, Color(0xFFFF8C35)],
+                                colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
                               )
                             : null,
-                        color: _isFlashSaleFinished()
-                            ? (Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white10
-                                : Colors.grey.shade300)
+                        color: !isActionable
+                            ? (customBgColor ??
+                                (Theme.of(context).brightness == Brightness.dark
+                                    ? Colors.white12
+                                    : Colors.grey.shade300))
                             : null,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
-                          if (!_isFlashSaleFinished())
+                          if (isActionable)
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.38),
-                              blurRadius: 22,
-                              offset: const Offset(0, 8),
+                              blurRadius: 18,
+                              offset: const Offset(0, 6),
                             ),
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: _isFlashSaleFinished()
-                            ? null
-                            : () async {
-                                if (!canGenerate) {
-                                  HapticFeedback.lightImpact();
-                                  await Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) => const LoginPage(),
-                                    ),
-                                  );
-                                  if (mounted) {
-                                    setState(() {
-                                      _canGenerateCouponFuture = _canGenerateCoupon();
-                                    });
-                                  }
-                                  return;
-                                }
-                                if (state is CouponsLoading) return;
-                                HapticFeedback.mediumImpact();
-                                _couponsBloc.add(
-                                  GenerateCouponRequested(widget.offer.id),
-                                );
-                              },
+                        onPressed: onPressed,
                         style: ElevatedButton.styleFrom(
                           backgroundColor: Colors.transparent,
                           foregroundColor: Colors.white,
                           shadowColor: Colors.transparent,
                           disabledBackgroundColor: Colors.transparent,
-                          disabledForegroundColor:
-                              Theme.of(context).brightness == Brightness.dark
+                          disabledForegroundColor: isRedeemed
+                              ? const Color(0xFF10B981)
+                              : (Theme.of(context).brightness == Brightness.dark
                                   ? Colors.white54
-                                  : Colors.grey.shade600,
+                                  : Colors.grey.shade600),
                           shape: RoundedRectangleBorder(
                             borderRadius: BorderRadius.circular(16),
                           ),
                           elevation: 0,
                         ),
-                        child: state is CouponsLoading
+                        child: isLoading
                             ? const SizedBox(
-                                width: 24,
-                                height: 24,
+                                width: 22,
+                                height: 22,
                                 child: CircularProgressIndicator(
                                   color: Colors.white,
-                                  strokeWidth: 2.5,
+                                  strokeWidth: 2.2,
                                 ),
                               )
                             : Row(
                                 mainAxisAlignment: MainAxisAlignment.center,
                                 children: [
-                                  const Icon(
-                                    Icons.confirmation_num_rounded,
-                                    size: 20,
-                                  ),
+                                  Icon(buttonIcon, size: 20),
                                   const SizedBox(width: 10),
                                   Text(
-                                    _getButtonText(canGenerate),
+                                    buttonText,
                                     style: textTheme.labelLarge?.copyWith(
                                       fontWeight: FontWeight.w800,
                                       fontSize: 15,
-                                      color: Colors.white,
+                                      color: isRedeemed
+                                          ? const Color(0xFF10B981)
+                                          : (isActionable
+                                              ? Colors.white
+                                              : (Theme.of(context).brightness ==
+                                                      Brightness.dark
+                                                  ? Colors.white60
+                                                  : Colors.grey.shade700)),
                                     ),
                                   ),
                                 ],
@@ -1070,22 +1410,29 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     return false;
   }
 
-  String _getButtonText(bool canGenerate) {
-    if (_isFlashSaleFinished()) return 'للأسف العرض خلص';
-    if (canGenerate) return 'احجز العرض وخد الكوبون 🎟️';
-    return 'سجّل حسابك واستمتع بالخصم';
-  }
 
-  void _showCouponDialog(BuildContext context, String code) {
+  void _showCouponDialog(BuildContext context, String code, {String status = 'GENERATED'}) {
     CouponCelebrationDialog.show(
       context: context,
       code: code,
       storeName: widget.offer.store.name,
       storeLogo: widget.offer.store.logo,
+      storeArea: widget.offer.store.area,
       offerTitle: widget.offer.title,
-      newPrice: widget.offer.newPrice,
-      oldPrice: widget.offer.oldPrice,
+      newPrice: _effectiveNewPrice,
+      oldPrice: _effectiveOldPrice,
       discount: widget.offer.discount,
+      status: status,
+      onViewCoupons: () {
+        Navigator.popUntil(context, (route) => route.isFirst);
+        Future.delayed(const Duration(milliseconds: 150), () {
+          final rootContext = NavigationService.navigatorKey.currentContext;
+          if (rootContext != null && rootContext.mounted) {
+            // ignore: use_build_context_synchronously
+            MainScreen.of(rootContext)?.setSelectedIndex(2);
+          }
+        });
+      },
     );
   }
 
