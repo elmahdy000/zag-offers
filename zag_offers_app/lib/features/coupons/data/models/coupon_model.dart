@@ -8,6 +8,7 @@ class CouponModel extends CouponEntity {
     required super.status,
     required super.createdAt,
     super.expiresAt,
+    super.redeemedAt,
     required super.offer,
   });
 
@@ -18,6 +19,7 @@ class CouponModel extends CouponEntity {
       status: json['status'] ?? 'GENERATED',
       createdAt: _parseDate(json['createdAt']) ?? DateTime.now(),
       expiresAt: _parseDate(json['expiresAt']),
+      redeemedAt: _parseDate(json['redeemedAt']),
       offer: OfferModel.fromJson(json['offer'] ?? {}),
     );
   }

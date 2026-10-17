@@ -285,14 +285,14 @@ class MainScreenState extends State<MainScreen> {
                         duration: const Duration(milliseconds: 240),
                         curve: Curves.easeOutCubic,
                         padding: EdgeInsets.symmetric(
-                          horizontal: isSelected ? 12 : 8,
-                          vertical: 6,
+                          horizontal: isSelected ? 14 : 6,
+                          vertical: 4,
                         ),
                         decoration: BoxDecoration(
                           color: isSelected
-                              ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.12)
+                              ? AppColors.primary.withValues(alpha: isDark ? 0.16 : 0.1)
                               : Colors.transparent,
-                          borderRadius: BorderRadius.circular(16),
+                          borderRadius: BorderRadius.circular(12),
                         ),
                         child: Column(
                           mainAxisSize: MainAxisSize.min,

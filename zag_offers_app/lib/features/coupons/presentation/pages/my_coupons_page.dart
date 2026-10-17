@@ -7,6 +7,8 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+import 'package:intl/intl.dart' hide TextDirection;
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../../../core/theme/app_colors.dart';
@@ -38,7 +40,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
   StreamSubscription<Map<String, dynamic>>? _couponSub;
   bool _isLoggedIn = false;
-  String _activeTab = 'ACTIVE'; // 'ACTIVE', 'USED', 'ALL'
+  String _activeTab = 'ALL'; // 'ALL', 'ACTIVE', 'USED'
 
   @override
   void initState() {
@@ -136,53 +138,97 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     );
   }
 
-  Widget _buildFilterTabs() {
+  Widget _buildFilterTabs(List<CouponEntity> allCoupons) {
+    final totalCount = allCoupons.length;
+    final activeCount = allCoupons.where((c) => c.isActive).length;
+    final usedCount = allCoupons.where((c) => c.status == 'USED').length;
+
+    // Right-to-Left visual order as required:
+    // 1. الكل (Rightmost in RTL)
+    // 2. الكوبونات النشطة (Center)
+    // 3. تم استخدامها (Leftmost in RTL)
     final tabs = [
-      {'key': 'ACTIVE', 'label': 'كوبونات نشطة ✨'},
-      {'key': 'USED', 'label': 'تم استخدامها 💰'},
-      {'key': 'ALL', 'label': 'الكل'},
+      {'key': 'ALL', 'label': 'الكل', 'count': totalCount},
+      {'key': 'ACTIVE', 'label': 'الكوبونات النشطة', 'count': activeCount},
+      {'key': 'USED', 'label': 'تم استخدامها', 'count': usedCount},
     ];
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+      padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Row(
         children: tabs.map((tab) {
           final isSelected = _activeTab == tab['key'];
+          final count = tab['count'] as int;
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
               child: BouncyTap(
                 onTap: () {
                   HapticFeedback.selectionClick();
-                  setState(() => _activeTab = tab['key']!);
+                  setState(() => _activeTab = tab['key'] as String);
                 },
                 scaleFactor: 0.95,
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 220),
                   curve: Curves.easeOutCubic,
-                  padding: const EdgeInsets.symmetric(vertical: 10),
+                  padding: const EdgeInsets.symmetric(vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary
                         : Theme.of(context).dividerColor.withValues(alpha: 0.08),
-                    borderRadius: BorderRadius.circular(14),
+                    borderRadius: BorderRadius.circular(12),
                     boxShadow: [
                       if (isSelected)
                         BoxShadow(
                           color: AppColors.primary.withValues(alpha: 0.32),
-                          blurRadius: 12,
-                          offset: const Offset(0, 4),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                     ],
                   ),
-                  child: Text(
-                    tab['label']!,
-                    textAlign: TextAlign.center,
-                    style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
-                      color: isSelected ? Colors.white : Theme.of(context).textTheme.bodyMedium?.color,
-                    ),
+                  child: Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Flexible(
+                        child: Text(
+                          tab['label'] as String,
+                          style: TextStyle(
+                            fontSize: 12,
+                            fontWeight: FontWeight.bold,
+                            color: isSelected
+                                ? Colors.white
+                                : Theme.of(context).textTheme.bodyMedium?.color,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (count > 0) ...[
+                        const SizedBox(width: 4),
+                        Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 5,
+                            vertical: 1,
+                          ),
+                          decoration: BoxDecoration(
+                            color: isSelected
+                                ? Colors.white.withValues(alpha: 0.25)
+                                : Theme.of(context).dividerColor.withValues(alpha: 0.15),
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: Text(
+                            '$count',
+                            style: TextStyle(
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w900,
+                              color: isSelected
+                                  ? Colors.white
+                                  : Theme.of(context).textTheme.bodySmall?.color,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ),
               ),
@@ -200,10 +246,10 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         : 'Z';
 
     return Container(
-      width: 48,
-      height: 48,
+      width: 42,
+      height: 42,
       decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(14),
+        borderRadius: BorderRadius.circular(12),
         border: Border.all(
           color: isDark
               ? Colors.white.withValues(alpha: 0.12)
@@ -212,19 +258,19 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         ),
         boxShadow: [
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
-            blurRadius: 8,
+            color: Colors.black.withValues(alpha: isDark ? 0.2 : 0.04),
+            blurRadius: 6,
             offset: const Offset(0, 2),
           ),
         ],
       ),
       child: ClipRRect(
-        borderRadius: BorderRadius.circular(13),
+        borderRadius: BorderRadius.circular(11),
         child: hasLogo
             ? NetworkImageWidget(
                 imageUrl: store.logo,
-                width: 48,
-                height: 48,
+                width: 42,
+                height: 42,
                 fit: BoxFit.cover,
               )
             : Container(
@@ -248,7 +294,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     initial,
                     style: GoogleFonts.cairo(
                       color: AppColors.primary,
-                      fontSize: 22,
+                      fontSize: 19,
                       fontWeight: FontWeight.w900,
                     ),
                   ),
@@ -273,7 +319,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
       bgColor = isDark ? const Color(0x2264748B) : const Color(0xFFF1F5F9);
       textColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
       dotColor = textColor;
-      text = 'تم استخدامه ✓';
+      text = 'تم الاستخدام ✓';
     } else {
       bgColor = isDark ? const Color(0x22EF4444) : const Color(0xFFFEF2F2);
       textColor = const Color(0xFFEF4444);
@@ -282,10 +328,10 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     }
 
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
       decoration: BoxDecoration(
         color: bgColor,
-        borderRadius: BorderRadius.circular(20),
+        borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: textColor.withValues(alpha: 0.3),
           width: 1,
@@ -295,8 +341,8 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         mainAxisSize: MainAxisSize.min,
         children: [
           Container(
-            width: 6,
-            height: 6,
+            width: 5.5,
+            height: 5.5,
             decoration: BoxDecoration(
               color: dotColor,
               shape: BoxShape.circle,
@@ -311,13 +357,13 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                   : null,
             ),
           ),
-          const SizedBox(width: 5),
+          const SizedBox(width: 4),
           Text(
             text,
             style: TextStyle(
               color: textColor,
               fontWeight: FontWeight.bold,
-              fontSize: 11,
+              fontSize: 10.5,
             ),
           ),
         ],
@@ -345,10 +391,10 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         : Colors.grey.shade200;
 
     return Container(
-      margin: const EdgeInsets.only(bottom: 22),
+      margin: const EdgeInsets.only(bottom: 16),
       decoration: BoxDecoration(
         color: isDark ? const Color(0xFF131B2A) : Colors.white,
-        borderRadius: BorderRadius.circular(22),
+        borderRadius: BorderRadius.circular(20),
         border: Border.all(
           color: isActive ? primaryBorder : inactiveBorder,
           width: isActive ? 1.5 : 1.0,
@@ -356,13 +402,13 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         boxShadow: [
           if (isActive)
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.06),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.05),
+              blurRadius: 16,
+              offset: const Offset(0, 6),
             ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.04),
-            blurRadius: 14,
+            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+            blurRadius: 12,
             offset: const Offset(0, 4),
           ),
         ],
@@ -376,8 +422,8 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
               height: 3.5,
               decoration: const BoxDecoration(
                 borderRadius: BorderRadius.only(
-                  topLeft: Radius.circular(22),
-                  topRight: Radius.circular(22),
+                  topLeft: Radius.circular(20),
+                  topRight: Radius.circular(20),
                 ),
                 gradient: LinearGradient(
                   colors: [AppColors.primary, Color(0xFFFF8A65)],
@@ -387,12 +433,12 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
           // 1. Header: Store info + Verified + Status Badge
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
+            padding: const EdgeInsets.fromLTRB(14, 12, 14, 8),
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
                 _buildStoreAvatar(store, isDark),
-                const SizedBox(width: 12),
+                const SizedBox(width: 10),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -404,7 +450,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                               store.name,
                               style: theme.textTheme.titleMedium?.copyWith(
                                 fontWeight: FontWeight.w800,
-                                fontSize: 16,
+                                fontSize: 15,
                                 letterSpacing: -0.2,
                               ),
                               maxLines: 1,
@@ -414,20 +460,20 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           const SizedBox(width: 4),
                           const Icon(
                             Icons.verified_rounded,
-                            size: 16,
+                            size: 15,
                             color: Color(0xFF0084FF),
                           ),
                         ],
                       ),
-                      const SizedBox(height: 3),
+                      const SizedBox(height: 2),
                       Row(
                         children: [
                           Icon(
                             Icons.location_on_rounded,
-                            size: 13,
+                            size: 12,
                             color: AppColors.primary.withValues(alpha: 0.85),
                           ),
-                          const SizedBox(width: 4),
+                          const SizedBox(width: 3),
                           Expanded(
                             child: Text(
                               'الزقازيق • ${store.area}',
@@ -435,7 +481,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                 color: isDark
                                     ? const Color(0xFF94A3B8)
                                     : const Color(0xFF64748B),
-                                fontSize: 12,
+                                fontSize: 11.5,
                                 fontWeight: FontWeight.w500,
                               ),
                               maxLines: 1,
@@ -453,9 +499,9 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             ),
           ),
 
-          // 2. Offer Showcase Card (Solves empty / awkward spacing)
+          // 2. Offer Showcase Card (Prominent discount & validity)
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             child: BouncyTap(
               onTap: () => Navigator.push(
                 context,
@@ -464,12 +510,12 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 ),
               ),
               child: Container(
-                padding: const EdgeInsets.all(12),
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 8),
                 decoration: BoxDecoration(
                   color: isDark
                       ? const Color(0xFF1B2436)
                       : const Color(0xFFF8FAFC),
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(14),
                   border: Border.all(
                     color: isDark
                         ? Colors.white.withValues(alpha: 0.06)
@@ -480,11 +526,11 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.center,
                   children: [
-                    // Offer Discount Badge
+                    // Prominent Offer Discount Badge
                     Container(
                       padding: const EdgeInsets.symmetric(
-                        horizontal: 10,
-                        vertical: 8,
+                        horizontal: 9,
+                        vertical: 6,
                       ),
                       decoration: BoxDecoration(
                         gradient: const LinearGradient(
@@ -492,12 +538,12 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           begin: Alignment.topLeft,
                           end: Alignment.bottomRight,
                         ),
-                        borderRadius: BorderRadius.circular(12),
+                        borderRadius: BorderRadius.circular(10),
                         boxShadow: [
                           BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.3),
-                            blurRadius: 8,
-                            offset: const Offset(0, 3),
+                            color: AppColors.primary.withValues(alpha: 0.28),
+                            blurRadius: 6,
+                            offset: const Offset(0, 2),
                           ),
                         ],
                       ),
@@ -507,21 +553,21 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           const Icon(
                             Icons.local_offer_rounded,
                             color: Colors.white,
-                            size: 16,
+                            size: 14,
                           ),
-                          const SizedBox(height: 2),
+                          const SizedBox(height: 1),
                           Text(
                             offer.discount.isNotEmpty ? offer.discount : 'خصم',
                             style: const TextStyle(
                               color: Colors.white,
                               fontWeight: FontWeight.w900,
-                              fontSize: 12,
+                              fontSize: 11.5,
                             ),
                           ),
                         ],
                       ),
                     ),
-                    const SizedBox(width: 12),
+                    const SizedBox(width: 10),
                     Expanded(
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
@@ -530,14 +576,38 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                             offer.title,
                             style: theme.textTheme.titleSmall?.copyWith(
                               fontWeight: FontWeight.w800,
-                              fontSize: 14,
-                              height: 1.3,
+                              fontSize: 13.5,
+                              height: 1.25,
                             ),
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                           ),
+                          const SizedBox(height: 4),
+                          // Expiry / validity info
+                          Row(
+                            children: [
+                              Icon(
+                                Icons.schedule_rounded,
+                                size: 12,
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                              ),
+                              const SizedBox(width: 4),
+                              Text(
+                                'صالح حتى ${DateFormat('d MMMM yyyy', 'ar').format(coupon.expiresAt ?? offer.expiryDate)}',
+                                style: TextStyle(
+                                  fontSize: 11,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ],
+                          ),
                           if (offer.newPrice != null || saving != null) ...[
-                            const SizedBox(height: 6),
+                            const SizedBox(height: 4),
                             Row(
                               children: [
                                 if (offer.newPrice != null) ...[
@@ -546,7 +616,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                     style: const TextStyle(
                                       color: AppColors.primary,
                                       fontWeight: FontWeight.w900,
-                                      fontSize: 15,
+                                      fontSize: 14,
                                     ),
                                   ),
                                   if (offer.oldPrice != null) ...[
@@ -564,59 +634,36 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                   ],
                                 ],
                                 if (saving != null && saving > 0) ...[
-                                  const SizedBox(width: 8),
+                                  const SizedBox(width: 6),
                                   Container(
                                     padding: const EdgeInsets.symmetric(
-                                      horizontal: 6,
-                                      vertical: 2,
+                                      horizontal: 5,
+                                      vertical: 1.5,
                                     ),
                                     decoration: BoxDecoration(
                                       color: Colors.green.withValues(alpha: 0.14),
-                                      borderRadius: BorderRadius.circular(6),
+                                      borderRadius: BorderRadius.circular(5),
                                     ),
                                     child: Text(
                                       'وفّرت ${saving.toStringAsFixed(0)} ج.م 🔥',
                                       style: const TextStyle(
                                         color: Colors.green,
                                         fontWeight: FontWeight.bold,
-                                        fontSize: 10.5,
+                                        fontSize: 10,
                                       ),
                                     ),
                                   ),
                                 ],
                               ],
                             ),
-                          ] else ...[
-                            const SizedBox(height: 4),
-                            Row(
-                              children: [
-                                Icon(
-                                  Icons.check_circle_outline_rounded,
-                                  size: 13,
-                                  color: isDark
-                                      ? const Color(0xFF94A3B8)
-                                      : const Color(0xFF64748B),
-                                ),
-                                const SizedBox(width: 4),
-                                Text(
-                                  'يشمل كافة مميزات العرض المعلنة',
-                                  style: TextStyle(
-                                    fontSize: 11,
-                                    color: isDark
-                                        ? const Color(0xFF94A3B8)
-                                        : const Color(0xFF64748B),
-                                  ),
-                                ),
-                              ],
-                            ),
                           ],
                         ],
                       ),
                     ),
-                    const SizedBox(width: 6),
+                    const SizedBox(width: 4),
                     Icon(
                       Icons.arrow_back_ios_new_rounded,
-                      size: 14,
+                      size: 13,
                       color: isDark ? Colors.white38 : Colors.grey.shade400,
                     ),
                   ],
@@ -625,19 +672,19 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             ),
           ),
 
-          const SizedBox(height: 16),
+          const SizedBox(height: 8),
 
-          // 3. Ticket Notch & Dashed Line Divider with bordered cutouts
+          // 3. Ticket Notch & Dashed Line Divider (Tightened density)
           Row(
             children: [
               Container(
-                width: 14,
-                height: 24,
+                width: 12,
+                height: 20,
                 decoration: BoxDecoration(
                   color: theme.scaffoldBackgroundColor,
                   borderRadius: const BorderRadius.only(
-                    topRight: Radius.circular(14),
-                    bottomRight: Radius.circular(14),
+                    topRight: Radius.circular(12),
+                    bottomRight: Radius.circular(12),
                   ),
                   border: Border(
                     top: BorderSide(
@@ -659,7 +706,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 child: LayoutBuilder(
                   builder: (context, constraints) {
                     final boxWidth = constraints.constrainWidth();
-                    const dashWidth = 6.0;
+                    const dashWidth = 5.0;
                     const dashHeight = 1.2;
                     final dashCount = (boxWidth / (2 * dashWidth)).floor();
                     return Flex(
@@ -684,13 +731,13 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 ),
               ),
               Container(
-                width: 14,
-                height: 24,
+                width: 12,
+                height: 20,
                 decoration: BoxDecoration(
                   color: theme.scaffoldBackgroundColor,
                   borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(14),
-                    bottomLeft: Radius.circular(14),
+                    topLeft: Radius.circular(12),
+                    bottomLeft: Radius.circular(12),
                   ),
                   border: Border(
                     top: BorderSide(
@@ -711,18 +758,18 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             ],
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 8),
 
-          // 4. Monospace Coupon Code Box + Copy
+          // 4. Monospace Coupon Code Box (LTR Protected) + Copy
           Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
             child: Container(
-              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
               decoration: BoxDecoration(
                 color: isDark
                     ? const Color(0xFF0F172A)
                     : const Color(0xFFF1F5F9),
-                borderRadius: BorderRadius.circular(14),
+                borderRadius: BorderRadius.circular(12),
                 border: Border.all(
                   color: isDark ? Colors.white12 : Colors.grey.shade300,
                   style: BorderStyle.solid,
@@ -731,18 +778,18 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
               child: Row(
                 children: [
                   Container(
-                    padding: const EdgeInsets.all(7),
+                    padding: const EdgeInsets.all(6),
                     decoration: BoxDecoration(
                       color: AppColors.primary.withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(10),
+                      borderRadius: BorderRadius.circular(8),
                     ),
                     child: const Icon(
                       Icons.confirmation_num_rounded,
                       color: AppColors.primary,
-                      size: 20,
+                      size: 18,
                     ),
                   ),
-                  const SizedBox(width: 12),
+                  const SizedBox(width: 10),
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -750,7 +797,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                         Text(
                           'كود الكوبون',
                           style: TextStyle(
-                            fontSize: 10,
+                            fontSize: 9.5,
                             fontWeight: FontWeight.w600,
                             color: isDark
                                 ? const Color(0xFF94A3B8)
@@ -758,83 +805,124 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           ),
                         ),
                         const SizedBox(height: 1),
-                        Text(
-                          coupon.code,
-                          style: GoogleFonts.cairo(
-                            fontWeight: FontWeight.w900,
-                            fontSize: 17,
-                            letterSpacing: 2.0,
-                            color: AppColors.primary,
+                        // Explicit LTR so Arabic RTL never inverts hyphen or numbers
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(
+                            coupon.code,
+                            style: GoogleFonts.spaceMono(
+                              fontWeight: FontWeight.w900,
+                              fontSize: 15,
+                              letterSpacing: 1.8,
+                              color: isActive
+                                  ? AppColors.primary
+                                  : (isDark ? Colors.white60 : Colors.black54),
+                            ),
                           ),
                         ),
                       ],
                     ),
                   ),
-                  BouncyTap(
-                    onTap: () => _copyCode(context, coupon.code),
-                    scaleFactor: 0.94,
-                    child: Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 12,
-                        vertical: 7,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.12),
-                        borderRadius: BorderRadius.circular(10),
-                        border: Border.all(
-                          color: AppColors.primary.withValues(alpha: 0.25),
-                          width: 1,
+                  if (isActive)
+                    BouncyTap(
+                      onTap: () => _copyCode(context, coupon.code),
+                      scaleFactor: 0.94,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 11,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: AppColors.primary.withValues(alpha: 0.12),
+                          borderRadius: BorderRadius.circular(9),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.25),
+                            width: 1,
+                          ),
+                        ),
+                        child: const Row(
+                          mainAxisSize: MainAxisSize.min,
+                          children: [
+                            Icon(
+                              Icons.copy_rounded,
+                              size: 13,
+                              color: AppColors.primary,
+                            ),
+                            SizedBox(width: 4),
+                            Text(
+                              'نسخ',
+                              style: TextStyle(
+                                color: AppColors.primary,
+                                fontWeight: FontWeight.bold,
+                                fontSize: 11.5,
+                              ),
+                            ),
+                          ],
                         ),
                       ),
-                      child: const Row(
+                    )
+                  else
+                    // Disabled copy indication for used/expired coupons
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 8,
+                        vertical: 4,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.grey.withValues(alpha: 0.08),
+                        borderRadius: BorderRadius.circular(8),
+                      ),
+                      child: Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Icon(
-                            Icons.copy_rounded,
-                            size: 14,
-                            color: AppColors.primary,
+                            isUsed
+                                ? Icons.check_circle_outline_rounded
+                                : Icons.block_rounded,
+                            size: 12,
+                            color: Colors.grey,
                           ),
-                          SizedBox(width: 5),
+                          const SizedBox(width: 4),
                           Text(
-                            'نسخ',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 12,
+                            isUsed ? 'مُستخدم' : 'منتهي',
+                            style: const TextStyle(
+                              color: Colors.grey,
+                              fontSize: 10.5,
+                              fontWeight: FontWeight.w600,
                             ),
                           ),
                         ],
                       ),
                     ),
-                  ),
                 ],
               ),
             ),
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 10),
 
-          // 5. Actions: Radiant QR button + Balanced Expanded Map & Call buttons
+          // 5. Actions / Status indication
           Padding(
-            padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
+            padding: const EdgeInsets.fromLTRB(14, 0, 14, 12),
             child: isActive
                 ? Column(
                     children: [
+                      // Accurate QR Redemption label: اعرض QR للكاشير
                       BouncyTap(
                         scaleFactor: 0.97,
                         child: Container(
                           width: double.infinity,
-                          height: 48,
+                          height: 44,
                           decoration: BoxDecoration(
                             gradient: const LinearGradient(
                               colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
                             ),
-                            borderRadius: BorderRadius.circular(14),
+                            borderRadius: BorderRadius.circular(12),
                             boxShadow: [
                               BoxShadow(
                                 color: AppColors.primary.withValues(alpha: 0.35),
-                                blurRadius: 14,
-                                offset: const Offset(0, 4),
+                                blurRadius: 10,
+                                offset: const Offset(0, 3),
                               ),
                             ],
                           ),
@@ -852,14 +940,14 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                               );
                             },
                             icon: const Icon(
-                              Icons.qr_code_scanner_rounded,
-                              size: 21,
+                              Icons.qr_code_2_rounded,
+                              size: 20,
                             ),
                             label: const Text(
-                              'امسح الـ QR عند الكاشير 📱',
+                              'اعرض QR للكاشير',
                               style: TextStyle(
                                 fontWeight: FontWeight.w800,
-                                fontSize: 14,
+                                fontSize: 13.5,
                               ),
                             ),
                             style: ElevatedButton.styleFrom(
@@ -868,56 +956,26 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                               shadowColor: Colors.transparent,
                               elevation: 0,
                               shape: RoundedRectangleBorder(
-                                borderRadius: BorderRadius.circular(14),
+                                borderRadius: BorderRadius.circular(12),
                               ),
                             ),
                           ),
                         ),
                       ),
-                      const SizedBox(height: 10),
-                      // Balanced row with Expanded on both buttons
+                      const SizedBox(height: 8),
+                      // Balanced row with equal Expanded width & real data validation
                       Row(
                         children: [
                           Expanded(
-                            child: OutlinedButton.icon(
-                              onPressed: () => _openExternalMap(store),
-                              icon: const Icon(Icons.location_on_rounded, size: 16),
-                              label: const Text(
-                                'مكان الفرع',
-                                style: TextStyle(
-                                  fontSize: 12.5,
-                                  fontWeight: FontWeight.w700,
-                                ),
-                                maxLines: 1,
-                                overflow: TextOverflow.ellipsis,
-                              ),
-                              style: OutlinedButton.styleFrom(
-                                foregroundColor: isDark
-                                    ? Colors.white
-                                    : AppColors.textPrimary,
-                                side: BorderSide(
-                                  color: isDark
-                                      ? Colors.white.withValues(alpha: 0.15)
-                                      : Colors.grey.shade300,
-                                  width: 1,
-                                ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(12),
-                                ),
-                                padding: const EdgeInsets.symmetric(vertical: 10),
-                              ),
-                            ),
-                          ),
-                          if (store.phone != null && store.phone!.isNotEmpty) ...[
-                            const SizedBox(width: 10),
-                            Expanded(
+                            child: SizedBox(
+                              height: 40,
                               child: OutlinedButton.icon(
-                                onPressed: () => _callStore(store.phone),
-                                icon: const Icon(Icons.phone_in_talk_rounded, size: 16),
+                                onPressed: () => _openExternalMap(store),
+                                icon: const Icon(Icons.location_on_rounded, size: 15),
                                 label: const Text(
-                                  'اتصال بالمتجر',
+                                  'مكان الفرع',
                                   style: TextStyle(
-                                    fontSize: 12.5,
+                                    fontSize: 12,
                                     fontWeight: FontWeight.w700,
                                   ),
                                   maxLines: 1,
@@ -934,9 +992,45 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                     width: 1,
                                   ),
                                   shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(12),
+                                    borderRadius: BorderRadius.circular(10),
                                   ),
-                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                  padding: const EdgeInsets.symmetric(horizontal: 8),
+                                ),
+                              ),
+                            ),
+                          ),
+                          if (store.phone != null && store.phone!.trim().isNotEmpty) ...[
+                            const SizedBox(width: 8),
+                            Expanded(
+                              child: SizedBox(
+                                height: 40,
+                                child: OutlinedButton.icon(
+                                  onPressed: () => _callStore(store.phone),
+                                  icon: const Icon(Icons.phone_in_talk_rounded, size: 15),
+                                  label: const Text(
+                                    'اتصال بالمتجر',
+                                    style: TextStyle(
+                                      fontSize: 12,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                    maxLines: 1,
+                                    overflow: TextOverflow.ellipsis,
+                                  ),
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: isDark
+                                        ? Colors.white
+                                        : AppColors.textPrimary,
+                                    side: BorderSide(
+                                      color: isDark
+                                          ? Colors.white.withValues(alpha: 0.15)
+                                          : Colors.grey.shade300,
+                                      width: 1,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(horizontal: 8),
+                                  ),
                                 ),
                               ),
                             ),
@@ -945,52 +1039,110 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       ),
                     ],
                   )
-                : Container(
-                    padding: const EdgeInsets.symmetric(
-                      vertical: 12,
-                      horizontal: 16,
-                    ),
-                    alignment: Alignment.center,
-                    decoration: BoxDecoration(
-                      color: (isUsed ? Colors.green : Colors.grey)
-                          .withValues(alpha: 0.12),
-                      borderRadius: BorderRadius.circular(14),
-                      border: Border.all(
-                        color: (isUsed ? Colors.green : Colors.grey)
-                            .withValues(alpha: 0.25),
-                        width: 1,
-                      ),
-                    ),
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.center,
-                      children: [
-                        Icon(
-                          isUsed
-                              ? Icons.check_circle_rounded
-                              : Icons.info_outline_rounded,
-                          size: 18,
-                          color: isUsed ? Colors.green : Colors.grey,
+                : (isUsed
+                    // Compact success indication with usage date
+                    ? Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
                         ),
-                        const SizedBox(width: 8),
-                        Text(
-                          isUsed
-                              ? 'تم استخدام الكوبون بنجاح 🎉 - استمتعت بالعرض!'
-                              : 'انتهت صلاحية هذا الكوبون',
-                          style: TextStyle(
-                            color: isUsed
-                                ? (isDark
-                                    ? Colors.greenAccent
-                                    : Colors.green.shade800)
-                                : Colors.grey,
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12.5,
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0x1510B981)
+                              : const Color(0xFFF0FDF4),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: const Color(0x3010B981),
+                            width: 1,
                           ),
                         ),
-                      ],
-                    ),
-                  ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.check_circle_rounded,
+                              size: 15,
+                              color: Color(0xFF10B981),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                coupon.redeemedAt != null
+                                    ? 'تم استخدام الكوبون بنجاح في ${DateFormat('d MMMM yyyy', 'ar').format(coupon.redeemedAt!)} 🎉'
+                                    : 'تم استخدام الكوبون بنجاح 🎉',
+                                style: const TextStyle(
+                                  color: Color(0xFF10B981),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )
+                    // Compact expired indication with expiration date
+                    : Container(
+                        padding: const EdgeInsets.symmetric(
+                          vertical: 8,
+                          horizontal: 12,
+                        ),
+                        alignment: Alignment.center,
+                        decoration: BoxDecoration(
+                          color: isDark
+                              ? const Color(0x15EF4444)
+                              : const Color(0xFFFEF2F2),
+                          borderRadius: BorderRadius.circular(10),
+                          border: Border.all(
+                            color: const Color(0x30EF4444),
+                            width: 1,
+                          ),
+                        ),
+                        child: Row(
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            const Icon(
+                              Icons.history_rounded,
+                              size: 15,
+                              color: Color(0xFFEF4444),
+                            ),
+                            const SizedBox(width: 6),
+                            Flexible(
+                              child: Text(
+                                coupon.expiresAt != null
+                                    ? 'انتهت صلاحية هذا الكوبون في ${DateFormat('d MMMM yyyy', 'ar').format(coupon.expiresAt!)}'
+                                    : 'انتهت صلاحية هذا الكوبون',
+                                style: const TextStyle(
+                                  color: Color(0xFFEF4444),
+                                  fontWeight: FontWeight.w700,
+                                  fontSize: 11.5,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ),
+                          ],
+                        ),
+                      )),
           ),
         ],
+      ),
+    );
+  }
+
+  Widget _buildCouponSkeletonList() {
+    return ListView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+      itemCount: 2,
+      itemBuilder: (_, __) => const Padding(
+        padding: EdgeInsets.only(bottom: 16),
+        child: SkeletonLoader(
+          width: double.infinity,
+          height: 220,
+          borderRadius: 20,
+        ),
       ),
     );
   }
@@ -1020,7 +1172,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                   next is CouponGeneratedSuccess,
               builder: (context, state) {
                 if (state is CouponsLoading || state is CouponsInitial) {
-                  return const Center(child: CircularProgressIndicator());
+                  return _buildCouponSkeletonList();
                 }
 
                 if (state is CouponsError) {
@@ -1101,9 +1253,16 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     return true;
                   }).toList();
 
+                  // Requirement: In the All tab, show active coupons first, followed by used and expired coupons.
+                  filteredCoupons.sort((a, b) {
+                    if (a.isActive && !b.isActive) return -1;
+                    if (!a.isActive && b.isActive) return 1;
+                    return b.createdAt.compareTo(a.createdAt);
+                  });
+
                   return Column(
                     children: [
-                      _buildFilterTabs(),
+                      _buildFilterTabs(allCoupons),
                       Expanded(
                         child: filteredCoupons.isEmpty
                             ? RefreshIndicator(
@@ -1112,24 +1271,28 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                 },
                                 child: SingleChildScrollView(
                                   physics: const AlwaysScrollableScrollPhysics(),
-                                  padding: const EdgeInsets.fromLTRB(40, 60, 40, 120),
+                                  padding: const EdgeInsets.fromLTRB(32, 50, 32, 120),
                                   child: Center(
                                     child: Column(
                                       mainAxisAlignment: MainAxisAlignment.center,
                                       children: [
                                         Container(
-                                          padding: const EdgeInsets.all(32),
+                                          padding: const EdgeInsets.all(28),
                                           decoration: BoxDecoration(
                                             color: AppColors.primary.withValues(alpha: 0.1),
                                             shape: BoxShape.circle,
                                           ),
-                                          child: const Icon(
-                                            Icons.confirmation_num_rounded,
-                                            size: 70,
+                                          child: Icon(
+                                            _activeTab == 'ACTIVE'
+                                                ? Icons.confirmation_num_rounded
+                                                : (_activeTab == 'USED'
+                                                    ? Icons.receipt_long_rounded
+                                                    : Icons.account_balance_wallet_outlined),
+                                            size: 60,
                                             color: AppColors.primary,
                                           ),
                                         ),
-                                        const SizedBox(height: 24),
+                                        const SizedBox(height: 20),
                                         Text(
                                           _activeTab == 'ACTIVE'
                                               ? 'لا توجد كوبونات نشطة حالياً'
@@ -1138,63 +1301,70 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                                   : 'لا توجد كوبونات مسجلة'),
                                           style: theme.textTheme.headlineSmall?.copyWith(
                                             fontWeight: FontWeight.w900,
+                                            fontSize: 20,
                                           ),
                                           textAlign: TextAlign.center,
                                         ),
-                                        const SizedBox(height: 12),
+                                        const SizedBox(height: 10),
                                         Text(
-                                          'احجز أقوى عروض ومطاعم الزقازيق دلوقتي، وهيظهر كوبونك هنا فوراً!',
+                                          _activeTab == 'ACTIVE'
+                                              ? 'احجز أقوى عروض ومطاعم الزقازيق دلوقتي، وهيظهر كوبونك هنا فوراً!'
+                                              : (_activeTab == 'USED'
+                                                  ? 'عندما تبرز رمز الـ QR أو كود الكوبون للكاشير في المتجر، ستظهر كوبوناتك المستفاد منها هنا.'
+                                                  : 'ابدأ باستكشاف التخفيضات الحصرية في الزقازيق وأضف كوبوناتك إلى محفظتك الآن!'),
                                           textAlign: TextAlign.center,
                                           style: TextStyle(
                                             color: AppColors.textSecondary,
-                                            height: 1.6,
-                                            fontSize: 14,
+                                            height: 1.5,
+                                            fontSize: 13.5,
                                           ),
                                         ),
-                                        const SizedBox(height: 28),
-                                        BouncyTap(
-                                          onTap: () {
-                                            final main = MainScreen.of(context);
-                                            if (main != null) {
-                                              main.setSelectedIndex(1);
-                                            } else if (Navigator.canPop(context)) {
-                                              Navigator.pop(context);
-                                            }
-                                          },
-                                          child: Container(
-                                            padding: const EdgeInsets.symmetric(
-                                                horizontal: 28, vertical: 14),
-                                            decoration: BoxDecoration(
-                                              gradient: const LinearGradient(
-                                                colors: [AppColors.primary, AppColors.secondary],
-                                              ),
-                                              borderRadius: BorderRadius.circular(16),
-                                              boxShadow: [
-                                                BoxShadow(
-                                                  color: AppColors.primary.withValues(alpha: 0.3),
-                                                  blurRadius: 16,
-                                                  offset: const Offset(0, 6),
+                                        if (_activeTab != 'USED') ...[
+                                          const SizedBox(height: 24),
+                                          BouncyTap(
+                                            onTap: () {
+                                              final main = MainScreen.of(context);
+                                              if (main != null) {
+                                                main.setSelectedIndex(1);
+                                              } else if (Navigator.canPop(context)) {
+                                                Navigator.pop(context);
+                                              }
+                                            },
+                                            child: Container(
+                                              padding: const EdgeInsets.symmetric(
+                                                  horizontal: 24, vertical: 12),
+                                              decoration: BoxDecoration(
+                                                gradient: const LinearGradient(
+                                                  colors: [AppColors.primary, AppColors.secondary],
                                                 ),
-                                              ],
-                                            ),
-                                            child: const Row(
-                                              mainAxisSize: MainAxisSize.min,
-                                              children: [
-                                                Icon(Icons.local_offer_rounded,
-                                                    color: Colors.white, size: 20),
-                                                SizedBox(width: 8),
-                                                Text(
-                                                  'تصفح أقوى العروض الآن 🛍️',
-                                                  style: TextStyle(
-                                                    color: Colors.white,
-                                                    fontWeight: FontWeight.bold,
-                                                    fontSize: 15,
+                                                borderRadius: BorderRadius.circular(14),
+                                                boxShadow: [
+                                                  BoxShadow(
+                                                    color: AppColors.primary.withValues(alpha: 0.3),
+                                                    blurRadius: 14,
+                                                    offset: const Offset(0, 5),
                                                   ),
-                                                ),
-                                              ],
+                                                ],
+                                              ),
+                                              child: const Row(
+                                                mainAxisSize: MainAxisSize.min,
+                                                children: [
+                                                  Icon(Icons.local_offer_rounded,
+                                                      color: Colors.white, size: 18),
+                                                  SizedBox(width: 8),
+                                                  Text(
+                                                    'تصفح أقوى العروض الآن 🛍️',
+                                                    style: TextStyle(
+                                                      color: Colors.white,
+                                                      fontWeight: FontWeight.bold,
+                                                      fontSize: 14,
+                                                    ),
+                                                  ),
+                                                ],
+                                              ),
                                             ),
                                           ),
-                                        ),
+                                        ],
                                       ],
                                     ),
                                   ),
@@ -1205,7 +1375,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                   context.read<CouponsBloc>().add(FetchUserCoupons());
                                 },
                                 child: ListView.builder(
-                                  padding: const EdgeInsets.fromLTRB(20, 10, 20, 120),
+                                  padding: const EdgeInsets.fromLTRB(16, 8, 16, 120),
                                   itemCount: filteredCoupons.length,
                                   itemBuilder: (context, index) {
                                     return _buildVoucherTicketCard(context, filteredCoupons[index]);
@@ -1218,7 +1388,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 }
 
                 if (state is CouponGeneratedSuccess) {
-                  return const Center(child: CircularProgressIndicator());
+                  return _buildCouponSkeletonList();
                 }
 
                 return const SizedBox();

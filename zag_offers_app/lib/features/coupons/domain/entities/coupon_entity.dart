@@ -11,6 +11,7 @@ class CouponEntity extends Equatable {
   final String status;    // GENERATED | USED | EXPIRED
   final DateTime createdAt;
   final DateTime? expiresAt;
+  final DateTime? redeemedAt;
   final OfferEntity offer;
 
   const CouponEntity({
@@ -19,11 +20,12 @@ class CouponEntity extends Equatable {
     required this.status,
     required this.createdAt,
     this.expiresAt,
+    this.redeemedAt,
     required this.offer,
   });
 
   bool get isActive => status == 'GENERATED' && (expiresAt == null || DateTime.now().isBefore(expiresAt!));
 
   @override
-  List<Object?> get props => [id, code, status, createdAt, expiresAt, offer];
+  List<Object?> get props => [id, code, status, createdAt, expiresAt, redeemedAt, offer];
 }
