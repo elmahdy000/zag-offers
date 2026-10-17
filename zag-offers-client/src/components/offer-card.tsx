@@ -8,7 +8,7 @@ import {
   RiShoppingCartFill, RiBookOpenFill, RiCarWashingFill, 
   RiHammerFill, RiSparklingFill, RiScissors2Fill,
   RiCake3Fill, RiGiftFill, RiGamepadFill, RiBearSmileFill,
-  RiHomeHeartFill
+  RiHomeHeartFill, RiArrowLeftLine, RiTimeLine
 } from 'react-icons/ri';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -165,134 +165,148 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     : null;
 
 
+  const storeInitial = offer.store.name.trim().charAt(0) || 'م';
+
   return (
     <div
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="offer-card global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:-translate-y-1.5 hover:border-[#FF6500]/50 hover:shadow-[0_20px_45px_rgba(0,0,0,0.38)]
-                 transition-all duration-300 flex flex-col h-full cursor-pointer"
+      className="offer-card global-card group relative bg-white dark:bg-[#101A2B] border border-gray-200/90 dark:border-[#25344A] rounded-[22px] overflow-hidden hover:-translate-y-1.5 hover:border-[#FF6500]/60 hover:shadow-[0_20px_45px_rgba(255,101,0,0.14)] dark:hover:shadow-[0_20px_45px_rgba(0,0,0,0.4)] transition-all duration-300 flex flex-col h-full cursor-pointer"
     >
-      {/* ─── Header ─────────────────────────────────── */}
-      <div className="offer-card-media relative h-[240px] bg-[#18253A] overflow-hidden flex-shrink-0">
+      {/* ─── Media Header ─────────────────────────────────── */}
+      <div className="offer-card-media relative h-[210px] bg-gray-100 dark:bg-[#18253A] overflow-hidden flex-shrink-0">
 
-        {offerImage && (
+        {offerImage ? (
           <Image
             src={offerImage}
             alt={offer.title}
             fill
-            sizes="(max-width: 640px) 50vw, (max-width: 1024px) 33vw, 20vw"
+            sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
-            {...(priority ? { preload: true } : { loading: 'lazy' as const })}
+            {...(priority ? { priority: true } : { loading: 'lazy' as const })}
             onError={() => setImageFailed(true)}
           />
-        )}
-
-        {!offerImage && (
-          <div className="offer-image-fallback absolute inset-0 flex flex-col items-center justify-center gap-2 text-[#708198]">
-            <span className="flex h-12 w-12 items-center justify-center rounded-xl border border-[#354761] bg-[#1B2A42]">{catIcon}</span>
-            <span className="text-xs font-medium">صورة العرض غير متاحة</span>
+        ) : (
+          /* Branded Designer Graphic Voucher (No depressing broken image text) */
+          <div className="offer-image-fallback absolute inset-0 flex flex-col items-center justify-center p-5 text-center bg-gradient-to-br from-[#FFF4EA] via-[#FFEADB] to-[#FFD5BA] dark:from-[#0E1A2C] dark:via-[#16253D] dark:to-[#0B1526] overflow-hidden">
+            <div className="w-14 h-14 rounded-2xl bg-white/95 dark:bg-[#1B2940] border border-[#FF6500]/25 shadow-md flex items-center justify-center text-[#FF6500] text-2xl mb-2 group-hover:scale-110 transition-transform">
+              {catIcon}
+            </div>
+            <span className="text-xs font-black text-[#C74E00] dark:text-[#FF8A3D] block">
+              {catName || 'عرض خاص'}
+            </span>
+            <span className="text-sm font-bold text-gray-800 dark:text-gray-100 line-clamp-1 mt-0.5">
+              {offer.store?.name}
+            </span>
           </div>
         )}
-        <div className="absolute inset-0 bg-black/10" />
 
+        {/* Subtle top image gradient for badge legibility */}
+        <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/25 pointer-events-none" />
+
+        {/* Favorite Button (Clean Glass Circle at Top Left) */}
+        <button
+          onClick={toggleFav}
+          aria-label={isFav ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
+          className={`absolute top-3 left-3 z-20 w-9 h-9 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-200 shadow-sm
+            ${isFav
+              ? 'bg-white text-red-500 border-red-200 shadow-md shadow-red-500/20 scale-105'
+              : 'bg-white/90 dark:bg-[#071426]/75 border-black/5 dark:border-white/15 text-gray-600 dark:text-white/80 hover:text-red-500 hover:scale-110 active:scale-95'}`}
+        >
+          <RiHeartFill size={17} className={isFav ? 'text-red-500' : 'currentColor'} />
+        </button>
+
+        {/* Discount Badge (Top Right) */}
+        <div className="absolute top-3 right-3 z-10 px-3.5 py-1 bg-gradient-to-r from-[#FF4500] to-[#FF6500] text-white text-xs font-black rounded-full shadow-[0_4px_12px_rgba(255,69,0,0.38)] tracking-tight">
+          {discountDisplay}
+        </div>
+
+        {/* Featured Badge */}
         {offer.isFeatured && (
-          <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-gradient-to-r from-amber-500/25 to-orange-500/25 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[11px] font-bold rounded-lg shadow-[0_2px_10px_rgba(245,158,11,0.25)] flex items-center gap-1.5">
-            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
+          <div className="absolute top-3 right-[76px] z-10 px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black rounded-full shadow-sm flex items-center gap-1 backdrop-blur-sm">
+            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
             مميز
           </div>
         )}
 
-        <div className="absolute top-3 right-3 z-10 px-3 py-1
-                        bg-gradient-to-r from-[#FF6500] to-[#FF3800] text-white text-xs font-black rounded-lg shadow-[0_4px_14px_rgba(255,101,0,0.4)]">
-          {discountDisplay}
-        </div>
-
-        <button
-          onClick={toggleFav}
-          className={`absolute bottom-3 left-3 z-10 p-2 rounded-xl backdrop-blur-md border transition-all
-            ${isFav
-              ? 'bg-red-500/20 border-red-500/50 text-red-400'
-              : 'bg-black/30 border-white/10 text-white/40 hover:text-white hover:border-white/30'}`}
-        >
-          <RiHeartFill size={16} className={isFav ? 'text-red-500' : 'text-white/70'} />
-        </button>
-
-        <div className="offer-store-logo absolute bottom-3 right-3 z-20
-                        w-10 h-10 rounded-xl border-2 border-white/80
-                        bg-[#0F1A2B] overflow-hidden shadow-lg
-                        flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
-          {logoUrl
-            ? <Image
-                src={logoUrl}
-                alt={offer.store?.name || 'Store Logo'}
-                width={40}
-                height={40}
-                className="w-full h-full object-cover"
-                onError={() => setLogoFailed(true)}
-              />
-            : <div className="text-sm font-bold text-white">{offer.store.name.trim().charAt(0)}</div>
-          }
+        {/* Store Logo (Bottom Right) with colorful fallback avatar */}
+        <div className="offer-store-logo absolute bottom-3 right-3 z-20 w-11 h-11 rounded-2xl border-2 border-white dark:border-[#101A2B] bg-white dark:bg-[#101A2B] overflow-hidden shadow-md flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
+          {logoUrl ? (
+            <Image
+              src={logoUrl}
+              alt={offer.store?.name || 'Store Logo'}
+              width={44}
+              height={44}
+              className="w-full h-full object-cover"
+              onError={() => setLogoFailed(true)}
+            />
+          ) : (
+            <div className="w-full h-full bg-gradient-to-br from-[#FF6500] to-[#E05500] text-white font-black text-sm flex items-center justify-center shadow-inner">
+              {storeInitial}
+            </div>
+          )}
         </div>
       </div>
 
-      {/* ─── Body ────────────────────────────────────── */}
-      <div className="offer-card-body flex flex-col flex-1 px-5 pt-5 pb-5 gap-3">
+      {/* ─── Card Body ────────────────────────────────────── */}
+      <div className="offer-card-body flex flex-col flex-1 p-4 sm:p-5 gap-2.5">
+        {/* Category & Coupon Count */}
+        <div className="flex items-center justify-between gap-2">
+          {catName && (
+            <span className="text-xs font-bold text-[#FF6500] dark:text-[#FF8A3D] flex items-center gap-1.5 bg-[#FF6500]/10 dark:bg-[#FF6500]/15 px-2.5 py-0.5 rounded-lg">
+              <span className="opacity-90">{catIcon}</span>
+              <span>{catName}</span>
+            </span>
+          )}
+          {(offer._count?.coupons || 0) > 0 && (
+            <span className="text-[11px] font-bold text-amber-700 dark:text-amber-300 bg-amber-50 dark:bg-amber-500/15 border border-amber-200 dark:border-amber-500/25 px-2 py-0.5 rounded-lg flex items-center gap-1">
+              {offer._count?.coupons} طلب
+            </span>
+          )}
+        </div>
 
-        {catName && (
-          <span className="text-[13px] font-semibold text-[#FF8A3D] flex items-center gap-1.5">
-            <span className="opacity-80">{catIcon}</span> {catName}
-          </span>
-        )}
-
-        <h3 className="text-lg font-bold text-[#F0F0F0] leading-7 line-clamp-2
-                       group-hover:text-[#FF8A3D] transition-colors min-h-[56px]">
+        {/* Title */}
+        <h3 className="text-base font-bold text-[#102039] dark:text-[#F0F0F0] leading-snug line-clamp-2 group-hover:text-[#FF6500] transition-colors">
           {offer.title}
         </h3>
 
+        {/* Pricing if present */}
         {offer.discountedPrice ? (
-          <div className="flex items-baseline gap-2" dir="ltr">
-            <span className="price text-xl font-bold text-[#FF7A1A]">
-              {offer.discountedPrice} ج.م
+          <div className="flex items-baseline gap-2 pt-0.5" dir="ltr">
+            <span className="text-lg font-black text-[#FF6500] dark:text-[#FF7A1A]">
+              {offer.discountedPrice} <small className="text-xs font-bold">ج.م</small>
             </span>
             {offer.originalPrice && (
-              <span className="price text-xs text-[#8FA0B8] line-through font-normal">
+              <span className="text-xs text-gray-400 dark:text-[#8FA0B8] line-through font-medium">
                 {offer.originalPrice} ج.م
               </span>
             )}
           </div>
         ) : null}
 
-        <div className="flex items-center justify-between">
-          <p className="text-sm text-[#B2BED0] font-medium flex items-center gap-1.5 truncate max-w-[75%]">
-            <RiStore3Line size={14} className="text-[#71839B]" />
-            {offer.store?.name}
-          </p>
-          {(offer._count?.coupons || 0) > 0 && (
-            <span className="text-[11px] font-medium text-orange-300 bg-orange-500/10 px-2 py-1 rounded-lg flex items-center gap-1 flex-shrink-0">
-              {offer._count?.coupons} طلب
-            </span>
-          )}
-        </div>
-
-        <div className="mt-auto pt-3 border-t border-[#2A3A52]/70 flex items-center justify-between gap-2">
-          <div className="flex items-center gap-1.5 min-w-0">
-            <RiMapPin2Line size={14} className="text-[#FF6B00] flex-shrink-0" />
-            <span className="text-xs font-normal text-[#8FA0B8] truncate group-hover:text-white transition-colors">
-              {offer.store?.area || 'الزقازيق'}
-            </span>
+        {/* Store Name & Area */}
+        <div className="flex items-center justify-between text-xs text-gray-500 dark:text-[#8FA0B8] pt-1">
+          <div className="flex items-center gap-1.5 font-bold truncate max-w-[62%] text-gray-700 dark:text-[#CBD5E1]">
+            <RiStore3Line size={15} className="text-[#FF6500] flex-shrink-0" />
+            <span className="truncate">{offer.store?.name}</span>
           </div>
-          <span className={`text-xs font-medium flex-shrink-0 ${expiryColor}`}>{expiryText}</span>
+          <div className="flex items-center gap-1 flex-shrink-0">
+            <RiMapPin2Line size={14} className="text-[#FF6500]" />
+            <span>{offer.store?.area || 'الزقازيق'}</span>
+          </div>
         </div>
 
-        <div
-          className="mt-1 w-full py-3 text-center text-[15px] font-bold text-[#FF7A1A]
-                     bg-[#FF6500]/10 border border-[#FF6500]/25 rounded-xl
-                     group-hover:bg-gradient-to-r group-hover:from-[#FF6500] group-hover:to-[#FF8A32]
-                     group-hover:text-white group-hover:border-transparent
-                     group-hover:shadow-[0_6px_20px_rgba(255,101,0,0.35)]
-                     group-hover:-translate-y-0.5 active:scale-[0.98]
-                     transition-all duration-300"
-        >
-          عرض التفاصيل
+        {/* Expiry Row */}
+        <div className="mt-auto pt-2.5 border-t border-gray-100 dark:border-[#25344A] flex items-center justify-between text-xs">
+          <span className="text-[11px] font-medium text-gray-400 dark:text-gray-500 flex items-center gap-1">
+            <RiTimeLine size={13} /> مدة العرض:
+          </span>
+          <span className={`text-xs ${expiryColor}`}>{expiryText}</span>
+        </div>
+
+        {/* CTA Button */}
+        <div className="offer-card-btn mt-1">
+          <span>عرض التفاصيل</span>
+          <RiArrowLeftLine size={16} />
         </div>
       </div>
     </div>

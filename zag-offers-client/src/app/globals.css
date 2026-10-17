@@ -1302,6 +1302,32 @@ html[data-theme="light"] .home-offers-empty button { color:#d95400 !important; }
 .homepage .home-sort-control { border-color:var(--home-border); background:var(--home-surface); }
 .homepage .home-sort-control button { min-height:38px; font-weight:600; }
 
+.offer-card-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  width: 100%;
+  padding: 11px 16px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 800;
+  background: linear-gradient(135deg, #FF6500 0%, #FF8A32 100%);
+  color: #FFFFFF !important;
+  border: none;
+  box-shadow: 0 4px 14px rgba(255, 101, 0, 0.28);
+  transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+  cursor: pointer;
+}
+.offer-card-btn:hover {
+  background: linear-gradient(135deg, #E85500 0%, #FF7A1A 100%);
+  box-shadow: 0 6px 20px rgba(255, 101, 0, 0.42);
+  transform: translateY(-1px);
+}
+.offer-card-btn:active {
+  transform: scale(0.98);
+}
+
 .featured-stores-section { width:100%; height:auto; min-height:0; padding-block:72px; font-family:"Cairo Variable","Cairo",sans-serif; }
 .featured-stores-container { width:min(calc(100% - 32px),1600px); margin-inline:auto; }
 .featured-stores-header { display:flex; align-items:flex-end; justify-content:space-between; gap:24px; margin-bottom:28px; }
@@ -1437,17 +1463,15 @@ html[data-theme="light"] .featured-billboard-description { color:#64748b; text-s
 @media (prefers-reduced-motion:reduce) {
   .homepage * { scroll-behavior:auto!important; animation-duration:.01ms!important; animation-iteration-count:1!important; transition-duration:.01ms!important; }
 }
-html[data-theme="light"] .offer-card { border-color:#dbe1e9 !important; background:#fff !important; color:#102039; }
-html[data-theme="light"] .offer-card:hover { border-color:rgba(255,107,0,.46) !important; box-shadow:0 14px 32px rgba(16,32,57,.11); }
-html[data-theme="light"] .offer-card-media,html[data-theme="light"] .offer-image-fallback { background:#eef2f6 !important; }
-html[data-theme="light"] .offer-image-fallback { color:#75859a !important; }
-html[data-theme="light"] .offer-image-fallback > span { border-color:#d8dee8 !important; background:#fff !important; }
-html[data-theme="light"] .offer-card-body h3 { color:#102039 !important; }
-html[data-theme="light"] .offer-card-body p { color:#526174 !important; }
-html[data-theme="light"] .offer-card-body > div[class*="border-t"] { border-color:#e1e6ed !important; }
-html[data-theme="light"] .offer-card-body div[class*="group-hover:bg"] { background:#fff3e9; }
-html[data-theme="light"] .offer-store-logo { border-color:#fff !important; background:#f4f6f9 !important; box-shadow:0 4px 14px rgba(16,32,57,.12); }
-html[data-theme="light"] .offer-store-logo > div { color:#526174 !important; }
+html[data-theme="light"] .offer-card { border-color:#e2e8f0 !important; background:#ffffff !important; color:#0f172a; box-shadow:0 2px 10px rgba(0,0,0,.04); }
+html[data-theme="light"] .offer-card:hover { border-color:rgba(255,101,0,.45) !important; box-shadow:0 16px 36px rgba(255,101,0,.12) !important; }
+html[data-theme="light"] .offer-card-media { background:#f8fafc !important; }
+html[data-theme="light"] .offer-card-body h3 { color:#0f172a !important; }
+html[data-theme="light"] .offer-card-body p { color:#475569 !important; }
+html[data-theme="light"] .offer-card-body > div[class*="border-t"] { border-color:#f1f5f9 !important; }
+html[data-theme="light"] .offer-store-logo { border-color:#ffffff !important; background:#ffffff !important; box-shadow:0 4px 14px rgba(16,32,57,.12); }
+html[data-theme="light"] .offer-card-btn { background:linear-gradient(135deg, #FF6500 0%, #FF8A32 100%) !important; color:#ffffff !important; box-shadow:0 4px 14px rgba(255,101,0,.28) !important; }
+html[data-theme="light"] .offer-card-btn:hover { background:linear-gradient(135deg, #E85500 0%, #FF7A1A 100%) !important; box-shadow:0 6px 20px rgba(255,101,0,.42) !important; }
 html[data-theme="light"] .surface-card h2,html[data-theme="light"] .surface-card h3 { color:#102039 !important; }
 html[data-theme="light"] .surface-card p { color:#667085 !important; }
 html[data-theme="light"] .surface-card > span { background:#fff3e9 !important; }

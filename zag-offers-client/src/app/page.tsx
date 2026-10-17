@@ -572,7 +572,18 @@ function HomePageContent() {
       <AnimatePresence>
         {!activeCat && !search && recommended.length > 0 && (
           <motion.section initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="home-container home-section">
-            <div className="home-section-heading"><div><span className="home-section-kicker">مقترحة لك</span><h2 className="home-section-title">عروض مختارة لك</h2></div></div>
+            <div className="home-section-heading flex-wrap">
+              <div className="flex items-center gap-3">
+                <div className="home-heading-icon"><RiSparkling2Fill size={20} /></div>
+                <div>
+                  <span className="home-section-kicker">مقترحة لك خصيصاً</span>
+                  <h2 className="home-section-title">عروض مختارة لك</h2>
+                </div>
+              </div>
+              <Link href="/offers" className="home-section-link">
+                عرض كل العروض <RiArrowLeftLine size={16} />
+              </Link>
+            </div>
             <div className="home-horizontal-offers">
               {recommended.map((offer) => (
                 <div key={offer.id} className="home-horizontal-offer">
