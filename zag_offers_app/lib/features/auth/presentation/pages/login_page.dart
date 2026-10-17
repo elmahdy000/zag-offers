@@ -62,9 +62,10 @@ class _LoginPageState extends State<LoginPage> {
             SnackBarUtils.showError(context, state.message);
           }
           if (state is AuthSuccess) {
-            Navigator.pushReplacement(
+            Navigator.pushAndRemoveUntil(
               context,
               MaterialPageRoute(builder: (context) => const MainScreen()),
+              (route) => false,
             );
           }
         },

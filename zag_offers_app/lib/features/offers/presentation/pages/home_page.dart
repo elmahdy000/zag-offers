@@ -288,6 +288,7 @@ class _HomePageState extends State<HomePage> {
     final isDark = theme.brightness == Brightness.dark;
 
     return SliverAppBar(
+      automaticallyImplyLeading: false,
       expandedHeight: 80,
       floating: true,
       pinned: true,
