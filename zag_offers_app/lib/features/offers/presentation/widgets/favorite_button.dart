@@ -85,13 +85,27 @@ class _FavoriteButtonState extends State<FavoriteButton> with SingleTickerProvid
             child: Container(
               padding: const EdgeInsets.all(6),
               decoration: BoxDecoration(
-                color: Colors.white.withValues(alpha: 0.9),
+                color: Theme.of(context).brightness == Brightness.dark
+                    ? const Color(0xFF1E2433).withValues(alpha: 0.88)
+                    : Colors.white.withValues(alpha: 0.92),
                 shape: BoxShape.circle,
-                boxShadow: const [BoxShadow(color: Colors.black12, blurRadius: 4)],
+                border: Border.all(
+                  color: Theme.of(context).brightness == Brightness.dark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.06),
+                  width: 0.8,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withValues(alpha: 0.18),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2),
+                  ),
+                ],
               ),
               child: Icon(
                 isFavorited ? Icons.favorite_rounded : Icons.favorite_outline_rounded,
-                color: isFavorited ? Colors.red : Colors.grey,
+                color: isFavorited ? Colors.red : (Theme.of(context).brightness == Brightness.dark ? Colors.white70 : Colors.grey.shade600),
                 size: widget.size,
               ),
             ),

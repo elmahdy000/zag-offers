@@ -3,7 +3,6 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -20,6 +19,8 @@ import '../../../offers/domain/entities/store_entity.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
+import '../../../../core/widgets/coupon_celebration_dialog.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class MyCouponsPage extends StatefulWidget {
   const MyCouponsPage({super.key});
@@ -139,123 +140,23 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     }
   }
 
-  void _showQRDialog(BuildContext context, String code, String storeName,
-      {double? oldPrice, double? newPrice}) {
-    showDialog(
+  void _showQRDialog(
+    BuildContext context,
+    String code,
+    String storeName, {
+    double? oldPrice,
+    double? newPrice,
+    String? offerTitle,
+    String? storeLogo,
+  }) {
+    CouponCelebrationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        content: SizedBox(
-          width: MediaQuery.of(dialogContext).size.width * 0.85,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Text(
-                storeName,
-                textAlign: TextAlign.center,
-                style: Theme.of(context)
-                    .textTheme
-                    .headlineSmall
-                    ?.copyWith(fontWeight: FontWeight.w900),
-              ),
-              if (newPrice != null) ...[
-                const SizedBox(height: 8),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${newPrice.toStringAsFixed(0)} ج.م',
-                      style: Theme.of(context).textTheme.titleMedium?.copyWith(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w900,
-                          ),
-                    ),
-                    if (oldPrice != null) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '${oldPrice.toStringAsFixed(0)} ج.م',
-                        style: Theme.of(context)
-                            .textTheme
-                            .bodySmall
-                            ?.copyWith(
-                              decoration: TextDecoration.lineThrough,
-                              color: Theme.of(context)
-                                  .textTheme
-                                  .bodySmall
-                                  ?.color
-                                  ?.withValues(alpha: 0.6),
-                            ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-              const SizedBox(height: 20),
-              Container(
-                padding: const EdgeInsets.all(16),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                  boxShadow: [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.1),
-                      blurRadius: 15,
-                    ),
-                  ],
-                ),
-                child: QrImageView(
-                  data: code,
-                  version: QrVersions.auto,
-                  size: 200,
-                  eyeStyle: const QrEyeStyle(
-                    eyeShape: QrEyeShape.circle,
-                    color: Colors.black,
-                  ),
-                  dataModuleStyle: const QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 18),
-              Container(
-                padding:
-                    const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(14),
-                  border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2)),
-                ),
-                child: Text(
-                  code,
-                  style: Theme.of(context).textTheme.headlineMedium?.copyWith(
-                        fontWeight: FontWeight.bold,
-                        color: AppColors.primary,
-                        letterSpacing: 3,
-                      ),
-                ),
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'ورّي الكود ده أو امسح الـ QR عند الكاشير وخصمك في جيبك 🎉',
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.grey.shade600),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => _copyCode(dialogContext, code),
-            child: const Text('نسخ الكود', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text('إغلاق', style: TextStyle(fontWeight: FontWeight.bold)),
-          ),
-        ],
-      ),
+      code: code,
+      storeName: storeName,
+      storeLogo: storeLogo,
+      offerTitle: offerTitle ?? 'كوبون خصم Zag Offers',
+      newPrice: newPrice,
+      oldPrice: oldPrice,
     );
   }
 
@@ -274,20 +175,29 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
           return Expanded(
             child: Padding(
               padding: const EdgeInsets.symmetric(horizontal: 4),
-              child: InkWell(
+              child: BouncyTap(
                 onTap: () {
-                  HapticFeedback.lightImpact();
+                  HapticFeedback.selectionClick();
                   setState(() => _activeTab = tab['key']!);
                 },
-                borderRadius: BorderRadius.circular(14),
+                scaleFactor: 0.95,
                 child: AnimatedContainer(
-                  duration: const Duration(milliseconds: 200),
+                  duration: const Duration(milliseconds: 220),
+                  curve: Curves.easeOutCubic,
                   padding: const EdgeInsets.symmetric(vertical: 10),
                   decoration: BoxDecoration(
                     color: isSelected
                         ? AppColors.primary
                         : Theme.of(context).dividerColor.withValues(alpha: 0.08),
                     borderRadius: BorderRadius.circular(14),
+                    boxShadow: [
+                      if (isSelected)
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.32),
+                          blurRadius: 12,
+                          offset: const Offset(0, 4),
+                        ),
+                    ],
                   ),
                   child: Text(
                     tab['label']!,
@@ -610,29 +520,34 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
             child: isActive
                 ? Column(
                     children: [
-                      ElevatedButton.icon(
-                        onPressed: () {
-                          HapticFeedback.lightImpact();
-                          _showQRDialog(
-                            context,
-                            coupon.code,
-                            store.name,
-                            oldPrice: offer.oldPrice,
-                            newPrice: offer.newPrice,
-                          );
-                        },
-                        icon: const Icon(Icons.qr_code_2_rounded, size: 20),
-                        label: const Text(
-                          'امسح الـ QR عند الكاشير 📱',
-                          style: TextStyle(fontWeight: FontWeight.bold),
-                        ),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          elevation: 0,
-                          minimumSize: const Size.fromHeight(46),
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(14),
+                      BouncyTap(
+                        scaleFactor: 0.97,
+                        child: ElevatedButton.icon(
+                          onPressed: () {
+                            HapticFeedback.lightImpact();
+                            _showQRDialog(
+                              context,
+                              coupon.code,
+                              store.name,
+                              storeLogo: store.logo,
+                              offerTitle: offer.title,
+                              oldPrice: offer.oldPrice,
+                              newPrice: offer.newPrice,
+                            );
+                          },
+                          icon: const Icon(Icons.qr_code_2_rounded, size: 20),
+                          label: const Text(
+                            'امسح الـ QR عند الكاشير 📱',
+                            style: TextStyle(fontWeight: FontWeight.bold),
+                          ),
+                          style: ElevatedButton.styleFrom(
+                            backgroundColor: AppColors.primary,
+                            foregroundColor: Colors.white,
+                            elevation: 0,
+                            minimumSize: const Size.fromHeight(46),
+                            shape: RoundedRectangleBorder(
+                              borderRadius: BorderRadius.circular(14),
+                            ),
                           ),
                         ),
                       ),

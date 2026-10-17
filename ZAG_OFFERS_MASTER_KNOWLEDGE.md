@@ -78,6 +78,12 @@
    - مراعاة الـ Safe Area للهواتف الحديثة (`MediaQuery.of(context).padding.bottom`) لضمان عدم تغطية الأزرار العائمة على المحتوى أو تداخلها مع شريط التنقل.
    - إزالة أزرار الرجوع التلقائية غير المرغوبة (`automaticallyImplyLeading: false`) وضبط التنقل بعد تسجيل الدخول (`pushAndRemoveUntil`).
 
+5. **حزمة الأنيميشن والراحة البصرية التفاعلية (Tactile Micro-Interactions & Floating Glass UI)**:
+   - **فيزياء اللمس التفاعلية (`BouncyTap`)**: استبدال الـ InkWell المسطح بفيزياء الزنبرك الطبيعية (`Transform.scale` بنسبة 0.96 مع `Curves.easeOutBack`) والهابتك اللمسي الفوري (`HapticFeedback.lightImpact`) على جميع بطاقات العروض (`OfferCard`)، التصنيفات الدائرية (`CategoriesSection`)، والفلاتر.
+   - **شريط التنقل الزجاجي العائم (`Floating Dynamic Frosted Glass Navbar`)**: تحويل النافبار السفلي في `MainScreen` إلى جزيرة عائمة بحواف دائرية (`BorderRadius.circular(24)`)، مع تأثير البلور الزجاجي (`ImageFilter.blur`) وبادج نشط ينساب بنعومة (`AnimatedScale` و `AnimatedContainer`) خلف التاب النشط.
+   - **أنيميشن ختم الكوبون الفاخر (`CouponCelebrationDialog`)**: استبدال مربعات الحوار التقليدية بشاشة احتفال ثلاثية الأبعاد تحتوي على ختم مطاطي ينقض بقوة وارتداد مرن (`Curves.elasticOut`) مع انبعاث جزيئات الكونفيتي الملونة والـ QR Code الفخم.
+   - **كبسولة المفضلة الزجاجية المريحة للعين (`FavoriteButton`)**: دعم التدرج الداكن الفاتح لزر الإعجاب ليمنع أي توهج أبيض حاد في الوضع الليلي مع ارتداد القلوب المتوهجة.
+
 ---
 
 ## 🧪 4. الاختبارات والتحقق الميداني (Live Verification)

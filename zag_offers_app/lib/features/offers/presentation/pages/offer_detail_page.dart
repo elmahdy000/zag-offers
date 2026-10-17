@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
-import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams;
 import 'package:url_launcher/url_launcher.dart';
 
@@ -25,6 +24,8 @@ import 'package:zag_offers_app/core/constants/app_strings.dart';
 import 'store_detail_page.dart';
 import '../../data/datasources/offers_remote_data_source.dart';
 import '../widgets/flash_sale_badge.dart';
+import '../../../../core/widgets/coupon_celebration_dialog.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class OfferDetailPage extends StatefulWidget {
   final OfferEntity offer;
@@ -131,16 +132,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             '${AppStrings.discount} $discountText',
       ),
     );
-  }
-
-  Future<void> _copyCouponCode(
-    BuildContext context,
-    String code,
-  ) async {
-    HapticFeedback.mediumImpact();
-    await Clipboard.setData(ClipboardData(text: code));
-    if (!context.mounted) return;
-    SnackBarUtils.showSuccess(context, AppStrings.copySuccess);
   }
 
   Future<void> _openExternalMap() async {
@@ -941,64 +932,85 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               return Column(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  Container(
-                    height: 48,
-                    width: double.infinity,
-                    decoration: BoxDecoration(
-                      boxShadow: [
-                        BoxShadow(
-                          color:
-                              (canGenerate ? AppColors.primary : Colors.black)
-                                  .withValues(alpha: 0.2),
-                          blurRadius: 20,
-                          offset: const Offset(0, 10),
-                        ),
-                      ],
-                    ),
-                    child: ElevatedButton(
-                      onPressed: (state is CouponsLoading ||
-                              !canGenerate ||
-                              _isFlashSaleFinished())
-                          ? null
-                          : () {
-                              HapticFeedback.lightImpact();
-                              _couponsBloc.add(
-                                GenerateCouponRequested(widget.offer.id),
-                              );
-                            },
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.primary,
-                        foregroundColor: Colors.white,
-                        disabledBackgroundColor:
-                            Theme.of(context).brightness == Brightness.dark
+                  BouncyTap(
+                    scaleFactor: 0.97,
+                    child: Container(
+                      height: 52,
+                      width: double.infinity,
+                      decoration: BoxDecoration(
+                        gradient: (canGenerate && !_isFlashSaleFinished())
+                            ? const LinearGradient(
+                                colors: [AppColors.primary, Color(0xFFFF8C35)],
+                              )
+                            : null,
+                        color: (!canGenerate || _isFlashSaleFinished())
+                            ? (Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white10
-                                : Colors.grey.shade200,
-                        disabledForegroundColor:
-                            Theme.of(context).brightness == Brightness.dark
-                                ? Colors.white54
-                                : Colors.grey.shade600,
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(14),
-                        ),
-                        elevation: 0,
-                      ),
-                      child: state is CouponsLoading
-                          ? const CircularProgressIndicator(color: Colors.white)
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                const Icon(
-                                  Icons.confirmation_num_rounded,
-                                ),
-                                const SizedBox(width: 12),
-                                Text(
-                                  _getButtonText(canGenerate),
-                                  style: textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.bold,
-                                  ),
-                                ),
-                              ],
+                                : Colors.grey.shade300)
+                            : null,
+                        borderRadius: BorderRadius.circular(16),
+                        boxShadow: [
+                          if (canGenerate && !_isFlashSaleFinished())
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.38),
+                              blurRadius: 22,
+                              offset: const Offset(0, 8),
                             ),
+                        ],
+                      ),
+                      child: ElevatedButton(
+                        onPressed: (state is CouponsLoading ||
+                                !canGenerate ||
+                                _isFlashSaleFinished())
+                            ? null
+                            : () {
+                                HapticFeedback.mediumImpact();
+                                _couponsBloc.add(
+                                  GenerateCouponRequested(widget.offer.id),
+                                );
+                              },
+                        style: ElevatedButton.styleFrom(
+                          backgroundColor: Colors.transparent,
+                          foregroundColor: Colors.white,
+                          shadowColor: Colors.transparent,
+                          disabledBackgroundColor: Colors.transparent,
+                          disabledForegroundColor:
+                              Theme.of(context).brightness == Brightness.dark
+                                  ? Colors.white54
+                                  : Colors.grey.shade600,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          elevation: 0,
+                        ),
+                        child: state is CouponsLoading
+                            ? const SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  color: Colors.white,
+                                  strokeWidth: 2.5,
+                                ),
+                              )
+                            : Row(
+                                mainAxisAlignment: MainAxisAlignment.center,
+                                children: [
+                                  const Icon(
+                                    Icons.confirmation_num_rounded,
+                                    size: 20,
+                                  ),
+                                  const SizedBox(width: 10),
+                                  Text(
+                                    _getButtonText(canGenerate),
+                                    style: textTheme.labelLarge?.copyWith(
+                                      fontWeight: FontWeight.w800,
+                                      fontSize: 15,
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                      ),
                     ),
                   ),
                   if (!canGenerate) ...[
@@ -1034,143 +1046,15 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   void _showCouponDialog(BuildContext context, String code) {
-    final theme = Theme.of(context);
-    showDialog(
+    CouponCelebrationDialog.show(
       context: context,
-      builder: (dialogContext) => AlertDialog(
-        backgroundColor: theme.cardColor,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(28)),
-        content: SizedBox(
-          width: MediaQuery.of(dialogContext).size.width * 0.85,
-          child: Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  const Icon(
-                    Icons.local_fire_department_rounded,
-                    size: 16,
-                    color: Colors.deepOrange,
-                  ),
-                  const SizedBox(width: 6),
-                  Text(
-                    'عرض مطلوب جداً في الزقازيق 🔥',
-                    style: theme.textTheme.labelSmall?.copyWith(
-                      fontWeight: FontWeight.bold,
-                      color: Colors.deepOrange,
-                    ),
-                  ),
-                ],
-              ),
-              if (widget.offer.newPrice != null) ...[
-                const SizedBox(height: 12),
-                Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    Text(
-                      '${widget.offer.newPrice!.toStringAsFixed(0)} ج.م',
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 18,
-                      ),
-                    ),
-                    if (widget.offer.oldPrice != null) ...[
-                      const SizedBox(width: 8),
-                      Text(
-                        '${widget.offer.oldPrice!.toStringAsFixed(0)} ج.م',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          decoration: TextDecoration.lineThrough,
-                          color: theme.textTheme.bodySmall?.color
-                              ?.withValues(alpha: 0.6),
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ],
-              const SizedBox(height: 20),
-              const Icon(
-                Icons.check_circle_rounded,
-                color: AppColors.success,
-                size: 72,
-              ),
-              const SizedBox(height: 20),
-              Text(
-                'مبروك! كوبونك جاهز 🎉',
-                style: theme.textTheme.titleLarge
-                    ?.copyWith(fontWeight: FontWeight.bold),
-                textAlign: TextAlign.center,
-              ),
-              const SizedBox(height: 12),
-              Text(
-                'ورّي الكود ده أو امسح الـ QR عند الكاشير وخصمك في جيبك!',
-                textAlign: TextAlign.center,
-                style: theme.textTheme.bodyMedium,
-              ),
-              const SizedBox(height: 28),
-              Container(
-                padding: const EdgeInsets.all(12),
-                decoration: BoxDecoration(
-                  color: Colors.white,
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                child: QrImageView(
-                  data: code,
-                  version: QrVersions.auto,
-                  size: 160,
-                  eyeStyle: const QrEyeStyle(
-                    eyeShape: QrEyeShape.circle,
-                    color: Colors.black,
-                  ),
-                  dataModuleStyle: const QrDataModuleStyle(
-                    dataModuleShape: QrDataModuleShape.square,
-                    color: Colors.black,
-                  ),
-                ),
-              ),
-              const SizedBox(height: 24),
-              Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 24,
-                  vertical: 14,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.1),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(
-                      color: AppColors.primary.withValues(alpha: 0.2)),
-                ),
-                child: Text(
-                  code,
-                  style: theme.textTheme.headlineMedium?.copyWith(
-                    fontWeight: FontWeight.bold,
-                    color: AppColors.primary,
-                    letterSpacing: 4,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ),
-        actions: [
-          TextButton(
-            onPressed: () => _copyCouponCode(dialogContext, code),
-            child: const Text(
-              'نسخ الكود',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-          TextButton(
-            onPressed: () => Navigator.pop(dialogContext),
-            child: const Text(
-              'إغلاق',
-              style: TextStyle(fontWeight: FontWeight.bold),
-            ),
-          ),
-        ],
-      ),
+      code: code,
+      storeName: widget.offer.store.name,
+      storeLogo: widget.offer.store.logo,
+      offerTitle: widget.offer.title,
+      newPrice: widget.offer.newPrice,
+      oldPrice: widget.offer.oldPrice,
+      discount: widget.offer.discount,
     );
   }
 

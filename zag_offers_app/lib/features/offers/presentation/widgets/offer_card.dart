@@ -1,11 +1,11 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../domain/entities/offer_entity.dart';
 import 'favorite_button.dart';
 import 'flash_sale_badge.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class OfferCard extends StatelessWidget {
   final OfferEntity offer;
@@ -24,54 +24,49 @@ class OfferCard extends StatelessWidget {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     
-    return Container(
-      width: isWide ? null : 285,
-      margin: isWide ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
-      decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(22),
-        border: Border.all(
-          color: isDark 
-              ? Colors.white.withValues(alpha: 0.08) 
-              : Colors.black.withValues(alpha: 0.06),
-          width: 1,
-        ),
-        boxShadow: [
-          BoxShadow(
+    return BouncyTap(
+      onTap: onTap,
+      scaleFactor: 0.968,
+      child: Container(
+        width: isWide ? null : 285,
+        margin: isWide ? EdgeInsets.zero : const EdgeInsets.symmetric(vertical: 6, horizontal: 4),
+        decoration: BoxDecoration(
+          color: theme.cardColor,
+          borderRadius: BorderRadius.circular(22),
+          border: Border.all(
             color: isDark 
-                ? Colors.black.withValues(alpha: 0.35) 
-                : Colors.black.withValues(alpha: 0.05),
-            blurRadius: 14,
-            offset: const Offset(0, 4),
+                ? Colors.white.withValues(alpha: 0.08) 
+                : Colors.black.withValues(alpha: 0.06),
+            width: 1,
           ),
-          if (!isDark)
+          boxShadow: [
             BoxShadow(
-              color: AppColors.primary.withValues(alpha: 0.03),
-              blurRadius: 20,
-              offset: const Offset(0, 8),
+              color: isDark 
+                  ? Colors.black.withValues(alpha: 0.35) 
+                  : Colors.black.withValues(alpha: 0.05),
+              blurRadius: 14,
+              offset: const Offset(0, 4),
             ),
-        ],
-      ),
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(22),
-        child: Material(
-          color: Colors.transparent,
-          child: InkWell(
-            onTap: () {
-              HapticFeedback.lightImpact();
-              onTap?.call();
-            },
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.stretch,
-              children: [
-                _buildImageSection(context, isDark),
-                Expanded(
-                  child: _buildInfoSection(context, isDark),
-                ),
-                _buildCouponSeparator(isDark),
-                _buildActionSection(context, isDark),
-              ],
-            ),
+            if (!isDark)
+              BoxShadow(
+                color: AppColors.primary.withValues(alpha: 0.03),
+                blurRadius: 20,
+                offset: const Offset(0, 8),
+              ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(22),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              _buildImageSection(context, isDark),
+              Expanded(
+                child: _buildInfoSection(context, isDark),
+              ),
+              _buildCouponSeparator(isDark),
+              _buildActionSection(context, isDark),
+            ],
           ),
         ),
       ),

@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
@@ -316,9 +317,9 @@ class _HomePageState extends State<HomePage> {
       title: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          InkWell(
+          BouncyTap(
+            scaleFactor: 0.94,
             onTap: () => _showAreaPickerSheet(context),
-            borderRadius: BorderRadius.circular(20),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
               decoration: BoxDecoration(

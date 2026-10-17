@@ -6,6 +6,7 @@ import '../../domain/entities/category_entity.dart';
 import '../pages/all_offers_page.dart';
 import '../pages/categories_page.dart';
 import '../constants/offer_categories.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class CategoriesSection extends StatelessWidget {
   final List<CategoryEntity> categories;
@@ -34,7 +35,8 @@ class CategoriesSection extends StatelessWidget {
                       fontWeight: FontWeight.w800,
                     ),
               ),
-              GestureDetector(
+              BouncyTap(
+                scaleFactor: 0.94,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
@@ -118,7 +120,8 @@ class _CategoriesListView extends StatelessWidget {
           final item = items[index];
           return Padding(
             padding: const EdgeInsets.only(right: 14),
-            child: GestureDetector(
+            child: BouncyTap(
+              scaleFactor: 0.92,
               onTap: () {
                 Navigator.push(
                   context,

@@ -2,8 +2,10 @@ import 'dart:async';
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/services/socket_service.dart';
@@ -194,44 +196,147 @@ class MainScreenState extends State<MainScreen> {
     return _isCustomer ? const MyCouponsPage() : const FavoritesPage();
   }
 
-  List<BottomNavigationBarItem> get _items => [
-        const BottomNavigationBarItem(
-          icon: Icon(IconlyLight.home),
-          activeIcon: Icon(IconlyBold.home),
-          label: 'الرئيسية',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(IconlyLight.discount),
-          activeIcon: Icon(IconlyBold.discount),
-          label: 'العروض',
-        ),
-        BottomNavigationBarItem(
-          icon: Icon(
-            !_isRoleLoaded
-                ? IconlyLight.moreSquare
-                : _isCustomer
-                    ? IconlyLight.ticket
-                    : IconlyLight.heart,
+  Widget _buildFloatingNavBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final bottomPadding = MediaQuery.of(context).padding.bottom;
+
+    final navItems = [
+      (
+        icon: IconlyLight.home,
+        activeIcon: IconlyBold.home,
+        label: 'الرئيسية',
+      ),
+      (
+        icon: IconlyLight.discount,
+        activeIcon: IconlyBold.discount,
+        label: 'العروض',
+      ),
+      (
+        icon: !_isRoleLoaded
+            ? IconlyLight.moreSquare
+            : _isCustomer
+                ? IconlyLight.ticket
+                : IconlyLight.heart,
+        activeIcon: !_isRoleLoaded
+            ? IconlyBold.moreSquare
+            : _isCustomer
+                ? IconlyBold.ticket
+                : IconlyBold.heart,
+        label: !_isRoleLoaded
+            ? '...'
+            : _isCustomer
+                ? 'كوبوناتي'
+                : 'المفضلة',
+      ),
+      (
+        icon: IconlyLight.profile,
+        activeIcon: IconlyBold.profile,
+        label: 'حسابي',
+      ),
+    ];
+
+    return Padding(
+      padding: EdgeInsets.fromLTRB(16, 0, 16, bottomPadding > 0 ? bottomPadding : 14),
+      child: Container(
+        height: 64,
+        decoration: BoxDecoration(
+          color: (isDark ? const Color(0xFF131B2A) : Colors.white)
+              .withValues(alpha: 0.88),
+          borderRadius: BorderRadius.circular(24),
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.1)
+                : Colors.black.withValues(alpha: 0.05),
+            width: 1,
           ),
-          activeIcon: Icon(
-            !_isRoleLoaded
-                ? IconlyBold.moreSquare
-                : _isCustomer
-                    ? IconlyBold.ticket
-                    : IconlyBold.heart,
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: isDark ? 0.45 : 0.08),
+              blurRadius: 28,
+              offset: const Offset(0, 8),
+            ),
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: 0.06),
+              blurRadius: 18,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: ClipRRect(
+          borderRadius: BorderRadius.circular(24),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: List.generate(navItems.length, (index) {
+                final item = navItems[index];
+                final isSelected = _selectedIndex == index;
+
+                return Expanded(
+                  child: BouncyTap(
+                    onTap: () {
+                      HapticFeedback.selectionClick();
+                      setSelectedIndex(index);
+                    },
+                    scaleFactor: 0.92,
+                    child: Center(
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 240),
+                        curve: Curves.easeOutCubic,
+                        padding: EdgeInsets.symmetric(
+                          horizontal: isSelected ? 12 : 8,
+                          vertical: 6,
+                        ),
+                        decoration: BoxDecoration(
+                          color: isSelected
+                              ? AppColors.primary.withValues(alpha: isDark ? 0.2 : 0.12)
+                              : Colors.transparent,
+                          borderRadius: BorderRadius.circular(16),
+                        ),
+                        child: Column(
+                          mainAxisSize: MainAxisSize.min,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            AnimatedScale(
+                              scale: isSelected ? 1.08 : 1.0,
+                              duration: const Duration(milliseconds: 200),
+                              curve: Curves.easeOutBack,
+                              child: Icon(
+                                isSelected ? item.activeIcon : item.icon,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : (isDark ? Colors.grey.shade400 : AppColors.textSecondary),
+                                size: 21,
+                              ),
+                            ),
+                            const SizedBox(height: 2),
+                            Text(
+                              item.label,
+                              style: TextStyle(
+                                fontSize: 11,
+                                fontWeight: isSelected ? FontWeight.w800 : FontWeight.w600,
+                                color: isSelected
+                                    ? AppColors.primary
+                                    : (isDark ? Colors.grey.shade400 : AppColors.textSecondary),
+                                height: 1.1,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ],
+                        ),
+                      ),
+                    ),
+                  ),
+                );
+              }),
+            ),
           ),
-          label: !_isRoleLoaded
-              ? 'جاري التحميل'
-              : _isCustomer
-                  ? 'كوبوناتي'
-                  : 'المفضلة',
         ),
-        BottomNavigationBarItem(
-          icon: Icon(IconlyLight.profile),
-          activeIcon: Icon(IconlyBold.profile),
-          label: 'حسابي',
-        ),
-      ];
+      ),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -251,54 +356,7 @@ class MainScreenState extends State<MainScreen> {
           index: _selectedIndex,
           children: _pages,
         ),
-        bottomNavigationBar: Container(
-          decoration: BoxDecoration(
-            color: Theme.of(context).scaffoldBackgroundColor.withValues(alpha: 0.88),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.primary.withValues(alpha: 0.06),
-                blurRadius: 24,
-                offset: const Offset(0, -6),
-              ),
-              BoxShadow(
-                color: Colors.black.withValues(alpha: 0.06),
-                blurRadius: 16,
-                offset: const Offset(0, -2),
-              ),
-            ],
-            border: Border(
-              top: BorderSide(
-                color: Theme.of(context).dividerColor.withValues(alpha: 0.12),
-                width: 0.8,
-              ),
-            ),
-          ),
-          child: ClipRect(
-            child: BackdropFilter(
-              filter: ImageFilter.blur(sigmaX: 18, sigmaY: 18),
-              child: BottomNavigationBar(
-                currentIndex: _selectedIndex,
-                onTap: setSelectedIndex,
-                elevation: 0,
-                backgroundColor: Colors.transparent,
-                selectedItemColor: AppColors.primary,
-                unselectedItemColor: AppColors.textSecondary,
-                selectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w800,
-                  fontSize: 11.5,
-                  height: 1.2,
-                ),
-                unselectedLabelStyle: const TextStyle(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 11,
-                  height: 1.2,
-                ),
-                type: BottomNavigationBarType.fixed,
-                items: _items,
-              ),
-            ),
-          ),
-        ),
+        bottomNavigationBar: _buildFloatingNavBar(context),
       ),   // Scaffold
     );   // BlocListener
   }
