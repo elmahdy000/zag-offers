@@ -542,9 +542,13 @@ html[data-theme="light"] footer { background-color: #fff !important; }
 html[data-theme="light"] .hero-offers-ticket { border-color: #fff; box-shadow: 0 12px 28px rgba(16, 32, 57, 0.14); }
 html[data-theme="light"] .hero-offers-categories { border-color: #dce2ea; box-shadow: 0 12px 28px rgba(16, 32, 57, 0.12); }
 
-html[data-theme="light"] .theme-toggle { color: #344054; }
-html[data-theme="light"] .theme-toggle:hover { color: #071426; background: #eef2f6; }
-html[data-theme="light"] .nav-link-active { color: #fff !important; }
+html[data-theme="light"] .theme-toggle { color: #475569; }
+html[data-theme="light"] .theme-toggle:hover { color: #0F172A; background: #F1F5F9; }
+html[data-theme="light"] .nav-link-active {
+  background: linear-gradient(135deg, #FF6500 0%, #FF8A32 100%) !important;
+  color: #FFFFFF !important;
+  box-shadow: 0 3px 12px rgba(255, 101, 0, 0.28) !important;
+}
 html[data-theme="light"] select option { background: #fff; color: #102039; }
 html[data-theme="light"] .brand-mark-light { display: block; }
 html[data-theme="light"] .brand-mark-dark { display: none; }

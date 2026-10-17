@@ -6,8 +6,8 @@ const withPWA = withPWAInit({
   disable: process.env.NODE_ENV === "development",
   // ClientInit owns registration so only one worker controls the root scope.
   register: false,
-  cacheOnFrontEndNav: true,
-  aggressiveFrontEndNavCaching: true,
+  cacheOnFrontEndNav: false,
+  aggressiveFrontEndNavCaching: false,
   reloadOnOnline: true,
   workboxOptions: {
     skipWaiting: true,

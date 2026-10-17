@@ -185,8 +185,8 @@ const NavLink = ({ href, label, active }: { href: string; label: string; active:
       href={href}
       className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200
         ${active
-          ? 'nav-link-active bg-[#FF6500]/15 text-[#FF7A1A] border border-[#FF6500]/30 shadow-[0_2px_10px_rgba(255,101,0,0.15)] font-bold'
-          : 'text-[#AAB5C6] hover:bg-[#152238] hover:text-white border border-transparent'}`}
+          ? 'nav-link-active bg-gradient-to-r from-[#FF6500] to-[#FF8A32] text-white shadow-[0_3px_12px_rgba(255,101,0,0.3)] font-bold'
+          : 'text-gray-600 dark:text-[#AAB5C6] hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-gray-900 dark:hover:text-white border border-transparent'}`}
     >
       {label}
     </Link>
@@ -345,25 +345,25 @@ export function Navbar() {
             }}
             className="relative hidden min-w-0 flex-1 xl:block"
           >
-            <RiSearch2Line className="absolute right-4 top-1/2 -translate-y-1/2 text-[#8795AA]" size={18} />
+            <RiSearch2Line className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 dark:text-[#8795AA]" size={18} />
             <input
               value={navSearch}
               onChange={(event) => setNavSearch(event.target.value)}
               placeholder="ابحث عن متجر، منتج أو عرض"
-              className="no-focus-ring h-10 w-full rounded-xl border border-[#25344A] bg-[#0C1627] pr-11 pl-4 text-sm font-normal text-white placeholder:text-[#74839A]"
+              className="no-focus-ring h-10 w-full rounded-xl border border-gray-200 dark:border-[#25344A] bg-gray-50 dark:bg-[#0C1627] pr-11 pl-4 text-sm font-normal text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#74839A] focus:border-[#FF6500] transition-colors"
             />
           </form>
 
           {/* Actions */}
           <div className="mr-auto flex flex-shrink-0 items-center gap-1 sm:gap-2">
-            <span className="hidden items-center gap-1.5 px-2 text-xs font-semibold text-[#D3DAE5] xl:flex">
+            <span className="hidden items-center gap-1.5 px-2 text-xs font-semibold text-gray-700 dark:text-[#D3DAE5] xl:flex">
               <RiMapPin2Line className="text-[#FF8A32]" size={17} /> كل المناطق
             </span>
             <Link
               prefetch={false}
               href="/favorites"
               aria-label="المفضلة"
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-gray-600 dark:text-[#C4CDDA] transition-colors hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-[#FF6500] dark:hover:text-white"
             >
               <RiHeart3Fill size={19} />
             </Link>
@@ -371,7 +371,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="theme-toggle flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 transition-colors"
+              className="theme-toggle flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 transition-colors text-gray-600 dark:text-[#C4CDDA] hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-gray-900 dark:hover:text-white"
               aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
               title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
             >
