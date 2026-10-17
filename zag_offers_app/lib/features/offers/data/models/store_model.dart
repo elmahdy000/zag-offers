@@ -15,6 +15,9 @@ class StoreModel extends StoreEntity {
     super.images,
     super.phone,
     super.whatsapp,
+    super.address,
+    super.locationUrl,
+    super.workingHours,
   });
 
   factory StoreModel.fromJson(Map<String, dynamic> json) {
@@ -33,6 +36,9 @@ class StoreModel extends StoreEntity {
           : null,
       phone: json['phone'],
       whatsapp: json['whatsapp'],
+      address: json['address'],
+      locationUrl: json['locationUrl'],
+      workingHours: json['workingHours'],
     );
   }
 
@@ -57,6 +63,9 @@ class StoreModel extends StoreEntity {
       'images': images,
       'phone': phone,
       'whatsapp': whatsapp,
+      'address': address,
+      'locationUrl': locationUrl,
+      'workingHours': workingHours,
     };
   }
 }

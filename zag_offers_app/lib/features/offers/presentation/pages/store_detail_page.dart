@@ -1,4 +1,4 @@
-﻿import 'dart:async';
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
@@ -123,7 +123,9 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     _buildStoreHeader(context),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
+                    _buildStoreLocationCard(context),
+                    const SizedBox(height: 20),
                     _buildContactButtons(context),
                     if (widget.store.images != null && widget.store.images!.isNotEmpty) ...[
                       const SizedBox(height: 32),
@@ -364,6 +366,163 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             ),
           ),
       ],
+    );
+  }
+
+  Future<void> _openExternalMap() async {
+    final store = widget.store;
+    Uri? uri;
+    if (store.locationUrl != null && store.locationUrl!.isNotEmpty) {
+      uri = Uri.tryParse(store.locationUrl!);
+    } else if (store.latitude != null && store.longitude != null) {
+      uri = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}');
+    } else {
+      final queryText = '${store.address ?? store.area}, الزقازيق';
+      uri = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(queryText)}');
+    }
+    if (uri != null) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        if (mounted) {
+          SnackBarUtils.showError(context, 'تعذر فتح تطبيق الخريطة');
+        }
+      }
+    }
+  }
+
+  Widget _buildStoreLocationCard(BuildContext context) {
+    final theme = Theme.of(context);
+    final store = widget.store;
+    final detailedAddress = (store.address != null && store.address!.trim().isNotEmpty)
+        ? store.address!
+        : 'الزقازيق، ${store.area}';
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.place_rounded, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'مكانهم فين؟',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'الزقازيق • ${store.area}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: '$detailedAddress - ${store.name}'));
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('تم نسخ العنوان بنجاح 📋'),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'نسخ',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            detailedAddress,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+            ),
+          ),
+          if (store.workingHours != null && store.workingHours!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.access_time_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
+                const SizedBox(width: 6),
+                Text(
+                  'مواعيد العمل: ${store.workingHours}',
+                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 14),
+          OutlinedButton.icon(
+            onPressed: _openExternalMap,
+            icon: const Icon(Icons.navigation_rounded, size: 16),
+            label: const Text('طريق الوصول (افتح في الخريطة)'),
+            style: OutlinedButton.styleFrom(
+              foregroundColor: AppColors.primary,
+              side: const BorderSide(color: AppColors.primary, width: 1.2),
+              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+              minimumSize: const Size.fromHeight(42),
+            ),
+          ),
+        ],
+      ),
     );
   }
 

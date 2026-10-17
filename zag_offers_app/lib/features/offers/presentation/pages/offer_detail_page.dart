@@ -5,6 +5,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:intl/intl.dart';
 import 'package:qr_flutter/qr_flutter.dart';
 import 'package:share_plus/share_plus.dart' show SharePlus, ShareParams;
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/category_utils.dart';
@@ -140,6 +141,57 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     await Clipboard.setData(ClipboardData(text: code));
     if (!context.mounted) return;
     SnackBarUtils.showSuccess(context, AppStrings.copySuccess);
+  }
+
+  Future<void> _openExternalMap() async {
+    final store = widget.offer.store;
+    Uri? uri;
+    if (store.locationUrl != null && store.locationUrl!.isNotEmpty) {
+      uri = Uri.tryParse(store.locationUrl!);
+    } else if (store.latitude != null && store.longitude != null) {
+      uri = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${store.latitude},${store.longitude}');
+    } else {
+      final queryText = '${store.address ?? store.area}, الزقازيق';
+      uri = Uri.parse(
+          'https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(queryText)}');
+    }
+    if (uri != null) {
+      try {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        if (mounted) {
+          SnackBarUtils.showError(context, 'تعذر فتح تطبيق الخريطة');
+        }
+      }
+    }
+  }
+
+  Future<void> _callStore() async {
+    final phone = widget.offer.store.phone;
+    if (phone != null && phone.isNotEmpty) {
+      final clean = phone.replaceAll(RegExp(r'\s+'), '');
+      final uri = Uri.parse('tel:$clean');
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri);
+      }
+    }
+  }
+
+  Future<void> _whatsappStore() async {
+    final whatsapp = widget.offer.store.whatsapp ?? widget.offer.store.phone;
+    if (whatsapp != null && whatsapp.isNotEmpty) {
+      var clean = whatsapp.replaceAll(RegExp(r'\s+'), '').replaceAll('+', '');
+      if (clean.startsWith('01')) clean = '20$clean';
+      final uri = Uri.parse('https://wa.me/$clean');
+      try {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } catch (_) {
+        if (mounted) {
+          SnackBarUtils.showError(context, 'تعذر فتح تطبيق واتساب');
+        }
+      }
+    }
   }
 
   @override
@@ -386,7 +438,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               _buildTitleSection(),
               const SizedBox(height: 20),
               _buildStoreCard(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 16),
+              _buildStoreLocationCard(),
+              const SizedBox(height: 28),
               _buildDescriptionSection(),
               if (widget.offer.terms != null &&
                   widget.offer.terms!.isNotEmpty) ...[
@@ -577,15 +631,29 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(
-                    widget.offer.store.name,
-                    style: theme.textTheme.titleMedium?.copyWith(
-                      fontWeight: FontWeight.bold,
-                    ),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          widget.offer.store.name,
+                          style: theme.textTheme.titleMedium?.copyWith(
+                            fontWeight: FontWeight.bold,
+                          ),
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      const SizedBox(width: 6),
+                      const Icon(Icons.verified_rounded, size: 16, color: Color(0xFF0084FF)),
+                    ],
                   ),
+                  const SizedBox(height: 2),
                   Text(
-                    widget.offer.store.area,
-                    style: theme.textTheme.bodySmall,
+                    'الزقازيق • ${widget.offer.store.area} — تفاصيل المتجر',
+                    style: theme.textTheme.bodySmall?.copyWith(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w600,
+                    ),
                   ),
                 ],
               ),
@@ -601,13 +669,178 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
+  Widget _buildStoreLocationCard() {
+    final theme = Theme.of(context);
+    final store = widget.offer.store;
+    final detailedAddress = (store.address != null && store.address!.trim().isNotEmpty)
+        ? store.address!
+        : 'الزقازيق، ${store.area}';
+
+    return Container(
+      padding: const EdgeInsets.all(18),
+      decoration: BoxDecoration(
+        color: theme.cardColor,
+        borderRadius: BorderRadius.circular(22),
+        border: Border.all(color: theme.dividerColor.withValues(alpha: 0.1)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: 0.03),
+            blurRadius: 15,
+            offset: const Offset(0, 5),
+          ),
+        ],
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.all(8),
+                decoration: BoxDecoration(
+                  color: AppColors.primary.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Icon(Icons.place_rounded, color: AppColors.primary, size: 20),
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      'مكانهم فين؟',
+                      style: theme.textTheme.titleMedium?.copyWith(
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    Text(
+                      'الزقازيق • ${store.area}',
+                      style: theme.textTheme.bodySmall?.copyWith(
+                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+              Material(
+                color: Colors.transparent,
+                child: InkWell(
+                  onTap: () {
+                    Clipboard.setData(ClipboardData(text: '$detailedAddress - ${store.name}'));
+                    HapticFeedback.lightImpact();
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('تم نسخ العنوان بنجاح 📋'),
+                        duration: const Duration(seconds: 2),
+                        behavior: SnackBarBehavior.floating,
+                        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                      ),
+                    );
+                  },
+                  borderRadius: BorderRadius.circular(8),
+                  child: Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                    decoration: BoxDecoration(
+                      color: theme.dividerColor.withValues(alpha: 0.06),
+                      borderRadius: BorderRadius.circular(8),
+                    ),
+                    child: Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        const Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
+                        const SizedBox(width: 4),
+                        Text(
+                          'نسخ',
+                          style: theme.textTheme.labelSmall?.copyWith(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.bold,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ],
+          ),
+          const SizedBox(height: 12),
+          Text(
+            detailedAddress,
+            style: theme.textTheme.bodyMedium?.copyWith(
+              fontWeight: FontWeight.w600,
+              height: 1.5,
+            ),
+          ),
+          if (store.workingHours != null && store.workingHours!.isNotEmpty) ...[
+            const SizedBox(height: 8),
+            Row(
+              children: [
+                Icon(Icons.access_time_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
+                const SizedBox(width: 6),
+                Text(
+                  'مواعيد العمل: ${store.workingHours}',
+                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                ),
+              ],
+            ),
+          ],
+          const SizedBox(height: 16),
+          Row(
+            children: [
+              Expanded(
+                child: OutlinedButton.icon(
+                  onPressed: _openExternalMap,
+                  icon: const Icon(Icons.navigation_rounded, size: 16),
+                  label: const Text('طريق الوصول'),
+                  style: OutlinedButton.styleFrom(
+                    foregroundColor: AppColors.primary,
+                    side: const BorderSide(color: AppColors.primary, width: 1.2),
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    padding: const EdgeInsets.symmetric(vertical: 10),
+                  ),
+                ),
+              ),
+              if (store.phone != null && store.phone!.isNotEmpty) ...[
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  onPressed: _callStore,
+                  icon: const Icon(Icons.call_rounded, size: 18),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.blue.withValues(alpha: 0.12),
+                    foregroundColor: Colors.blue.shade700,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  tooltip: 'اتصال',
+                ),
+              ],
+              if ((store.whatsapp ?? store.phone) != null) ...[
+                const SizedBox(width: 8),
+                IconButton.filledTonal(
+                  onPressed: _whatsappStore,
+                  icon: const Icon(Icons.chat_rounded, size: 18),
+                  style: IconButton.styleFrom(
+                    backgroundColor: Colors.green.withValues(alpha: 0.12),
+                    foregroundColor: Colors.green.shade700,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  tooltip: 'واتساب',
+                ),
+              ],
+            ],
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildDescriptionSection() {
     final textTheme = Theme.of(context).textTheme;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(
-          'عن هذا العرض',
+          'تفاصيل العرض',
           style: textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
         ),
         const SizedBox(height: 12),
@@ -627,11 +860,11 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       children: [
         Row(
           children: [
-            const Icon(Icons.info_outline_rounded,
+            const Icon(Icons.check_circle_outline_rounded,
                 size: 20, color: AppColors.primary),
             const SizedBox(width: 8),
             Text(
-              'الشروط والأحكام',
+              'طريقة الاستخدام والشروط',
               style:
                   textTheme.titleMedium?.copyWith(fontWeight: FontWeight.bold),
             ),
@@ -671,7 +904,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           const SizedBox(width: 12),
           Expanded(
             child: Text(
-              'ينتهي في: ${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)}',
+              'الحق العرض، ساري حتى: ${DateFormat.yMMMMd('ar').format(widget.offer.expiryDate)}',
               style: textTheme.labelLarge?.copyWith(
                 color: AppColors.error,
                 fontWeight: FontWeight.bold,
@@ -765,7 +998,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   if (!canGenerate) ...[
                     const SizedBox(height: 8),
                     Text(
-                      'سجّل بحساب عميل للحصول على كوبون هذا العرض',
+                      'سجّل حسابك في ثواني ووفّر مع كل خروجة',
                       textAlign: TextAlign.center,
                       style: textTheme.bodySmall?.copyWith(
                         fontWeight: FontWeight.w600,
@@ -789,9 +1022,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   }
 
   String _getButtonText(bool canGenerate) {
-    if (_isFlashSaleFinished()) return 'انتهى العرض';
-    if (canGenerate) return 'احصل على العرض الآن';
-    return 'متاح للعملاء فقط';
+    if (_isFlashSaleFinished()) return 'للأسف العرض خلص';
+    if (canGenerate) return 'احجز العرض وخد الكوبون 🎟️';
+    return 'سجّل حسابك واستمتع بالخصم';
   }
 
   void _showCouponDialog(BuildContext context, String code) {
@@ -810,15 +1043,16 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 mainAxisSize: MainAxisSize.min,
                 children: [
                   const Icon(
-                    Icons.people_alt_rounded,
-                    size: 14,
-                    color: Colors.orange,
+                    Icons.local_fire_department_rounded,
+                    size: 16,
+                    color: Colors.deepOrange,
                   ),
                   const SizedBox(width: 6),
                   Text(
-                    'الكثير مستفيد من العرض',
+                    'عرض مطلوب جداً في الزقازيق 🔥',
                     style: theme.textTheme.labelSmall?.copyWith(
                       fontWeight: FontWeight.bold,
+                      color: Colors.deepOrange,
                     ),
                   ),
                 ],
@@ -858,14 +1092,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               ),
               const SizedBox(height: 20),
               Text(
-                'تم الحصول على العرض بنجاح',
+                'مبروك! كوبونك جاهز 🎉',
                 style: theme.textTheme.titleLarge
                     ?.copyWith(fontWeight: FontWeight.bold),
                 textAlign: TextAlign.center,
               ),
               const SizedBox(height: 12),
               Text(
-                'يرجى إبراز الكود للتاجر للاستفادة من الخصم',
+                'ورّي الكود ده أو امسح الـ QR عند الكاشير وخصمك في جيبك!',
                 textAlign: TextAlign.center,
                 style: theme.textTheme.bodyMedium,
               ),

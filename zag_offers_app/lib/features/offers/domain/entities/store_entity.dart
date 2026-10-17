@@ -14,6 +14,9 @@ class StoreEntity extends Equatable {
 
   final String? phone;
   final String? whatsapp;
+  final String? address;
+  final String? locationUrl;
+  final String? workingHours;
 
   const StoreEntity({
     required this.id,
@@ -28,6 +31,9 @@ class StoreEntity extends Equatable {
     this.images,
     this.phone,
     this.whatsapp,
+    this.address,
+    this.locationUrl,
+    this.workingHours,
   });
 
   @override
@@ -44,6 +50,9 @@ class StoreEntity extends Equatable {
         images,
         phone,
         whatsapp,
+        address,
+        locationUrl,
+        workingHours,
       ];
 }
 
