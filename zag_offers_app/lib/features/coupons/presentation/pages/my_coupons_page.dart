@@ -75,31 +75,6 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     super.dispose();
   }
 
-  Color _getStatusColor(String status, [bool isDark = false]) {
-    switch (status) {
-      case 'GENERATED':
-        return AppColors.success;
-      case 'USED':
-        return isDark ? const Color(0xFF94A3B8) : Colors.blueGrey;
-      case 'EXPIRED':
-        return AppColors.error;
-      default:
-        return isDark ? Colors.white70 : AppColors.textPrimary;
-    }
-  }
-
-  String _getStatusText(String status) {
-    switch (status) {
-      case 'GENERATED':
-        return 'جاهز للاستخدام ✨';
-      case 'USED':
-        return 'تم استخدامه 💰';
-      case 'EXPIRED':
-        return 'منتهي الصلاحية';
-      default:
-        return status;
-    }
-  }
 
   Future<void> _copyCode(BuildContext context, String code) async {
     HapticFeedback.mediumImpact();
@@ -218,6 +193,138 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     );
   }
 
+  Widget _buildStoreAvatar(StoreEntity store, bool isDark) {
+    final hasLogo = store.logo != null && store.logo!.trim().isNotEmpty;
+    final initial = store.name.trim().isNotEmpty
+        ? store.name.trim().characters.first
+        : 'Z';
+
+    return Container(
+      width: 48,
+      height: 48,
+      decoration: BoxDecoration(
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(
+          color: isDark
+              ? Colors.white.withValues(alpha: 0.12)
+              : Colors.black.withValues(alpha: 0.08),
+          width: 1,
+        ),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withValues(alpha: isDark ? 0.25 : 0.05),
+            blurRadius: 8,
+            offset: const Offset(0, 2),
+          ),
+        ],
+      ),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(13),
+        child: hasLogo
+            ? NetworkImageWidget(
+                imageUrl: store.logo,
+                width: 48,
+                height: 48,
+                fit: BoxFit.cover,
+              )
+            : Container(
+                decoration: BoxDecoration(
+                  gradient: LinearGradient(
+                    colors: isDark
+                        ? [
+                            AppColors.primary.withValues(alpha: 0.25),
+                            const Color(0xFF1E293B),
+                          ]
+                        : [
+                            AppColors.primary.withValues(alpha: 0.15),
+                            const Color(0xFFFFEDE6),
+                          ],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                ),
+                child: Center(
+                  child: Text(
+                    initial,
+                    style: GoogleFonts.cairo(
+                      color: AppColors.primary,
+                      fontSize: 22,
+                      fontWeight: FontWeight.w900,
+                    ),
+                  ),
+                ),
+              ),
+      ),
+    );
+  }
+
+  Widget _buildStatusBadge(String status, bool isActive, bool isDark) {
+    Color bgColor;
+    Color textColor;
+    Color dotColor;
+    String text;
+
+    if (isActive) {
+      bgColor = isDark ? const Color(0x2210B981) : const Color(0xFFECFDF5);
+      textColor = const Color(0xFF10B981);
+      dotColor = const Color(0xFF10B981);
+      text = 'جاهز للاستخدام ✨';
+    } else if (status == 'USED') {
+      bgColor = isDark ? const Color(0x2264748B) : const Color(0xFFF1F5F9);
+      textColor = isDark ? const Color(0xFF94A3B8) : const Color(0xFF475569);
+      dotColor = textColor;
+      text = 'تم استخدامه ✓';
+    } else {
+      bgColor = isDark ? const Color(0x22EF4444) : const Color(0xFFFEF2F2);
+      textColor = const Color(0xFFEF4444);
+      dotColor = const Color(0xFFEF4444);
+      text = 'منتهي الصلاحية';
+    }
+
+    return Container(
+      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+      decoration: BoxDecoration(
+        color: bgColor,
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(
+          color: textColor.withValues(alpha: 0.3),
+          width: 1,
+        ),
+      ),
+      child: Row(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          Container(
+            width: 6,
+            height: 6,
+            decoration: BoxDecoration(
+              color: dotColor,
+              shape: BoxShape.circle,
+              boxShadow: isActive
+                  ? [
+                      BoxShadow(
+                        color: dotColor.withValues(alpha: 0.6),
+                        blurRadius: 4,
+                        spreadRadius: 1,
+                      )
+                    ]
+                  : null,
+            ),
+          ),
+          const SizedBox(width: 5),
+          Text(
+            text,
+            style: TextStyle(
+              color: textColor,
+              fontWeight: FontWeight.bold,
+              fontSize: 11,
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
   Widget _buildVoucherTicketCard(BuildContext context, CouponEntity coupon) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
@@ -230,41 +337,61 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
         ? (offer.oldPrice! - offer.newPrice!)
         : null;
 
+    final primaryBorder = isDark
+        ? AppColors.primary.withValues(alpha: 0.35)
+        : AppColors.primary.withValues(alpha: 0.25);
+    final inactiveBorder = isDark
+        ? Colors.white.withValues(alpha: 0.08)
+        : Colors.grey.shade200;
+
     return Container(
-      margin: const EdgeInsets.only(bottom: 20),
+      margin: const EdgeInsets.only(bottom: 22),
       decoration: BoxDecoration(
-        color: theme.cardColor,
-        borderRadius: BorderRadius.circular(24),
+        color: isDark ? const Color(0xFF131B2A) : Colors.white,
+        borderRadius: BorderRadius.circular(22),
         border: Border.all(
-          color: isActive
-              ? AppColors.primary.withValues(alpha: 0.3)
-              : theme.dividerColor.withValues(alpha: 0.1),
-          width: isActive ? 1.5 : 1,
+          color: isActive ? primaryBorder : inactiveBorder,
+          width: isActive ? 1.5 : 1.0,
         ),
         boxShadow: [
+          if (isActive)
+            BoxShadow(
+              color: AppColors.primary.withValues(alpha: isDark ? 0.08 : 0.06),
+              blurRadius: 20,
+              offset: const Offset(0, 8),
+            ),
           BoxShadow(
-            color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.05),
-            blurRadius: 16,
-            offset: const Offset(0, 8),
+            color: Colors.black.withValues(alpha: isDark ? 0.35 : 0.04),
+            blurRadius: 14,
+            offset: const Offset(0, 4),
           ),
         ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          // 1. Header: Store info + Status Badge
+          // Top Accent VIP Strip for active coupons
+          if (isActive)
+            Container(
+              height: 3.5,
+              decoration: const BoxDecoration(
+                borderRadius: BorderRadius.only(
+                  topLeft: Radius.circular(22),
+                  topRight: Radius.circular(22),
+                ),
+                gradient: LinearGradient(
+                  colors: [AppColors.primary, Color(0xFFFF8A65)],
+                ),
+              ),
+            ),
+
+          // 1. Header: Store info + Verified + Status Badge
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 16, 16, 12),
             child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: NetworkImageWidget(
-                    imageUrl: store.logo,
-                    width: 44,
-                    height: 44,
-                  ),
-                ),
+                _buildStoreAvatar(store, isDark),
                 const SizedBox(width: 12),
                 Expanded(
                   child: Column(
@@ -276,131 +403,231 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                             child: Text(
                               store.name,
                               style: theme.textTheme.titleMedium?.copyWith(
-                                fontWeight: FontWeight.bold,
+                                fontWeight: FontWeight.w800,
+                                fontSize: 16,
+                                letterSpacing: -0.2,
                               ),
                               maxLines: 1,
                               overflow: TextOverflow.ellipsis,
                             ),
                           ),
                           const SizedBox(width: 4),
-                          const Icon(Icons.verified_rounded, size: 15, color: Color(0xFF0084FF)),
+                          const Icon(
+                            Icons.verified_rounded,
+                            size: 16,
+                            color: Color(0xFF0084FF),
+                          ),
                         ],
                       ),
-                      const SizedBox(height: 2),
-                      Text(
-                        'الزقازيق • ${store.area}',
-                        style: theme.textTheme.bodySmall?.copyWith(
-                          color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                        ),
+                      const SizedBox(height: 3),
+                      Row(
+                        children: [
+                          Icon(
+                            Icons.location_on_rounded,
+                            size: 13,
+                            color: AppColors.primary.withValues(alpha: 0.85),
+                          ),
+                          const SizedBox(width: 4),
+                          Expanded(
+                            child: Text(
+                              'الزقازيق • ${store.area}',
+                              style: theme.textTheme.bodySmall?.copyWith(
+                                color: isDark
+                                    ? const Color(0xFF94A3B8)
+                                    : const Color(0xFF64748B),
+                                fontSize: 12,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              maxLines: 1,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
                     ],
                   ),
                 ),
-                Container(
-                  padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-                  decoration: BoxDecoration(
-                    color: _getStatusColor(coupon.status).withValues(alpha: 0.12),
-                    borderRadius: BorderRadius.circular(10),
-                  ),
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Container(
-                        width: 6,
-                        height: 6,
-                        decoration: BoxDecoration(
-                          color: _getStatusColor(coupon.status),
-                          shape: BoxShape.circle,
-                        ),
-                      ),
-                      const SizedBox(width: 5),
-                      Text(
-                        _getStatusText(coupon.status),
-                        style: TextStyle(
-                          color: _getStatusColor(coupon.status),
-                          fontWeight: FontWeight.bold,
-                          fontSize: 11,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+                const SizedBox(width: 8),
+                _buildStatusBadge(coupon.status, isActive, isDark),
               ],
             ),
           ),
 
-          // 2. Offer Title & Price
+          // 2. Offer Showcase Card (Solves empty / awkward spacing)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: InkWell(
+            child: BouncyTap(
               onTap: () => Navigator.push(
                 context,
-                MaterialPageRoute(builder: (_) => OfferDetailPage(offer: offer)),
+                MaterialPageRoute(
+                  builder: (_) => OfferDetailPage(offer: offer),
+                ),
               ),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    offer.title,
-                    style: theme.textTheme.titleSmall?.copyWith(
-                      fontWeight: FontWeight.w700,
-                      height: 1.3,
-                    ),
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
+              child: Container(
+                padding: const EdgeInsets.all(12),
+                decoration: BoxDecoration(
+                  color: isDark
+                      ? const Color(0xFF1B2436)
+                      : const Color(0xFFF8FAFC),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(
+                    color: isDark
+                        ? Colors.white.withValues(alpha: 0.06)
+                        : Colors.black.withValues(alpha: 0.05),
+                    width: 1,
                   ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      if (offer.newPrice != null) ...[
-                        Text(
-                          '${offer.newPrice!.toStringAsFixed(0)} ج.م',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 15,
-                          ),
+                ),
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.center,
+                  children: [
+                    // Offer Discount Badge
+                    Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 10,
+                        vertical: 8,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
                         ),
-                        if (offer.oldPrice != null) ...[
-                          const SizedBox(width: 8),
+                        borderRadius: BorderRadius.circular(12),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.3),
+                            blurRadius: 8,
+                            offset: const Offset(0, 3),
+                          ),
+                        ],
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(
+                            Icons.local_offer_rounded,
+                            color: Colors.white,
+                            size: 16,
+                          ),
+                          const SizedBox(height: 2),
                           Text(
-                            '${offer.oldPrice!.toStringAsFixed(0)} ج.م',
-                            style: TextStyle(
-                              decoration: TextDecoration.lineThrough,
-                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.6),
+                            offer.discount.isNotEmpty ? offer.discount : 'خصم',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w900,
                               fontSize: 12,
                             ),
                           ),
                         ],
-                      ],
-                      if (saving != null && saving > 0) ...[
-                        const Spacer(),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: Colors.green.withValues(alpha: 0.12),
-                            borderRadius: BorderRadius.circular(8),
-                          ),
-                          child: Text(
-                            'وفّرت ${saving.toStringAsFixed(0)} ج.م 🔥',
-                            style: const TextStyle(
-                              color: Colors.green,
-                              fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Expanded(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Text(
+                            offer.title,
+                            style: theme.textTheme.titleSmall?.copyWith(
+                              fontWeight: FontWeight.w800,
+                              fontSize: 14,
+                              height: 1.3,
                             ),
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
                           ),
-                        ),
-                      ],
-                    ],
-                  ),
-                ],
+                          if (offer.newPrice != null || saving != null) ...[
+                            const SizedBox(height: 6),
+                            Row(
+                              children: [
+                                if (offer.newPrice != null) ...[
+                                  Text(
+                                    '${offer.newPrice!.toStringAsFixed(0)} ج.م',
+                                    style: const TextStyle(
+                                      color: AppColors.primary,
+                                      fontWeight: FontWeight.w900,
+                                      fontSize: 15,
+                                    ),
+                                  ),
+                                  if (offer.oldPrice != null) ...[
+                                    const SizedBox(width: 6),
+                                    Text(
+                                      '${offer.oldPrice!.toStringAsFixed(0)} ج.م',
+                                      style: TextStyle(
+                                        decoration: TextDecoration.lineThrough,
+                                        color: isDark
+                                            ? const Color(0xFF64748B)
+                                            : const Color(0xFF94A3B8),
+                                        fontSize: 11,
+                                      ),
+                                    ),
+                                  ],
+                                ],
+                                if (saving != null && saving > 0) ...[
+                                  const SizedBox(width: 8),
+                                  Container(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 6,
+                                      vertical: 2,
+                                    ),
+                                    decoration: BoxDecoration(
+                                      color: Colors.green.withValues(alpha: 0.14),
+                                      borderRadius: BorderRadius.circular(6),
+                                    ),
+                                    child: Text(
+                                      'وفّرت ${saving.toStringAsFixed(0)} ج.م 🔥',
+                                      style: const TextStyle(
+                                        color: Colors.green,
+                                        fontWeight: FontWeight.bold,
+                                        fontSize: 10.5,
+                                      ),
+                                    ),
+                                  ),
+                                ],
+                              ],
+                            ),
+                          ] else ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Icon(
+                                  Icons.check_circle_outline_rounded,
+                                  size: 13,
+                                  color: isDark
+                                      ? const Color(0xFF94A3B8)
+                                      : const Color(0xFF64748B),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  'يشمل كافة مميزات العرض المعلنة',
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    color: isDark
+                                        ? const Color(0xFF94A3B8)
+                                        : const Color(0xFF64748B),
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                        ],
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    Icon(
+                      Icons.arrow_back_ios_new_rounded,
+                      size: 14,
+                      color: isDark ? Colors.white38 : Colors.grey.shade400,
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
 
-          const SizedBox(height: 14),
+          const SizedBox(height: 16),
 
-          // 3. Ticket Notch & Dashed Line Divider
+          // 3. Ticket Notch & Dashed Line Divider with bordered cutouts
           Row(
             children: [
               Container(
@@ -411,6 +638,20 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                   borderRadius: const BorderRadius.only(
                     topRight: Radius.circular(14),
                     bottomRight: Radius.circular(14),
+                  ),
+                  border: Border(
+                    top: BorderSide(
+                      color: isActive ? primaryBorder : inactiveBorder,
+                      width: 1,
+                    ),
+                    right: BorderSide(
+                      color: isActive ? primaryBorder : inactiveBorder,
+                      width: 1,
+                    ),
+                    bottom: BorderSide(
+                      color: isActive ? primaryBorder : inactiveBorder,
+                      width: 1,
+                    ),
                   ),
                 ),
               ),
@@ -430,7 +671,10 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                           height: dashHeight,
                           child: DecoratedBox(
                             decoration: BoxDecoration(
-                              color: theme.dividerColor.withValues(alpha: 0.3),
+                              color: isDark
+                                  ? Colors.white24
+                                  : Colors.grey.shade300,
+                              borderRadius: BorderRadius.circular(1),
                             ),
                           ),
                         );
@@ -448,20 +692,36 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     topLeft: Radius.circular(14),
                     bottomLeft: Radius.circular(14),
                   ),
+                  border: Border(
+                    top: BorderSide(
+                      color: isActive ? primaryBorder : inactiveBorder,
+                      width: 1,
+                    ),
+                    left: BorderSide(
+                      color: isActive ? primaryBorder : inactiveBorder,
+                      width: 1,
+                    ),
+                    bottom: BorderSide(
+                      color: isActive ? primaryBorder : inactiveBorder,
+                      width: 1,
+                    ),
+                  ),
                 ),
               ),
             ],
           ),
 
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
 
-          // 4. Coupon Code Box + Copy
+          // 4. Monospace Coupon Code Box + Copy
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
               decoration: BoxDecoration(
-                color: isDark ? Colors.white.withValues(alpha: 0.05) : const Color(0xFFF7F8FA),
+                color: isDark
+                    ? const Color(0xFF0F172A)
+                    : const Color(0xFFF1F5F9),
                 borderRadius: BorderRadius.circular(14),
                 border: Border.all(
                   color: isDark ? Colors.white12 : Colors.grey.shade300,
@@ -470,38 +730,77 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
               ),
               child: Row(
                 children: [
-                  const Icon(Icons.confirmation_num_rounded, color: AppColors.primary, size: 20),
-                  const SizedBox(width: 8),
-                  Expanded(
-                    child: Text(
-                      coupon.code,
-                      style: theme.textTheme.titleMedium?.copyWith(
-                        fontWeight: FontWeight.w900,
-                        letterSpacing: 2.5,
-                        color: AppColors.primary,
-                      ),
+                  Container(
+                    padding: const EdgeInsets.all(7),
+                    decoration: BoxDecoration(
+                      color: AppColors.primary.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Icon(
+                      Icons.confirmation_num_rounded,
+                      color: AppColors.primary,
+                      size: 20,
                     ),
                   ),
-                  InkWell(
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(
+                          'كود الكوبون',
+                          style: TextStyle(
+                            fontSize: 10,
+                            fontWeight: FontWeight.w600,
+                            color: isDark
+                                ? const Color(0xFF94A3B8)
+                                : const Color(0xFF64748B),
+                          ),
+                        ),
+                        const SizedBox(height: 1),
+                        Text(
+                          coupon.code,
+                          style: GoogleFonts.cairo(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 17,
+                            letterSpacing: 2.0,
+                            color: AppColors.primary,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ),
+                  BouncyTap(
                     onTap: () => _copyCode(context, coupon.code),
-                    borderRadius: BorderRadius.circular(8),
+                    scaleFactor: 0.94,
                     child: Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 12,
+                        vertical: 7,
+                      ),
                       decoration: BoxDecoration(
-                        color: AppColors.primary.withValues(alpha: 0.1),
-                        borderRadius: BorderRadius.circular(8),
+                        color: AppColors.primary.withValues(alpha: 0.12),
+                        borderRadius: BorderRadius.circular(10),
+                        border: Border.all(
+                          color: AppColors.primary.withValues(alpha: 0.25),
+                          width: 1,
+                        ),
                       ),
                       child: const Row(
                         mainAxisSize: MainAxisSize.min,
                         children: [
-                          Icon(Icons.copy_rounded, size: 14, color: AppColors.primary),
-                          SizedBox(width: 4),
+                          Icon(
+                            Icons.copy_rounded,
+                            size: 14,
+                            color: AppColors.primary,
+                          ),
+                          SizedBox(width: 5),
                           Text(
                             'نسخ',
                             style: TextStyle(
                               color: AppColors.primary,
                               fontWeight: FontWeight.bold,
-                              fontSize: 11,
+                              fontSize: 12,
                             ),
                           ),
                         ],
@@ -515,7 +814,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
           const SizedBox(height: 12),
 
-          // 5. Actions: Show QR (if active), Navigation, Call
+          // 5. Actions: Radiant QR button + Balanced Expanded Map & Call buttons
           Padding(
             padding: const EdgeInsets.fromLTRB(16, 0, 16, 16),
             child: isActive
@@ -523,58 +822,122 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     children: [
                       BouncyTap(
                         scaleFactor: 0.97,
-                        child: ElevatedButton.icon(
-                          onPressed: () {
-                            HapticFeedback.lightImpact();
-                            _showQRDialog(
-                              context,
-                              coupon.code,
-                              store.name,
-                              storeLogo: store.logo,
-                              offerTitle: offer.title,
-                              oldPrice: offer.oldPrice,
-                              newPrice: offer.newPrice,
-                            );
-                          },
-                          icon: const Icon(Icons.qr_code_2_rounded, size: 20),
-                          label: const Text(
-                            'امسح الـ QR عند الكاشير 📱',
-                            style: TextStyle(fontWeight: FontWeight.bold),
+                        child: Container(
+                          width: double.infinity,
+                          height: 48,
+                          decoration: BoxDecoration(
+                            gradient: const LinearGradient(
+                              colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                            ),
+                            borderRadius: BorderRadius.circular(14),
+                            boxShadow: [
+                              BoxShadow(
+                                color: AppColors.primary.withValues(alpha: 0.35),
+                                blurRadius: 14,
+                                offset: const Offset(0, 4),
+                              ),
+                            ],
                           ),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: AppColors.primary,
-                            foregroundColor: Colors.white,
-                            elevation: 0,
-                            minimumSize: const Size.fromHeight(46),
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(14),
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              HapticFeedback.lightImpact();
+                              _showQRDialog(
+                                context,
+                                coupon.code,
+                                store.name,
+                                storeLogo: store.logo,
+                                offerTitle: offer.title,
+                                oldPrice: offer.oldPrice,
+                                newPrice: offer.newPrice,
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.qr_code_scanner_rounded,
+                              size: 21,
+                            ),
+                            label: const Text(
+                              'امسح الـ QR عند الكاشير 📱',
+                              style: TextStyle(
+                                fontWeight: FontWeight.w800,
+                                fontSize: 14,
+                              ),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.transparent,
+                              foregroundColor: Colors.white,
+                              shadowColor: Colors.transparent,
+                              elevation: 0,
+                              shape: RoundedRectangleBorder(
+                                borderRadius: BorderRadius.circular(14),
+                              ),
                             ),
                           ),
                         ),
                       ),
                       const SizedBox(height: 10),
+                      // Balanced row with Expanded on both buttons
                       Row(
                         children: [
                           Expanded(
                             child: OutlinedButton.icon(
                               onPressed: () => _openExternalMap(store),
-                              icon: const Icon(Icons.navigation_rounded, size: 15),
-                              label: const Text('مكان الفرع', style: TextStyle(fontSize: 12)),
+                              icon: const Icon(Icons.location_on_rounded, size: 16),
+                              label: const Text(
+                                'مكان الفرع',
+                                style: TextStyle(
+                                  fontSize: 12.5,
+                                  fontWeight: FontWeight.w700,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
                               style: OutlinedButton.styleFrom(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                                foregroundColor: isDark
+                                    ? Colors.white
+                                    : AppColors.textPrimary,
+                                side: BorderSide(
+                                  color: isDark
+                                      ? Colors.white.withValues(alpha: 0.15)
+                                      : Colors.grey.shade300,
+                                  width: 1,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(12),
+                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 10),
                               ),
                             ),
                           ),
                           if (store.phone != null && store.phone!.isNotEmpty) ...[
-                            const SizedBox(width: 8),
-                            OutlinedButton.icon(
-                              onPressed: () => _callStore(store.phone),
-                              icon: const Icon(Icons.call_rounded, size: 15),
-                              label: const Text('اتصال', style: TextStyle(fontSize: 12)),
-                              style: OutlinedButton.styleFrom(
-                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                                padding: const EdgeInsets.symmetric(vertical: 8),
+                            const SizedBox(width: 10),
+                            Expanded(
+                              child: OutlinedButton.icon(
+                                onPressed: () => _callStore(store.phone),
+                                icon: const Icon(Icons.phone_in_talk_rounded, size: 16),
+                                label: const Text(
+                                  'اتصال بالمتجر',
+                                  style: TextStyle(
+                                    fontSize: 12.5,
+                                    fontWeight: FontWeight.w700,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                style: OutlinedButton.styleFrom(
+                                  foregroundColor: isDark
+                                      ? Colors.white
+                                      : AppColors.textPrimary,
+                                  side: BorderSide(
+                                    color: isDark
+                                        ? Colors.white.withValues(alpha: 0.15)
+                                        : Colors.grey.shade300,
+                                    width: 1,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                  padding: const EdgeInsets.symmetric(vertical: 10),
+                                ),
                               ),
                             ),
                           ],
@@ -583,21 +946,47 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     ],
                   )
                 : Container(
-                    padding: const EdgeInsets.symmetric(vertical: 10),
+                    padding: const EdgeInsets.symmetric(
+                      vertical: 12,
+                      horizontal: 16,
+                    ),
                     alignment: Alignment.center,
                     decoration: BoxDecoration(
-                      color: (isUsed ? Colors.green : Colors.grey).withValues(alpha: 0.1),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Text(
-                      isUsed
-                          ? 'تم استخدام الكوبون بنجاح 🎉 - استمتعت بالعرض!'
-                          : 'انتهت صلاحية هذا الكوبون',
-                      style: TextStyle(
-                        color: isUsed ? Colors.green.shade700 : Colors.grey.shade600,
-                        fontWeight: FontWeight.bold,
-                        fontSize: 12,
+                      color: (isUsed ? Colors.green : Colors.grey)
+                          .withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(14),
+                      border: Border.all(
+                        color: (isUsed ? Colors.green : Colors.grey)
+                            .withValues(alpha: 0.25),
+                        width: 1,
                       ),
+                    ),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          isUsed
+                              ? Icons.check_circle_rounded
+                              : Icons.info_outline_rounded,
+                          size: 18,
+                          color: isUsed ? Colors.green : Colors.grey,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          isUsed
+                              ? 'تم استخدام الكوبون بنجاح 🎉 - استمتعت بالعرض!'
+                              : 'انتهت صلاحية هذا الكوبون',
+                          style: TextStyle(
+                            color: isUsed
+                                ? (isDark
+                                    ? Colors.greenAccent
+                                    : Colors.green.shade800)
+                                : Colors.grey,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 12.5,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
           ),

@@ -22,7 +22,7 @@ class NetworkImageWidget extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     if (imageUrl == null || imageUrl!.isEmpty) {
-      return _buildPlaceholder();
+      return _buildPlaceholder(context);
     }
 
     if (_isAssetPath(imageUrl!)) {
@@ -33,7 +33,7 @@ class NetworkImageWidget extends StatelessWidget {
           width: width,
           height: height,
           fit: fit,
-          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(),
+          errorBuilder: (context, error, stackTrace) => _buildPlaceholder(context),
         ),
       );
     }
@@ -53,7 +53,7 @@ class NetworkImageWidget extends StatelessWidget {
           height: height ?? double.infinity,
           borderRadius: borderRadius?.topLeft.x ?? 0,
         ),
-        errorWidget: (context, url, error) => _buildPlaceholder(),
+        errorWidget: (context, url, error) => _buildPlaceholder(context),
       ),
     );
   }
@@ -62,18 +62,21 @@ class NetworkImageWidget extends StatelessWidget {
     return value.startsWith('assets/');
   }
 
-  Widget _buildPlaceholder() {
+  Widget _buildPlaceholder([BuildContext? context]) {
+    final isDark = context != null && Theme.of(context).brightness == Brightness.dark;
     return Container(
       width: width,
       height: height,
       decoration: BoxDecoration(
-        color: Colors.grey[200],
+        color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
         borderRadius: borderRadius,
       ),
-      child: Icon(
-        Icons.image_not_supported_outlined,
-        color: Colors.grey[400],
-        size: (width != null && width! < 50) ? 20 : 30,
+      child: Center(
+        child: Icon(
+          Icons.storefront_rounded,
+          color: isDark ? const Color(0xFF475569) : const Color(0xFF94A3B8),
+          size: (width != null && width! < 50) ? 20 : 28,
+        ),
       ),
     );
   }
