@@ -1,21 +1,24 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronRight, Shield, MessageCircle, Award } from 'lucide-react';
+import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronRight, Shield, MessageCircle, Award, Copy, Check, Sparkles } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { API_URL } from '@/lib/constants';
 
 interface User {
+  id?: string;
   name: string;
   phone: string;
+  referralCode?: string;
 }
 
 export default function ProfilePage() {
   const router = useRouter();
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [copiedReferral, setCopiedReferral] = useState(false);
 
   useEffect(() => {
     const loadUser = window.setTimeout(() => {
@@ -145,21 +148,58 @@ export default function ProfilePage() {
           </Link>
         </div>
 
-        {/* Loyalty Banner - Spans Full Width */}
+        {/* Loyalty & Referral Card - Spans Full Width */}
         <div className="col-span-full mt-2">
-          <div className="relative overflow-hidden p-8 bg-[#161D29] border border-[#FF6B00]/20 rounded-[32px] group">
-            <div className="absolute top-0 left-0 w-32 h-32 bg-[#FF6B00]/10 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2" />
-            <div className="relative flex flex-col sm:flex-row items-center justify-between gap-6">
-              <div className="text-center sm:text-right">
-                <h4 className="text-xl font-black text-white mb-2 flex items-center justify-center sm:justify-start gap-2">
-                  برنامج الولاء <Award size={22} className="text-[#FF6B00]" aria-hidden="true" />
-                </h4>
-                <p className="text-sm font-bold text-white/50 leading-relaxed max-w-md">
-                  قريباً ستتمكن من جمع النقاط مع كل كوبون تستخدمه واستبدالها بهدايا قيمة وحصرية.
+          <div className="relative overflow-hidden p-6 sm:p-8 bg-gradient-to-br from-[#101A2B] to-[#18253A] border border-[#FF6500]/30 rounded-[32px] shadow-[0_12px_36px_rgba(0,0,0,0.35)] group">
+            <div className="absolute top-0 left-0 w-48 h-48 bg-[#FF6500]/15 blur-3xl rounded-full -translate-x-1/2 -translate-y-1/2 pointer-events-none" />
+            <div className="relative flex flex-col md:flex-row items-center justify-between gap-6">
+              <div className="text-center sm:text-right space-y-2">
+                <div className="flex items-center justify-center sm:justify-start gap-2.5">
+                  <span className="p-2 bg-[#FF6500]/15 border border-[#FF6500]/30 text-[#FF7A1A] rounded-xl shadow-sm">
+                    <Award size={20} />
+                  </span>
+                  <h4 className="text-xl font-black text-white">
+                    بطاقة ولاء الزقازيق VIP
+                  </h4>
+                  <span className="px-3 py-1 bg-gradient-to-r from-amber-500/25 to-orange-500/25 border border-amber-400/35 text-amber-300 text-xs font-bold rounded-lg shadow-sm">
+                    عضو مميز
+                  </span>
+                </div>
+                <p className="text-sm font-medium text-[#B2BED0] leading-relaxed max-w-lg">
+                  شارك كود الدعوة الخاص بك مع أصدقائك في الزقازيق لتحصلوا معاً على مكافآت ونقاط عند كل تفعيل كوبون.
                 </p>
               </div>
-              <div className="px-6 py-3 bg-[#FF6B00]/10 border border-[#FF6B00]/20 rounded-2xl text-[#FF6B00] font-black text-xs uppercase tracking-tighter">
-                قريباً جداً
+
+              {/* Referral Code Box */}
+              <div className="flex flex-col sm:flex-row items-center gap-3 bg-[#0B1524] border border-[#25344A] p-2.5 rounded-2xl w-full sm:w-auto">
+                <div className="px-4 py-2 text-center sm:text-right">
+                  <small className="block text-[10px] font-bold text-[#8FA0B8] uppercase tracking-wider">كود الدعوة الخاص بك</small>
+                  <strong className="text-lg font-black tracking-widest text-[#FF7A1A]">
+                    {user.referralCode || `ZAG-${(user.phone || 'VIP').slice(-4)}`}
+                  </strong>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => {
+                    const code = user.referralCode || `ZAG-${(user.phone || 'VIP').slice(-4)}`;
+                    navigator.clipboard.writeText(code);
+                    setCopiedReferral(true);
+                    setTimeout(() => setCopiedReferral(false), 2500);
+                  }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-5 py-3 rounded-xl bg-gradient-to-r from-[#FF6500] to-[#FF8A32] text-white font-bold text-xs shadow-[0_4px_14px_rgba(255,101,0,0.35)] active:scale-95 transition-all"
+                >
+                  {copiedReferral ? (
+                    <>
+                      <Check size={16} />
+                      <span>تم النسخ!</span>
+                    </>
+                  ) : (
+                    <>
+                      <Copy size={16} />
+                      <span>نسخ الكود</span>
+                    </>
+                  )}
+                </button>
               </div>
             </div>
           </div>

@@ -183,8 +183,10 @@ const NavLink = ({ href, label, active }: { href: string; label: string; active:
     <Link
       prefetch={false}
       href={href}
-      className={`rounded-xl px-3 py-2 text-sm font-semibold transition-colors
-        ${active ? 'nav-link-active bg-[#162238] text-white' : 'text-[#AAB5C6] hover:bg-[#101B2D] hover:text-white'}`}
+      className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200
+        ${active
+          ? 'nav-link-active bg-[#FF6500]/15 text-[#FF7A1A] border border-[#FF6500]/30 shadow-[0_2px_10px_rgba(255,101,0,0.15)] font-bold'
+          : 'text-[#AAB5C6] hover:bg-[#152238] hover:text-white border border-transparent'}`}
     >
       {label}
     </Link>
@@ -461,10 +463,10 @@ export function Navbar() {
                     prefetch={false}
                     key={href}
                     href={href}
-                    className={`text-base font-bold py-3 px-3 rounded-xl transition-all
+                    className={`text-base font-bold py-3 px-4 rounded-xl transition-all border
                       ${pathname === href
-                        ? 'text-[#FF6B00] bg-[#FF6B00]/10'
-                        : 'text-[#9A9A9A] hover:text-[#F0F0F0] hover:bg-white/5'}`}
+                        ? 'text-[#FF7A1A] bg-[#FF6500]/15 border-[#FF6500]/30 shadow-[0_2px_8px_rgba(255,101,0,0.15)]'
+                        : 'text-[#9A9A9A] hover:text-[#F0F0F0] hover:bg-white/5 border-transparent'}`}
                   >
                     {label}
                   </Link>
@@ -473,8 +475,8 @@ export function Navbar() {
                   <Link
                     prefetch={false}
                     href="/login"
-                    className="mt-3 py-3 text-center bg-[#FF6B00]
-                               text-white font-black rounded-xl shadow-[0_4px_12px_rgba(255,107,0,0.3)]"
+                    className="mt-3 py-3 text-center bg-gradient-to-r from-[#FF6500] to-[#FF8A32]
+                               text-white font-black rounded-xl shadow-[0_4px_14px_rgba(255,101,0,0.35)] active:scale-95 transition-all"
                   >
                     تسجيل الدخول
                   </Link>

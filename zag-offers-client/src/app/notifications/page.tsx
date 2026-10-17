@@ -18,19 +18,39 @@ interface Notification {
   data?: Record<string, unknown> | string;
 }
 
-function getNotifIcon(type?: string) {
+function getNotifStyle(type?: string) {
   switch (type) {
     case 'NEW_OFFER':
     case 'OFFER_APPROVED':
-      return <Tag size={20} className="text-[#FF6B00]" />;
+      return {
+        icon: <Tag size={20} className="text-[#FF6500]" />,
+        iconBg: 'bg-[#FF6500]/15 border-[#FF6500]/30 shadow-[0_2px_12px_rgba(255,101,0,0.15)]',
+        badge: 'bg-[#FF6500]/10 text-[#FF7A1A] border border-[#FF6500]/25',
+        label: 'عرض جديد'
+      };
     case 'STORE_APPROVED':
-      return <Store size={20} className="text-blue-400" />;
+      return {
+        icon: <Store size={20} className="text-blue-400" />,
+        iconBg: 'bg-blue-500/15 border-blue-500/30 shadow-[0_2px_12px_rgba(59,130,246,0.15)]',
+        badge: 'bg-blue-500/10 text-blue-400 border border-blue-500/25',
+        label: 'متجر معتمد'
+      };
     case 'COUPON_REDEEMED':
     case 'COUPON_GENERATED':
     case 'COUPON_UPDATE':
-      return <Ticket size={20} className="text-emerald-400" />;
+      return {
+        icon: <Ticket size={20} className="text-emerald-400" />,
+        iconBg: 'bg-emerald-500/15 border-emerald-500/30 shadow-[0_2px_12px_rgba(16,185,129,0.15)]',
+        badge: 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/25',
+        label: 'كوبون'
+      };
     default:
-      return <Bell size={20} className="text-white/20" />;
+      return {
+        icon: <Bell size={20} className="text-amber-400" />,
+        iconBg: 'bg-amber-500/15 border-amber-500/30 shadow-[0_2px_12px_rgba(245,158,11,0.15)]',
+        badge: 'bg-amber-500/10 text-amber-400 border border-amber-500/25',
+        label: 'تنبيه'
+      };
   }
 }
 
@@ -263,7 +283,9 @@ export default function NotificationsPage() {
       ) : (
         <div className="space-y-4">
           <AnimatePresence mode="popLayout">
-            {notifications.map((notif, idx) => (
+            {notifications.map((notif, idx) => {
+              const style = getNotifStyle(notif.type);
+              return (
               <motion.div
                 key={notif.id}
                 layout
@@ -273,7 +295,7 @@ export default function NotificationsPage() {
                 transition={{ delay: idx * 0.05 }}
                 onClick={() => handleNotifClick(notif)}
                 className={`group relative glass rounded-[2rem] p-6 border transition-all cursor-pointer hover:border-[#FF6B00]/40 ${
-                  !notif.isRead ? 'border-[#FF6B00]/20 bg-[#FF6B00]/5' : 'border-white/5 hover:bg-white/[0.02]'
+                  !notif.isRead ? 'border-[#FF6B00]/25 bg-[#FF6B00]/5' : 'border-white/5 hover:bg-white/[0.02]'
                 }`}
               >
                 <div className="flex items-start gap-5">
@@ -290,8 +312,8 @@ export default function NotificationsPage() {
                   </div>
 
                   {/* Icon */}
-                  <div className="w-12 h-12 rounded-2xl bg-white/5 border border-white/10 flex items-center justify-center flex-shrink-0 group-hover:scale-110 transition-transform">
-                    {getNotifIcon(notif.type)}
+                  <div className={`w-12 h-12 rounded-2xl border flex items-center justify-center flex-shrink-0 group-hover:scale-105 transition-all ${style.iconBg}`}>
+                    {style.icon}
                   </div>
 
                   {/* Content */}
@@ -299,9 +321,12 @@ export default function NotificationsPage() {
                     <div className="flex items-start justify-between gap-4 mb-2">
                       <div className="flex-1">
                         <div className="flex items-center gap-2 mb-1">
-                          <h4 className={`font-black text-base leading-tight ${!notif.isRead ? 'text-white' : 'text-white/60'}`}>
+                          <h4 className={`font-black text-base leading-tight ${!notif.isRead ? 'text-white' : 'text-white/70'}`}>
                             {notif.title}
                           </h4>
+                          <span className={`px-2 py-0.5 rounded-lg text-[10px] font-bold ${style.badge}`}>
+                            {style.label}
+                          </span>
                           {!notif.isRead && (
                             <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse shadow-[0_0_10px_#FF6B00]" />
                           )}
@@ -347,7 +372,8 @@ export default function NotificationsPage() {
                   </div>
                 </div>
               </motion.div>
-            ))}
+              );
+            })}
           </AnimatePresence>
         </div>
       )}

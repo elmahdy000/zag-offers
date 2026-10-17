@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2, ChevronDown, Check } from 'lucide-react';
+import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2, ChevronDown, Check, RotateCcw } from 'lucide-react';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL, ZAGAZIG_AREAS } from '@/lib/constants';
@@ -399,12 +399,25 @@ function OffersPageContent() {
       ) : error ? (
         <ErrorDisplay message={error} onRetry={fetchData} />
       ) : filtered.length === 0 ? (
-        <div className="flex flex-col items-center py-20 gap-3 text-center">
-          <div className="flex h-16 w-16 items-center justify-center rounded-full bg-[#1B2940] text-[#FF8A32]"><Search size={24} /></div>
-          <h3 className="text-base font-bold">لا توجد عروض تطابق بحثك</h3>
-          <p className="text-xs text-[#9A9A9A] max-w-xs leading-relaxed">
-            جرّب تغيير كلمة البحث أو تحديد فلاتر مختلفة
-          </p>
+        <div className="flex flex-col items-center py-16 gap-4 text-center bg-[#101A2B]/60 rounded-3xl border border-[#25344A]/80 p-8 my-6">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#FF6500]/20 to-[#FF8A32]/10 border border-[#FF6500]/30 text-[#FF7A1A] shadow-[0_4px_20px_rgba(255,101,0,0.2)]">
+            <Search size={28} />
+          </div>
+          <div>
+            <h3 className="text-lg font-bold text-white mb-1">لا توجد عروض تطابق بحثك</h3>
+            <p className="text-sm text-[#8FA0B8] max-w-sm leading-relaxed">
+              جرّب تغيير كلمة البحث أو استعراض كل الأقسام والمناطق
+            </p>
+          </div>
+          {(search || activeCat || area) && (
+            <button
+              onClick={() => { setSearch(''); setActiveCat(''); setArea(''); }}
+              className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6500] to-[#FF8A32] text-white text-sm font-bold shadow-[0_4px_16px_rgba(255,101,0,0.35)] hover:shadow-[0_6px_22px_rgba(255,101,0,0.5)] active:scale-95 transition-all"
+            >
+              <RotateCcw size={16} />
+              إعادة تعيين جميع الفلاتر
+            </button>
+          )}
         </div>
       ) : (
         /* Render Grouped by Category */

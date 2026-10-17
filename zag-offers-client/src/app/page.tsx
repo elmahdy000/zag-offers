@@ -351,10 +351,12 @@ function HomePageContent() {
           <motion.div 
             initial={false}
             animate={{ opacity: 1, scale: 1 }}
-            className="inline-flex items-center gap-2 rounded-full border border-[#25344A] bg-[#0C1627] px-3 py-1.5"
+            className="inline-flex items-center gap-2 rounded-full border border-emerald-500/30 bg-emerald-500/10 px-3.5 py-1.5 shadow-[0_2px_12px_rgba(16,185,129,0.15)]"
           >
-            <span className="w-2 h-2 rounded-full bg-[#FF6B00] animate-pulse" />
-            <span className="text-xs font-semibold text-[#D7DFEA]">منصة عروض محلية في الزقازيق</span>
+            <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse shadow-[0_0_8px_rgba(52,211,153,0.8)]" />
+            <span className="text-xs font-bold text-emerald-300">
+              {offers.length > 0 ? `مباشر: ${offers.length} عرض وخصم متاح الآن في الزقازيق` : 'منصة عروض محلية موثوقة في الزقازيق'}
+            </span>
           </motion.div>
 
           <motion.h1
@@ -415,7 +417,7 @@ function HomePageContent() {
               {/* Action Button */}
               <button 
                 type="submit"
-                className="min-h-11 flex-shrink-0 rounded-lg bg-[#FF6B00] px-7 py-2.5 text-sm font-bold text-white transition-colors hover:bg-[#E85F00]"
+                className="min-h-11 flex-shrink-0 rounded-lg bg-gradient-to-r from-[#FF6500] to-[#FF8A32] px-7 py-2.5 text-sm font-bold text-white shadow-[0_4px_16px_rgba(255,101,0,0.35)] hover:shadow-[0_6px_22px_rgba(255,101,0,0.5)] active:scale-95 transition-all"
               >
                 بحث
               </button>

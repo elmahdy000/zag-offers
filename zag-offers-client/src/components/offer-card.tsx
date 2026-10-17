@@ -168,8 +168,8 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
   return (
     <div
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="offer-card global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:border-[#FF8A32]/55 hover:shadow-[0_18px_42px_rgba(0,0,0,0.24)]
-                 transition-all duration-200 flex flex-col h-full cursor-pointer"
+      className="offer-card global-card group relative bg-[#101A2B] border border-[#25344A] rounded-[20px] overflow-hidden hover:-translate-y-1.5 hover:border-[#FF6500]/50 hover:shadow-[0_20px_45px_rgba(0,0,0,0.38)]
+                 transition-all duration-300 flex flex-col h-full cursor-pointer"
     >
       {/* ─── Header ─────────────────────────────────── */}
       <div className="offer-card-media relative h-[240px] bg-[#18253A] overflow-hidden flex-shrink-0">
@@ -195,14 +195,14 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         <div className="absolute inset-0 bg-black/10" />
 
         {offer.isFeatured && (
-          <div className="absolute top-3 left-3 z-10 px-2.5 py-1 bg-[#FFF3E8]
-                          text-[#B84C00] text-[11px] font-semibold rounded-lg">
+          <div className="absolute top-3 left-3 z-10 px-3 py-1 bg-gradient-to-r from-amber-500/25 to-orange-500/25 backdrop-blur-md border border-amber-400/40 text-amber-300 text-[11px] font-bold rounded-lg shadow-[0_2px_10px_rgba(245,158,11,0.25)] flex items-center gap-1.5">
+            <span className="w-1.5 h-1.5 rounded-full bg-amber-400 animate-pulse" />
             مميز
           </div>
         )}
 
-        <div className="absolute top-3 right-3 z-10 px-2.5 py-1
-                        bg-[#FF8A32] text-[#07101F] text-xs font-bold rounded-lg">
+        <div className="absolute top-3 right-3 z-10 px-3 py-1
+                        bg-gradient-to-r from-[#FF6500] to-[#FF3800] text-white text-xs font-black rounded-lg shadow-[0_4px_14px_rgba(255,101,0,0.4)]">
           {discountDisplay}
         </div>
 
@@ -285,10 +285,12 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
         <div
           className="mt-1 w-full py-3 text-center text-[15px] font-bold text-[#FF7A1A]
-                     bg-[#FF6B00]/10 border border-[#FF6B00]/25 rounded-xl
-                     group-hover:bg-[#FF6B00] group-hover:text-white group-hover:border-[#FF6B00]
-                     group-hover:shadow-[0_3px_10px_rgba(255,107,0,0.25)]
-                     transition-all duration-200"
+                     bg-[#FF6500]/10 border border-[#FF6500]/25 rounded-xl
+                     group-hover:bg-gradient-to-r group-hover:from-[#FF6500] group-hover:to-[#FF8A32]
+                     group-hover:text-white group-hover:border-transparent
+                     group-hover:shadow-[0_6px_20px_rgba(255,101,0,0.35)]
+                     group-hover:-translate-y-0.5 active:scale-[0.98]
+                     transition-all duration-300"
         >
           عرض التفاصيل
         </div>
