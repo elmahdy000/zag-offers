@@ -19,6 +19,7 @@ import '../bloc/auth_event.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import 'login_page.dart';
 import '../../../../core/theme/theme_cubit.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 import 'zag_rewards_page.dart';
 import 'invite_friends_page.dart';
 
@@ -36,6 +37,7 @@ class _ProfilePageState extends State<ProfilePage> {
   int _points = 0;
   String _tier = 'BRONZE';
   String _referralCode = '';
+  bool _isLoggedIn = false;
   bool _isLoggingOut = false;
   bool _isUploadingAvatar = false;
 
@@ -47,6 +49,8 @@ class _ProfilePageState extends State<ProfilePage> {
         return 'تاجر';
       case 'CUSTOMER':
         return 'عميل';
+      case 'GUEST':
+        return 'زائر';
       default:
         return role;
     }
@@ -59,6 +63,8 @@ class _ProfilePageState extends State<ProfilePage> {
   }
 
   Future<void> _loadUserData() async {
+    final token = await sl<AuthLocalDataSource>().getToken();
+    final isLoggedIn = token != null && token.isNotEmpty;
     final name = await sl<AuthLocalDataSource>().getUserName();
     final role = await sl<AuthLocalDataSource>().getUserRole();
     final avatar = await sl<AuthLocalDataSource>().getCachedAvatarUrl();
@@ -67,8 +73,9 @@ class _ProfilePageState extends State<ProfilePage> {
     final referralCode = await sl<AuthLocalDataSource>().getReferralCode();
     if (mounted) {
       setState(() {
-        _userName = name ?? 'مستخدم Zag Offers';
-        _userRole = role ?? 'CUSTOMER';
+        _isLoggedIn = isLoggedIn;
+        _userName = isLoggedIn ? (name ?? 'مستخدم Zag Offers') : 'زائر كريم';
+        _userRole = isLoggedIn ? (role ?? 'CUSTOMER') : 'GUEST';
         _avatarUrl = avatar;
         _points = points;
         _tier = tier;
@@ -404,7 +411,18 @@ class _ProfilePageState extends State<ProfilePage> {
                           child: GestureDetector(
                             onTap: _isUploadingAvatar
                                 ? null
-                                : _pickAndUploadAvatar,
+                                : () {
+                                    if (!_isLoggedIn) {
+                                      Navigator.push(
+                                        context,
+                                        MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LoginPage()),
+                                      ).then((_) => _loadUserData());
+                                      return;
+                                    }
+                                    _pickAndUploadAvatar();
+                                  },
                             child: CircleAvatar(
                               radius: 50,
                               backgroundColor: Colors.white,
@@ -794,41 +812,113 @@ class _ProfilePageState extends State<ProfilePage> {
     );
   }
 
+  Future<void> _confirmAndLogout() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text('تسجيل الخروج'),
+        content: const Text('هل أنت متأكد من رغبتك في تسجيل الخروج؟'),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text('إلغاء'),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: TextButton.styleFrom(foregroundColor: AppColors.error),
+            child: const Text('تسجيل الخروج'),
+          ),
+        ],
+      ),
+    );
+    if (confirmed == true && mounted) {
+      _logout();
+    }
+  }
+
   Widget _buildLogoutButton() {
-    return SizedBox(
-      width: double.infinity,
-      child: ElevatedButton(
-        onPressed: _isLoggingOut ? null : _logout,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: AppColors.error.withValues(alpha: 0.1),
-          foregroundColor: AppColors.error,
-          elevation: 0,
-          padding: const EdgeInsets.symmetric(vertical: 11),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(18),
-            side: BorderSide(color: AppColors.error.withValues(alpha: 0.2)),
+    if (!_isLoggedIn) {
+      return SizedBox(
+        width: double.infinity,
+        child: BouncyTap(
+          onTap: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => const LoginPage()),
+            ).then((_) => _loadUserData());
+          },
+          child: Container(
+            padding: const EdgeInsets.symmetric(vertical: 14),
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [AppColors.primary, AppColors.secondary],
+              ),
+              borderRadius: BorderRadius.circular(18),
+              boxShadow: [
+                BoxShadow(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  blurRadius: 16,
+                  offset: const Offset(0, 6),
+                ),
+              ],
+            ),
+            child: const Row(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.login_rounded, color: Colors.white, size: 20),
+                SizedBox(width: 10),
+                Text(
+                  'تسجيل الدخول / إنشاء حساب',
+                  style: TextStyle(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w800,
+                    fontSize: 15,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
-        child: _isLoggingOut
-            ? const SizedBox(
-                width: 20,
-                height: 20,
-                child: CircularProgressIndicator(
-                  strokeWidth: 2,
-                  color: AppColors.error,
-                ),
-              )
-            : const Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(Icons.logout_rounded, size: 20),
-                  SizedBox(width: 10),
-                  Text(
-                    'تسجيل الخروج',
-                    style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+      );
+    }
+
+    return SizedBox(
+      width: double.infinity,
+      child: BouncyTap(
+        onTap: _isLoggingOut ? null : _confirmAndLogout,
+        child: ElevatedButton(
+          onPressed: _isLoggingOut ? null : _confirmAndLogout,
+          style: ElevatedButton.styleFrom(
+            backgroundColor: AppColors.error.withValues(alpha: 0.1),
+            foregroundColor: AppColors.error,
+            elevation: 0,
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            shape: RoundedRectangleBorder(
+              borderRadius: BorderRadius.circular(18),
+              side: BorderSide(color: AppColors.error.withValues(alpha: 0.2)),
+            ),
+          ),
+          child: _isLoggingOut
+              ? const SizedBox(
+                  width: 20,
+                  height: 20,
+                  child: CircularProgressIndicator(
+                    strokeWidth: 2,
+                    color: AppColors.error,
                   ),
-                ],
-              ),
+                )
+              : const Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Icon(Icons.logout_rounded, size: 20),
+                    SizedBox(width: 10),
+                    Text(
+                      'تسجيل الخروج',
+                      style: TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
   }

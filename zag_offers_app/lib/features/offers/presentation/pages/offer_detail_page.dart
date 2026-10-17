@@ -13,6 +13,7 @@ import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../../../injection_container.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
+import '../../../auth/presentation/pages/login_page.dart';
 import '../../../coupons/presentation/bloc/coupons_bloc.dart';
 import '../../../coupons/presentation/bloc/coupons_event.dart';
 import '../../../coupons/presentation/bloc/coupons_state.dart';
@@ -938,19 +939,19 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                       height: 52,
                       width: double.infinity,
                       decoration: BoxDecoration(
-                        gradient: (canGenerate && !_isFlashSaleFinished())
+                        gradient: !_isFlashSaleFinished()
                             ? const LinearGradient(
                                 colors: [AppColors.primary, Color(0xFFFF8C35)],
                               )
                             : null,
-                        color: (!canGenerate || _isFlashSaleFinished())
+                        color: _isFlashSaleFinished()
                             ? (Theme.of(context).brightness == Brightness.dark
                                 ? Colors.white10
                                 : Colors.grey.shade300)
                             : null,
                         borderRadius: BorderRadius.circular(16),
                         boxShadow: [
-                          if (canGenerate && !_isFlashSaleFinished())
+                          if (!_isFlashSaleFinished())
                             BoxShadow(
                               color: AppColors.primary.withValues(alpha: 0.38),
                               blurRadius: 22,
@@ -959,11 +960,25 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         ],
                       ),
                       child: ElevatedButton(
-                        onPressed: (state is CouponsLoading ||
-                                !canGenerate ||
-                                _isFlashSaleFinished())
+                        onPressed: _isFlashSaleFinished()
                             ? null
-                            : () {
+                            : () async {
+                                if (!canGenerate) {
+                                  HapticFeedback.lightImpact();
+                                  await Navigator.push(
+                                    context,
+                                    MaterialPageRoute(
+                                      builder: (context) => const LoginPage(),
+                                    ),
+                                  );
+                                  if (mounted) {
+                                    setState(() {
+                                      _canGenerateCouponFuture = _canGenerateCoupon();
+                                    });
+                                  }
+                                  return;
+                                }
+                                if (state is CouponsLoading) return;
                                 HapticFeedback.mediumImpact();
                                 _couponsBloc.add(
                                   GenerateCouponRequested(widget.offer.id),

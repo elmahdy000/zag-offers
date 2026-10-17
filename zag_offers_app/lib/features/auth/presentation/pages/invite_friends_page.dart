@@ -4,6 +4,7 @@ import 'package:share_plus/share_plus.dart';
 
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class InviteFriendsPage extends StatelessWidget {
   final String referralCode;
@@ -80,56 +81,76 @@ class InviteFriendsPage extends StatelessWidget {
             ),
             const SizedBox(height: 40),
             // Code Card
-            Container(
-              padding: const EdgeInsets.all(20),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
-                borderRadius: BorderRadius.circular(20),
-                border: Border.all(
-                  color: AppColors.primary.withValues(alpha: 0.3),
-                  width: 2,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.1),
-                    blurRadius: 20,
-                    offset: const Offset(0, 10),
+            BouncyTap(
+              onTap: referralCode.isNotEmpty ? () => _copyCode(context) : null,
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 22),
+                decoration: BoxDecoration(
+                  color: isDark ? const Color(0xFF1E1E1E) : Colors.white,
+                  borderRadius: BorderRadius.circular(24),
+                  border: Border.all(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    width: 2,
                   ),
-                ],
-              ),
-              child: Column(
-                children: [
-                  const Text(
-                    'كود الدعوة الخاص بك',
-                    style: TextStyle(
-                      fontSize: 14,
-                      color: Colors.grey,
-                      fontWeight: FontWeight.bold,
+                  boxShadow: [
+                    BoxShadow(
+                      color: AppColors.primary.withValues(alpha: 0.1),
+                      blurRadius: 20,
+                      offset: const Offset(0, 10),
                     ),
-                  ),
-                  const SizedBox(height: 12),
-                  Row(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
+                  ],
+                ),
+                child: Column(
+                  children: [
+                    const Text(
+                      'كود الدعوة الخاص بك',
+                      style: TextStyle(
+                        fontSize: 14,
+                        color: Colors.grey,
+                        fontWeight: FontWeight.bold,
+                      ),
+                    ),
+                    const SizedBox(height: 12),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Text(
+                          referralCode.isNotEmpty ? referralCode : 'غير متاح',
+                          style: const TextStyle(
+                            fontSize: 32,
+                            fontWeight: FontWeight.w900,
+                            letterSpacing: 4,
+                          ),
+                        ),
+                        const SizedBox(width: 16),
+                        if (referralCode.isNotEmpty)
+                          Container(
+                            padding: const EdgeInsets.all(8),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              shape: BoxShape.circle,
+                            ),
+                            child: const Icon(
+                              Icons.copy_rounded,
+                              color: AppColors.primary,
+                              size: 20,
+                            ),
+                          ),
+                      ],
+                    ),
+                    if (referralCode.isNotEmpty) ...[
+                      const SizedBox(height: 8),
                       Text(
-                        referralCode.isNotEmpty ? referralCode : 'غير متاح',
-                        style: const TextStyle(
-                          fontSize: 32,
-                          fontWeight: FontWeight.w900,
-                          letterSpacing: 4,
+                        'اضغط هنا لنسخ الكود بسهولة 📋',
+                        style: TextStyle(
+                          fontSize: 12,
+                          color: AppColors.primary.withValues(alpha: 0.8),
+                          fontWeight: FontWeight.w600,
                         ),
                       ),
-                      const SizedBox(width: 16),
-                      if (referralCode.isNotEmpty)
-                        IconButton(
-                          onPressed: () => _copyCode(context),
-                          icon: const Icon(Icons.copy_rounded),
-                          color: AppColors.primary,
-                          tooltip: 'نسخ الكود',
-                        ),
                     ],
-                  ),
-                ],
+                  ],
+                ),
               ),
             ),
             const SizedBox(height: 40),
@@ -137,25 +158,28 @@ class InviteFriendsPage extends StatelessWidget {
             if (referralCode.isNotEmpty)
               SizedBox(
                 width: double.infinity,
-                child: ElevatedButton.icon(
-                  onPressed: _shareCode,
-                  icon: const Icon(Icons.share_rounded, color: Colors.white),
-                  label: const Text(
-                    'مشاركة الكود',
-                    style: TextStyle(
-                      fontSize: 14,
-                      fontWeight: FontWeight.w800,
-                      color: Colors.white,
+                child: BouncyTap(
+                  onTap: _shareCode,
+                  child: ElevatedButton.icon(
+                    onPressed: _shareCode,
+                    icon: const Icon(Icons.share_rounded, color: Colors.white),
+                    label: const Text(
+                      'مشاركة الكود',
+                      style: TextStyle(
+                        fontSize: 15,
+                        fontWeight: FontWeight.w800,
+                        color: Colors.white,
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    padding: const EdgeInsets.symmetric(vertical: 11),
-                    backgroundColor: AppColors.primary,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(16),
+                    style: ElevatedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 14),
+                      backgroundColor: AppColors.primary,
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(18),
+                      ),
+                      elevation: 5,
+                      shadowColor: AppColors.primary.withValues(alpha: 0.5),
                     ),
-                    elevation: 5,
-                    shadowColor: AppColors.primary.withValues(alpha: 0.5),
                   ),
                 ),
               ),

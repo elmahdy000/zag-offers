@@ -21,6 +21,7 @@ import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart'
 import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_page.dart';
 import '../../../../core/widgets/coupon_celebration_dialog.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
+import '../../../home/presentation/pages/main_screen.dart';
 
 class MyCouponsPage extends StatefulWidget {
   const MyCouponsPage({super.key});
@@ -716,47 +717,97 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                       _buildFilterTabs(),
                       Expanded(
                         child: filteredCoupons.isEmpty
-                            ? Center(
-                                child: Padding(
-                                  padding: const EdgeInsets.all(40),
-                                  child: Column(
-                                    mainAxisAlignment: MainAxisAlignment.center,
-                                    children: [
-                                      Container(
-                                        padding: const EdgeInsets.all(32),
-                                        decoration: BoxDecoration(
-                                          color: AppColors.primary.withValues(alpha: 0.1),
-                                          shape: BoxShape.circle,
+                            ? RefreshIndicator(
+                                onRefresh: () async {
+                                  context.read<CouponsBloc>().add(FetchUserCoupons());
+                                },
+                                child: SingleChildScrollView(
+                                  physics: const AlwaysScrollableScrollPhysics(),
+                                  padding: const EdgeInsets.fromLTRB(40, 60, 40, 120),
+                                  child: Center(
+                                    child: Column(
+                                      mainAxisAlignment: MainAxisAlignment.center,
+                                      children: [
+                                        Container(
+                                          padding: const EdgeInsets.all(32),
+                                          decoration: BoxDecoration(
+                                            color: AppColors.primary.withValues(alpha: 0.1),
+                                            shape: BoxShape.circle,
+                                          ),
+                                          child: const Icon(
+                                            Icons.confirmation_num_rounded,
+                                            size: 70,
+                                            color: AppColors.primary,
+                                          ),
                                         ),
-                                        child: const Icon(
-                                          Icons.confirmation_num_rounded,
-                                          size: 70,
-                                          color: AppColors.primary,
+                                        const SizedBox(height: 24),
+                                        Text(
+                                          _activeTab == 'ACTIVE'
+                                              ? 'لا توجد كوبونات نشطة حالياً'
+                                              : (_activeTab == 'USED'
+                                                  ? 'لم تستخدم أي كوبونات بعد'
+                                                  : 'لا توجد كوبونات مسجلة'),
+                                          style: theme.textTheme.headlineSmall?.copyWith(
+                                            fontWeight: FontWeight.w900,
+                                          ),
+                                          textAlign: TextAlign.center,
                                         ),
-                                      ),
-                                      const SizedBox(height: 24),
-                                      Text(
-                                        _activeTab == 'ACTIVE'
-                                            ? 'لا توجد كوبونات نشطة حالياً'
-                                            : (_activeTab == 'USED'
-                                                ? 'لم تستخدم أي كوبونات بعد'
-                                                : 'لا توجد كوبونات مسجلة'),
-                                        style: theme.textTheme.headlineSmall?.copyWith(
-                                          fontWeight: FontWeight.w900,
+                                        const SizedBox(height: 12),
+                                        Text(
+                                          'احجز أقوى عروض ومطاعم الزقازيق دلوقتي، وهيظهر كوبونك هنا فوراً!',
+                                          textAlign: TextAlign.center,
+                                          style: TextStyle(
+                                            color: AppColors.textSecondary,
+                                            height: 1.6,
+                                            fontSize: 14,
+                                          ),
                                         ),
-                                        textAlign: TextAlign.center,
-                                      ),
-                                      const SizedBox(height: 12),
-                                      Text(
-                                        'احجز أقوى عروض ومطاعم الزقازيق دلوقتي، وهيظهر كوبونك هنا فوراً!',
-                                        textAlign: TextAlign.center,
-                                        style: TextStyle(
-                                          color: AppColors.textSecondary,
-                                          height: 1.6,
-                                          fontSize: 14,
+                                        const SizedBox(height: 28),
+                                        BouncyTap(
+                                          onTap: () {
+                                            final main = MainScreen.of(context);
+                                            if (main != null) {
+                                              main.setSelectedIndex(1);
+                                            } else if (Navigator.canPop(context)) {
+                                              Navigator.pop(context);
+                                            }
+                                          },
+                                          child: Container(
+                                            padding: const EdgeInsets.symmetric(
+                                                horizontal: 28, vertical: 14),
+                                            decoration: BoxDecoration(
+                                              gradient: const LinearGradient(
+                                                colors: [AppColors.primary, AppColors.secondary],
+                                              ),
+                                              borderRadius: BorderRadius.circular(16),
+                                              boxShadow: [
+                                                BoxShadow(
+                                                  color: AppColors.primary.withValues(alpha: 0.3),
+                                                  blurRadius: 16,
+                                                  offset: const Offset(0, 6),
+                                                ),
+                                              ],
+                                            ),
+                                            child: const Row(
+                                              mainAxisSize: MainAxisSize.min,
+                                              children: [
+                                                Icon(Icons.local_offer_rounded,
+                                                    color: Colors.white, size: 20),
+                                                SizedBox(width: 8),
+                                                Text(
+                                                  'تصفح أقوى العروض الآن 🛍️',
+                                                  style: TextStyle(
+                                                    color: Colors.white,
+                                                    fontWeight: FontWeight.bold,
+                                                    fontSize: 15,
+                                                  ),
+                                                ),
+                                              ],
+                                            ),
+                                          ),
                                         ),
-                                      ),
-                                    ],
+                                      ],
+                                    ),
                                   ),
                                 ),
                               )

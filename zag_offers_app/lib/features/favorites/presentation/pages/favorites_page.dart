@@ -8,6 +8,8 @@ import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.d
 import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart';
 import 'package:zag_offers_app/injection_container.dart' as di;
 import 'package:google_fonts/google_fonts.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 
 class FavoritesPage extends StatefulWidget {
   const FavoritesPage({super.key});
@@ -72,64 +74,103 @@ class _FavoritesPageState extends State<FavoritesPage> {
                   final favorites = state.favorites;
 
                   if (favorites.isEmpty) {
-                    return Center(
-                      child: Padding(
-                        padding: const EdgeInsets.all(40),
-                        child: Column(
-                          mainAxisAlignment: MainAxisAlignment.center,
-                          children: [
-                            Container(
-                              padding: const EdgeInsets.all(32),
-                              decoration: BoxDecoration(
-                                color: AppColors.primary.withValues(alpha: 0.1),
-                                shape: BoxShape.circle,
+                    return RefreshIndicator(
+                      onRefresh: () async {
+                        context.read<FavoritesBloc>().add(FetchFavorites());
+                      },
+                      child: SingleChildScrollView(
+                        physics: const AlwaysScrollableScrollPhysics(),
+                        padding: const EdgeInsets.fromLTRB(40, 60, 40, 120),
+                        child: Center(
+                          child: Column(
+                            mainAxisAlignment: MainAxisAlignment.center,
+                            children: [
+                              Container(
+                                padding: const EdgeInsets.all(32),
+                                decoration: BoxDecoration(
+                                  color: AppColors.primary.withValues(alpha: 0.1),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: Stack(
+                                  alignment: Alignment.center,
+                                  children: [
+                                    Icon(
+                                      Icons.favorite_rounded,
+                                      size: 80,
+                                      color: AppColors.primary
+                                          .withValues(alpha: 0.2),
+                                    ),
+                                    const Icon(
+                                      Icons.favorite_outline_rounded,
+                                      size: 40,
+                                      color: AppColors.primary,
+                                    ),
+                                  ],
+                                ),
                               ),
-                              child: Stack(
-                                alignment: Alignment.center,
-                                children: [
-                                  Icon(
-                                    Icons.favorite_rounded,
-                                    size: 80,
-                                    color: AppColors.primary
-                                        .withValues(alpha: 0.2),
+                              const SizedBox(height: 32),
+                              Text(
+                                'قائمة المفضلة فارغة',
+                                style: theme.textTheme.headlineSmall?.copyWith(
+                                  fontWeight: FontWeight.w900,
+                                ),
+                              ),
+                              const SizedBox(height: 12),
+                              Text(
+                                'ابدأ بإضافة العروض التي تعجبك لتجدها هنا بسهولة في أي وقت.',
+                                textAlign: TextAlign.center,
+                                style: TextStyle(
+                                  color: AppColors.textSecondary,
+                                  height: 1.6,
+                                  fontSize: 15,
+                                ),
+                              ),
+                              const SizedBox(height: 32),
+                              BouncyTap(
+                                onTap: () {
+                                  final main = MainScreen.of(context);
+                                  if (main != null) {
+                                    main.setSelectedIndex(1);
+                                  } else if (Navigator.canPop(context)) {
+                                    Navigator.pop(context);
+                                  }
+                                },
+                                child: Container(
+                                  padding: const EdgeInsets.symmetric(
+                                      horizontal: 32, vertical: 14),
+                                  decoration: BoxDecoration(
+                                    gradient: const LinearGradient(
+                                      colors: [AppColors.primary, AppColors.secondary],
+                                    ),
+                                    borderRadius: BorderRadius.circular(16),
+                                    boxShadow: [
+                                      BoxShadow(
+                                        color: AppColors.primary.withValues(alpha: 0.3),
+                                        blurRadius: 16,
+                                        offset: const Offset(0, 6),
+                                      ),
+                                    ],
                                   ),
-                                  const Icon(
-                                    Icons.favorite_outline_rounded,
-                                    size: 40,
-                                    color: AppColors.primary,
+                                  child: const Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Icon(Icons.local_offer_rounded,
+                                          color: Colors.white, size: 20),
+                                      SizedBox(width: 8),
+                                      Text(
+                                        'استكشف العروض الآن',
+                                        style: TextStyle(
+                                          color: Colors.white,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                    ],
                                   ),
-                                ],
+                                ),
                               ),
-                            ),
-                            const SizedBox(height: 32),
-                            Text(
-                              'قائمة المفضلة فارغة',
-                              style: theme.textTheme.headlineSmall?.copyWith(
-                                fontWeight: FontWeight.w900,
-                              ),
-                            ),
-                            const SizedBox(height: 12),
-                            Text(
-                              'ابدأ بإضافة العروض التي تعجبك لتجدها هنا بسهولة في أي وقت.',
-                              textAlign: TextAlign.center,
-                              style: TextStyle(
-                                color: AppColors.textSecondary,
-                                height: 1.6,
-                                fontSize: 15,
-                              ),
-                            ),
-                            const SizedBox(height: 32),
-                            OutlinedButton(
-                              onPressed: () => Navigator.pop(context),
-                              style: OutlinedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                    horizontal: 32, vertical: 12),
-                                shape: RoundedRectangleBorder(
-                                    borderRadius: BorderRadius.circular(16)),
-                              ),
-                              child: const Text('استكشف العروض'),
-                            ),
-                          ],
+                            ],
+                          ),
                         ),
                       ),
                     );

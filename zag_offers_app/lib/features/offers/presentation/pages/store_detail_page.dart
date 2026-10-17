@@ -16,6 +16,7 @@ import '../bloc/offers_bloc.dart';
 import '../bloc/offers_event.dart';
 import '../bloc/offers_state.dart';
 import 'offer_detail_page.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class StoreDetailPage extends StatefulWidget {
   final StoreEntity store;
@@ -510,15 +511,18 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
             ),
           ],
           const SizedBox(height: 14),
-          OutlinedButton.icon(
-            onPressed: _openExternalMap,
-            icon: const Icon(Icons.navigation_rounded, size: 16),
-            label: const Text('طريق الوصول (افتح في الخريطة)'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: AppColors.primary,
-              side: const BorderSide(color: AppColors.primary, width: 1.2),
-              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-              minimumSize: const Size.fromHeight(42),
+          BouncyTap(
+            onTap: _openExternalMap,
+            child: OutlinedButton.icon(
+              onPressed: _openExternalMap,
+              icon: const Icon(Icons.navigation_rounded, size: 16),
+              label: const Text('طريق الوصول (افتح في الخريطة)'),
+              style: OutlinedButton.styleFrom(
+                foregroundColor: AppColors.primary,
+                side: const BorderSide(color: AppColors.primary, width: 1.2),
+                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                minimumSize: const Size.fromHeight(42),
+              ),
             ),
           ),
         ],
@@ -532,9 +536,8 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     required Color color,
     required VoidCallback onTap,
   }) {
-    return InkWell(
+    return BouncyTap(
       onTap: onTap,
-      borderRadius: BorderRadius.circular(16),
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 12),
         decoration: BoxDecoration(

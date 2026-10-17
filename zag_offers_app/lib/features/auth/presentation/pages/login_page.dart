@@ -9,6 +9,7 @@ import 'package:zag_offers_app/features/auth/presentation/pages/register_page.da
 import 'package:zag_offers_app/features/auth/presentation/pages/forgot_password_page.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/core/utils/snackbar_utils.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 import 'package:zag_offers_app/injection_container.dart';
 
 class LoginPage extends StatefulWidget {
@@ -70,6 +71,16 @@ class _LoginPageState extends State<LoginPage> {
           }
         },
         child: Scaffold(
+          appBar: Navigator.canPop(context)
+              ? AppBar(
+                  backgroundColor: Colors.transparent,
+                  elevation: 0,
+                  leading: IconButton(
+                    icon: const Icon(Icons.arrow_back_ios_new_rounded),
+                    onPressed: () => Navigator.pop(context),
+                  ),
+                )
+              : null,
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),
@@ -164,23 +175,31 @@ class _LoginPageState extends State<LoginPage> {
                     BlocBuilder<AuthBloc, AuthState>(
                       buildWhen: (prev, next) => (prev is AuthLoading) != (next is AuthLoading),
                       builder: (context, state) {
-                        return ElevatedButton(
-                          onPressed: state is AuthLoading
+                        return BouncyTap(
+                          onTap: state is AuthLoading
                               ? null
                               : () {
                                   HapticFeedback.mediumImpact();
                                   _submit(context);
                                 },
-                          child: state is AuthLoading
-                              ? const SizedBox(
-                                  width: 22,
-                                  height: 22,
-                                  child: CircularProgressIndicator(
-                                    strokeWidth: 2.2,
-                                    color: Colors.white,
-                                  ),
-                                )
-                              : const Text('دخول'),
+                          child: ElevatedButton(
+                            onPressed: state is AuthLoading
+                                ? null
+                                : () {
+                                    HapticFeedback.mediumImpact();
+                                    _submit(context);
+                                  },
+                            child: state is AuthLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      strokeWidth: 2.2,
+                                      color: Colors.white,
+                                    ),
+                                  )
+                                : const Text('دخول'),
+                          ),
                         );
                       },
                     ),

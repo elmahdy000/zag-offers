@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../../core/services/notification_service.dart';
+import '../../../../core/widgets/bouncy_tap.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -35,8 +36,27 @@ class NotificationsPage extends StatelessWidget {
             actions: [
               if (feedState.items.isNotEmpty)
                 TextButton(
-                  onPressed: () {
-                    context.read<NotificationBloc>().add(ClearAllNotifications());
+                  onPressed: () async {
+                    final confirmed = await showDialog<bool>(
+                      context: context,
+                      builder: (ctx) => AlertDialog(
+                        title: Text('مسح كل الإشعارات', style: _cairoDefault),
+                        content: Text('هل أنت متأكد من رغبتك في مسح جميع الإشعارات؟', style: _cairoDefault),
+                        actions: [
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, false),
+                            child: Text('إلغاء', style: _cairoDefault),
+                          ),
+                          TextButton(
+                            onPressed: () => Navigator.pop(ctx, true),
+                            child: Text('مسح الكل', style: _cairoError),
+                          ),
+                        ],
+                      ),
+                    );
+                    if (confirmed == true && context.mounted) {
+                      context.read<NotificationBloc>().add(ClearAllNotifications());
+                    }
                   },
                   child: const Text(
                     'مسح الكل',
@@ -106,22 +126,73 @@ class NotificationsPage extends StatelessWidget {
                   },
                 )
               : Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(
-                        Icons.notifications_none_outlined,
-                        size: 64,
-                        color: theme.dividerColor.withValues(alpha: 0.2),
-                      ),
-                      const SizedBox(height: 16),
-                      Text(
-                        'لا توجد إشعارات',
-                        style: theme.textTheme.titleMedium?.copyWith(
-                          fontWeight: FontWeight.w600,
+                  child: Padding(
+                    padding: const EdgeInsets.all(40),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(28),
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.1),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(
+                            Icons.notifications_none_rounded,
+                            size: 64,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
-                    ],
+                        const SizedBox(height: 24),
+                        Text(
+                          'لا توجد إشعارات جديدة',
+                          style: theme.textTheme.headlineSmall?.copyWith(
+                            fontWeight: FontWeight.w900,
+                          ),
+                        ),
+                        const SizedBox(height: 10),
+                        Text(
+                          'عروض وخصومات الزقازيق الحصرية هتظهر لك هنا أول بأول!',
+                          textAlign: TextAlign.center,
+                          style: TextStyle(
+                            color: AppColors.textSecondary,
+                            height: 1.5,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 24),
+                        BouncyTap(
+                          onTap: () {
+                            if (Navigator.canPop(context)) {
+                              Navigator.pop(context);
+                            }
+                          },
+                          child: Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 12),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.1),
+                              borderRadius: BorderRadius.circular(16),
+                              border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
+                            ),
+                            child: const Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 18),
+                                SizedBox(width: 8),
+                                Text(
+                                  'العودة وتصفح العروض',
+                                  style: TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
         );

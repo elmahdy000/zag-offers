@@ -14,6 +14,7 @@ import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_u
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
 import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -128,10 +129,6 @@ class _SearchPageState extends State<SearchPage> {
             style: const TextStyle(fontSize: 14),
             decoration: InputDecoration(
               hintText: 'ابحث عن عرض أو متجر',
-              helperText: _searchController.text.isNotEmpty &&
-                      !OfferFilterUtils.shouldRunSearch(_searchController.text)
-                  ? 'اكتب 3 أحرف على الأقل لبدء البحث'
-                  : null,
               border: InputBorder.none,
               prefixIcon: const Icon(
                 Icons.search_rounded,
@@ -315,14 +312,13 @@ class _SearchPageState extends State<SearchPage> {
           
           return Padding(
             padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
-            child: InkWell(
+            child: BouncyTap(
               onTap: () {
                 setState(() {
                   _selectedCategory = categoryBackendName;
                 });
                 HapticFeedback.lightImpact();
               },
-              borderRadius: BorderRadius.circular(16),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 300),
                 curve: Curves.easeInOut,
