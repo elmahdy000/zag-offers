@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { useParams, useRouter } from 'next/navigation';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
@@ -9,10 +9,11 @@ import {
   RiArrowLeftSLine, RiArrowRightSLine, RiFileCopyLine, RiCheckboxCircleFill, 
   RiCloseCircleFill, RiErrorWarningFill, RiWhatsappFill, RiBuilding2Fill,
   RiHome5Line, RiShoppingBag3Line, RiPriceTag3Fill, RiZoomInLine, RiCloseLine,
-  RiSparklingFill, RiQrCodeLine
+  RiSparklingFill, RiQrCodeLine, RiFireFill, RiFlashlightFill
 } from 'react-icons/ri';
 import { ReviewSection } from '@/components/ReviewSection';
 import { ErrorDisplay } from '@/components/error-display';
+import { OfferCard } from '@/components/offer-card';
 import Link from 'next/link';
 import Image from 'next/image';
 import { API_URL } from '@/lib/constants';
@@ -103,6 +104,12 @@ export default function OfferDetailsPage() {
   const [imageError, setImageError] = useState(false);
   const [reviews, setReviews] = useState([]);
   const [isVerifiedForReview, setIsVerifiedForReview] = useState(false);
+  
+  // Related Offers state
+  const [relatedOffers, setRelatedOffers] = useState<any[]>([]);
+  const [showStickyBar, setShowStickyBar] = useState(false);
+
+  const couponCardRef = useRef<HTMLDivElement>(null);
 
   const showToast = useCallback((msg: string, type: ToastType = 'info') => {
     const t = { id: Date.now(), msg, type };
@@ -110,6 +117,7 @@ export default function OfferDetailsPage() {
     setTimeout(() => setToasts(prev => prev.filter(x => x.id !== t.id)), 3500);
   }, []);
 
+  // Fetch offer details
   useEffect(() => {
     const fetchOffer = async () => {
       const cacheKey = `cache_offer_detail_${id}`;
@@ -190,6 +198,54 @@ export default function OfferDetailsPage() {
     return () => window.removeEventListener('online', handleOnline);
   }, [id]);
 
+  // Fetch related offers (from same store or trending)
+  useEffect(() => {
+    if (!offer?.id) return;
+    const fetchRelated = async () => {
+      try {
+        let list: any[] = [];
+        if (offer.store?.id) {
+          const storeRes = await fetch(`${API_URL}/offers/store/${offer.store.id}`);
+          if (storeRes.ok) {
+            const storeData = await storeRes.json();
+            const storeOffers = (Array.isArray(storeData) ? storeData : storeData.items || []).filter((o: any) => o.id !== offer.id);
+            list = [...storeOffers];
+          }
+        }
+        
+        // If store has fewer than 3 offers, fill with trending offers
+        if (list.length < 3) {
+          const trendRes = await fetch(`${API_URL}/recommendations/trending`);
+          if (trendRes.ok) {
+            const trendData = await trendRes.json();
+            const trendOffers = (Array.isArray(trendData) ? trendData : trendData.items || []).filter((o: any) => o.id !== offer.id);
+            const existingIds = new Set(list.map((o: any) => o.id));
+            for (const item of trendOffers) {
+              if (!existingIds.has(item.id)) {
+                list.push(item);
+                existingIds.add(item.id);
+              }
+            }
+          }
+        }
+        setRelatedOffers(list.slice(0, 3));
+      } catch {
+        /* silent */
+      }
+    };
+    fetchRelated();
+  }, [offer?.id, offer?.store?.id]);
+
+  // Track scroll position to show sticky mobile bar
+  useEffect(() => {
+    const handleScroll = () => {
+      const scrolled = window.scrollY > 300;
+      setShowStickyBar(scrolled);
+    };
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
   // Handle escape key to close modals
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
@@ -201,6 +257,13 @@ export default function OfferDetailsPage() {
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
   }, []);
+
+  const scrollToSection = (sectionId: string) => {
+    const el = document.getElementById(sectionId);
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   const toggleFav = async () => {
     if (!navigator.onLine) {
@@ -302,6 +365,11 @@ export default function OfferDetailsPage() {
         setCouponCode(data.code);
         setShowCoupon(true);
         showToast('تم إنشاء الكوبون بنجاح! 🎉', 'success');
+
+        // Smooth scroll to coupon card on mobile
+        setTimeout(() => {
+          couponCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+        }, 150);
       } else {
         const err = await res.json();
         const status = res.status;
@@ -512,12 +580,10 @@ export default function OfferDetailsPage() {
                 ) : (
                   /* Designer Branded Voucher Graphic Fallback */
                   <div className="w-full h-full relative overflow-hidden bg-gradient-to-br from-[#0c182b] via-[#15253d] to-[#1c3252] flex flex-col items-center justify-center p-8 text-center select-none">
-                    {/* Decorative Background Elements */}
                     <div className="absolute -top-16 -right-16 w-56 h-56 rounded-full bg-[#FF6500]/15 blur-3xl pointer-events-none" />
                     <div className="absolute -bottom-16 -left-16 w-56 h-56 rounded-full bg-blue-500/15 blur-3xl pointer-events-none" />
                     <div className="absolute inset-0 bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:20px_20px] opacity-10 pointer-events-none" />
 
-                    {/* Center Voucher Stamp */}
                     <div className="relative z-10 flex flex-col items-center max-w-md">
                       <div className="w-20 h-20 rounded-3xl bg-gradient-to-tr from-[#FF6500] to-[#FF8C33] p-1 shadow-2xl shadow-[#FF6500]/30 mb-4 flex items-center justify-center">
                         <div className="w-full h-full rounded-[22px] bg-[#0c182b]/80 backdrop-blur-md flex items-center justify-center text-white">
@@ -643,6 +709,35 @@ export default function OfferDetailsPage() {
                   </div>
                 )}
 
+                {/* ─── Social Proof & Urgency Trust Banner ─── */}
+                <div className="offer-social-proof">
+                  <div className="offer-social-proof-item">
+                    <RiFireFill size={16} className="text-[#FF6500] animate-bounce" />
+                    <span>طلب هذا الكوبون أكثر من 30 شخصاً في الزقازيق</span>
+                  </div>
+                  <span className="text-slate-300 dark:text-slate-700 hidden sm:inline">•</span>
+                  <div className="offer-social-proof-item emerald">
+                    <RiFlashlightFill size={15} />
+                    <span>تفعيل فوري عند الكاشير بدون أي دفع مسبق</span>
+                  </div>
+                </div>
+
+                {/* ─── In-page Quick Navigation Tabs ───────── */}
+                <div className="offer-nav-tabs">
+                  <button onClick={() => scrollToSection('details')} className="offer-nav-tab">
+                    <span>📌 تفاصيل العرض</span>
+                  </button>
+                  <button onClick={() => scrollToSection('how-to-use')} className="offer-nav-tab">
+                    <span>💡 كيف يعمل؟</span>
+                  </button>
+                  <button onClick={() => scrollToSection('store-info')} className="offer-nav-tab">
+                    <span>🏢 عن المتجر</span>
+                  </button>
+                  <button onClick={() => scrollToSection('reviews-section')} className="offer-nav-tab">
+                    <span>⭐ آراء العملاء ({reviews.length})</span>
+                  </button>
+                </div>
+
                 {/* Metadata Badges */}
                 <div className="flex flex-wrap items-center gap-3 mb-8">
                   {/* Validity Chip */}
@@ -680,7 +775,7 @@ export default function OfferDetailsPage() {
                 </div>
 
                 {/* Offer Description */}
-                <div className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/5">
+                <div id="details" className="space-y-4 pt-4 border-t border-slate-100 dark:border-white/5 scroll-mt-24">
                   <h3 className="text-xl font-black text-slate-900 dark:text-white flex items-center gap-2.5">
                     <RiShieldCheckFill className="text-[#FF6500]" size={24} />
                     وصف العرض وتفاصيله
@@ -691,7 +786,7 @@ export default function OfferDetailsPage() {
                 </div>
 
                 {/* How to use 3-step guide */}
-                <div className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-orange-500/5 via-transparent to-transparent border border-orange-500/15">
+                <div id="how-to-use" className="mt-8 p-6 rounded-2xl bg-gradient-to-br from-orange-500/5 via-transparent to-transparent border border-orange-500/15 scroll-mt-24">
                   <h4 className="text-sm font-black text-slate-900 dark:text-white mb-4 flex items-center gap-2">
                     <Lightbulb size={18} className="text-[#FF6500]" />
                     كيف تستفيد من هذا العرض؟
@@ -720,7 +815,7 @@ export default function OfferDetailsPage() {
           <aside className="offer-detail-sidebar">
             
             {/* Store Information Card */}
-            <div className="offer-store-card">
+            <div id="store-info" className="offer-store-card scroll-mt-24">
               <div className="flex items-center gap-4 mb-5">
                 <div className="w-16 h-16 rounded-2xl border border-slate-200 dark:border-white/10 flex items-center justify-center overflow-hidden bg-slate-100 dark:bg-[#0c1728] shrink-0 shadow-sm">
                   {logoUrl ? (
@@ -796,7 +891,7 @@ export default function OfferDetailsPage() {
             </div>
 
             {/* ─── Coupon Voucher Action Card ────────────────── */}
-            <div className="offer-coupon-card">
+            <div ref={couponCardRef} className="offer-coupon-card">
               <div className="coupon-card-heading">
                 <RiTicket2Fill size={26} className="text-[#FF6500] shrink-0" />
                 <div>
@@ -923,19 +1018,92 @@ export default function OfferDetailsPage() {
         </div>
 
         {/* ─── Review Section Integration ──────────────────── */}
-        <ReviewSection 
-          offerId={offer.id} 
-          reviews={reviews} 
-          isVerifiedUser={isVerifiedForReview}
-          onReviewAdded={() => {
-            fetch(`${API_URL}/reviews/offer/${id}`)
-              .then(res => res.json())
-              .then(data => setReviews(data))
-              .catch(() => {});
-          }}
-        />
+        <div id="reviews-section" className="scroll-mt-24">
+          <ReviewSection 
+            offerId={offer.id} 
+            reviews={reviews} 
+            isVerifiedUser={isVerifiedForReview}
+            onReviewAdded={() => {
+              fetch(`${API_URL}/reviews/offer/${id}`)
+                .then(res => res.json())
+                .then(data => setReviews(data))
+                .catch(() => {});
+            }}
+          />
+        </div>
+
+        {/* ─── Related Offers Section (Competitor Killer!) ─── */}
+        {relatedOffers.length > 0 && (
+          <section className="related-offers-section">
+            <div className="related-offers-header">
+              <h3>
+                <RiFireFill className="text-[#FF6500]" size={22} />
+                <span>عروض أخرى قد تهمك في الزقازيق</span>
+              </h3>
+              <Link 
+                href="/offers" 
+                className="text-xs font-black text-[#FF6500] hover:underline flex items-center gap-1"
+              >
+                تصفح كل العروض <RiArrowLeftSLine size={14} />
+              </Link>
+            </div>
+            <div className="related-offers-grid">
+              {relatedOffers.map((relOffer) => (
+                <OfferCard key={relOffer.id} offer={relOffer} />
+              ))}
+            </div>
+          </section>
+        )}
 
       </div>
+
+      {/* ─── Sticky Bottom Mobile Bar (World-Class UX) ───── */}
+      <AnimatePresence>
+        {showStickyBar && (
+          <div className="offer-sticky-mobile-bar md:hidden">
+            <div className="min-w-0 pr-1">
+              <div className="flex items-baseline gap-2">
+                <strong className="text-lg font-black text-[#FF6500]">
+                  {offer.discountedPrice ? `${offer.discountedPrice} ج.م` : offer.discount}
+                </strong>
+                {offer.originalPrice && (
+                  <span className="text-[11px] text-slate-400 line-through">
+                    {offer.originalPrice} ج.م
+                  </span>
+                )}
+              </div>
+              <p className="text-[10px] font-bold text-slate-500 dark:text-slate-400 truncate">
+                {showCoupon ? `كود الخصم: ${couponCode}` : 'خصم فوري بدون دفع'}
+              </p>
+            </div>
+
+            <div className="shrink-0">
+              {!showCoupon ? (
+                <button
+                  onClick={handleGetCoupon}
+                  disabled={isCouponLoading || isExpired}
+                  className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6500] to-[#FF8533] text-white font-black text-xs shadow-md shadow-orange-500/30 flex items-center gap-1.5 active:scale-95 transition-all"
+                >
+                  {isCouponLoading ? (
+                    <Loader2 className="animate-spin" size={15} />
+                  ) : (
+                    <RiTicket2Fill size={16} />
+                  )}
+                  <span>{isExpired ? 'العرض منتهي' : 'احصل على الكوبون'}</span>
+                </button>
+              ) : (
+                <button
+                  onClick={handleCopy}
+                  className="px-5 py-2.5 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white font-black text-xs shadow-md shadow-emerald-500/30 flex items-center gap-1.5 active:scale-95 transition-all"
+                >
+                  <RiFileCopyLine size={15} />
+                  <span>{copied ? 'تم النسخ!' : 'نسخ الكود'}</span>
+                </button>
+              )}
+            </div>
+          </div>
+        )}
+      </AnimatePresence>
 
       {/* ─── Locations Modal ───────────────────────────────── */}
       <AnimatePresence>

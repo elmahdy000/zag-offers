@@ -1062,6 +1062,144 @@ html[data-theme="light"] .redeem-ticket::before,
 html[data-theme="light"] .redeem-ticket::after { background:#ffffff; }
 html[data-theme="light"] .coupon-wallet-note { background:#f8fafc; border-color:#e2e8f0; color:#475569; }
 
+/* Offer Detail Next-Level Competitive Enhancements */
+.offer-social-proof {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 10px;
+  padding: 12px 16px;
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(255, 101, 0, 0.08) 0%, rgba(255, 101, 0, 0.02) 100%);
+  border: 1px dashed rgba(255, 101, 0, 0.3);
+  margin-bottom: 22px;
+}
+.offer-social-proof-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 11px;
+  font-weight: 850;
+  color: #ff8533;
+}
+.offer-social-proof-item.emerald {
+  color: #34d399;
+}
+html[data-theme="light"] .offer-social-proof {
+  background: #fff8f3;
+  border-color: rgba(255, 101, 0, 0.35);
+}
+html[data-theme="light"] .offer-social-proof-item {
+  color: #c2410c;
+}
+html[data-theme="light"] .offer-social-proof-item.emerald {
+  color: #047857;
+}
+
+.offer-nav-tabs {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding-bottom: 6px;
+  margin-bottom: 22px;
+  scrollbar-width: none;
+}
+.offer-nav-tabs::-webkit-scrollbar {
+  display: none;
+}
+.offer-nav-tab {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 14px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 850;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.09);
+  color: #cbd5e1;
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  text-decoration: none;
+}
+.offer-nav-tab:hover {
+  background: rgba(255, 101, 0, 0.12);
+  border-color: rgba(255, 101, 0, 0.35);
+  color: #ff7a1a;
+  transform: translateY(-1px);
+}
+html[data-theme="light"] .offer-nav-tab {
+  background: #f1f5f9;
+  border-color: #e2e8f0;
+  color: #475569;
+}
+html[data-theme="light"] .offer-nav-tab:hover {
+  background: #fff3eb;
+  border-color: #ffd8c2;
+  color: #ff6500;
+}
+
+.related-offers-section {
+  margin-top: 48px;
+  padding-top: 36px;
+  border-top: 1px solid rgba(255, 255, 255, 0.08);
+}
+html[data-theme="light"] .related-offers-section {
+  border-top-color: #e2e8f0;
+}
+.related-offers-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 22px;
+}
+.related-offers-header h3 {
+  font-size: 20px;
+  font-weight: 950;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+html[data-theme="light"] .related-offers-header h3 {
+  color: #0f172a;
+}
+.related-offers-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+  gap: 20px;
+}
+
+/* Floating Sticky Mobile Bar */
+.offer-sticky-mobile-bar {
+  position: fixed;
+  bottom: calc(74px + env(safe-area-inset-bottom));
+  left: 12px;
+  right: 12px;
+  z-index: 60;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 10px 14px;
+  border-radius: 20px;
+  background: rgba(16, 26, 43, 0.94);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 101, 0, 0.38);
+  box-shadow: 0 16px 36px rgba(0, 0, 0, 0.45), 0 0 20px rgba(255, 101, 0, 0.15);
+  animation: slideUpFloat 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+}
+html[data-theme="light"] .offer-sticky-mobile-bar {
+  background: rgba(255, 255, 255, 0.96);
+  border-color: rgba(255, 101, 0, 0.4);
+  box-shadow: 0 16px 36px rgba(16, 32, 57, 0.18), 0 0 20px rgba(255, 101, 0, 0.1);
+}
+@keyframes slideUpFloat {
+  from { transform: translateY(120%); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
 @media (max-width: 900px) {
   .offer-detail-grid { grid-template-columns:1fr; }
   .offer-detail-sidebar { position:static; grid-template-columns:1fr 1fr; }
@@ -1083,6 +1221,7 @@ html[data-theme="light"] .coupon-wallet-note { background:#f8fafc; border-color:
   .redeem-ticket { grid-template-columns:1fr; }
   .redeem-ticket::before,.redeem-ticket::after { display:none; }
   .redeem-ticket-qr { border-left:0; border-top:1px dashed #aab3bf; }
+  .related-offers-grid { grid-template-columns: 1fr; }
 }
 
 /* Offers discovery page */
