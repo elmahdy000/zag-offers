@@ -3,6 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../domain/entities/offer_entity.dart';
+import '../utils/offer_pricing_utils.dart';
 import 'favorite_button.dart';
 import 'flash_sale_badge.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
@@ -23,6 +24,7 @@ class OfferCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
+    final pricing = OfferPricingResult.fromOffer(offer);
     
     return BouncyTap(
       onTap: onTap,
@@ -60,12 +62,12 @@ class OfferCard extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              _buildImageSection(context, isDark),
+              _buildImageSection(context, isDark, pricing),
               Expanded(
                 child: _buildInfoSection(context, isDark),
               ),
-              _buildCouponSeparator(isDark),
-              _buildActionSection(context, isDark),
+              _buildCouponSeparator(context, isDark),
+              _buildActionSection(context, isDark, pricing),
             ],
           ),
         ),
@@ -73,7 +75,11 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildImageSection(BuildContext context, bool isDark) {
+  Widget _buildImageSection(
+    BuildContext context,
+    bool isDark,
+    OfferPricingResult pricing,
+  ) {
     return AspectRatio(
       aspectRatio: 1.82,
       child: Stack(
@@ -104,11 +110,12 @@ class OfferCard extends StatelessWidget {
             ),
           ),
           // Luxury Floating Discount Badge
-          Positioned(
-            top: 10,
-            right: 10,
-            child: _buildDiscountBadge(),
-          ),
+          if (pricing.topDiscountBadge.isNotEmpty)
+            Positioned(
+              top: 10,
+              right: 10,
+              child: _buildDiscountBadge(pricing.topDiscountBadge),
+            ),
           // Frosted Favorite Button
           Positioned(
             top: 10,
@@ -138,10 +145,8 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildDiscountBadge() {
-    final discountText = offer.discount.isNotEmpty 
-        ? (offer.discount.contains('%') ? offer.discount : '${offer.discount}%') 
-        : 'خصم خاص';
+  Widget _buildDiscountBadge(String badgeText) {
+    final discountText = badgeText.contains('%') ? badgeText : '$badgeText%';
 
     return Container(
       padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4.5),
@@ -166,6 +171,7 @@ class OfferCard extends StatelessWidget {
           const Text('🔥 ', style: TextStyle(fontSize: 10)),
           Text(
             discountText,
+            textDirection: TextDirection.ltr,
             style: GoogleFonts.cairo(
               color: Colors.white,
               fontWeight: FontWeight.w900,
@@ -303,7 +309,8 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildCouponSeparator(bool isDark) {
+  Widget _buildCouponSeparator(BuildContext context, bool isDark) {
+    final notchColor = Theme.of(context).scaffoldBackgroundColor;
     return SizedBox(
       height: 16,
       child: Stack(
@@ -320,7 +327,7 @@ class OfferCard extends StatelessWidget {
               width: 16,
               height: 16,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkBackground : AppColors.background,
+                color: notchColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -332,7 +339,7 @@ class OfferCard extends StatelessWidget {
               width: 16,
               height: 16,
               decoration: BoxDecoration(
-                color: isDark ? AppColors.darkBackground : AppColors.background,
+                color: notchColor,
                 shape: BoxShape.circle,
               ),
             ),
@@ -342,29 +349,16 @@ class OfferCard extends StatelessWidget {
     );
   }
 
-  Widget _buildActionSection(BuildContext context, bool isDark) {
-    double? displayNewPrice = offer.newPrice;
-    double? displayOldPrice = offer.oldPrice;
+  Widget _buildActionSection(
+    BuildContext context,
+    bool isDark,
+    OfferPricingResult pricing,
+  ) {
+    final bool isSoldOut = offer.usageLimit != null &&
+        offer.usageLimit! > 0 &&
+        (offer.usageLimit! - offer.usedCoupons) <= 0;
 
-    if (displayOldPrice == null && displayNewPrice != null && offer.discountPercentage > 0) {
-      if (offer.discount.contains('%')) {
-        displayOldPrice = displayNewPrice / (1 - (offer.discountPercentage / 100));
-      } else {
-        displayOldPrice = displayNewPrice + offer.discountPercentage;
-      }
-    } else if (displayNewPrice == null && displayOldPrice != null && offer.discountPercentage > 0) {
-      if (offer.discount.contains('%')) {
-        displayNewPrice = displayOldPrice * (1 - (offer.discountPercentage / 100));
-      } else {
-        displayNewPrice = displayOldPrice - offer.discountPercentage;
-      }
-    }
-    
-    if (displayNewPrice == displayOldPrice) {
-      displayOldPrice = null;
-    }
-
-    final hasPrice = displayNewPrice != null || displayOldPrice != null;
+    final hasPrice = pricing.hasExplicitPrices && pricing.finalPrice != null;
 
     return Padding(
       padding: const EdgeInsets.fromLTRB(12, 4, 12, 11),
@@ -377,83 +371,171 @@ class OfferCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  if (displayOldPrice != null)
+                  if (pricing.originalPrice != null && pricing.hasSavings)
                     Text(
-                      '${displayOldPrice.toStringAsFixed(0)} ج.م',
+                      '${pricing.originalPrice!.toStringAsFixed(0)} ج.م',
                       style: GoogleFonts.cairo(
                         fontSize: 11,
                         fontWeight: FontWeight.w700,
-                        color: isDark ? AppColors.textDarkDim.withValues(alpha: 0.65) : Colors.black45,
+                        color: isDark
+                            ? AppColors.textDarkDim.withValues(alpha: 0.65)
+                            : Colors.black45,
                         decoration: TextDecoration.lineThrough,
                         height: 1.1,
                       ),
                     ),
-                  if (displayNewPrice != null)
-                    Text(
-                      '${displayNewPrice.toStringAsFixed(0)} ج.م',
-                      style: GoogleFonts.cairo(
-                        color: AppColors.primary,
-                        fontWeight: FontWeight.w900,
-                        fontSize: 15,
-                        height: 1.1,
-                      ),
+                  Text(
+                    '${pricing.finalPrice!.toStringAsFixed(0)} ج.م',
+                    style: GoogleFonts.cairo(
+                      color: AppColors.primary,
+                      fontWeight: FontWeight.w900,
+                      fontSize: 15,
+                      height: 1.1,
                     ),
+                  ),
                 ],
               ),
             )
           else
             Expanded(
-              child: Text(
-                'عرض حصري',
-                style: GoogleFonts.cairo(
-                  fontSize: 12,
-                  fontWeight: FontWeight.w800,
-                  color: isDark ? Colors.white70 : AppColors.textPrimary,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (pricing.topDiscountBadge.isNotEmpty) ...[
+                    Text(
+                      'خصم عام',
+                      style: GoogleFonts.cairo(
+                        fontSize: 9.5,
+                        fontWeight: FontWeight.w700,
+                        color: isDark
+                            ? AppColors.textDarkDim
+                            : AppColors.textSecondary,
+                        height: 1.1,
+                      ),
+                    ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Text(
+                          pricing.topDiscountBadge.contains('%')
+                              ? pricing.topDiscountBadge
+                              : '${pricing.topDiscountBadge}%',
+                          textDirection: TextDirection.ltr,
+                          style: GoogleFonts.cairo(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 14,
+                            height: 1.1,
+                          ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'على الفاتورة',
+                          style: GoogleFonts.cairo(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 10.5,
+                            height: 1.1,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ] else ...[
+                    Text(
+                      'عرض حصري',
+                      style: GoogleFonts.cairo(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: isDark ? Colors.white70 : AppColors.textPrimary,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
-          // Chic Voucher Action Pill
-          Container(
-            padding: EdgeInsets.symmetric(
-              horizontal: isWide ? 9 : 13,
-              vertical: isWide ? 5 : 6.5,
-            ),
-            decoration: BoxDecoration(
-              gradient: const LinearGradient(
-                colors: [AppColors.primary, Color(0xFFFF8C35)],
-                begin: Alignment.topLeft,
-                end: Alignment.bottomRight,
+          // Action Button / Sold Out State
+          if (isSoldOut)
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isWide ? 8 : 11,
+                vertical: isWide ? 5 : 6.5,
               ),
-              borderRadius: BorderRadius.circular(11),
-              boxShadow: [
-                BoxShadow(
-                  color: AppColors.primary.withValues(alpha: 0.35),
-                  blurRadius: 8,
-                  offset: const Offset(0, 2.5),
+              decoration: BoxDecoration(
+                color: isDark
+                    ? Colors.white.withValues(alpha: 0.08)
+                    : Colors.black.withValues(alpha: 0.06),
+                borderRadius: BorderRadius.circular(11),
+                border: Border.all(
+                  color: isDark
+                      ? Colors.white.withValues(alpha: 0.12)
+                      : Colors.black.withValues(alpha: 0.1),
+                  width: 0.8,
                 ),
-              ],
-            ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Text(
-                  'احصل عليه',
-                  style: GoogleFonts.cairo(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w800,
-                    fontSize: isWide ? 10.5 : 11.5,
-                    height: 1.1,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Icon(
+                    Icons.do_not_disturb_on_rounded,
+                    size: 11,
+                    color: isDark ? Colors.white54 : Colors.black45,
                   ),
+                  const SizedBox(width: 4),
+                  Text(
+                    'نفد الكوبون',
+                    style: GoogleFonts.cairo(
+                      color: isDark ? Colors.white54 : Colors.black54,
+                      fontWeight: FontWeight.w800,
+                      fontSize: isWide ? 10.5 : 11,
+                      height: 1.1,
+                    ),
+                  ),
+                ],
+              ),
+            )
+          else
+            Container(
+              padding: EdgeInsets.symmetric(
+                horizontal: isWide ? 9 : 13,
+                vertical: isWide ? 5 : 6.5,
+              ),
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, Color(0xFFFF8C35)],
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
                 ),
-                const SizedBox(width: 4),
-                const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 9,
-                  color: Colors.white,
-                ),
-              ],
+                borderRadius: BorderRadius.circular(11),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.35),
+                    blurRadius: 8,
+                    offset: const Offset(0, 2.5),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'احصل عليه',
+                    style: GoogleFonts.cairo(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w800,
+                      fontSize: isWide ? 10.5 : 11.5,
+                      height: 1.1,
+                    ),
+                  ),
+                  const SizedBox(width: 4),
+                  const Icon(
+                    Icons.arrow_back_ios_new_rounded,
+                    size: 9,
+                    color: Colors.white,
+                  ),
+                ],
+              ),
             ),
-          ),
         ],
       ),
     );
@@ -462,8 +544,43 @@ class OfferCard extends StatelessWidget {
   List<Widget> _buildLiveStats(bool isDark) {
     if (offer.usageLimit != null && offer.usageLimit! > 0) {
       final remaining = offer.usageLimit! - offer.usedCoupons;
+      if (remaining <= 0) {
+        return [
+          Container(
+            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+            decoration: BoxDecoration(
+              color: Colors.red.withValues(alpha: 0.12),
+              borderRadius: BorderRadius.circular(6),
+              border: Border.all(
+                color: Colors.red.withValues(alpha: 0.25),
+                width: 0.8,
+              ),
+            ),
+            child: Row(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                const Icon(
+                  Icons.do_not_disturb_on_rounded,
+                  size: 10,
+                  color: Colors.redAccent,
+                ),
+                const SizedBox(width: 3),
+                Text(
+                  'نفدت الكمية',
+                  style: GoogleFonts.cairo(
+                    fontSize: 9.5,
+                    fontWeight: FontWeight.w800,
+                    color: Colors.redAccent,
+                    height: 1.1,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ];
+      }
+
       final isCritical = remaining <= 5;
-      
       return [
         Container(
           padding: const EdgeInsets.symmetric(horizontal: 5, vertical: 2),
@@ -472,8 +589,15 @@ class OfferCard extends StatelessWidget {
                 ? Colors.red.withValues(alpha: 0.12) 
                 : AppColors.primary.withValues(alpha: 0.12),
             borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: isCritical
+                  ? Colors.red.withValues(alpha: 0.28)
+                  : AppColors.primary.withValues(alpha: 0.22),
+              width: 0.8,
+            ),
           ),
           child: Row(
+            mainAxisSize: MainAxisSize.min,
             children: [
               Icon(
                 Icons.hourglass_bottom_rounded,
@@ -496,27 +620,72 @@ class OfferCard extends StatelessWidget {
       ];
     }
 
+    if (offer.viewCount > 0) {
+      final formattedCount = offer.viewCount >= 1000
+          ? '${(offer.viewCount / 1000).toStringAsFixed(1)}k'
+          : offer.viewCount.toString();
+
+      return [
+        Container(
+          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+          decoration: BoxDecoration(
+            color: Colors.orange.withValues(alpha: 0.12),
+            borderRadius: BorderRadius.circular(6),
+            border: Border.all(
+              color: Colors.orange.withValues(alpha: 0.22),
+              width: 0.8,
+            ),
+          ),
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              const Icon(
+                Icons.local_fire_department_rounded,
+                size: 11,
+                color: Colors.orange,
+              ),
+              const SizedBox(width: 3),
+              Text(
+                '$formattedCount مهتم',
+                style: GoogleFonts.cairo(
+                  fontSize: 9.5,
+                  fontWeight: FontWeight.w800,
+                  color: Colors.orange,
+                  height: 1.1,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ];
+    }
+
     return [
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
         decoration: BoxDecoration(
-          color: Colors.orange.withValues(alpha: 0.12),
+          color: AppColors.primary.withValues(alpha: 0.12),
           borderRadius: BorderRadius.circular(6),
+          border: Border.all(
+            color: AppColors.primary.withValues(alpha: 0.22),
+            width: 0.8,
+          ),
         ),
         child: Row(
+          mainAxisSize: MainAxisSize.min,
           children: [
             const Icon(
-              Icons.local_fire_department_rounded,
-              size: 11,
-              color: Colors.orange,
+              Icons.auto_awesome_rounded,
+              size: 10,
+              color: AppColors.primary,
             ),
             const SizedBox(width: 3),
             Text(
-              '${offer.viewCount} مهتم',
+              'جديد ✨',
               style: GoogleFonts.cairo(
                 fontSize: 9.5,
                 fontWeight: FontWeight.w800,
-                color: Colors.orange,
+                color: AppColors.primary,
                 height: 1.1,
               ),
             ),
@@ -526,6 +695,7 @@ class OfferCard extends StatelessWidget {
     ];
   }
 }
+
 
 class _DashedLinePainter extends CustomPainter {
   final bool isDark;

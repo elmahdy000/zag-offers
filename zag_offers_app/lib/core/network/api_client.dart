@@ -26,10 +26,17 @@ class ApiClient {
           return handler.next(options);
         },
         onError: (DioException error, handler) async {
-          // لو السيرفر رد بـ 401 (التوكن انتهى أو غلط)
-          // نمسح التوكن المحلي حتى المستخدم يسجل دخول من جديد
+          // If server responds with 401 (token expired or revoked),
+          // clean all cached session credentials so the user logs in fresh.
           if (error.response?.statusCode == 401) {
             await sharedPreferences.remove('auth_token');
+            await sharedPreferences.remove('user_id');
+            await sharedPreferences.remove('user_name');
+            await sharedPreferences.remove('user_role');
+            await sharedPreferences.remove('avatar_url');
+            await sharedPreferences.remove('user_points');
+            await sharedPreferences.remove('user_tier');
+            await sharedPreferences.remove('referral_code');
           }
           return handler.next(error);
         },

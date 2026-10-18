@@ -74,3 +74,20 @@
   Text('${currentIndex + 1} / ${images.length}', textDirection: TextDirection.ltr)
   ```
 - **Prevention Invariant**: Any numeric label containing slashes, hyphens, or brackets must explicitly declare `TextDirection.ltr`.
+
+---
+
+## 7. Gesture Collisions with Nested Buttons Inside `BouncyTap`
+- **Error**: Double taps or ink splash artifacts occurring when tapping action buttons (e.g. "طريق الوصول").
+- **Root Cause**: An `ElevatedButton` or `OutlinedButton` with its own `onPressed` handler was placed inside a `BouncyTap(onTap: ...)`, causing two competing gesture recognizers to fire concurrently.
+- **Fix**: Use a decorated `Container` inside `BouncyTap` directly instead of nesting Material buttons.
+- **Prevention Invariant**: Never nest `ElevatedButton`, `OutlinedButton`, or `InkWell` inside `BouncyTap`. Style a `Container` child directly.
+
+---
+
+## 8. WhatsApp Deep Link Failures on Local Egyptian Numbers
+- **Error**: WhatsApp link `https://wa.me/01012345678` fails to open chat on mobile or shows "phone number shared via url is invalid".
+- **Root Cause**: WhatsApp URL scheme requires international format without leading zeros or punctuation (e.g. `201012345678`). Local Egyptian numbers typically start with `01`.
+- **Fix**: Sanitize using `_cleanWhatsAppNumber()` regex to prepend `20` and strip the leading `0`.
+- **Prevention Invariant**: Always normalize Egyptian phone strings to E.164 without leading plus (`201xxxxxxxxx`) for `wa.me` links.
+

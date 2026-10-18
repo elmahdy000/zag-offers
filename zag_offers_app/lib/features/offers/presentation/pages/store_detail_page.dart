@@ -8,6 +8,8 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../core/services/socket_service.dart';
+import '../../../../core/services/location_service.dart';
+import 'package:google_fonts/google_fonts.dart';
 import '../../../../injection_container.dart';
 import '../../../reviews/presentation/bloc/reviews_bloc.dart';
 import '../../domain/entities/offer_entity.dart';
@@ -244,9 +246,9 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                 ),
               ),
             ),
-            Positioned(
+            PositionedDirectional(
               bottom: 20,
-              left: 24,
+              start: 24,
               child: Container(
                 padding: const EdgeInsets.all(4),
                 decoration: BoxDecoration(
@@ -254,18 +256,48 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                   shape: BoxShape.circle,
                   boxShadow: [
                     BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.2),
-                      blurRadius: 12,
+                      color: Colors.black.withValues(alpha: 0.25),
+                      blurRadius: 14,
                       offset: const Offset(0, 4),
                     ),
                   ],
                 ),
-                child: NetworkImageWidget(
-                  imageUrl: widget.store.logo,
-                  width: 90,
-                  height: 90,
-                  borderRadius: BorderRadius.circular(45),
-                ),
+                child: (widget.store.logo != null && widget.store.logo!.trim().isNotEmpty)
+                    ? NetworkImageWidget(
+                        imageUrl: widget.store.logo!,
+                        width: 90,
+                        height: 90,
+                        borderRadius: BorderRadius.circular(45),
+                      )
+                    : Container(
+                        width: 90,
+                        height: 90,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          gradient: const RadialGradient(
+                            colors: [
+                              Color(0xFF1E293B),
+                              Color(0xFF0F172A),
+                            ],
+                          ),
+                          border: Border.all(
+                            color: AppColors.primary.withValues(alpha: 0.4),
+                            width: 1.5,
+                          ),
+                        ),
+                        child: Center(
+                          child: Text(
+                            widget.store.name.isNotEmpty
+                                ? widget.store.name.characters.first
+                                : 'م',
+                            style: GoogleFonts.cairo(
+                              color: AppColors.primary,
+                              fontSize: 36,
+                              fontWeight: FontWeight.w900,
+                            ),
+                          ),
+                        ),
+                      ),
               ),
             ),
           ],
@@ -333,10 +365,28 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     );
   }
 
+  String _cleanWhatsAppNumber(String raw) {
+    final digits = raw.replaceAll(RegExp(r'\D'), '');
+    if (digits.startsWith('01') && digits.length == 11) {
+      return '20${digits.substring(1)}';
+    }
+    if (digits.startsWith('201') && digits.length == 12) {
+      return digits;
+    }
+    if (digits.startsWith('00201')) {
+      return digits.substring(2);
+    }
+    return digits;
+  }
+
   Widget _buildContactButtons(BuildContext context) {
+    final hasPhone = widget.store.phone != null && widget.store.phone!.trim().isNotEmpty;
+    final hasWhatsapp = widget.store.whatsapp != null && widget.store.whatsapp!.trim().isNotEmpty;
+    if (!hasPhone && !hasWhatsapp) return const SizedBox.shrink();
+
     return Row(
       children: [
-        if (widget.store.phone != null)
+        if (hasPhone)
           Expanded(
             child: _buildActionButton(
               context,
@@ -345,24 +395,26 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
               color: Colors.blue,
               onTap: () {
                 HapticFeedback.lightImpact();
-                _launchUrl(context, 'tel:${widget.store.phone}');
+                final cleanPhone = widget.store.phone!.replaceAll(RegExp(r'\s+'), '');
+                _launchUrl(context, 'tel:$cleanPhone');
               },
             ),
           ),
-        if (widget.store.phone != null && widget.store.whatsapp != null)
+        if (hasPhone && hasWhatsapp)
           const SizedBox(width: 12),
-        if (widget.store.whatsapp != null)
+        if (hasWhatsapp)
           Expanded(
             child: _buildActionButton(
               context,
               icon: Icons.chat_bubble_rounded,
               label: 'واتساب',
-              color: Colors.green,
+              color: const Color(0xFF25D366),
               onTap: () {
                 HapticFeedback.lightImpact();
+                final cleanNumber = _cleanWhatsAppNumber(widget.store.whatsapp!);
                 _launchUrl(
                   context,
-                  'https://wa.me/${widget.store.whatsapp}',
+                  'https://wa.me/$cleanNumber',
                 );
               },
             ),
@@ -401,6 +453,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
     final detailedAddress = (store.address != null && store.address!.trim().isNotEmpty)
         ? store.address!
         : 'الزقازيق، ${store.area}';
+    final distanceText = LocationService.getFormattedDistanceTo(store.latitude, store.longitude);
 
     return Container(
       padding: const EdgeInsets.all(18),
@@ -440,11 +493,44 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                         fontWeight: FontWeight.bold,
                       ),
                     ),
-                    Text(
-                      'الزقازيق • ${store.area}',
-                      style: theme.textTheme.bodySmall?.copyWith(
-                        color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
-                      ),
+                    Row(
+                      children: [
+                        Flexible(
+                          child: Text(
+                            'الزقازيق • ${store.area}',
+                            style: theme.textTheme.bodySmall?.copyWith(
+                              color: theme.textTheme.bodySmall?.color?.withValues(alpha: 0.7),
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                          ),
+                        ),
+                        if (distanceText != null) ...[
+                          const SizedBox(width: 8),
+                          Container(
+                            padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                            decoration: BoxDecoration(
+                              color: AppColors.primary.withValues(alpha: 0.12),
+                              borderRadius: BorderRadius.circular(6),
+                            ),
+                            child: Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                const Icon(Icons.near_me_rounded, size: 11, color: AppColors.primary),
+                                const SizedBox(width: 3),
+                                Text(
+                                  'يبعد $distanceText',
+                                  style: theme.textTheme.labelSmall?.copyWith(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 10,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
                   ],
                 ),
@@ -513,16 +599,41 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           ],
           const SizedBox(height: 14),
           BouncyTap(
-            onTap: _openExternalMap,
-            child: OutlinedButton.icon(
-              onPressed: _openExternalMap,
-              icon: const Icon(Icons.navigation_rounded, size: 16),
-              label: const Text('طريق الوصول (افتح في الخريطة)'),
-              style: OutlinedButton.styleFrom(
-                foregroundColor: AppColors.primary,
-                side: const BorderSide(color: AppColors.primary, width: 1.2),
-                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                minimumSize: const Size.fromHeight(42),
+            onTap: () {
+              HapticFeedback.mediumImpact();
+              _openExternalMap();
+            },
+            child: Container(
+              height: 46,
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [AppColors.primary, Color(0xFFFF7043)],
+                  begin: Alignment.centerRight,
+                  end: Alignment.centerLeft,
+                ),
+                borderRadius: BorderRadius.circular(14),
+                boxShadow: [
+                  BoxShadow(
+                    color: AppColors.primary.withValues(alpha: 0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 4),
+                  ),
+                ],
+              ),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const Icon(Icons.navigation_rounded, size: 18, color: Colors.white),
+                  const SizedBox(width: 8),
+                  Text(
+                    'طريق الوصول (افتح في الخريطة)',
+                    style: GoogleFonts.cairo(
+                      fontSize: 14,
+                      fontWeight: FontWeight.bold,
+                      color: Colors.white,
+                    ),
+                  ),
+                ],
               ),
             ),
           ),

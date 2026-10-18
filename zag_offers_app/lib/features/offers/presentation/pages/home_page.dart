@@ -776,7 +776,7 @@ Widget _buildOffersSectionWidget(
             final offer = offers[index];
             return RepaintBoundary(
               child: Padding(
-                padding: const EdgeInsets.only(right: 14),
+                padding: const EdgeInsetsDirectional.only(end: 14),
                 child: SizedBox(
                   width: 275,
                   child: OfferCard(

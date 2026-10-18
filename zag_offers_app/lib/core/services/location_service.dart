@@ -33,4 +33,31 @@ class LocationService {
       userLongitude = position.longitude;
     } catch (_) {}
   }
+
+  /// Calculates the distance in meters from the user's current location to [targetLat, targetLng].
+  static double distanceBetween(double targetLat, double targetLng) {
+    return Geolocator.distanceBetween(
+      currentLatitude,
+      currentLongitude,
+      targetLat,
+      targetLng,
+    );
+  }
+
+  /// Returns a user-friendly Arabic formatted distance string (e.g., "650 متر" or "2.3 كم").
+  static String formatDistance(double meters) {
+    if (meters < 1000) {
+      return '${meters.round()} متر';
+    } else {
+      final km = meters / 1000;
+      return '${km.toStringAsFixed(1)} كم';
+    }
+  }
+
+  /// Convenience method that calculates and formats the distance to [targetLat, targetLng].
+  static String? getFormattedDistanceTo(double? targetLat, double? targetLng) {
+    if (targetLat == null || targetLng == null) return null;
+    final meters = distanceBetween(targetLat, targetLng);
+    return formatDistance(meters);
+  }
 }

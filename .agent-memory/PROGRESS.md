@@ -34,12 +34,39 @@
 - **Natural Vertical Flow & Reviews**: Replaced rigid empty sections with a compact inline card, added review timestamps, and optimized spacing rhythm (12-16px).
 - **Used Coupon Bottom State**: Clearly non-interactive emerald container with verification checkmark and timestamp, replacing ambiguous button styling.
 
+### D. Centralized Pricing Authority & Offer Card Modernization (`OfferCard`, `OfferPricingResult`)
+- Centralized `OfferPricingResult` in `offer_pricing_utils.dart` across `OfferDetailPage`, `OfferCard`, and `MyCouponsPage`.
+- **Card Pricing & Scarcity Integrity**:
+  - Bound price calculations, discount badges, and strikethroughs to single mathematical authority.
+  - Store-wide offers without item prices display `خصم عام` and `X% على الفاتورة` with strict LTR isolation.
+  - Exhausted coupon state (`remaining <= 0`): Renders disabled `نفد الكوبون` pill and `نفدت الكمية` warning tag with `Icons.do_not_disturb_on_rounded`.
+  - Enhanced social proof: Replaced `0 مهتم` with attractive `جديد ✨` spark pill; formatted large interest numbers (`1.2k`).
+  - Ticket notch background: Dynamically matches `Theme.of(context).scaffoldBackgroundColor`.
+  - RTL horizontal scroll fix: Replaced `EdgeInsets.only(right: 14)` with `EdgeInsetsDirectional.only(end: 14)` in `HomePage`.
+  - Validated with unit test suite in `test/offer_pricing_utils_test.dart` (13/13 passing, 0 analyzer issues).
+
+### E. Invite Friends Modernization (`InviteFriendsPage`)
+- Midnight Navy surface tokens (`#162032` card, `#1E293B` actions) with high-contrast borders and Egyptian Orange glow.
+- Strict LTR monospaced referral code (`GoogleFonts.spaceMono`) with 1-tap copy and haptic feedback.
+- Instant 1-tap WhatsApp direct share action button with fallback to system share sheet.
+- 3-step visual onboarding cards explaining the 100-point reward journey (Share ➔ Register ➔ 100 Points Reward).
+
+### F. Store Details & Navigation Polish (`StoreDetailPage`)
+- Monogram initial avatar fallback with radial gradient glow when merchant logo is missing.
+- RTL alignment fix: Replaced `Positioned(left: 24)` with `PositionedDirectional(start: 24)` ensuring avatar sits properly on the leading edge.
+- Egyptian WhatsApp number normalization (`_cleanWhatsAppNumber`: `01xxxxxxxxx` ➔ `201xxxxxxxxx`) ensuring WhatsApp URLs launch seamlessly.
+- Real-time distance indicator badge (`يبعد X كم` / `يبعد X متر`) in the location card via `LocationService.getFormattedDistanceTo`.
+- Premium high-converting filled gradient navigation CTA container (`AppColors.primary` to `#FF7043`) replacing nested button gesture collisions.
+
+### G. Core Network & Services Hardening
+- `LocationService`: Integrated `distanceBetween()`, `formatDistance()` (e.g. `650 متر` / `2.3 كم`), and `getFormattedDistanceTo(lat, lng)`.
+- `ApiClient`: Comprehensive session purge upon receiving 401 Unauthorized (clears all cached auth, profile, and point tokens).
+- `dio_error_mapper`: Replaced developer-facing debug strings (e.g. "تأكد من عنوان IP وتشغيل الباك إند") with polished, customer-facing Arabic error messages.
+
 ---
 
 ## 3. Pending & Upcoming Tasks
 1. **Customer Web Portal (`zag-offers-client`)**:
-   - Modernize Offer Details page and Coupon modal to match the mobile app design tokens and pricing hierarchy.
+   - Modernize Offer Details page and Coupon modal to match mobile app design tokens and pricing hierarchy.
 2. **Merchant Mobile App (`zag_offers_vendor_app`)**:
-   - Review and align cashier QR scanner flow with the updated coupon entity contract.
-3. **Notification & Engagement**:
-   - Test end-to-end WebSocket push notifications for flash sales and social proof toasts.
+   - Review and align cashier QR scanner flow with updated coupon entity contract.

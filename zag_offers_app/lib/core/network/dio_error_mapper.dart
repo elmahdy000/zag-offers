@@ -16,9 +16,9 @@ String mapDioErrorToMessage(
     case DioExceptionType.connectionTimeout:
     case DioExceptionType.sendTimeout:
     case DioExceptionType.receiveTimeout:
-      return 'تعذر الاتصال بالسيرفر حاليًا. تأكد أن الباك إند شغال وأن الجهازين على نفس الشبكة.';
+      return 'تعذر الاتصال بالخادم حاليًا. يرجى التحقق من اتصالك بالإنترنت والمحاولة مجددًا.';
     case DioExceptionType.connectionError:
-      return 'لا يمكن الوصول إلى السيرفر. تأكد من عنوان الـ IP وتشغيل الباك إند.';
+      return 'تعذر الوصول إلى الخدمة حاليًا. يرجى التأكد من اتصالك بالإنترنت والمحاولة بعد قليل.';
     case DioExceptionType.badCertificate:
       return 'هناك مشكلة في شهادة الاتصال بالسيرفر.';
     case DioExceptionType.cancel:

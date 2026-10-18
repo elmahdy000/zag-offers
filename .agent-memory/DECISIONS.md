@@ -47,3 +47,34 @@
 ## 7. RTL Numeric and Counter Isolation
 - **Decision**: All numeric percentages `(X%)` and fractional counters `current / total` in Arabic layouts must be rendered with explicit `textDirection: TextDirection.ltr`.
 - **Rationale**: The Unicode bidirectional algorithm automatically flips surrounding ASCII punctuation in RTL text, causing `(20%)` to appear as `%20)` or `1 / 3` to appear as `3 / 1`. Enforcing LTR prevents any unintended glyph inversion.
+
+---
+
+## 8. Centralized Pricing Authority Across Components
+- **Decision**: `OfferPricingResult` in `offer_pricing_utils.dart` is the sole calculation authority for `OfferCard`, `OfferDetailPage`, and `MyCouponsPage`.
+- **Rationale**: Eliminates divergent price derivations between summary feeds and detail views, guaranteeing mathematically verified badges, strikethroughs, and savings amounts across the entire ecosystem.
+
+---
+
+## 9. Scarcity & Sold-Out Card Semantics
+- **Decision**: When `remaining <= 0`, cards render a disabled `نفد الكوبون` action container and `نفدت الكمية` live stat tag rather than "احصل عليه" or "باقي 0".
+- **Rationale**: Prevents false customer expectations and cashier disputes by immediately communicating exhausted coupon allocation.
+
+---
+
+## 10. Egyptian WhatsApp Number Normalization
+- **Decision**: All merchant and referral WhatsApp URLs must sanitize phone strings via `_cleanWhatsAppNumber()`, guaranteeing the `+20` country code prefix (`201xxxxxxxxx`) before invoking `https://wa.me/`.
+- **Rationale**: Numbers formatted locally starting with `01` fail on WhatsApp web/app redirect when launched without Egypt's country code prefix.
+
+---
+
+## 11. Customer-Facing Network Messaging Policy
+- **Decision**: End-user network error mappers must never expose backend development terminology (such as "الباك إند", "عنوان IP", "نفس الشبكة").
+- **Rationale**: Technical developer jargon looks amateurish and confuses non-technical users in production mobile environments. Use polite, action-oriented Arabic: "تعذر الاتصال بالخادم حاليًا. يرجى التحقق من اتصالك بالإنترنت والمحاولة مجددًا."
+
+---
+
+## 12. Directional Layouts for Arabic RTL Invariance
+- **Decision**: Positioned elements and layout margins must always use `PositionedDirectional` (with `start` / `end`) and `EdgeInsetsDirectional` rather than hardcoded `left` or `right`.
+- **Rationale**: In RTL layouts, `left` places elements on the trailing edge rather than the leading edge, leading to reversed avatars and misaligned carousels.
+

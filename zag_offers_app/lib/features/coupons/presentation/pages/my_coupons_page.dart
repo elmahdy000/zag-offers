@@ -24,6 +24,7 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import '../../../../core/widgets/coupon_celebration_dialog.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
 import '../../../home/presentation/pages/main_screen.dart';
+import '../../../offers/presentation/utils/offer_pricing_utils.dart';
 
 class MyCouponsPage extends StatefulWidget {
   const MyCouponsPage({super.key});
@@ -385,9 +386,8 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
     final offer = coupon.offer;
     final store = offer.store;
-    final double? saving = (offer.oldPrice != null && offer.newPrice != null)
-        ? (offer.oldPrice! - offer.newPrice!)
-        : null;
+    final pricing = OfferPricingResult.fromOffer(offer);
+    final double? saving = pricing.hasSavings ? pricing.savingsAmount : null;
 
     final primaryBorder = isDark
         ? AppColors.primary.withValues(alpha: 0.35)
@@ -612,32 +612,30 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                               ),
                             ],
                           ),
-                          if (offer.newPrice != null || saving != null) ...[
+                          if (pricing.hasExplicitPrices && pricing.finalPrice != null) ...[
                             const SizedBox(height: 4),
                             Row(
                               children: [
-                                if (offer.newPrice != null) ...[
+                                Text(
+                                  '${pricing.finalPrice!.toStringAsFixed(0)} ج.م',
+                                  style: const TextStyle(
+                                    color: AppColors.primary,
+                                    fontWeight: FontWeight.w900,
+                                    fontSize: 14,
+                                  ),
+                                ),
+                                if (pricing.originalPrice != null && pricing.hasSavings) ...[
+                                  const SizedBox(width: 6),
                                   Text(
-                                    '${offer.newPrice!.toStringAsFixed(0)} ج.م',
-                                    style: const TextStyle(
-                                      color: AppColors.primary,
-                                      fontWeight: FontWeight.w900,
-                                      fontSize: 14,
+                                    '${pricing.originalPrice!.toStringAsFixed(0)} ج.م',
+                                    style: TextStyle(
+                                      decoration: TextDecoration.lineThrough,
+                                      color: isDark
+                                          ? const Color(0xFF64748B)
+                                          : const Color(0xFF94A3B8),
+                                      fontSize: 11,
                                     ),
                                   ),
-                                  if (offer.oldPrice != null) ...[
-                                    const SizedBox(width: 6),
-                                    Text(
-                                      '${offer.oldPrice!.toStringAsFixed(0)} ج.م',
-                                      style: TextStyle(
-                                        decoration: TextDecoration.lineThrough,
-                                        color: isDark
-                                            ? const Color(0xFF64748B)
-                                            : const Color(0xFF94A3B8),
-                                        fontSize: 11,
-                                      ),
-                                    ),
-                                  ],
                                 ],
                                 if (saving != null && saving > 0) ...[
                                   const SizedBox(width: 6),
@@ -660,6 +658,47 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                     ),
                                   ),
                                 ],
+                              ],
+                            ),
+                          ] else if (pricing.topDiscountBadge.isNotEmpty) ...[
+                            const SizedBox(height: 4),
+                            Row(
+                              children: [
+                                Container(
+                                  padding: const EdgeInsets.symmetric(
+                                    horizontal: 6,
+                                    vertical: 2,
+                                  ),
+                                  decoration: BoxDecoration(
+                                    color: AppColors.primary.withValues(alpha: 0.1),
+                                    borderRadius: BorderRadius.circular(6),
+                                  ),
+                                  child: Row(
+                                    mainAxisSize: MainAxisSize.min,
+                                    children: [
+                                      Text(
+                                        pricing.topDiscountBadge.contains('%')
+                                            ? pricing.topDiscountBadge
+                                            : '${pricing.topDiscountBadge}%',
+                                        textDirection: TextDirection.ltr,
+                                        style: const TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.w900,
+                                          fontSize: 11,
+                                        ),
+                                      ),
+                                      const SizedBox(width: 3),
+                                      const Text(
+                                        'خصم على الفاتورة',
+                                        style: TextStyle(
+                                          color: AppColors.primary,
+                                          fontWeight: FontWeight.bold,
+                                          fontSize: 10,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
                               ],
                             ),
                           ],
