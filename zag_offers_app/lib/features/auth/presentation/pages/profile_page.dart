@@ -485,11 +485,13 @@ class _ProfilePageState extends State<ProfilePage> {
               ),
             ),
             actions: [
-              IconButton(
-                icon: const Icon(Icons.settings_outlined, color: Colors.white),
-                onPressed: _showSettingsSheet,
+              Padding(
+                padding: const EdgeInsetsDirectional.only(end: 8),
+                child: IconButton(
+                  icon: const Icon(Icons.settings_outlined, color: Colors.white),
+                  onPressed: _showSettingsSheet,
+                ),
               ),
-              const SizedBox(width: 8),
             ],
           ),
           SliverToBoxAdapter(
@@ -501,7 +503,12 @@ class _ProfilePageState extends State<ProfilePage> {
                   borderRadius:
                       const BorderRadius.vertical(top: Radius.circular(30)),
                 ),
-                padding: const EdgeInsets.fromLTRB(24, 30, 24, 40),
+                padding: EdgeInsets.fromLTRB(
+                  20,
+                  24,
+                  20,
+                  140 + MediaQuery.of(context).padding.bottom,
+                ),
                 child: Column(
                   children: [
                     Row(
@@ -512,7 +519,7 @@ class _ProfilePageState extends State<ProfilePage> {
                           IconlyBroken.ticketStar,
                           Colors.orange.shade600,
                         ),
-                        const SizedBox(width: 16),
+                        const SizedBox(width: 14),
                         _buildStatCard(
                           'نوع الحساب',
                           _roleLabel(_userRole),
@@ -521,13 +528,12 @@ class _ProfilePageState extends State<ProfilePage> {
                         ),
                       ],
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 20),
                     _buildRewardsCard(context),
-                    const SizedBox(height: 32),
+                    const SizedBox(height: 24),
                     _buildPremiumMenu(context),
-                    const SizedBox(height: 40),
+                    const SizedBox(height: 28),
                     _buildLogoutButton(),
-                    const SizedBox(height: 120),
                   ],
                 ),
               ),
@@ -774,12 +780,12 @@ class _ProfilePageState extends State<ProfilePage> {
   }) {
     final theme = Theme.of(context);
     return Padding(
-      padding: const EdgeInsets.only(bottom: 16),
+      padding: const EdgeInsets.only(bottom: 12),
       child: InkWell(
         onTap: onTap,
         borderRadius: BorderRadius.circular(18),
         child: Container(
-          padding: const EdgeInsets.all(16),
+          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
           decoration: BoxDecoration(
             color: theme.cardColor,
             borderRadius: BorderRadius.circular(18),
@@ -789,22 +795,28 @@ class _ProfilePageState extends State<ProfilePage> {
           child: Row(
             children: [
               Container(
-                padding: const EdgeInsets.all(10),
+                padding: const EdgeInsets.all(9),
                 decoration: BoxDecoration(
                   color: color.withValues(alpha: 0.1),
                   borderRadius: BorderRadius.circular(12),
                 ),
-                child: Icon(icon, color: color, size: 22),
+                child: Icon(icon, color: color, size: 21),
               ),
-              const SizedBox(width: 16),
+              const SizedBox(width: 14),
               Expanded(
                 child: Text(
                   label,
                   style: const TextStyle(
-                      fontWeight: FontWeight.w700, fontSize: 15),
+                      fontWeight: FontWeight.w700, fontSize: 14.5),
                 ),
               ),
-              Icon(IconlyLight.arrowLeft2, size: 16, color: theme.dividerColor),
+              Icon(
+                Directionality.of(context) == TextDirection.rtl
+                    ? Icons.arrow_back_ios_new_rounded
+                    : Icons.arrow_forward_ios_rounded,
+                size: 14,
+                color: theme.dividerColor.withValues(alpha: 0.4),
+              ),
             ],
           ),
         ),

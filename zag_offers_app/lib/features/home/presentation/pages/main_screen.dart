@@ -27,7 +27,8 @@ import 'package:zag_offers_app/injection_container.dart';
 import 'package:zag_offers_app/core/utils/snackbar_utils.dart';
 
 class MainScreen extends StatefulWidget {
-  const MainScreen({super.key});
+  final int initialIndex;
+  const MainScreen({super.key, this.initialIndex = 0});
 
   static MainScreenState? of(BuildContext context) =>
       context.findAncestorStateOfType<MainScreenState>();
@@ -37,18 +38,19 @@ class MainScreen extends StatefulWidget {
 }
 
 class MainScreenState extends State<MainScreen> {
-  int _selectedIndex = 0;
+  late int _selectedIndex;
   String? _userRole;
   StreamSubscription<Map<String, dynamic>>? _newOfferSub;
   StreamSubscription<Map<String, dynamic>>? _offersUpdatedSub;
   StreamSubscription<Map<String, dynamic>>? _categoriesUpdatedSub;
   StreamSubscription<Map<String, dynamic>>? _socialProofSub;
   StreamSubscription<Map<String, dynamic>>? _announcementSub;
-  final Set<int> _loadedTabs = {0};
+  final Set<int> _loadedTabs = {};
 
   @override
   void initState() {
     super.initState();
+    _selectedIndex = widget.initialIndex;
     _loadedTabs.add(_selectedIndex);
     _loadUserRole();
     _initSocket();

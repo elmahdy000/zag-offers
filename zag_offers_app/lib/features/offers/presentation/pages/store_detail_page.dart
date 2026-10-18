@@ -201,7 +201,11 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
               ),
             ),
             _buildReviewsList(context),
-            const SliverToBoxAdapter(child: SizedBox(height: 80)),
+            SliverToBoxAdapter(
+              child: SizedBox(
+                height: 80 + MediaQuery.paddingOf(context).bottom,
+              ),
+            ),
           ],
         ),
       ),
@@ -209,11 +213,44 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
   }
 
   Widget _buildSliverAppBar(BuildContext context) {
+    final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+
     return SliverAppBar(
       expandedHeight: 280,
       pinned: true,
       stretch: true,
       backgroundColor: AppColors.primary,
+      leading: Container(
+        margin: const EdgeInsets.all(8),
+        decoration: BoxDecoration(
+          color: (isDark ? const Color(0xFF131B2A) : Colors.white)
+              .withValues(alpha: 0.85),
+          shape: BoxShape.circle,
+          border: Border.all(
+            color: isDark
+                ? Colors.white.withValues(alpha: 0.15)
+                : Colors.black.withValues(alpha: 0.08),
+          ),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withValues(alpha: 0.18),
+              blurRadius: 8,
+              offset: const Offset(0, 2),
+            ),
+          ],
+        ),
+        child: IconButton(
+          icon: Icon(
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.arrow_forward_ios_rounded
+                : Icons.arrow_back_ios_new_rounded,
+            size: 18,
+            color: isDark ? Colors.white : Colors.black87,
+          ),
+          onPressed: () => Navigator.pop(context),
+        ),
+      ),
       flexibleSpace: FlexibleSpaceBar(
         background: Stack(
           fit: StackFit.expand,
@@ -590,9 +627,11 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
               children: [
                 Icon(Icons.access_time_rounded, size: 14, color: theme.textTheme.bodySmall?.color),
                 const SizedBox(width: 6),
-                Text(
-                  'مواعيد العمل: ${store.workingHours}',
-                  style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                Expanded(
+                  child: Text(
+                    'مواعيد العمل: ${store.workingHours}',
+                    style: theme.textTheme.bodySmall?.copyWith(fontWeight: FontWeight.w500),
+                  ),
                 ),
               ],
             ),

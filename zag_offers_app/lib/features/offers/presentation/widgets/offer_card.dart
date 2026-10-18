@@ -186,125 +186,138 @@ class OfferCard extends StatelessWidget {
 
   Widget _buildInfoSection(BuildContext context, bool isDark) {
     return Padding(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // Store Info Row
-          Row(
-            children: [
-              Container(
-                width: 22,
-                height: 22,
-                decoration: BoxDecoration(
-                  color: AppColors.primary.withValues(alpha: 0.12),
-                  shape: BoxShape.circle,
-                  border: Border.all(
-                    color: AppColors.primary.withValues(alpha: 0.25),
-                    width: 0.8,
-                  ),
-                ),
-                child: Center(
-                  child: Text(
-                    offer.store.name.isNotEmpty ? offer.store.name.characters.first : 'م',
-                    style: GoogleFonts.cairo(
-                      color: AppColors.primary,
-                      fontSize: 11,
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ),
-              ),
-              const SizedBox(width: 6),
-              Expanded(
-                child: Row(
+      padding: const EdgeInsets.fromLTRB(12, 6, 12, 4),
+      child: LayoutBuilder(
+        builder: (context, constraints) {
+          return SizedBox(
+            width: constraints.maxWidth,
+            height: constraints.maxHeight,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.topStart,
+              child: SizedBox(
+                width: constraints.maxWidth,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Flexible(
-                      child: Text(
-                        offer.store.name,
-                        style: GoogleFonts.cairo(
-                          fontSize: 11.5,
-                          fontWeight: FontWeight.w800,
-                          color: AppColors.primary,
+                    // Store Info Row
+                    Row(
+                      children: [
+                        Container(
+                          width: 22,
+                          height: 22,
+                          decoration: BoxDecoration(
+                            color: AppColors.primary.withValues(alpha: 0.12),
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: AppColors.primary.withValues(alpha: 0.25),
+                              width: 0.8,
+                            ),
+                          ),
+                          child: Center(
+                            child: Text(
+                              offer.store.name.isNotEmpty ? offer.store.name.characters.first : 'م',
+                              style: GoogleFonts.cairo(
+                                color: AppColors.primary,
+                                fontSize: 11,
+                                fontWeight: FontWeight.w800,
+                              ),
+                            ),
+                          ),
                         ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
+                        const SizedBox(width: 6),
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Flexible(
+                                child: Text(
+                                  offer.store.name,
+                                  style: GoogleFonts.cairo(
+                                    fontSize: 11.5,
+                                    fontWeight: FontWeight.w800,
+                                    color: AppColors.primary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                              const SizedBox(width: 3),
+                              const Icon(
+                                Icons.verified_rounded,
+                                size: 13,
+                                color: AppColors.primary,
+                              ),
+                            ],
+                          ),
+                        ),
+                        if (offer.store.rating > 0) ...[
+                          const Icon(Icons.star_rounded, size: 13, color: Colors.amber),
+                          const SizedBox(width: 2),
+                          Text(
+                            offer.store.rating.toStringAsFixed(1),
+                            style: GoogleFonts.cairo(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w800,
+                              color: isDark ? Colors.white70 : Colors.black87,
+                            ),
+                          ),
+                        ],
+                      ],
                     ),
-                    const SizedBox(width: 3),
-                    const Icon(
-                      Icons.verified_rounded,
-                      size: 13,
-                      color: AppColors.primary,
+                    const SizedBox(height: 4),
+                    // Title
+                    Text(
+                      offer.title,
+                      style: GoogleFonts.cairo(
+                        fontSize: 13,
+                        fontWeight: FontWeight.w800,
+                        height: 1.25,
+                        color: isDark ? Colors.white : AppColors.textPrimary,
+                      ),
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                    const SizedBox(height: 4),
+                    // Area & Live Interest Stats
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Row(
+                            children: [
+                              Icon(
+                                Icons.location_on_rounded,
+                                size: 11,
+                                color: isDark ? AppColors.textDarkDim : AppColors.textSecondary,
+                              ),
+                              const SizedBox(width: 2),
+                              Flexible(
+                                child: Text(
+                                  offer.store.category != null && offer.store.category!.isNotEmpty
+                                      ? '${offer.store.area.isNotEmpty ? offer.store.area : "الزقازيق"} • ${offer.store.category}'
+                                      : (offer.store.area.isNotEmpty ? offer.store.area : 'الزقازيق'),
+                                  style: GoogleFonts.cairo(
+                                    fontSize: 10,
+                                    fontWeight: FontWeight.w600,
+                                    color: isDark ? AppColors.textDarkDim : AppColors.textSecondary,
+                                  ),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                              ),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(width: 4),
+                        ..._buildLiveStats(isDark),
+                      ],
                     ),
                   ],
                 ),
               ),
-              if (offer.store.rating > 0) ...[
-                const Icon(Icons.star_rounded, size: 13, color: Colors.amber),
-                const SizedBox(width: 2),
-                Text(
-                  offer.store.rating.toStringAsFixed(1),
-                  style: GoogleFonts.cairo(
-                    fontSize: 11,
-                    fontWeight: FontWeight.w800,
-                    color: isDark ? Colors.white70 : Colors.black87,
-                  ),
-                ),
-              ],
-            ],
-          ),
-          const SizedBox(height: 5),
-          // Title
-          SizedBox(
-            height: 38,
-            child: Text(
-              offer.title,
-              style: GoogleFonts.cairo(
-                fontSize: 13,
-                fontWeight: FontWeight.w800,
-                height: 1.3,
-                color: isDark ? Colors.white : AppColors.textPrimary,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
             ),
-          ),
-          const SizedBox(height: 4),
-          // Area & Live Interest Stats
-          Row(
-            children: [
-              Expanded(
-                child: Row(
-                  children: [
-                    Icon(
-                      Icons.location_on_rounded,
-                      size: 11,
-                      color: isDark ? AppColors.textDarkDim : AppColors.textSecondary,
-                    ),
-                    const SizedBox(width: 2),
-                    Flexible(
-                      child: Text(
-                        offer.store.category != null && offer.store.category!.isNotEmpty
-                            ? '${offer.store.area.isNotEmpty ? offer.store.area : "الزقازيق"} • ${offer.store.category}'
-                            : (offer.store.area.isNotEmpty ? offer.store.area : 'الزقازيق'),
-                        style: GoogleFonts.cairo(
-                          fontSize: 10,
-                          fontWeight: FontWeight.w600,
-                          color: isDark ? AppColors.textDarkDim : AppColors.textSecondary,
-                        ),
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-              const SizedBox(width: 4),
-              ..._buildLiveStats(isDark),
-            ],
-          ),
-        ],
+          );
+        },
       ),
     );
   }
@@ -367,175 +380,190 @@ class OfferCard extends StatelessWidget {
         children: [
           if (hasPrice)
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (pricing.originalPrice != null && pricing.hasSavings)
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (pricing.originalPrice != null && pricing.hasSavings)
+                      Text(
+                        '${pricing.originalPrice!.toStringAsFixed(0)} ج.م',
+                        style: GoogleFonts.cairo(
+                          fontSize: 11,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppColors.textDarkDim.withValues(alpha: 0.65)
+                              : Colors.black45,
+                          decoration: TextDecoration.lineThrough,
+                          height: 1.1,
+                        ),
+                      ),
                     Text(
-                      '${pricing.originalPrice!.toStringAsFixed(0)} ج.م',
+                      '${pricing.finalPrice!.toStringAsFixed(0)} ج.م',
                       style: GoogleFonts.cairo(
-                        fontSize: 11,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.textDarkDim.withValues(alpha: 0.65)
-                            : Colors.black45,
-                        decoration: TextDecoration.lineThrough,
+                        color: AppColors.primary,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 15,
                         height: 1.1,
                       ),
                     ),
-                  Text(
-                    '${pricing.finalPrice!.toStringAsFixed(0)} ج.م',
-                    style: GoogleFonts.cairo(
-                      color: AppColors.primary,
-                      fontWeight: FontWeight.w900,
-                      fontSize: 15,
-                      height: 1.1,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
             )
           else
             Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  if (pricing.topDiscountBadge.isNotEmpty) ...[
-                    Text(
-                      'خصم عام',
-                      style: GoogleFonts.cairo(
-                        fontSize: 9.5,
-                        fontWeight: FontWeight.w700,
-                        color: isDark
-                            ? AppColors.textDarkDim
-                            : AppColors.textSecondary,
-                        height: 1.1,
-                      ),
-                    ),
-                    Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          pricing.topDiscountBadge.contains('%')
-                              ? pricing.topDiscountBadge
-                              : '${pricing.topDiscountBadge}%',
-                          textDirection: TextDirection.ltr,
-                          style: GoogleFonts.cairo(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 14,
-                            height: 1.1,
-                          ),
+              child: FittedBox(
+                fit: BoxFit.scaleDown,
+                alignment: AlignmentDirectional.centerStart,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    if (pricing.topDiscountBadge.isNotEmpty) ...[
+                      Text(
+                        'خصم عام',
+                        style: GoogleFonts.cairo(
+                          fontSize: 9.5,
+                          fontWeight: FontWeight.w700,
+                          color: isDark
+                              ? AppColors.textDarkDim
+                              : AppColors.textSecondary,
+                          height: 1.1,
                         ),
-                        const SizedBox(width: 3),
-                        Text(
-                          'على الفاتورة',
-                          style: GoogleFonts.cairo(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 10.5,
-                            height: 1.1,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ] else ...[
-                    Text(
-                      'عرض حصري',
-                      style: GoogleFonts.cairo(
-                        fontSize: 12,
-                        fontWeight: FontWeight.w800,
-                        color: isDark ? Colors.white70 : AppColors.textPrimary,
                       ),
-                    ),
+                      Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            pricing.topDiscountBadge.contains('%')
+                                ? pricing.topDiscountBadge
+                                : '${pricing.topDiscountBadge}%',
+                            textDirection: TextDirection.ltr,
+                            style: GoogleFonts.cairo(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 14,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(width: 3),
+                          Text(
+                            'على الفاتورة',
+                            style: GoogleFonts.cairo(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 10.5,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ] else ...[
+                      Text(
+                        'عرض حصري',
+                        style: GoogleFonts.cairo(
+                          fontSize: 12,
+                          fontWeight: FontWeight.w800,
+                          color: isDark ? Colors.white70 : AppColors.textPrimary,
+                        ),
+                      ),
+                    ],
                   ],
-                ],
+                ),
               ),
             ),
+          const SizedBox(width: 8),
           // Action Button / Sold Out State
-          if (isSoldOut)
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isWide ? 8 : 11,
-                vertical: isWide ? 5 : 6.5,
-              ),
-              decoration: BoxDecoration(
-                color: isDark
-                    ? Colors.white.withValues(alpha: 0.08)
-                    : Colors.black.withValues(alpha: 0.06),
-                borderRadius: BorderRadius.circular(11),
-                border: Border.all(
-                  color: isDark
-                      ? Colors.white.withValues(alpha: 0.12)
-                      : Colors.black.withValues(alpha: 0.1),
-                  width: 0.8,
-                ),
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Icon(
-                    Icons.do_not_disturb_on_rounded,
-                    size: 11,
-                    color: isDark ? Colors.white54 : Colors.black45,
-                  ),
-                  const SizedBox(width: 4),
-                  Text(
-                    'نفد الكوبون',
-                    style: GoogleFonts.cairo(
-                      color: isDark ? Colors.white54 : Colors.black54,
-                      fontWeight: FontWeight.w800,
-                      fontSize: isWide ? 10.5 : 11,
-                      height: 1.1,
+          Flexible(
+            flex: 0,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerEnd,
+              child: isSoldOut
+                  ? Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isWide ? 8 : 11,
+                        vertical: isWide ? 5 : 6.5,
+                      ),
+                      decoration: BoxDecoration(
+                        color: isDark
+                            ? Colors.white.withValues(alpha: 0.08)
+                            : Colors.black.withValues(alpha: 0.06),
+                        borderRadius: BorderRadius.circular(11),
+                        border: Border.all(
+                          color: isDark
+                              ? Colors.white.withValues(alpha: 0.12)
+                              : Colors.black.withValues(alpha: 0.1),
+                          width: 0.8,
+                        ),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.do_not_disturb_on_rounded,
+                            size: 11,
+                            color: isDark ? Colors.white54 : Colors.black45,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            'نفد الكوبون',
+                            style: GoogleFonts.cairo(
+                              color: isDark ? Colors.white54 : Colors.black54,
+                              fontWeight: FontWeight.w800,
+                              fontSize: isWide ? 10.5 : 11,
+                              height: 1.1,
+                            ),
+                          ),
+                        ],
+                      ),
+                    )
+                  : Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: isWide ? 9 : 13,
+                        vertical: isWide ? 5 : 6.5,
+                      ),
+                      decoration: BoxDecoration(
+                        gradient: const LinearGradient(
+                          colors: [AppColors.primary, Color(0xFFFF8C35)],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(11),
+                        boxShadow: [
+                          BoxShadow(
+                            color: AppColors.primary.withValues(alpha: 0.35),
+                            blurRadius: 8,
+                            offset: const Offset(0, 2.5),
+                          ),
+                        ],
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'احصل عليه',
+                            style: GoogleFonts.cairo(
+                              color: Colors.white,
+                              fontWeight: FontWeight.w800,
+                              fontSize: isWide ? 10.5 : 11.5,
+                              height: 1.1,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          const Icon(
+                            Icons.arrow_back_ios_new_rounded,
+                            size: 9,
+                            color: Colors.white,
+                          ),
+                        ],
+                      ),
                     ),
-                  ),
-                ],
-              ),
-            )
-          else
-            Container(
-              padding: EdgeInsets.symmetric(
-                horizontal: isWide ? 9 : 13,
-                vertical: isWide ? 5 : 6.5,
-              ),
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [AppColors.primary, Color(0xFFFF8C35)],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: BorderRadius.circular(11),
-                boxShadow: [
-                  BoxShadow(
-                    color: AppColors.primary.withValues(alpha: 0.35),
-                    blurRadius: 8,
-                    offset: const Offset(0, 2.5),
-                  ),
-                ],
-              ),
-              child: Row(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text(
-                    'احصل عليه',
-                    style: GoogleFonts.cairo(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w800,
-                      fontSize: isWide ? 10.5 : 11.5,
-                      height: 1.1,
-                    ),
-                  ),
-                  const SizedBox(width: 4),
-                  const Icon(
-                    Icons.arrow_back_ios_new_rounded,
-                    size: 9,
-                    color: Colors.white,
-                  ),
-                ],
-              ),
             ),
+          ),
         ],
       ),
     );

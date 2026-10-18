@@ -103,7 +103,12 @@ class _SearchPageState extends State<SearchPage> {
       appBar: AppBar(
         elevation: 0,
         leading: IconButton(
-          icon: const Icon(Icons.arrow_back_ios_new_rounded),
+          icon: Icon(
+            Directionality.of(context) == TextDirection.rtl
+                ? Icons.arrow_forward_ios_rounded
+                : Icons.arrow_back_ios_new_rounded,
+            size: 20,
+          ),
           onPressed: () => Navigator.pop(context),
         ),
         title: Container(
@@ -157,8 +162,8 @@ class _SearchPageState extends State<SearchPage> {
               if (_currentArea != 'الكل' ||
                   _minDiscount > 0 ||
                   _sortBy != 'newest')
-                Positioned(
-                  right: 12,
+                PositionedDirectional(
+                  end: 12,
                   top: 12,
                   child: Container(
                     width: 8,
@@ -299,7 +304,12 @@ class _SearchPageState extends State<SearchPage> {
       ),
       child: ListView.builder(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: const EdgeInsets.symmetric(vertical: 12),
+        padding: EdgeInsets.fromLTRB(
+          0,
+          12,
+          0,
+          24 + MediaQuery.paddingOf(context).bottom,
+        ),
         itemCount: itemCount,
         itemBuilder: (context, index) {
           final bool isAll = index == 0;
@@ -427,23 +437,30 @@ class _SearchPageState extends State<SearchPage> {
     BuildContext context,
     List<OfferEntity> offers,
   ) {
+    final bottomInset = MediaQuery.paddingOf(context).bottom;
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final crossAxisCount = width >= 920
-            ? 4
-            : width >= 680
-                 ? 3
-                 : 2;
-        final childAspectRatio = crossAxisCount >= 4
-            ? 0.8
-            : crossAxisCount == 3
-                ? 0.75
-                : 0.67;
+        final int crossAxisCount;
+        final double childAspectRatio;
+
+        if (width >= 850) {
+          crossAxisCount = 4;
+          childAspectRatio = 0.80;
+        } else if (width >= 580) {
+          crossAxisCount = 3;
+          childAspectRatio = 0.72;
+        } else if (width >= 340) {
+          crossAxisCount = 2;
+          childAspectRatio = 0.58;
+        } else {
+          crossAxisCount = 1;
+          childAspectRatio = 0.88;
+        }
 
         return GridView.builder(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: const EdgeInsets.all(16),
+          padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + bottomInset),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,

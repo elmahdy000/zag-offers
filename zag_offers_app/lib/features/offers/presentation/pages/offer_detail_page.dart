@@ -51,6 +51,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   StreamSubscription<Map<String, dynamic>>? _reviewReplySubscription;
   Timer? _flashSaleTimer;
   List<CouponEntity> _userCoupons = [];
+  bool _isClaimingCoupon = false;
 
   CouponEntity? get _existingCoupon {
     for (final c in _userCoupons) {
@@ -263,15 +264,22 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   void _onCouponStateChange(BuildContext context, CouponsState state) {
     if (state is UserCouponsLoaded) {
       if (mounted) {
-        setState(() => _userCoupons = state.coupons);
+        setState(() {
+          _userCoupons = state.coupons;
+          _isClaimingCoupon = false;
+        });
       }
     }
     if (state is CouponsError) {
+      if (mounted) {
+        setState(() => _isClaimingCoupon = false);
+      }
       SnackBarUtils.showError(context, state.message);
     }
     if (state is CouponGeneratedSuccess) {
       if (mounted) {
         setState(() {
+          _isClaimingCoupon = false;
           _userCoupons.removeWhere((c) => c.offer.id == widget.offer.id);
           _userCoupons.insert(0, state.coupon);
         });
@@ -505,7 +513,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         ),
         if (images.length > 1)
           Positioned(
-            bottom: 45,
+            bottom: 32,
             left: 0,
             right: 0,
             child: IgnorePointer(
@@ -603,7 +611,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
     return SliverToBoxAdapter(
       child: Transform.translate(
-        offset: const Offset(0, -28),
+        offset: const Offset(0, -20),
         child: Container(
           decoration: BoxDecoration(
             color: theme.scaffoldBackgroundColor,
@@ -611,19 +619,21 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
           padding: EdgeInsets.fromLTRB(
             18,
-            20,
+            _allImages.length > 1 ? 22 : 18,
             18,
-            85 + bottomInset,
+            105 + bottomInset,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              if (_allImages.length > 1) _buildThumbnailsRow(),
-              if (_allImages.length > 1) const SizedBox(height: 14),
+              if (_allImages.length > 1) ...[
+                _buildThumbnailsRow(),
+                const SizedBox(height: 18),
+              ],
               _buildOfferHeaderHierarchy(usageCount),
-              const SizedBox(height: 14),
+              const SizedBox(height: 16),
               _buildStoreCard(),
-              const SizedBox(height: 12),
+              const SizedBox(height: 14),
               _buildStoreLocationCard(),
               const SizedBox(height: 16),
               _buildDescriptionSection(),
@@ -634,7 +644,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               ],
               const SizedBox(height: 14),
               _buildExpirySection(),
-              const SizedBox(height: 18),
+              const SizedBox(height: 16),
               _buildReviewsSection(),
             ],
           ),
@@ -664,7 +674,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           children: [
             if (pricing.topDiscountBadge.isNotEmpty)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 5),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
@@ -731,118 +741,122 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ],
         ),
 
-        const SizedBox(height: 12),
+        const SizedBox(height: 14),
 
         // 2. Offer Title
         Text(
           widget.offer.title,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w900,
-            fontSize: 20,
-            height: 1.35,
+            fontSize: 21,
+            height: 1.4,
           ),
         ),
 
         // 3. Pricing & Savings (Only displayed for products with actual prices)
         if (pricing.hasExplicitPrices) ...[
-          const SizedBox(height: 12),
+          const SizedBox(height: 14),
           Container(
-            padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
             decoration: BoxDecoration(
               color: isDark ? const Color(0xFF162032) : const Color(0xFFF8FAFC),
-              borderRadius: BorderRadius.circular(14),
+              borderRadius: BorderRadius.circular(16),
               border: Border.all(
                 color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade200,
               ),
             ),
-            child: Row(
-              children: [
-                if (pricing.finalPrice != null) ...[
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '${pricing.finalPrice!.toStringAsFixed(0)} ',
-                          style: const TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w900,
-                            fontSize: 22,
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              alignment: AlignmentDirectional.centerStart,
+              child: Row(
+                children: [
+                  if (pricing.finalPrice != null) ...[
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${pricing.finalPrice!.toStringAsFixed(0)} ',
+                            style: const TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 22,
+                            ),
                           ),
-                        ),
-                        const TextSpan(
-                          text: 'ج.م',
-                          style: TextStyle(
-                            color: AppColors.primary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                          const TextSpan(
+                            text: 'ج.م',
+                            style: TextStyle(
+                              color: AppColors.primary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 14,
+                            ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
-                  ),
+                  ],
+                  if (pricing.originalPrice != null) ...[
+                    const SizedBox(width: 10),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          TextSpan(
+                            text: '${pricing.originalPrice!.toStringAsFixed(0)} ',
+                            style: TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                              fontWeight: FontWeight.w700,
+                              fontSize: 15,
+                            ),
+                          ),
+                          TextSpan(
+                            text: 'ج.م',
+                            style: TextStyle(
+                              decoration: TextDecoration.lineThrough,
+                              color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                              fontWeight: FontWeight.w600,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
+                  const SizedBox(width: 24),
+                  if (pricing.hasSavings) ...[
+                    Container(
+                      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+                      decoration: BoxDecoration(
+                        color: const Color(0x1810B981),
+                        borderRadius: BorderRadius.circular(8),
+                        border: Border.all(color: const Color(0x3510B981)),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'وفرت ${pricing.savingsAmount.toStringAsFixed(0)} ج.م',
+                            style: const TextStyle(
+                              color: Color(0xFF10B981),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            '(${pricing.savingsPercentage}%)',
+                            textDirection: TextDirection.ltr,
+                            style: const TextStyle(
+                              color: Color(0xFF10B981),
+                              fontWeight: FontWeight.w800,
+                              fontSize: 12,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
-                if (pricing.originalPrice != null) ...[
-                  const SizedBox(width: 10),
-                  Text.rich(
-                    TextSpan(
-                      children: [
-                        TextSpan(
-                          text: '${pricing.originalPrice!.toStringAsFixed(0)} ',
-                          style: TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
-                            fontWeight: FontWeight.w700,
-                            fontSize: 15,
-                          ),
-                        ),
-                        TextSpan(
-                          text: 'ج.م',
-                          style: TextStyle(
-                            decoration: TextDecoration.lineThrough,
-                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
-                            fontWeight: FontWeight.w600,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-                const Spacer(),
-                if (pricing.hasSavings) ...[
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-                    decoration: BoxDecoration(
-                      color: const Color(0x1810B981),
-                      borderRadius: BorderRadius.circular(8),
-                      border: Border.all(color: const Color(0x3510B981)),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        Text(
-                          'وفرت ${pricing.savingsAmount.toStringAsFixed(0)} ج.م',
-                          style: const TextStyle(
-                            color: Color(0xFF10B981),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                        ),
-                        const SizedBox(width: 4),
-                        Text(
-                          '(${pricing.savingsPercentage}%)',
-                          textDirection: TextDirection.ltr,
-                          style: const TextStyle(
-                            color: Color(0xFF10B981),
-                            fontWeight: FontWeight.w800,
-                            fontSize: 12,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
-              ],
+              ),
             ),
           ),
         ],
@@ -1070,12 +1084,14 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
                 ),
                 const SizedBox(width: 6),
-                Text(
-                  'مواعيد العمل: ${store.workingHours}',
-                  style: TextStyle(
-                    fontSize: 11.5,
-                    fontWeight: FontWeight.w500,
-                    color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                Expanded(
+                  child: Text(
+                    'مواعيد العمل: ${store.workingHours}',
+                    style: TextStyle(
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w500,
+                      color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                    ),
                   ),
                 ),
               ],
@@ -1111,18 +1127,23 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 const SizedBox(width: 8),
                 BouncyTap(
                   scaleFactor: 0.92,
-                  child: IconButton.filledTonal(
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      _callStore();
-                    },
-                    icon: const Icon(Icons.call_rounded, size: 18),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.blue.withValues(alpha: 0.12),
-                      foregroundColor: Colors.blue.shade700,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _callStore();
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.blue.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    tooltip: 'اتصال',
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.call_rounded,
+                      size: 18,
+                      color: Colors.blue.shade700,
+                    ),
                   ),
                 ),
               ],
@@ -1130,18 +1151,23 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 const SizedBox(width: 8),
                 BouncyTap(
                   scaleFactor: 0.92,
-                  child: IconButton.filledTonal(
-                    onPressed: () {
-                      HapticFeedback.lightImpact();
-                      _whatsappStore();
-                    },
-                    icon: const Icon(Icons.chat_rounded, size: 18),
-                    style: IconButton.styleFrom(
-                      backgroundColor: Colors.green.withValues(alpha: 0.12),
-                      foregroundColor: Colors.green.shade700,
-                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _whatsappStore();
+                  },
+                  child: Container(
+                    width: 40,
+                    height: 40,
+                    decoration: BoxDecoration(
+                      color: Colors.green.withValues(alpha: 0.12),
+                      borderRadius: BorderRadius.circular(10),
                     ),
-                    tooltip: 'واتساب',
+                    alignment: Alignment.center,
+                    child: Icon(
+                      Icons.chat_rounded,
+                      size: 18,
+                      color: Colors.green.shade700,
+                    ),
                   ),
                 ),
               ],
@@ -1507,7 +1533,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 next is CouponsError ||
                 next is UserCouponsLoaded,
             builder: (context, state) {
-              final isLoading = state is CouponsLoading;
+              final isLoading = state is CouponsLoading || _isClaimingCoupon;
 
               final String buttonText;
               final IconData buttonIcon;
@@ -1542,7 +1568,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     }
                     return;
                   }
-                  if (isLoading) return;
+                  if (isLoading || _isClaimingCoupon) return;
+                  if (mounted) {
+                    setState(() => _isClaimingCoupon = true);
+                  }
                   HapticFeedback.mediumImpact();
                   _couponsBloc.add(GenerateCouponRequested(widget.offer.id));
                 };
@@ -1553,6 +1582,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 children: [
                   BouncyTap(
                     scaleFactor: 0.97,
+                    onTap: onPressed,
                     child: Container(
                       height: 52,
                       width: double.infinity,
@@ -1569,42 +1599,31 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                           ),
                         ],
                       ),
-                      child: ElevatedButton(
-                        onPressed: onPressed,
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: Colors.transparent,
-                          foregroundColor: Colors.white,
-                          shadowColor: Colors.transparent,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
-                        ),
-                        child: isLoading
-                            ? const SizedBox(
-                                width: 22,
-                                height: 22,
-                                child: CircularProgressIndicator(
-                                  color: Colors.white,
-                                  strokeWidth: 2.2,
-                                ),
-                              )
-                            : Row(
-                                mainAxisAlignment: MainAxisAlignment.center,
-                                children: [
-                                  Icon(buttonIcon, size: 20),
-                                  const SizedBox(width: 10),
-                                  Text(
-                                    buttonText,
-                                    style: textTheme.labelLarge?.copyWith(
-                                      fontWeight: FontWeight.w800,
-                                      fontSize: 15,
-                                      color: Colors.white,
-                                    ),
-                                  ),
-                                ],
+                      alignment: Alignment.center,
+                      child: isLoading
+                          ? const SizedBox(
+                              width: 22,
+                              height: 22,
+                              child: CircularProgressIndicator(
+                                color: Colors.white,
+                                strokeWidth: 2.2,
                               ),
-                      ),
+                            )
+                          : Row(
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                Icon(buttonIcon, size: 20, color: Colors.white),
+                                const SizedBox(width: 10),
+                                Text(
+                                  buttonText,
+                                  style: textTheme.labelLarge?.copyWith(
+                                    fontWeight: FontWeight.w800,
+                                    fontSize: 15,
+                                    color: Colors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                     ),
                   ),
                   if (!canGenerate && !hasActiveCoupon) ...[
@@ -1662,42 +1681,65 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
   Widget _buildThumbnailsRow() {
     final images = _allImages;
     final theme = Theme.of(context);
-    return SizedBox(
-      height: 60,
-      child: ListView.builder(
-        scrollDirection: Axis.horizontal,
-        itemCount: images.length,
-        itemBuilder: (context, index) {
-          final isSelected = _selectedImageIndex == index;
-          return GestureDetector(
-            onTap: () {
-              setState(() => _selectedImageIndex = index);
-              _pageController.animateToPage(
-                index,
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
+    final isDark = theme.brightness == Brightness.dark;
+
+    return Padding(
+      padding: const EdgeInsets.only(top: 14, bottom: 4),
+      child: Center(
+        child: SizedBox(
+          height: 60,
+          child: ListView.separated(
+            shrinkWrap: true,
+            scrollDirection: Axis.horizontal,
+            physics: const BouncingScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 4, vertical: 2),
+            itemCount: images.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 10),
+            itemBuilder: (context, index) {
+              final isSelected = _selectedImageIndex == index;
+              return GestureDetector(
+                onTap: () {
+                  setState(() => _selectedImageIndex = index);
+                  _pageController.animateToPage(
+                    index,
+                    duration: const Duration(milliseconds: 300),
+                    curve: Curves.easeInOut,
+                  );
+                },
+                child: AnimatedContainer(
+                  duration: const Duration(milliseconds: 200),
+                  width: 58,
+                  height: 58,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(13),
+                    border: Border.all(
+                      color: isSelected
+                          ? AppColors.primary
+                          : (isDark
+                              ? Colors.white.withValues(alpha: 0.15)
+                              : Colors.black.withValues(alpha: 0.1)),
+                      width: isSelected ? 2.5 : 1,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: AppColors.primary.withValues(alpha: 0.35),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  clipBehavior: Clip.antiAlias,
+                  child: NetworkImageWidget(
+                    imageUrl: images[index],
+                    fit: BoxFit.cover,
+                  ),
+                ),
               );
             },
-            child: Container(
-              width: 60,
-              margin: const EdgeInsets.only(left: 12),
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(
-                  color: isSelected
-                      ? AppColors.primary
-                      : theme.dividerColor.withValues(alpha: 0.15),
-                  width: 2,
-                ),
-              ),
-              clipBehavior: Clip.antiAlias,
-              child: NetworkImageWidget(
-                imageUrl: images[index],
-                fit: BoxFit.cover,
-              ),
-            ),
-          );
-        },
+          ),
+        ),
       ),
     );
   }

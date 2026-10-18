@@ -78,3 +78,16 @@
 - **Decision**: Positioned elements and layout margins must always use `PositionedDirectional` (with `start` / `end`) and `EdgeInsetsDirectional` rather than hardcoded `left` or `right`.
 - **Rationale**: In RTL layouts, `left` places elements on the trailing edge rather than the leading edge, leading to reversed avatars and misaligned carousels.
 
+---
+
+## 13. Production-Grade UI/UX Philosophy: Refine, Don't Redesign
+- **Decision**: The engineering principle across all Zag Offers apps is **"Premium Quality Without Overdesign"** (*Refine, Don't Redesign*).
+- **Core Directives**:
+  1. **No Overdesign**: Do not invent new pages, replace established layouts, or add exaggerated animations, heavy glassmorphism, or artificial 3D effects.
+  2. **Preserve Identity**: Preserve the Egyptian Orange (`#FF6A00` / `#FF5722`) and Midnight Navy (`#0D1422` / `#161C2A`) tokens, existing typography, and Arabic RTL mental model.
+  3. **3-Phase Execution Hierarchy**:
+     - **Phase 1 (Stability - P0)**: Safe Areas, notch & keyboard insets, sticky CTA protection (preventing overlap on content), real retry mechanisms, verified coupon states, and 0 layout overflows.
+     - **Phase 2 (Visual Polish - P1)**: Tightening card aspect ratios, eliminating excessive glow/shadow in light mode, unifying border radii and spacing tokens, and ensuring complete Light/Dark mode parity.
+     - **Phase 3 (Performance & QA - P2)**: Image caching, list virtualization, responsive testing on iOS & Android screen sizes, and avoiding unnecessary re-renders.
+  4. **Component-First Fixes**: Address issues locally or within shared design components (`OfferCard`, `CategoryUtils`, `GlassmorphismCard`) rather than rebuilding entire views.
+

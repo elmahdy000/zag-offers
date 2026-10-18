@@ -2,6 +2,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
@@ -227,46 +228,129 @@ class _HomePageState extends State<HomePage> {
                           const AdsSlider(),
                           const SizedBox(height: 20),
                           CategoriesSection(categories: state.categories),
-                          const SizedBox(height: 24),
-                          _buildOffersSection(
-                            context,
-                            title: 'الأكثر انتشارًا',
-                            subtitle: 'عروض يكثر عليها الطلب الآن',
-                            offers: OfferFilterUtils.apply(
-                              offers: state.trendingOffers,
-                              area: _currentArea,
-                              minDiscount: _minDiscount,
-                              sortBy: _sortBy,
-                            ),
-                          ),
-                          _buildOffersSection(
-                            context,
-                            title: 'مقترح لك',
-                            subtitle: 'عروض مناسبة حسب نشاطك الحالي',
-                            offers: OfferFilterUtils.apply(
-                              offers: state.recommendedOffers ?? const [],
-                              area: _currentArea,
-                              minDiscount: _minDiscount,
-                              sortBy: _sortBy,
-                            ),
-                          ),
-                          _CategorySection(
-                            state: state,
-                            currentArea: _currentArea,
-                            minDiscount: _minDiscount,
-                            sortBy: _sortBy,
-                            category: 'دلع كرشك',
-                            title: 'ركن الأكل',
-                            subtitle: 'أفضل العروض القريبة لتجربة سريعة',
-                          ),
-                          _CategorySection(
-                            state: state,
-                            currentArea: _currentArea,
-                            minDiscount: _minDiscount,
-                            sortBy: _sortBy,
-                            category: 'شياكة',
-                            title: 'اختيارات الموضة',
-                            subtitle: 'عروض مختارة على الملابس والإطلالات',
+                          Builder(
+                            builder: (context) {
+                              final trending = OfferFilterUtils.apply(
+                                offers: state.trendingOffers,
+                                area: _currentArea,
+                                minDiscount: _minDiscount,
+                                sortBy: _sortBy,
+                              );
+                              final recommended = OfferFilterUtils.apply(
+                                offers: state.recommendedOffers ?? const [],
+                                area: _currentArea,
+                                minDiscount: _minDiscount,
+                                sortBy: _sortBy,
+                              );
+
+                              final hasAnyOffers = trending.isNotEmpty || recommended.isNotEmpty;
+
+                              if (!hasAnyOffers && (_currentArea != 'الكل' || _minDiscount > 0)) {
+                                final isDark = Theme.of(context).brightness == Brightness.dark;
+                                return Container(
+                                  margin: const EdgeInsets.symmetric(horizontal: 20, vertical: 24),
+                                  padding: const EdgeInsets.all(24),
+                                  decoration: BoxDecoration(
+                                    color: isDark ? const Color(0xFF19202E) : Colors.white,
+                                    borderRadius: BorderRadius.circular(20),
+                                    border: Border.all(
+                                      color: isDark ? Colors.white10 : Colors.black12,
+                                    ),
+                                  ),
+                                  child: Column(
+                                    children: [
+                                      Icon(
+                                        Icons.location_off_rounded,
+                                        size: 48,
+                                        color: AppColors.primary.withValues(alpha: 0.8),
+                                      ),
+                                      const SizedBox(height: 12),
+                                      Text(
+                                        'لا توجد عروض مطابقة في $_currentArea',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.cairo(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 6),
+                                      Text(
+                                        'يمكنك استعراض جميع عروض الزقازيق المتاحة الآن',
+                                        textAlign: TextAlign.center,
+                                        style: GoogleFonts.cairo(
+                                          color: AppColors.textSecondary,
+                                          fontSize: 12,
+                                        ),
+                                      ),
+                                      const SizedBox(height: 16),
+                                      BouncyTap(
+                                        onTap: () {
+                                          HapticFeedback.lightImpact();
+                                          setState(() {
+                                            _currentArea = 'الكل';
+                                            _minDiscount = 0;
+                                            _sortBy = 'newest';
+                                          });
+                                        },
+                                        child: Container(
+                                          padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
+                                          decoration: BoxDecoration(
+                                            gradient: const LinearGradient(
+                                              colors: [AppColors.primary, Color(0xFFFF8C35)],
+                                            ),
+                                            borderRadius: BorderRadius.circular(12),
+                                          ),
+                                          child: Text(
+                                            'عرض جميع العروض',
+                                            style: GoogleFonts.cairo(
+                                              color: Colors.white,
+                                              fontWeight: FontWeight.w800,
+                                              fontSize: 13,
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                );
+                              }
+
+                              return Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  _buildOffersSection(
+                                    context,
+                                    title: 'الأكثر انتشارًا',
+                                    subtitle: 'عروض يكثر عليها الطلب الآن',
+                                    offers: trending,
+                                  ),
+                                  _buildOffersSection(
+                                    context,
+                                    title: 'مقترح لك',
+                                    subtitle: 'عروض مناسبة حسب نشاطك الحالي',
+                                    offers: recommended,
+                                  ),
+                                  _CategorySection(
+                                    state: state,
+                                    currentArea: _currentArea,
+                                    minDiscount: _minDiscount,
+                                    sortBy: _sortBy,
+                                    category: 'دلع كرشك',
+                                    title: 'ركن الأكل',
+                                    subtitle: 'أفضل العروض القريبة لتجربة سريعة',
+                                  ),
+                                  _CategorySection(
+                                    state: state,
+                                    currentArea: _currentArea,
+                                    minDiscount: _minDiscount,
+                                    sortBy: _sortBy,
+                                    category: 'شياكة',
+                                    title: 'اختيارات الموضة',
+                                    subtitle: 'عروض مختارة على الملابس والإطلالات',
+                                  ),
+                                ],
+                              );
+                            },
                           ),
                           const SizedBox(height: 120),
                         ],
@@ -619,6 +703,9 @@ class _HomePageState extends State<HomePage> {
     final theme = Theme.of(context);
     final textTheme = theme.textTheme;
     final isDark = theme.brightness == Brightness.dark;
+    final warningColor = isDark ? const Color(0xFFFDE68A) : const Color(0xFFC2410C);
+    final warningText = isDark ? const Color(0xFFFEF3C7) : const Color(0xFF9A3412);
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Container(
@@ -635,21 +722,55 @@ class _HomePageState extends State<HomePage> {
           ),
         ),
         child: Row(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
             Icon(
               Icons.info_outline_rounded,
-              color: isDark ? const Color(0xFFFDE68A) : const Color(0xFFC2410C),
-              size: 18,
+              color: warningColor,
+              size: 20,
             ),
             const SizedBox(width: 10),
             Expanded(
               child: Text(
                 message,
                 style: textTheme.labelSmall?.copyWith(
-                  color: isDark ? const Color(0xFFFEF3C7) : const Color(0xFF9A3412),
+                  color: warningText,
                   fontWeight: FontWeight.w700,
                   height: 1.4,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            BouncyTap(
+              scaleFactor: 0.94,
+              onTap: () {
+                HapticFeedback.lightImpact();
+                context.read<OffersBloc>().add(FetchHomeData());
+              },
+              child: Container(
+                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
+                decoration: BoxDecoration(
+                  color: warningColor.withValues(alpha: isDark ? 0.22 : 0.14),
+                  borderRadius: BorderRadius.circular(8),
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Icon(
+                      Icons.refresh_rounded,
+                      size: 14,
+                      color: warningColor,
+                    ),
+                    const SizedBox(width: 4),
+                    Text(
+                      'إعادة المحاولة',
+                      style: textTheme.labelSmall?.copyWith(
+                        color: warningColor,
+                        fontWeight: FontWeight.w800,
+                        fontSize: 11,
+                      ),
+                    ),
+                  ],
                 ),
               ),
             ),

@@ -9,6 +9,7 @@ import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart'
 import 'package:zag_offers_app/injection_container.dart' as di;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 
 class FavoritesPage extends StatefulWidget {
@@ -51,6 +52,17 @@ class _FavoritesPageState extends State<FavoritesPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.arrow_forward_ios_rounded
+                      : Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: const Text(
           'المفضلة',
           style: TextStyle(fontWeight: FontWeight.w900),
@@ -128,12 +140,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
                               const SizedBox(height: 32),
                               BouncyTap(
                                 onTap: () {
-                                  final main = MainScreen.of(context);
-                                  if (main != null) {
-                                    main.setSelectedIndex(1);
-                                  } else if (Navigator.canPop(context)) {
-                                    Navigator.pop(context);
-                                  }
+                                  Navigator.popUntil(context, (route) => route.isFirst);
+                                  Future.delayed(const Duration(milliseconds: 150), () {
+                                    final rootContext = NavigationService.navigatorKey.currentContext;
+                                    if (rootContext != null && rootContext.mounted) {
+                                      MainScreen.of(rootContext)?.setSelectedIndex(1);
+                                    }
+                                  });
                                 },
                                 child: Container(
                                   padding: const EdgeInsets.symmetric(
@@ -184,11 +197,13 @@ class _FavoritesPageState extends State<FavoritesPage> {
                           : screenWidth < 340
                               ? 1
                               : 2;
-                  final double childAspectRatio = screenWidth > 600
-                      ? 0.78
-                      : screenWidth < 360
-                          ? 0.64
-                          : 0.67;
+                  final double childAspectRatio = crossAxisCount == 1
+                      ? 0.88
+                      : screenWidth > 600
+                          ? 0.76
+                          : screenWidth < 360
+                              ? 0.56
+                              : 0.58;
 
                   return RefreshIndicator(
                     onRefresh: () async {

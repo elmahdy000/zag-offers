@@ -91,3 +91,19 @@
 - **Fix**: Sanitize using `_cleanWhatsAppNumber()` regex to prepend `20` and strip the leading `0`.
 - **Prevention Invariant**: Always normalize Egyptian phone strings to E.164 without leading plus (`201xxxxxxxxx`) for `wa.me` links.
 
+---
+
+## 9. RenderFlex Overflow in Adaptive Card Grids with Sidebars
+- **Error**: `RenderFlex overflowed by 60/76 pixels on the bottom` on `SearchPage` when category sidebar occupies 96px width.
+- **Root Cause**: Hardcoded 2-column grid with rigid `childAspectRatio: 0.67` left only ~135px card width, making cards taller than available vertical space.
+- **Fix**: Use responsive breakpoints: when available content width `< 340px`, switch to 1 column with `childAspectRatio: 0.88`. Inside `OfferCard`, wrap info column in `LayoutBuilder` + `FittedBox(fit: BoxFit.scaleDown)` and price/CTA in `Flexible(flex: 0)`.
+- **Prevention Invariant**: Any grid sharing horizontal space with a persistent drawer/rail MUST calculate columns and aspect ratios from `LayoutBuilder.maxWidth`, not raw `MediaQuery.sizeOf(context).width`.
+
+---
+
+## 10. Sheet Translation Overlap Colliding with Gallery Thumbnails
+- **Error**: Gallery thumbnails in `OfferDetailPage` appeared wedged directly against the bottom edge of the hero image with zero breathing room.
+- **Root Cause**: The content sheet used `Transform.translate(offset: Offset(0, -28))` while its internal container top padding was only `18px`, placing the top of the thumbnail strip `-10px` above the hero bottom line.
+- **Fix**: Moderate overlap to `Offset(0, -20)`, provide `22px` top padding on the sheet, and add `14px` top padding to `_buildThumbnailsRow()`, creating 20px+ of clean visual space.
+- **Prevention Invariant**: When applying negative vertical translation for overlapping card sheets, the first child's effective visual offset (`paddingTop - translationOffset`) MUST exceed `12px`.
+

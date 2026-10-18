@@ -1,5 +1,94 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-18] - Complete Multi-Platform Page-by-Page Visual & Functional Verification
+### Verified
+- **Android (`emulator-5554` API 37)**:
+  - `HomePage` (`01_android_home_page.png`): Live deal counter pill, carousel ad slider, category avatars, trending offers, floating nav.
+  - `CategoriesPage` (`02_android_categories_page.png`): 2-column luxury category cards, RTL back arrow, count badges.
+  - `AllOffersPage` (`03_android_all_offers_reset.png`): Perforated coupon cards, live badges, strike-through prices, reset filter action.
+  - `OfferDetailPage` (`04_android_offer_detail_page.png`): Thumbnails spacing, store card, terms, expiration, coupon claim lock.
+  - `StoreDetailPage` (`05_android_store_detail_page.png`): Store avatar monogram, location directions CTA, offers list.
+  - `MyCouponsPage` (`06_android_my_coupons_page.png`): Segmented status tabs (الكل, النشطة, تم استخدامها), `جاهز للاستخدام ✨`.
+  - `CouponQrModal` (`07_android_qr_modal.png`): High contrast QR matrix, store monogram, monospaced LTR coupon code.
+  - `ProfilePage` (`08_android_profile_page.png`): Customer badge, quick stats, Zag Rewards card, settings list.
+  - `FavoritesPage` (`09_android_favorites_page.png`): Favorited offers list, heart action, price strike-through.
+  - `SearchPage` (`10_android_search_page.png` & `11_android_search_results.png`): Vertical category rail, search input, filtered results.
+
+- **iOS (`iPhone 17 Pro Max` iOS 26.5 Simulator)**:
+  - `OnboardingPage` (`01_ios_home_page.png`): Multi-slide photo collage, dark mode, RTL skip and next buttons.
+  - `HomePage` (`02_ios_home_page.png`): Midnight Navy dark theme, live deal counter, glowing category rings, floating nav bar.
+  - `CategoriesPage` (`12_ios_categories_page.png`): Full luxury category cards, gradient header, RTL chevrons.
+  - `AllOffersPage` (`13_ios_all_offers_page.png`): Perforated coupon cards, live badges, strike-through prices.
+  - `MyCouponsPage` (`14_ios_my_coupons_page.png`): Guest empty state, ticket icon, sign-in CTA.
+  - `ProfilePage` (`15_ios_profile_page.png`): User header, stats cards, settings menu, safe-area floating nav.
+  - `SearchPage` (`16_ios_search_page.png`): Vertical category rail, search input with orange border, search results grid.
+  - `FavoritesPage` (`17_ios_favorites_page.png`): Guest empty state, lock icon, sign-in CTA.
+  - `OfferDetailPage` (`18_ios_offer_detail_page.png`): Hero monogram, pricing breakdown, branch info, map button, CTA.
+  - `StoreDetailPage` (`19_ios_store_detail_page.png`): Store profile, monogram logo, map directions, call action, offers.
+
+- **Quality & Health Invariants**:
+  - `flutter analyze lib/` ➜ 0 issues found.
+  - `flutter test` ➜ 13/13 passing.
+  - Zero `RenderFlex overflowed` across all screens and orientations.
+  - Safe area clearance verified on both Dynamic Island / Home Indicator (iOS) and System Gesture Navigation (Android).
+
+---
+
+## [2026-10-18] - Production-Grade UI/UX Polish: Stability, Gesture Hardening & RTL Invariance
+### Fixed
+- **Coupon Claim Synchronous Lock**: Added `_isClaimingCoupon` state lock in `OfferDetailPage` to synchronously block rapid repetitive taps from firing duplicate coupon generation events before BLoC transitions to loading.
+- **Eliminated Button-Inside-BouncyTap Collisions**: Replaced nested `ElevatedButton` and `IconButton.filledTonal` inside `BouncyTap` with decorated `Container` children directly, preventing duplicate gesture recognizer fights and splash artifacts.
+- **Safe Area Inset Protection**: Replaced rigid `80px` bottom space in `StoreDetailPage` reviews list with `80 + MediaQuery.paddingOf(context).bottom`, ensuring the bottom review never collides with home indicators on modern gesture-nav devices.
+- **Interactive Notice Banner on HomePage**: Enhanced `_buildNoticeBanner` with an inline, 1-tap `إعادة المحاولة` (Retry) button so customers can immediately recover from timeouts or transient network disruptions without waiting or manual pull-to-refresh.
+- **Arabic RTL Directional Navigation**: Fixed leading back icons across `SearchPage`, `StoreDetailPage`, and `FavoritesPage` to dynamically point right (`Icons.arrow_forward_ios_rounded`) in Arabic RTL context, adhering strictly to Arabic mental models.
+- **RTL Directional Badging**: Replaced hardcoded `Positioned(right: 12, top: 12)` with `PositionedDirectional(end: 12, top: 12)` in `SearchPage` and `AllOffersPage`.
+- **Robust Root Cross-Tab Navigation**: In both `FavoritesPage` and `MyCouponsPage`, updated empty state CTA "استكشف العروض الآن" to use `NavigationService.navigatorKey` fallback when pushed in modal stacks, reliably switching the root `MainScreen` to tab index 1 (Offers).
+
+### Verified
+- Built and verified live on `iPhone 17 Pro Max` iOS simulator (`ios_verified_phase1.png`).
+- 0 issues on `flutter analyze lib/`.
+- 13/13 passing on `flutter test`.
+
+---
+
+## [2026-10-18] - Categories Page Luxury Redesign & RTL Precision
+### Added
+- **CategoriesPage Modernization**:
+  - Replaced washed-out peach full-screen tint with crisp `#F8FAFC` light background and `#0D1422` Midnight Navy dark background with ambient radial corner glow.
+  - Added a modern gradient Hero Header Banner (`اختر تصنيفك المفضل`) with an active Egyptian Orange flame chip (`عروض الزقازيق الحصرية`).
+  - Added Arabic category subtitle descriptions (`أقوى عروض الأكل`, `كافيهات ومشروبات`, `وقت اللعب والترفيه`, `تجميل وعناية`, etc.).
+  - Added active offer count pill badges (`🔥 عرض متاح`, `متوفر ✨`) dynamically computed from live offers.
+  - Upgraded category cards to high-end surfaces with signature category-colored gradient borders, 56x56 high-resolution asset thumbnails, and subtle drop shadows.
+  - Added robust category alias resolution and fuzzy matching in `CategoryUtils` (`جميلة` ➔ `دلع بنات`, `أكل` ➔ `دلع كرشك`, etc.).
+
+### Fixed
+- **RTL Navigation Arrow Directionality**:
+  - Fixed AppBar back button to point right (`>`) for natural Arabic RTL screen popping.
+  - Fixed Category card explore action chevron to point left (`<`) for forward category exploration.
+
+### Verified
+- Built and tested on Android emulator (`screen_categories_verified_final3.png`).
+- 0 issues on `flutter analyze lib/`.
+- 13/13 passing on `flutter test`.
+
+---
+
+## [2026-10-18] - Complete UI/UX, Flex Rendering & Gallery Spacing Overhaul
+### Fixed
+- Fixed `RenderFlex overflowed by 60/76 pixels` across cards in `SearchPage`, `AllOffersPage`, and `FavoritesPage`:
+  - Dynamically calibrated responsive grid `childAspectRatio` (0.88 for 1-column mobile sidebar layouts, 0.58 for 2-column mobile grids, 0.72-0.80 for tablets).
+  - Immune flex card architecture: Wrapped `_buildInfoSection` in `LayoutBuilder` + `FittedBox(fit: BoxFit.scaleDown)` and wrapped price & CTA buttons with `Flexible(flex: 0)` to guarantee zero overflow under any accessibility scale or constrained height.
+- Fixed Gallery Thumbnails collision and lack of top spacing in `OfferDetailPage`:
+  - Adjusted content sheet overlap offset from `-28px` to `-20px`.
+  - Added 22px top padding to content sheet and 14px top padding to thumbnail strip, providing 20px+ of generous breathing room between hero image and thumbnails.
+  - Adjusted hero dot indicators to `bottom: 32` so dots never collide with the card curve.
+- Fixed Empty Section Fallback on `HomePage`:
+  - Added dedicated fallback card when an area filter (e.g. `الصيادين`) has no offers, with a direct 1-tap "عرض جميع العروض" reset button.
+- Fixed Filter Reset in `AllOffersPage`:
+  - Animate `_categoryScrollController` back to index 0 (`الكل`) and reload all offers on reset.
+
+---
+
 ## [2026-10-18] - Core Services Hardening, Store Details & Invite Friends Modernization
 ### Fixed
 - Fixed Arabic RTL header alignment in `StoreDetailPage`: Replaced `Positioned(left: 24)` with `PositionedDirectional(start: 24)` ensuring the store avatar aligns correctly with RTL layout.

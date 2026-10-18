@@ -24,6 +24,7 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import '../../../../core/widgets/coupon_celebration_dialog.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
 import '../../../home/presentation/pages/main_screen.dart';
+import '../../../../core/utils/navigation_service.dart';
 import '../../../offers/presentation/utils/offer_pricing_utils.dart';
 
 class MyCouponsPage extends StatefulWidget {
@@ -1374,8 +1375,14 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                                               final main = MainScreen.of(context);
                                               if (main != null) {
                                                 main.setSelectedIndex(1);
-                                              } else if (Navigator.canPop(context)) {
-                                                Navigator.pop(context);
+                                              } else {
+                                                Navigator.popUntil(context, (route) => route.isFirst);
+                                                Future.delayed(const Duration(milliseconds: 150), () {
+                                                  final rootContext = NavigationService.navigatorKey.currentContext;
+                                                  if (rootContext != null && rootContext.mounted) {
+                                                    MainScreen.of(rootContext)?.setSelectedIndex(1);
+                                                  }
+                                                });
                                               }
                                             },
                                             child: Container(

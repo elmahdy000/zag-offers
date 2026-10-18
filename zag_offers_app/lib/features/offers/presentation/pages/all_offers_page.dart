@@ -79,6 +79,14 @@ class _AllOffersPageState extends State<AllOffersPage> {
       _minDiscount = 0;
       _sortBy = 'newest';
     });
+    if (_categoryScrollController.hasClients) {
+      _categoryScrollController.animateTo(
+        0,
+        duration: const Duration(milliseconds: 300),
+        curve: Curves.easeOut,
+      );
+    }
+    context.read<OffersBloc>().add(FetchAllOffers(categoryId: null));
   }
 
   List<OfferEntity> _getSourceOffers(OffersLoaded state) {
@@ -183,8 +191,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                         if (_currentArea != 'الكل' ||
                             _minDiscount > 0 ||
                             _sortBy != 'newest')
-                          Positioned(
-                            right: 12,
+                          PositionedDirectional(
+                            end: 12,
                             top: 12,
                             child: Container(
                               width: 8,
@@ -495,11 +503,13 @@ class _AllOffersPageState extends State<AllOffersPage> {
             : screenWidth < 340
                 ? 1
                 : 2;
-    final double childAspectRatio = screenWidth > 600
-        ? 0.76
-        : screenWidth < 360
-            ? 0.56
-            : 0.58;
+    final double childAspectRatio = crossAxisCount == 1
+        ? 0.88
+        : screenWidth > 600
+            ? 0.76
+            : screenWidth < 360
+                ? 0.56
+                : 0.58;
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
