@@ -128,3 +128,22 @@
   - Never discard already-loaded local offers while waiting for remote search API responses.
   - Never use raw `==` string equality for categories or areas; use `OfferFilterUtils.matchesCategory` and `OfferFilterUtils.matchesArea`.
 
+---
+
+## 12. Android Emulator Suppressing Soft Keyboard & Missing Arabic IME
+- **Error**: User unable to type Arabic in Android Emulator search field ("ليه مش قابل العربي"); on-screen keyboard doesn't appear when tapping text fields, and host physical keyboard sends raw QWERTY scan codes resulting in discarded or English-only input.
+- **Root Cause**:
+  1. Android detects the host computer's keyboard as an active physical keyboard and sets `secure show_ime_with_hard_keyboard = 0`, suppressing the virtual soft keyboard entirely.
+  2. The default emulator system locale is `en-US` with Gboard only having English (US) subtype configured, lacking Arabic physical or soft keyboard mappings.
+- **Fix**:
+  1. Enable soft keyboard with hard keyboard:
+     ```bash
+     adb shell settings put secure show_ime_with_hard_keyboard 1
+     ```
+  2. Set device locale to Arabic Egypt:
+     ```bash
+     adb shell cmd locale set-device-locale ar-EG
+     ```
+  3. Enable Gboard with Arabic (`ar-EG` / `LatinIME`).
+- **Prevention Invariant**: When initializing or testing Flutter apps on Android emulators in Arabic RTL mode, always ensure `show_ime_with_hard_keyboard` is set to `1` and Arabic locale/keyboard subtype is enabled.
+
