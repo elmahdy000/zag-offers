@@ -151,7 +151,29 @@
 - **Full Filter Audit**:
   - Verified `FilterBottomSheet` area chips with `EdgeInsetsDirectional.only(end: 8)`, minimum discount slider, sort options, and reset mechanism.
   - Verified `OfferFilterUtils` matching across categories, areas, minimum discounts, and sort criteria.
-  - Verified `AllOffersPage` grid aspect ratio tuned to `0.68` for compact cards.
+### N. Arabic Search Normalization & Unified Multi-Filter Engine
+- **Full Arabic Normalization Engine (`OfferFilterUtils`)**:
+  - Comprehensive glyph normalization: Alefs (`[أ, إ, آ, ٱ]` ➔ `ا`), Taa Marbuta (`ة` ➔ `ه`), Yaa & Alef Maksura (`[ى, ي, ئ]` ➔ `ي`), and Waw with Hamza (`ؤ` ➔ `و`).
+  - Tashkeel (diacritics), Tatweel (kashida), and invisible Unicode control characters (`\u200B-\u200F`, `\uFEFF`) stripped.
+  - Eastern Arabic numerals (`٠-٩`) converted to Western digits (`0-9`), ensuring numbers search accurately across all keyboards and locales.
+  - Multi-token searching with definite article (`ال`) tolerance in both directions (e.g. "فلل" matches "فلل الجامعة" and "الفلل").
+  - Egyptian phonetic/spelling variants support (`ه` vs `ا`, e.g. "شاورمة" matches "شاورما").
+- **Unified 0ms Client-Side & Remote Search (`SearchPage`)**:
+  - Unified local offer pool `_getAllSourceOffers` combining `allOffers`, `trendingOffers`, `recommendedOffers`, and `searchResults` without duplicates.
+  - Instantaneous 0ms local client-side re-render on keystroke via `setState` with 350ms debounced backend enrichment.
+  - Category sidebar remains persistent and interactive during search, allowing simultaneous category + area + discount + search filtering.
+  - Added active filter chips row with counter (`X عروض مطابقة`) and instant tap-to-delete on each active criterion.
+  - One-tap "إعادة ضبط الفلاتر والبحث" in the empty state.
+- **Category & Area Filter Robustness**:
+  - Normalized cross-mapping between backend category enums (`FOOD` vs `مطاعم`), display names, and Arabic aliases (`دلع كرشك`).
+  - Cleaned up `AllOffersPage` and `HomePage` to use `OfferFilterUtils.matchesCategory`.
+- **BLoC Search Hardening (`OffersBloc`)**:
+  - Fixed timer anti-pattern in `_onSearchOffers` to eliminate `StateError`.
+  - Non-destructive search failure handling preserves local loaded offers.
+- **Test Suite & Verification**:
+  - 14/14 tests in `test/offer_filter_arabic_search_test.dart` passing (27/27 overall suite).
+  - 0 issues on `flutter analyze lib/`.
+  - Verified live on Android emulator (`emulator-5554`) and iOS Simulator (`iPhone 17 Pro Max`).
 
 ---
 

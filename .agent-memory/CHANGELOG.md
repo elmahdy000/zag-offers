@@ -1,5 +1,30 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-19] - Arabic Search Normalization & Unified Multi-Filter Engine
+### Added / Fixed
+- **Arabic Normalization Engine (`OfferFilterUtils`)**:
+  - Full glyph normalization for Alefs (`[أ, إ, آ, ٱ]` ➔ `ا`), Taa Marbuta (`ة` ➔ `ه`), Yaa & Alef Maksura (`[ى, ي, ئ]` ➔ `ي`), and Waw with Hamza (`ؤ` ➔ `و`).
+  - Stripping Tashkeel (harakat), Tatweel (kashida), and invisible Unicode marks/control characters (`\u200B-\u200F`, `\uFEFF`).
+  - Eastern Arabic numerals conversion (`٠-٩` ➔ `0-9`) allowing numeric search across both keyboards and locales.
+  - Multi-token matching with definite article (`ال`) tolerance in both directions (e.g. searching "فلل" matches "فلل الجامعة" and "الفلل").
+  - Egyptian spelling variants support (`ه` vs `ا`, e.g. "شاورمة" matches "شاورما").
+- **Unified 0ms Client-Side & Remote Search (`SearchPage`)**:
+  - Replaced siloed search sourcing with `_getAllSourceOffers` combining `allOffers`, `trendingOffers`, `recommendedOffers`, and `searchResults` deduplicated by ID.
+  - Triggered instantaneous 0ms client-side re-render on keystroke via `setState` with 350ms debounced backend enrichment.
+  - Category sidebar remains persistent and accessible during search, enabling simultaneous category + area + discount + search filtering.
+  - Added active filter chips row with counter (`X عروض مطابقة`) and instant tap-to-delete on each active criterion.
+  - Added one-tap "إعادة ضبط الفلاتر والبحث" in the empty state.
+- **Category & Area Filter Robustness**:
+  - Normalized and cross-mapped backend enums (`FOOD` vs `مطاعم`), display names, and Arabic aliases (`دلع كرشك`).
+  - Updated `AllOffersPage` and `HomePage` to use `OfferFilterUtils.matchesCategory`.
+- **BLoC Search Hardening (`OffersBloc`)**:
+  - Replaced unawaited Timer in `_onSearchOffers` to fix `StateError: emit was called after handler completed`.
+  - Converted remote search failures to non-destructive so local filtered offers remain visible.
+- **Verification**:
+  - 14/14 unit tests passed in `test/offer_filter_arabic_search_test.dart` (27/27 overall suite).
+  - 0 issues on `flutter analyze lib/`.
+  - Verified live on Android emulator (`emulator-5554`) and iOS Simulator (`iPhone 17 Pro Max`).
+
 ## [2026-10-19] - Explore Offers Screen Redesign & Complete Arrow/Filter Audit
 ### Added / Changed
 - **Zero-Gradient Brand System (`SearchPage` & `OfferCard`)**: Completely removed all gradients from offer cards, badges, buttons, and placeholders in favor of crisp solid tokens (`#FF5A0A`, `#142033`, `#FFFFFF`, `#F1F5F9`).

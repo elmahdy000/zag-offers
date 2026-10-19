@@ -19,7 +19,6 @@ import 'package:zag_offers_app/features/offers/presentation/pages/search_page.da
 import 'package:zag_offers_app/features/offers/presentation/widgets/ads_slider.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/categories_section.dart';
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
-import 'package:zag_offers_app/features/offers/presentation/constants/offer_categories.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offers_skeleton.dart';
@@ -813,12 +812,9 @@ class _CategorySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final backendCategory = getBackendCategoryName(category);
     final filtered = OfferFilterUtils.apply(
-      offers: state.trendingOffers.where((offer) {
-        final cat = offer.store.category?.trim();
-        return cat == category.trim() || cat == backendCategory.trim();
-      }).toList(),
+      offers: state.trendingOffers,
+      category: category,
       area: currentArea,
       minDiscount: minDiscount,
       sortBy: sortBy,

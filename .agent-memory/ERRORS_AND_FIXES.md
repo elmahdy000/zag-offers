@@ -99,11 +99,32 @@
 - **Fix**: Use responsive breakpoints: when available content width `< 340px`, switch to 1 column with `childAspectRatio: 0.88`. Inside `OfferCard`, wrap info column in `LayoutBuilder` + `FittedBox(fit: BoxFit.scaleDown)` and price/CTA in `Flexible(flex: 0)`.
 - **Prevention Invariant**: Any grid sharing horizontal space with a persistent drawer/rail MUST calculate columns and aspect ratios from `LayoutBuilder.maxWidth`, not raw `MediaQuery.sizeOf(context).width`.
 
----
-
 ## 10. Sheet Translation Overlap Colliding with Gallery Thumbnails
 - **Error**: Gallery thumbnails in `OfferDetailPage` appeared wedged directly against the bottom edge of the hero image with zero breathing room.
 - **Root Cause**: The content sheet used `Transform.translate(offset: Offset(0, -28))` while its internal container top padding was only `18px`, placing the top of the thumbnail strip `-10px` above the hero bottom line.
 - **Fix**: Moderate overlap to `Offset(0, -20)`, provide `22px` top padding on the sheet, and add `14px` top padding to `_buildThumbnailsRow()`, creating 20px+ of clean visual space.
 - **Prevention Invariant**: When applying negative vertical translation for overlapping card sheets, the first child's effective visual offset (`paddingTop - translationOffset`) MUST exceed `12px`.
+
+---
+
+## 11. Arabic Search & Filters Invariance Breakdown
+- **Error**: Searching in Arabic failed or cleared the screen with "لم نعثر على نتائج مطابقة"; filters (category sidebar, area, minimum discount) broke or disappeared when typing in the search bar.
+- **Root Cause**:
+  1. `_getCurrentSourceOffers` reset to empty list when typing because `state.searchResults` was initially `null`, wiping loaded offers instantly.
+  2. `OfferFilterUtils.apply` was called without `searchQuery`, relying solely on backend API without client-side normalization.
+  3. Strict exact string matching on categories (`offer.store.category == _selectedCategory`) failed for English enums (`FOOD` vs `مطاعم`) and Arabic display aliases (`دلع كرشك`).
+  4. Lack of Arabic normalization caused queries with Alef variants (`أ`, `إ`, `آ`), Taa Marbuta (`ة`), Yaa/Alef Maksura (`ى`/`ي`), Tashkeel, Eastern numerals (`٠-٩`), and definite article `ال` to miss matching offers.
+  5. The category sidebar was hidden when `_searchController.text.isNotEmpty`, preventing users from filtering categories during search.
+  6. In `OffersBloc`, an unawaited `Timer` in `_onSearchOffers` caused `StateError: emit was called after an event handler completed normally`, and search failures wiped the screen with `OffersError`.
+- **Fix**:
+  1. Built a comprehensive Arabic normalization engine in `OfferFilterUtils` covering Alefs, Taa Marbuta, Yaa/Alef Maksura, Waw with Hamza, Tashkeel, Tatweel, Eastern numerals (`٠-٩` to `0-9`), and invisible control characters.
+  2. Implemented bidirectional token matching with definite article (`ال`) tolerance and Egyptian spelling variants (`ه` vs `ا`).
+  3. Integrated `_getAllSourceOffers` combining `allOffers`, `trendingOffers`, `recommendedOffers`, and `searchResults` deduplicated by ID.
+  4. Enabled 0ms immediate client-side filtering via `setState` on keystroke with 350ms debounced backend enrichment.
+  5. Preserved the persistent category sidebar and added active filter indicator chips with instant one-tap removal.
+  6. Fixed `OffersBloc` search handler to be safe and non-destructive.
+- **Prevention Invariant**:
+  - Always normalize Arabic search inputs using `OfferFilterUtils.normalizeArabic`.
+  - Never discard already-loaded local offers while waiting for remote search API responses.
+  - Never use raw `==` string equality for categories or areas; use `OfferFilterUtils.matchesCategory` and `OfferFilterUtils.matchesArea`.
 

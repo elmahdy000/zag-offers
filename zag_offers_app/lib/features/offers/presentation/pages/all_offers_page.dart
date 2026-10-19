@@ -104,8 +104,7 @@ class _AllOffersPageState extends State<AllOffersPage> {
     final availableAreas = OfferFilterUtils.extractAreas(
       sourceOffers
           .where((offer) =>
-              _selectedCategory == 'الكل' ||
-              offer.store.category == _selectedCategory)
+              OfferFilterUtils.matchesCategory(offer.store.category, _selectedCategory))
           .toList(),
     );
 

@@ -101,3 +101,16 @@
   - Phone cards use content-driven vertical sizing without forced empty vertical voids.
   - Missing image states use a store monogram initial in solid orange over soft cream rather than shimmer gradients.
 
+---
+
+## 15. Arabic Search Normalization & Non-Destructive Multi-Filter Engine
+- **Decision**: All offer search and filter queries must pass through `OfferFilterUtils.normalizeArabic()` and execute against a unified offer pool (`_getAllSourceOffers`) with immediate 0ms local client-side feedback.
+- **Rationale**: Arabic orthography has many glyph variations (Alefs, Taa Marbuta, Yaa/Alef Maksura, Hamzas, Tashkeel, Eastern numerals `٠-٩`). Relying on raw string equality or waiting for remote API roundtrips caused empty screens and broken filters while typing.
+- **Rules**:
+  1. **Instant Client-Side Response**: Keystrokes in `SearchPage` immediately trigger `setState` to filter loaded offers with 0ms latency, while debouncing (350ms) remote search calls in the background.
+  2. **Non-Destructive Offer Sourcing**: Never reset or discard loaded offers (`allOffers`, `trendingOffers`, `recommendedOffers`) when search starts; always merge remote results without duplicates.
+  3. **Multi-Filter Concurrency**: Category sidebar selection, area filter, minimum discount, sorting, and Arabic search query must be applied concurrently through `OfferFilterUtils.apply`.
+  4. **Persistent Sidebar**: The category sidebar must remain visible and interactive during search.
+  5. **Arabic Definite Article Tolerance**: Search matching must be agnostic to leading "ال" and common Egyptian alternate spellings (`ه` vs `ا`).
+
+

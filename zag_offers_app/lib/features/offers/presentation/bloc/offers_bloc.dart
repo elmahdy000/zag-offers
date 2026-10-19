@@ -142,26 +142,45 @@ class OffersBloc extends Bloc<OffersEvent, OffersState> {
 
   Future<void> _onSearchOffers(SearchOffers event, Emitter<OffersState> emit) async {
     if (state is! OffersLoaded) return;
-    _searchDebounce?.cancel();
-    _searchDebounce = Timer(const Duration(milliseconds: 300), () async {
-      if (state is! OffersLoaded) return;
-      final currentState = state as OffersLoaded;
+    final currentState = state as OffersLoaded;
 
-      final result = await searchOffersUseCase(event.query);
-      if (isClosed) return;
-      result.fold(
-        (failure) => emit(OffersError(failure.message)),
-        (results) => emit(OffersLoaded(
-          allOffers: currentState.allOffers,
-          trendingOffers: currentState.trendingOffers,
-          featuredStores: currentState.featuredStores,
-          categories: currentState.categories,
-          recommendedOffers: currentState.recommendedOffers,
-          searchResults: results,
-          noticeMessage: currentState.noticeMessage,
-        )),
-      );
-    });
+    final query = event.query.trim();
+    if (query.isEmpty) {
+      emit(OffersLoaded(
+        allOffers: currentState.allOffers,
+        trendingOffers: currentState.trendingOffers,
+        featuredStores: currentState.featuredStores,
+        categories: currentState.categories,
+        recommendedOffers: currentState.recommendedOffers,
+        searchResults: null,
+        noticeMessage: currentState.noticeMessage,
+      ));
+      return;
+    }
+
+    final result = await searchOffersUseCase(query);
+    if (isClosed || state is! OffersLoaded) return;
+
+    result.fold(
+      (failure) {
+        // Do not crash UI with full-screen error on remote search failure;
+        // Client-side instant filtering handles matching smoothly.
+      },
+      (results) {
+        if (state is OffersLoaded) {
+          final s = state as OffersLoaded;
+          emit(OffersLoaded(
+            allOffers: s.allOffers,
+            trendingOffers: s.trendingOffers,
+            featuredStores: s.featuredStores,
+            categories: s.categories,
+            recommendedOffers: s.recommendedOffers,
+            searchResults: results,
+            noticeMessage: s.noticeMessage,
+          ));
+        }
+      },
+    );
   }
 
   Future<void> _onFetchRecommendedOffers(FetchRecommendedOffers event, Emitter<OffersState> emit) async {

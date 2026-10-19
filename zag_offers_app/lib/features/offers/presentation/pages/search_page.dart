@@ -48,11 +48,17 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   void _onSearchChanged(String query, BuildContext context) {
+    // 1. Instant client-side re-render (0ms)
+    setState(() {});
+
+    // 2. Debounce remote search enrichment
     _debounceTimer?.cancel();
     _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       final trimmed = query.trim();
       if (OfferFilterUtils.shouldRunSearch(trimmed)) {
         context.read<OffersBloc>().add(SearchOffers(trimmed));
+      } else {
+        context.read<OffersBloc>().add(SearchOffers(''));
       }
     });
   }
@@ -65,23 +71,54 @@ class _SearchPageState extends State<SearchPage> {
     context.read<OffersBloc>().add(SearchOffers(''));
   }
 
-  List<OfferEntity> _getCurrentSourceOffers(OffersLoaded state) {
-    final source = _searchController.text.trim().isNotEmpty
-        ? state.searchResults ?? const <OfferEntity>[]
-        : state.trendingOffers;
+  void _resetAllFilters() {
+    _debounceTimer?.cancel();
+    setState(() {
+      _selectedCategory = 'الكل';
+      _currentArea = 'الكل';
+      _minDiscount = 0;
+      _sortBy = 'newest';
+      _searchController.clear();
+    });
+    context.read<OffersBloc>().add(SearchOffers(''));
+  }
 
-    return source
-        .where((offer) =>
-            _selectedCategory == 'الكل' ||
-            offer.store.category == _selectedCategory)
-        .toList();
+  List<OfferEntity> _getAllSourceOffers(OffersLoaded state) {
+    final Map<String, OfferEntity> map = {};
+
+    // 1. Add remote search results first if available
+    if (state.searchResults != null) {
+      for (final offer in state.searchResults!) {
+        map[offer.id] = offer;
+      }
+    }
+
+    // 2. Add all loaded offers
+    for (final offer in state.allOffers) {
+      map.putIfAbsent(offer.id, () => offer);
+    }
+
+    // 3. Add trending offers
+    for (final offer in state.trendingOffers) {
+      map.putIfAbsent(offer.id, () => offer);
+    }
+
+    // 4. Add recommended offers
+    if (state.recommendedOffers != null) {
+      for (final offer in state.recommendedOffers!) {
+        map.putIfAbsent(offer.id, () => offer);
+      }
+    }
+
+    return map.values.toList();
   }
 
   Future<void> _showFilterSheet() async {
     final loadedState = context.read<OffersBloc>().state;
-    final availableAreas = loadedState is OffersLoaded
-        ? OfferFilterUtils.extractAreas(_getCurrentSourceOffers(loadedState))
-        : const ['الكل'];
+    final allOffers = loadedState is OffersLoaded
+        ? _getAllSourceOffers(loadedState)
+        : const <OfferEntity>[];
+    final availableAreas = OfferFilterUtils.extractAreas(allOffers);
 
     final result = await showModalBottomSheet<Map<String, dynamic>>(
       context: context,
@@ -124,18 +161,6 @@ class _SearchPageState extends State<SearchPage> {
           }
 
           if (state is OffersLoaded) {
-            if (_searchController.text.trim().isNotEmpty) {
-              if (!OfferFilterUtils.shouldRunSearch(_searchController.text)) {
-                return _buildEmptyState(
-                  isDark: isDark,
-                  icon: Icons.search_rounded,
-                  title: 'اكتب كلمة أوضح للبحث',
-                  subtitle: 'ابدأ بـ 3 أحرف على الأقل لعرض نتائج دقيقة.',
-                );
-              }
-              return _buildSearchResults(context, state, isDark);
-            }
-
             return Row(
               children: [
                 _buildSidebar(context, state, isDark),
@@ -516,45 +541,174 @@ class _SearchPageState extends State<SearchPage> {
   // 3. RESPONSIVE, CONTENT-DRIVEN OFFERS FEED (ZERO WASTED VERTICAL SPACE)
   // =========================================================================
   Widget _buildOffersFeed(BuildContext context, OffersLoaded state, bool isDark) {
+    final query = _searchController.text.trim();
+    final allOffers = _getAllSourceOffers(state);
     final filtered = OfferFilterUtils.apply(
-      offers: _getCurrentSourceOffers(state),
+      offers: allOffers,
       category: _selectedCategory,
       area: _currentArea,
       minDiscount: _minDiscount,
       sortBy: _sortBy,
+      searchQuery: query,
     );
+
+    final hasActiveFilter =
+        _currentArea != 'الكل' || _minDiscount > 0 || _selectedCategory != 'الكل';
 
     if (filtered.isEmpty) {
       return _buildEmptyState(
         isDark: isDark,
-        icon: Icons.local_offer_outlined,
-        title: 'لا توجد عروض مطابقة',
-        subtitle: 'جرّب اختيار تصنيف آخر أو خفّف الفلاتر للعثور على عروض حصرية.',
+        icon: query.isNotEmpty ? Icons.search_off_rounded : Icons.local_offer_outlined,
+        title: query.isNotEmpty ? 'لم نعثر على نتائج مطابقة' : 'لا توجد عروض مطابقة',
+        subtitle: query.isNotEmpty
+            ? 'جرّب البحث بكلمة أخرى أو تعديل التصنيف والفلاتر للعثور على عروض.'
+            : 'جرّب اختيار تصنيف آخر أو خفّف الفلاتر للعثور على عروض حصرية.',
       );
     }
 
-    return _buildResponsiveList(context, filtered);
+    return Column(
+      children: [
+        if (hasActiveFilter || query.isNotEmpty)
+          _buildActiveFiltersHeader(context, filtered.length, isDark),
+        Expanded(
+          child: _buildResponsiveList(context, filtered),
+        ),
+      ],
+    );
   }
 
-  Widget _buildSearchResults(BuildContext context, OffersLoaded state, bool isDark) {
-    final results = OfferFilterUtils.apply(
-      offers: _getCurrentSourceOffers(state),
-      category: _selectedCategory,
-      area: _currentArea,
-      minDiscount: _minDiscount,
-      sortBy: _sortBy,
+  Widget _buildActiveFiltersHeader(
+    BuildContext context,
+    int count,
+    bool isDark,
+  ) {
+    return Container(
+      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Row(
+            children: [
+              Text(
+                '$count ${count == 1 ? "عرض مطابق" : "عروض مطابقة"}',
+                style: GoogleFonts.cairo(
+                  fontSize: 11.5,
+                  fontWeight: FontWeight.w800,
+                  color: isDark ? Colors.white70 : _darkNavy,
+                ),
+              ),
+              const Spacer(),
+              if (_selectedCategory != 'الكل' ||
+                  _currentArea != 'الكل' ||
+                  _minDiscount > 0)
+                BouncyTap(
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    setState(() {
+                      _selectedCategory = 'الكل';
+                      _currentArea = 'الكل';
+                      _minDiscount = 0;
+                    });
+                  },
+                  child: Text(
+                    'مسح الفلاتر',
+                    style: GoogleFonts.cairo(
+                      fontSize: 11,
+                      fontWeight: FontWeight.w800,
+                      color: _primaryOrange,
+                    ),
+                  ),
+                ),
+            ],
+          ),
+          const SizedBox(height: 6),
+          SingleChildScrollView(
+            scrollDirection: Axis.horizontal,
+            child: Row(
+              children: [
+                if (_selectedCategory != 'الكل')
+                  _buildFilterChip(
+                    label: CategoryUtils.getDisplayName(_selectedCategory),
+                    onDelete: () {
+                      setState(() => _selectedCategory = 'الكل');
+                    },
+                    isDark: isDark,
+                  ),
+                if (_currentArea != 'الكل')
+                  _buildFilterChip(
+                    label: _currentArea,
+                    icon: Icons.location_on_outlined,
+                    onDelete: () {
+                      setState(() => _currentArea = 'الكل');
+                    },
+                    isDark: isDark,
+                  ),
+                if (_minDiscount > 0)
+                  _buildFilterChip(
+                    label: 'خصم ${_minDiscount.toInt()}%+',
+                    icon: Icons.percent_rounded,
+                    onDelete: () {
+                      setState(() => _minDiscount = 0);
+                    },
+                    isDark: isDark,
+                  ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
+  }
 
-    if (results.isEmpty) {
-      return _buildEmptyState(
-        isDark: isDark,
-        icon: Icons.search_off_rounded,
-        title: 'لم نعثر على نتائج مطابقة',
-        subtitle: 'جرّب البحث بكلمات أخرى أو تحقق من تهجئة اسم المتجر أو العرض.',
-      );
-    }
-
-    return _buildResponsiveList(context, results);
+  Widget _buildFilterChip({
+    required String label,
+    required VoidCallback onDelete,
+    required bool isDark,
+    IconData? icon,
+  }) {
+    return Padding(
+      padding: const EdgeInsetsDirectional.only(end: 6),
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3.5),
+        decoration: BoxDecoration(
+          color: isDark ? _cardDark : const Color(0xFFFFF3EC),
+          borderRadius: BorderRadius.circular(8),
+          border: Border.all(
+            color: _primaryOrange.withValues(alpha: 0.35),
+            width: 0.8,
+          ),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            if (icon != null) ...[
+              Icon(icon, size: 12, color: _primaryOrange),
+              const SizedBox(width: 4),
+            ],
+            Text(
+              label,
+              style: GoogleFonts.cairo(
+                fontSize: 10.5,
+                fontWeight: FontWeight.w700,
+                color: _primaryOrange,
+              ),
+            ),
+            const SizedBox(width: 4),
+            BouncyTap(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                onDelete();
+              },
+              child: const Icon(
+                Icons.close_rounded,
+                size: 13,
+                color: _primaryOrange,
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
   }
 
   Widget _buildResponsiveList(BuildContext context, List<OfferEntity> offers) {
@@ -684,14 +838,7 @@ class _SearchPageState extends State<SearchPage> {
               BouncyTap(
                 onTap: () {
                   HapticFeedback.lightImpact();
-                  setState(() {
-                    _selectedCategory = 'الكل';
-                    _currentArea = 'الكل';
-                    _minDiscount = 0;
-                    _sortBy = 'newest';
-                    _searchController.clear();
-                  });
-                  context.read<OffersBloc>().add(SearchOffers(''));
+                  _resetAllFilters();
                 },
                 child: Container(
                   padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
