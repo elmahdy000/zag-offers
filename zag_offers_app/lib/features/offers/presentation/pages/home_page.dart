@@ -872,7 +872,12 @@ Widget _buildOffersSectionWidget(
             ),
             TextButton.icon(
               onPressed: () => MainScreen.of(context)?.setSelectedIndex(1),
-              label: const Icon(Icons.arrow_forward_rounded, size: 16),
+              label: Icon(
+                Directionality.of(context) == TextDirection.rtl
+                    ? Icons.arrow_back_ios_new_rounded
+                    : Icons.arrow_forward_ios_rounded,
+                size: 13,
+              ),
               icon: Text(
                 'عرض الكل',
                 style: textTheme.labelLarge?.copyWith(
@@ -895,6 +900,7 @@ Widget _buildOffersSectionWidget(
           itemCount: offers.length,
           itemBuilder: (context, index) {
             final offer = offers[index];
+            final cardHeroTag = 'home_trending_${offer.id}_$index';
             return RepaintBoundary(
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(end: 14),
@@ -903,10 +909,14 @@ Widget _buildOffersSectionWidget(
                   child: OfferCard(
                     offer: offer,
                     isWide: true,
+                    heroTag: cardHeroTag,
                     onTap: () => Navigator.push(
                       context,
                       MaterialPageRoute(
-                        builder: (context) => OfferDetailPage(offer: offer),
+                        builder: (context) => OfferDetailPage(
+                          offer: offer,
+                          heroTag: cardHeroTag,
+                        ),
                       ),
                     ),
                   ),

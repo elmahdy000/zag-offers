@@ -3,8 +3,10 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
+import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
 import 'package:zag_offers_app/features/offers/domain/entities/offer_entity.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_bloc.dart';
 import 'package:zag_offers_app/features/offers/presentation/bloc/offers_event.dart';
@@ -13,8 +15,6 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
-import 'package:zag_offers_app/core/widgets/network_image_widget.dart';
-import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -24,6 +24,14 @@ class SearchPage extends StatefulWidget {
 }
 
 class _SearchPageState extends State<SearchPage> {
+  // Brand Color Tokens (Strictly Solid - Zero Gradients)
+  static const Color _primaryOrange = Color(0xFFFF5A0A);
+  static const Color _darkNavy = Color(0xFF142033);
+  static const Color _lightBg = Color(0xFFF8F9FB);
+  static const Color _secondaryGray = Color(0xFF718096);
+  static const Color _cardDark = Color(0xFF162032);
+  static const Color _borderLight = Color(0xFFE2E8F0);
+
   String _selectedCategory = 'الكل';
   final TextEditingController _searchController = TextEditingController();
   Timer? _debounceTimer;
@@ -41,7 +49,7 @@ class _SearchPageState extends State<SearchPage> {
 
   void _onSearchChanged(String query, BuildContext context) {
     _debounceTimer?.cancel();
-    _debounceTimer = Timer(const Duration(milliseconds: 400), () {
+    _debounceTimer = Timer(const Duration(milliseconds: 350), () {
       final trimmed = query.trim();
       if (OfferFilterUtils.shouldRunSearch(trimmed)) {
         context.read<OffersBloc>().add(SearchOffers(trimmed));
@@ -99,176 +107,111 @@ class _SearchPageState extends State<SearchPage> {
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
+    final isDark = theme.brightness == Brightness.dark;
+    final scaffoldBg = isDark ? const Color(0xFF0F172A) : _lightBg;
+
     return Scaffold(
-      appBar: AppBar(
-        elevation: 0,
-        leading: IconButton(
-          icon: Icon(
-            Directionality.of(context) == TextDirection.rtl
-                ? Icons.arrow_forward_ios_rounded
-                : Icons.arrow_back_ios_new_rounded,
-            size: 20,
-          ),
-          onPressed: () => Navigator.pop(context),
-        ),
-        title: Container(
-          height: 50,
-          decoration: BoxDecoration(
-            color: theme.cardColor,
-            borderRadius: BorderRadius.circular(24),
-            border: Border.all(color: theme.dividerColor),
-          ),
-          child: TextField(
-            controller: _searchController,
-            onChanged: (val) => _onSearchChanged(val, context),
-            onSubmitted: (val) {
-              _debounceTimer?.cancel();
-              final trimmed = val.trim();
-              if (OfferFilterUtils.shouldRunSearch(trimmed)) {
-                context.read<OffersBloc>().add(SearchOffers(trimmed));
-              }
-              FocusScope.of(context).unfocus();
-            },
-            textInputAction: TextInputAction.search,
-            autofocus: true,
-            style: const TextStyle(fontSize: 14),
-            decoration: InputDecoration(
-              hintText: 'ابحث عن عرض أو متجر',
-              border: InputBorder.none,
-              prefixIcon: const Icon(
-                Icons.search_rounded,
-                color: AppColors.primary,
-                size: 20,
-              ),
-              suffixIcon: _searchController.text.isNotEmpty
-                  ? IconButton(
-                  icon: const Icon(
-                    Icons.close_rounded,
-                    size: 18,
-                  ),
-                  onPressed: () => _clearSearch(context),
-                )
-                  : null,
-            ),
-          ),
-        ),
-        actions: [
-          Stack(
-            children: [
-              IconButton(
-                icon: const Icon(Icons.tune_rounded),
-                onPressed: _showFilterSheet,
-              ),
-              if (_currentArea != 'الكل' ||
-                  _minDiscount > 0 ||
-                  _sortBy != 'newest')
-                PositionedDirectional(
-                  end: 12,
-                  top: 12,
-                  child: Container(
-                    width: 8,
-                    height: 8,
-                    decoration: const BoxDecoration(
-                      color: AppColors.primary,
-                      shape: BoxShape.circle,
-                    ),
-                  ),
-                ),
-            ],
-          ),
-          const SizedBox(width: 8),
-        ],
-      ),
+      backgroundColor: scaffoldBg,
+      appBar: _buildAppBar(context, isDark),
       body: BlocBuilder<OffersBloc, OffersState>(
-        buildWhen: (prev, next) => next is OffersLoaded || next is OffersLoading || next is OffersError,
+        buildWhen: (prev, next) =>
+            next is OffersLoaded || next is OffersLoading || next is OffersError,
         builder: (context, state) {
           if (state is OffersLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Center(
+              child: CircularProgressIndicator(color: _primaryOrange, strokeWidth: 2.5),
+            );
           }
 
           if (state is OffersLoaded) {
             if (_searchController.text.trim().isNotEmpty) {
               if (!OfferFilterUtils.shouldRunSearch(_searchController.text)) {
                 return _buildEmptyState(
+                  isDark: isDark,
                   icon: Icons.search_rounded,
                   title: 'اكتب كلمة أوضح للبحث',
                   subtitle: 'ابدأ بـ 3 أحرف على الأقل لعرض نتائج دقيقة.',
                 );
               }
-              return _buildSearchResults(context, state);
+              return _buildSearchResults(context, state, isDark);
             }
 
             return Row(
               children: [
-                _buildSidebar(context, state),
-                Expanded(child: _buildOffersGrid(context, state)),
+                _buildSidebar(context, state, isDark),
+                Expanded(child: _buildOffersFeed(context, state, isDark)),
               ],
             );
           }
 
           if (state is OffersError) {
-            final isConnectionError = state.message.toLowerCase().contains('connection') || 
-                                     state.message.toLowerCase().contains('network') ||
-                                     state.message.toLowerCase().contains('socket');
+            final isConnectionError = state.message.toLowerCase().contains('connection') ||
+                state.message.toLowerCase().contains('network') ||
+                state.message.toLowerCase().contains('socket');
 
             return Center(
               child: Padding(
-                padding: const EdgeInsets.all(40),
+                padding: const EdgeInsets.all(32),
                 child: Column(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     Container(
-                      padding: const EdgeInsets.all(24),
+                      padding: const EdgeInsets.all(20),
                       decoration: BoxDecoration(
-                        color: AppColors.error.withValues(alpha: 0.1),
+                        color: const Color(0xFFFEE2E2),
                         shape: BoxShape.circle,
                       ),
                       child: Icon(
                         isConnectionError ? Icons.wifi_off_rounded : Icons.error_outline_rounded,
-                        size: 64,
-                        color: AppColors.error,
+                        size: 48,
+                        color: const Color(0xFFDC2626),
                       ),
                     ),
-                    const SizedBox(height: 24),
+                    const SizedBox(height: 18),
                     Text(
-                      isConnectionError ? 'مشكلة في الاتصال' : 'تعذر تحميل العروض',
-                      style: Theme.of(context).textTheme.headlineSmall?.copyWith(
+                      isConnectionError ? 'تعذر الاتصال بالخادم' : 'تعذر تحميل العروض',
+                      style: GoogleFonts.cairo(
+                        fontSize: 17,
                         fontWeight: FontWeight.w900,
+                        color: isDark ? Colors.white : _darkNavy,
                       ),
                     ),
-                    const SizedBox(height: 12),
+                    const SizedBox(height: 8),
                     Text(
-                      isConnectionError 
-                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مرة أخرى'
+                      isConnectionError
+                          ? 'يرجى التحقق من اتصالك بالإنترنت والمحاولة مجدداً.'
                           : state.message,
                       textAlign: TextAlign.center,
-                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                        color: AppColors.textSecondary,
-                        height: 1.5,
+                      style: GoogleFonts.cairo(
+                        fontSize: 12.5,
+                        color: _secondaryGray,
+                        height: 1.4,
                       ),
                     ),
-                    const SizedBox(height: 32),
-                    SizedBox(
-                      width: 200,
-                      height: 50,
-                      child: ElevatedButton(
-                        onPressed: () => context.read<OffersBloc>().add(SearchOffers(_searchController.text)),
-                        style: ElevatedButton.styleFrom(
-                          backgroundColor: AppColors.primary,
-                          foregroundColor: Colors.white,
-                          shape: RoundedRectangleBorder(
-                            borderRadius: BorderRadius.circular(16),
-                          ),
-                          elevation: 0,
+                    const SizedBox(height: 22),
+                    BouncyTap(
+                      onTap: () {
+                        HapticFeedback.lightImpact();
+                        context.read<OffersBloc>().add(SearchOffers(_searchController.text));
+                      },
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 10),
+                        decoration: BoxDecoration(
+                          color: _primaryOrange,
+                          borderRadius: BorderRadius.circular(10),
                         ),
-                        child: const Row(
-                          mainAxisAlignment: MainAxisAlignment.center,
+                        child: Row(
+                          mainAxisSize: MainAxisSize.min,
                           children: [
-                            Icon(Icons.refresh_rounded, size: 20),
-                            SizedBox(width: 8),
+                            const Icon(Icons.refresh_rounded, size: 16, color: Colors.white),
+                            const SizedBox(width: 6),
                             Text(
                               'إعادة المحاولة',
-                              style: TextStyle(fontWeight: FontWeight.bold),
+                              style: GoogleFonts.cairo(
+                                fontSize: 13,
+                                fontWeight: FontWeight.w800,
+                                color: Colors.white,
+                              ),
                             ),
                           ],
                         ),
@@ -286,28 +229,191 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildSidebar(BuildContext context, OffersLoaded state) {
-    final theme = Theme.of(context);
+  // =========================================================================
+  // 1. COMPACT, ACCESSIBLE SEARCH & FILTER HEADER
+  // =========================================================================
+  PreferredSizeWidget _buildAppBar(BuildContext context, bool isDark) {
+    final hasActiveFilter =
+        _currentArea != 'الكل' || _minDiscount > 0 || _sortBy != 'newest';
+
+    return AppBar(
+      elevation: 0,
+      scrolledUnderElevation: 0,
+      backgroundColor: isDark ? _darkNavy : Colors.white,
+      toolbarHeight: 60,
+      automaticallyImplyLeading: false,
+      titleSpacing: 0,
+      title: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 12),
+        child: Row(
+          children: [
+            // Back Button (Directional RTL)
+            BouncyTap(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                Navigator.pop(context);
+              },
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isDark ? _cardDark : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withValues(alpha: 0.08) : _borderLight,
+                    width: 0.8,
+                  ),
+                ),
+                child: Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.arrow_forward_ios_rounded
+                      : Icons.arrow_back_ios_new_rounded,
+                  size: 16,
+                  color: isDark ? Colors.white : _darkNavy,
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            // Search TextField (Compact Squircle)
+            Expanded(
+              child: Container(
+                height: 42,
+                decoration: BoxDecoration(
+                  color: isDark ? _cardDark : _lightBg,
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: isDark ? Colors.white.withValues(alpha: 0.08) : _borderLight,
+                    width: 0.8,
+                  ),
+                ),
+                child: TextField(
+                  controller: _searchController,
+                  onChanged: (val) => _onSearchChanged(val, context),
+                  onSubmitted: (val) {
+                    _debounceTimer?.cancel();
+                    final trimmed = val.trim();
+                    if (OfferFilterUtils.shouldRunSearch(trimmed)) {
+                      context.read<OffersBloc>().add(SearchOffers(trimmed));
+                    }
+                    FocusScope.of(context).unfocus();
+                  },
+                  textInputAction: TextInputAction.search,
+                  style: GoogleFonts.cairo(
+                    fontSize: 13,
+                    fontWeight: FontWeight.w700,
+                    color: isDark ? Colors.white : _darkNavy,
+                  ),
+                  decoration: InputDecoration(
+                    isDense: true,
+                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
+                    hintText: 'ابحث عن عرض أو متجر...',
+                    hintStyle: GoogleFonts.cairo(
+                      fontSize: 12.5,
+                      fontWeight: FontWeight.w600,
+                      color: _secondaryGray,
+                    ),
+                    border: InputBorder.none,
+                    prefixIcon: const Icon(
+                      Icons.search_rounded,
+                      color: _primaryOrange,
+                      size: 18,
+                    ),
+                    suffixIcon: _searchController.text.isNotEmpty
+                        ? IconButton(
+                            padding: EdgeInsets.zero,
+                            icon: const Icon(
+                              Icons.close_rounded,
+                              size: 17,
+                              color: _secondaryGray,
+                            ),
+                            onPressed: () => _clearSearch(context),
+                          )
+                        : null,
+                  ),
+                ),
+              ),
+            ),
+
+            const SizedBox(width: 8),
+
+            // Filter Button
+            BouncyTap(
+              onTap: () {
+                HapticFeedback.lightImpact();
+                _showFilterSheet();
+              },
+              child: Container(
+                width: 38,
+                height: 38,
+                decoration: BoxDecoration(
+                  color: isDark ? _cardDark : const Color(0xFFF1F5F9),
+                  borderRadius: BorderRadius.circular(10),
+                  border: Border.all(
+                    color: hasActiveFilter
+                        ? _primaryOrange
+                        : (isDark ? Colors.white.withValues(alpha: 0.08) : _borderLight),
+                    width: hasActiveFilter ? 1.5 : 0.8,
+                  ),
+                ),
+                child: Stack(
+                  alignment: Alignment.center,
+                  children: [
+                    Icon(
+                      Icons.tune_rounded,
+                      size: 18,
+                      color: hasActiveFilter
+                          ? _primaryOrange
+                          : (isDark ? Colors.white : _darkNavy),
+                    ),
+                    if (hasActiveFilter)
+                      PositionedDirectional(
+                        top: 5,
+                        end: 5,
+                        child: Container(
+                          width: 6,
+                          height: 6,
+                          decoration: const BoxDecoration(
+                            color: _primaryOrange,
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
+  // =========================================================================
+  // 2. COMPACT CATEGORIES SIDEBAR (82px, SOLID BRANDED PILL SELECTION)
+  // =========================================================================
+  Widget _buildSidebar(BuildContext context, OffersLoaded state, bool isDark) {
     final dynamicCategories = state.categories;
     final itemCount = dynamicCategories.length + 1; // + "الكل"
 
     return Container(
-      width: 96,
+      width: 82,
       decoration: BoxDecoration(
-        color: theme.cardColor.withValues(alpha: 0.8),
+        color: isDark ? _darkNavy : Colors.white,
         border: BorderDirectional(
           end: BorderSide(
-            color: theme.dividerColor.withValues(alpha: 0.1),
-            width: 1,
+            color: isDark ? Colors.white.withValues(alpha: 0.08) : _borderLight,
+            width: 0.8,
           ),
         ),
       ),
       child: ListView.builder(
         keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
         padding: EdgeInsets.fromLTRB(
-          0,
-          12,
-          0,
+          6,
+          8,
+          6,
           24 + MediaQuery.paddingOf(context).bottom,
         ),
         itemCount: itemCount,
@@ -319,9 +425,9 @@ class _SearchPageState extends State<SearchPage> {
               : CategoryUtils.getDisplayName(dynamicCategories[index - 1].name);
           final categoryImage = isAll ? null : dynamicCategories[index - 1].image;
           final isSelected = _selectedCategory == categoryBackendName;
-          
+
           return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 4, horizontal: 8),
+            padding: const EdgeInsets.symmetric(vertical: 3.5),
             child: BouncyTap(
               onTap: () {
                 setState(() {
@@ -330,29 +436,34 @@ class _SearchPageState extends State<SearchPage> {
                 HapticFeedback.lightImpact();
               },
               child: AnimatedContainer(
-                duration: const Duration(milliseconds: 300),
-                curve: Curves.easeInOut,
-                padding: const EdgeInsets.symmetric(vertical: 14),
+                duration: const Duration(milliseconds: 220),
+                curve: Curves.easeOutCubic,
+                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
                 decoration: BoxDecoration(
-                  color: isSelected 
-                      ? AppColors.primary.withValues(alpha: 0.1) 
+                  color: isSelected
+                      ? (isDark ? _cardDark : const Color(0xFFFFF3EC))
                       : Colors.transparent,
-                  borderRadius: BorderRadius.circular(16),
+                  borderRadius: BorderRadius.circular(12),
+                  border: Border.all(
+                    color: isSelected ? _primaryOrange : Colors.transparent,
+                    width: 1,
+                  ),
                 ),
                 child: Column(
                   mainAxisSize: MainAxisSize.min,
                   children: [
+                    // Circular Category Image (40x40)
                     Container(
-                      width: 48,
-                      height: 48,
-                      padding: const EdgeInsets.all(2),
+                      width: 40,
+                      height: 40,
+                      padding: const EdgeInsets.all(1.5),
                       decoration: BoxDecoration(
                         shape: BoxShape.circle,
                         border: Border.all(
-                          color: isSelected 
-                              ? AppColors.primary 
-                              : theme.dividerColor.withValues(alpha: 0.1),
-                          width: 1.5,
+                          color: isSelected
+                              ? _primaryOrange
+                              : (isDark ? Colors.white.withValues(alpha: 0.12) : _borderLight),
+                          width: isSelected ? 2 : 1,
                         ),
                       ),
                       child: ClipOval(
@@ -362,25 +473,33 @@ class _SearchPageState extends State<SearchPage> {
                                 fit: BoxFit.cover,
                               )
                             : Container(
-                                color: AppColors.primary.withValues(alpha: 0.1),
+                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF3EC),
                                 child: Icon(
-                                  isAll ? Icons.grid_view_rounded : CategoryUtils.getIcon(categoryBackendName),
-                                  color: AppColors.primary,
-                                  size: 20,
+                                  isAll
+                                      ? Icons.grid_view_rounded
+                                      : CategoryUtils.getIcon(categoryBackendName),
+                                  color: _primaryOrange,
+                                  size: 18,
                                 ),
                               ),
                       ),
                     ),
-                    const SizedBox(height: 8),
+
+                    const SizedBox(height: 5),
+
+                    // Category Label (Readable Cairo font, single line)
                     Text(
                       categoryDisplayName,
                       textAlign: TextAlign.center,
                       maxLines: 1,
                       overflow: TextOverflow.ellipsis,
-                      style: theme.textTheme.labelSmall?.copyWith(
-                        fontSize: 10,
-                        color: isSelected ? AppColors.primary : AppColors.textSecondary,
-                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w600,
+                      style: GoogleFonts.cairo(
+                        fontSize: 10.5,
+                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                        color: isSelected
+                            ? _primaryOrange
+                            : (isDark ? Colors.grey.shade300 : _secondaryGray),
+                        height: 1.15,
                       ),
                     ),
                   ],
@@ -393,7 +512,10 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
-  Widget _buildOffersGrid(BuildContext context, OffersLoaded state) {
+  // =========================================================================
+  // 3. RESPONSIVE, CONTENT-DRIVEN OFFERS FEED (ZERO WASTED VERTICAL SPACE)
+  // =========================================================================
+  Widget _buildOffersFeed(BuildContext context, OffersLoaded state, bool isDark) {
     final filtered = OfferFilterUtils.apply(
       offers: _getCurrentSourceOffers(state),
       category: _selectedCategory,
@@ -404,16 +526,17 @@ class _SearchPageState extends State<SearchPage> {
 
     if (filtered.isEmpty) {
       return _buildEmptyState(
+        isDark: isDark,
         icon: Icons.local_offer_outlined,
         title: 'لا توجد عروض مطابقة',
-        subtitle: 'جرّب تغيير التصنيف أو إعادة ضبط الفلاتر لتجد ما تبحث عنه.',
+        subtitle: 'جرّب اختيار تصنيف آخر أو خفّف الفلاتر للعثور على عروض حصرية.',
       );
     }
 
-    return _buildResponsiveOffersGrid(context, filtered);
+    return _buildResponsiveList(context, filtered);
   }
 
-  Widget _buildSearchResults(BuildContext context, OffersLoaded state) {
+  Widget _buildSearchResults(BuildContext context, OffersLoaded state, bool isDark) {
     final results = OfferFilterUtils.apply(
       offers: _getCurrentSourceOffers(state),
       category: _selectedCategory,
@@ -424,59 +547,77 @@ class _SearchPageState extends State<SearchPage> {
 
     if (results.isEmpty) {
       return _buildEmptyState(
+        isDark: isDark,
         icon: Icons.search_off_rounded,
-        title: 'لم نعثر على نتائج',
-        subtitle: 'جرّب كلمات مختلفة أو خفّف الفلاتر الحالية للحصول على نتائج أفضل.',
+        title: 'لم نعثر على نتائج مطابقة',
+        subtitle: 'جرّب البحث بكلمات أخرى أو تحقق من تهجئة اسم المتجر أو العرض.',
       );
     }
 
-    return _buildResponsiveOffersGrid(context, results);
+    return _buildResponsiveList(context, results);
   }
 
-  Widget _buildResponsiveOffersGrid(
-    BuildContext context,
-    List<OfferEntity> offers,
-  ) {
+  Widget _buildResponsiveList(BuildContext context, List<OfferEntity> offers) {
     final bottomInset = MediaQuery.paddingOf(context).bottom;
+
     return LayoutBuilder(
       builder: (context, constraints) {
         final width = constraints.maxWidth;
-        final int crossAxisCount;
-        final double childAspectRatio;
 
-        if (width >= 850) {
-          crossAxisCount = 4;
-          childAspectRatio = 0.80;
-        } else if (width >= 580) {
-          crossAxisCount = 3;
-          childAspectRatio = 0.72;
-        } else if (width >= 340) {
-          crossAxisCount = 2;
-          childAspectRatio = 0.58;
-        } else {
-          crossAxisCount = 1;
-          childAspectRatio = 0.88;
+        // Mobile Phone Column (< 520px): Content-Driven ListView (No fixed stretched heights!)
+        if (width < 520) {
+          return ListView.separated(
+            keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
+            padding: EdgeInsets.fromLTRB(12, 12, 12, 24 + bottomInset),
+            itemCount: offers.length,
+            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            itemBuilder: (context, index) {
+              final offer = offers[index];
+              final cardHeroTag = 'explore_offers_${offer.id}_$index';
+              return OfferCard(
+                offer: offer,
+                isWide: true,
+                heroTag: cardHeroTag,
+                onTap: () => Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (context) => OfferDetailPage(
+                      offer: offer,
+                      heroTag: cardHeroTag,
+                    ),
+                  ),
+                ),
+              );
+            },
+          );
         }
 
+        // Tablet / Foldable Screen (>= 520px): Multi-column Grid
+        final crossAxisCount = width >= 780 ? 3 : 2;
         return GridView.builder(
           keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-          padding: EdgeInsets.fromLTRB(16, 16, 16, 24 + bottomInset),
+          padding: EdgeInsets.fromLTRB(14, 14, 14, 24 + bottomInset),
           gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: crossAxisCount,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
-            childAspectRatio: childAspectRatio,
+            childAspectRatio: 0.80,
           ),
           itemCount: offers.length,
           itemBuilder: (context, index) {
             final offer = offers[index];
+            final cardHeroTag = 'explore_offers_${offer.id}_$index';
             return OfferCard(
               offer: offer,
               isWide: true,
+              heroTag: cardHeroTag,
               onTap: () => Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => OfferDetailPage(offer: offer),
+                  builder: (context) => OfferDetailPage(
+                    offer: offer,
+                    heroTag: cardHeroTag,
+                  ),
                 ),
               ),
             );
@@ -486,48 +627,99 @@ class _SearchPageState extends State<SearchPage> {
     );
   }
 
+  // =========================================================================
+  // 4. CLEAN, SOLID BRANDED EMPTY STATE
+  // =========================================================================
   Widget _buildEmptyState({
+    required bool isDark,
     required IconData icon,
     required String title,
     required String subtitle,
   }) {
-    final theme = Theme.of(context);
     return Center(
       child: Padding(
-        padding: const EdgeInsets.all(40),
+        padding: const EdgeInsets.symmetric(horizontal: 28, vertical: 32),
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
             Container(
-              padding: const EdgeInsets.all(24),
+              width: 58,
+              height: 58,
               decoration: BoxDecoration(
-                color: AppColors.primary.withValues(alpha: 0.1),
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF3EC),
                 shape: BoxShape.circle,
               ),
               child: Icon(
                 icon,
-                size: 64,
-                color: AppColors.primary,
+                size: 26,
+                color: _primaryOrange,
               ),
             ),
-            const SizedBox(height: 24),
+            const SizedBox(height: 14),
             Text(
               title,
               textAlign: TextAlign.center,
-              style: theme.textTheme.headlineSmall?.copyWith(
+              style: GoogleFonts.cairo(
                 fontWeight: FontWeight.w900,
-                color: AppColors.textPrimary,
+                fontSize: 15,
+                color: isDark ? Colors.white : _darkNavy,
               ),
             ),
-            const SizedBox(height: 12),
+            const SizedBox(height: 6),
             Text(
               subtitle,
               textAlign: TextAlign.center,
-              style: theme.textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-                height: 1.5,
+              style: GoogleFonts.cairo(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: _secondaryGray,
+                height: 1.4,
               ),
             ),
+            if (_selectedCategory != 'الكل' ||
+                _currentArea != 'الكل' ||
+                _minDiscount > 0 ||
+                _searchController.text.isNotEmpty) ...[
+              const SizedBox(height: 18),
+              BouncyTap(
+                onTap: () {
+                  HapticFeedback.lightImpact();
+                  setState(() {
+                    _selectedCategory = 'الكل';
+                    _currentArea = 'الكل';
+                    _minDiscount = 0;
+                    _sortBy = 'newest';
+                    _searchController.clear();
+                  });
+                  context.read<OffersBloc>().add(SearchOffers(''));
+                },
+                child: Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                  decoration: BoxDecoration(
+                    color: isDark ? _cardDark : const Color(0xFFF1F5F9),
+                    borderRadius: BorderRadius.circular(8),
+                    border: Border.all(
+                      color: isDark ? Colors.white.withValues(alpha: 0.08) : _borderLight,
+                    ),
+                  ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      const Icon(Icons.restart_alt_rounded, size: 14, color: _primaryOrange),
+                      const SizedBox(width: 4),
+                      Text(
+                        'إعادة ضبط الفلاتر',
+                        style: GoogleFonts.cairo(
+                          fontSize: 11.5,
+                          fontWeight: FontWeight.w800,
+                          color: _primaryOrange,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ],
           ],
         ),
       ),

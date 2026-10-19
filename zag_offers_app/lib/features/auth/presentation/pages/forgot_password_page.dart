@@ -35,6 +35,17 @@ class _ForgotPasswordPageState extends State<ForgotPasswordPage> {
     return Scaffold(
       appBar: AppBar(
         title: const Text('استعادة كلمة السر'),
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.arrow_forward_ios_rounded
+                      : Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
       ),
       body: BlocConsumer<AuthBloc, AuthState>(
         listenWhen: (_, current) => current is AuthError || current is ForgotPasswordSent || current is ResetPasswordSuccess,

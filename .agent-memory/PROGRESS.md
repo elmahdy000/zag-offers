@@ -25,8 +25,13 @@
 - Two distinct action buttons: Primary `عرض في كوبوناتي 🎟️` (switches to tab 2) and `تم، العودة` (dismisses modal).
 
 ### C. Offer Details Screen Modernization & Refinement (`OfferDetailPage`)
-- **Mathematical Pricing Consistency**: Implemented `OfferPricingResult` single calculation authority. Formula `((originalPrice - finalPrice) / originalPrice) * 100` eliminates mathematical inconsistencies (e.g. 200 EGP original, 160 EGP final ➜ 20% discount & 40 EGP (20%) savings). Store-wide offers without explicit item prices suppress the product pricing box.
-- **RTL Numeric Integrity**: Strictly enforced `TextDirection.ltr` on percentages e.g. `(20%)` and image page counters `1 / 3` to prevent RTL glyph inversion.
+- **Mathematical Pricing Consistency**: Implemented `OfferPricingResult` single calculation authority. Formula `((originalPrice - finalPrice) / originalPrice) * 100` eliminates mathematical inconsistencies.
+- **Header Geometry & Layout Cohesion**:
+  - Increased content sheet top padding to `34px` when single hero image/monogram is displayed, completely resolving content collision with the top curved radius.
+  - Symmetrical top meta row: Encapsulated view count and dynamic social proof into a polished secondary pill container with matching `10px` border radius, subtle border, and height aligned with the primary Egyptian Orange discount badge (`خصم 40%`).
+  - Purged emoji redundancy: Removed duplicate `✨` emojis, rendering single crisp vector icons (`Icons.auto_awesome_rounded`).
+  - Fixed font tofu glyphs: Replaced missing bullet character `•` in address subtitles with styled `GoogleFonts.cairo` typography and circular dot dividers.
+- **RTL Numeric Integrity**: Strictly enforced `TextDirection.rtl` on prices and `(خصم 40%)` savings to prevent inverted brackets and glyph flips.
 - **Image Gallery & Full-Screen Zoom**: Synchronized thumbnails with active orange border; swipeable full-screen `PageView` with pinch-to-zoom (`InteractiveViewer`) and non-blocking `IgnorePointer` overlay.
 - **Collapsing Sticky Header**: Fluid scroll transition with preserved button positioning and light system overlay.
 - **Merchant & Location Cards**: Verified store badge, monogram avatar, address deduplication with instant copy feedback, and a filled Egyptian Orange primary `طريق الوصول` button.
@@ -68,6 +73,13 @@
 - **Gallery Thumbnails Breathing Space**: Adjusted sheet overlap offset from `-28px` to `-20px`, added 22px sheet top padding and 14px thumbnail strip padding, creating 20px+ of clean breathing room below the hero image without clipping or collision.
 - **Graceful Area & Filter Fallback**: Added a dedicated, 1-tap reset card on `HomePage` when an active filter yields no offers.
 - **Filter Reset Synchronization**: Connected `AllOffersPage` reset button to scroll the category list back to `الكل` and refresh BLoC data.
+
+### I. Comprehensive Back Button & RTL Navigation Audit (All 22 Pages)
+- **RTL Directional Invariance**:
+  - Identified and fixed inverted or hardcoded left-pointing back arrows (`Icons.arrow_back_ios_new_rounded`) in `CategoriesPage`, `MapPage`, `LoginPage`.
+  - Enforced `Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_new_rounded` across all screens, guaranteeing back buttons point strictly to the right (→) in Arabic RTL.
+  - Added explicit, consistent leading back buttons to `AllOffersPage`, `MyCouponsPage`, `RegisterPage`, `ForgotPasswordPage`, `ZagRewardsPage`, and `NotificationsPage` when navigated via `Navigator.canPop`.
+  - Harmonized internal action icons: in `HomePage` ("عرض الكل"), adapted chevron to point forward in RTL (←), and adapted `NotificationsPage` empty state action button.
 - **Verified Across Platforms**: `flutter analyze lib/` 0 issues, 13/13 tests passing, verified on Android emulator and iOS simulator.
 
 ### I. Categories Page Complete Luxury Redesign (`CategoriesPage`)
@@ -123,6 +135,23 @@
   - Strict RTL arrow alignment and LTR coupon code isolation maintained across all screens.
   - Zero analyzer errors (`flutter analyze lib/` ➜ 0 issues).
   - Passing test suite (`flutter test` ➜ 13/13 passed).
+
+### L. Explore Offers Screen & OfferCard Premium Redesign (Zero-Gradient Flat System)
+- **Zero-Gradient Invariant**: Eliminated all linear/radial gradients across `SearchPage`, `OfferCard`, and `NetworkImageWidget`. Applied solid curated tokens: Primary Orange (`#FF5A0A`), Dark Navy (`#142033`), White (`#FFFFFF`), Secondary Gray (`#718096`), and Success Green (`#00B887`).
+- **Eliminated Card Height Stretching & Voids**: Removed forced aspect-ratio height constraints and fixed child expansion in phone viewport, switching `SearchPage` to content-driven `ListView.separated` and reducing card vertical footprint from ~340px to ~235px. Display density increased from 1.2 to 2.5 visible offers per screen.
+- **Compact Categories Sidebar**: Reduced right-side panel width from 96px to 82px with 40px circular thumbnails, subtle hairline vertical border (`0.8px`), solid `#FFF3EC` active selection state, and independent vertical scrolling on the RIGHT (start of RTL `Row`).
+- **Branded Image Fallback & Placeholder**: Replaced shimmer gradient with solid-color branded placeholder rendering store monogram initial (`44x44` circle with initial in `#FF5A0A` on `#FFF3EC`) when offer image is null.
+- **Top Search & Filter Header**: 42px squircle search field, 38x38 squircle back button (`Icons.arrow_forward_ios_rounded`), and 38x38 squircle filter button with active `#FF5A0A` dot.
+
+### M. Comprehensive Arrow Direction & RTL Navigation Audit Across All Components
+- **RTL Chevron & Back Button Invariance**:
+  - Enforced `Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_new_rounded` across all 14 screens for back buttons (pointing strictly right in Arabic RTL).
+  - Fixed `CategoriesPage` forward arrow bug where `Transform.flip(flipX: true)` was flipping the arrow to point backward instead of forward.
+  - Made disclosure and navigation chevrons in `OfferCard` ("احصل عليه"), `MyCouponsPage`, `ProfilePage` (ZagRewards banner & settings), and `OnboardingPage` ("التالي") directionality-aware and unified to Cairo typography and standard icon scale.
+- **Full Filter Audit**:
+  - Verified `FilterBottomSheet` area chips with `EdgeInsetsDirectional.only(end: 8)`, minimum discount slider, sort options, and reset mechanism.
+  - Verified `OfferFilterUtils` matching across categories, areas, minimum discounts, and sort criteria.
+  - Verified `AllOffersPage` grid aspect ratio tuned to `0.68` for compact cards.
 
 ---
 

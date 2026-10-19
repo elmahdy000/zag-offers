@@ -221,14 +221,18 @@ class _FavoritesPageState extends State<FavoritesPage> {
                       itemCount: favorites.length,
                       itemBuilder: (context, index) {
                         final offer = favorites[index];
+                        final cardHeroTag = 'fav_offers_${offer.id}_$index';
                         return OfferCard(
                           offer: offer,
                           isWide: true,
+                          heroTag: cardHeroTag,
                           onTap: () => Navigator.push(
                             context,
                             MaterialPageRoute(
-                              builder: (context) =>
-                                  OfferDetailPage(offer: offer),
+                              builder: (context) => OfferDetailPage(
+                                offer: offer,
+                                heroTag: cardHeroTag,
+                              ),
                             ),
                           ),
                         );

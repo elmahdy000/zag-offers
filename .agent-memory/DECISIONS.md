@@ -91,3 +91,13 @@
      - **Phase 3 (Performance & QA - P2)**: Image caching, list virtualization, responsive testing on iOS & Android screen sizes, and avoiding unnecessary re-renders.
   4. **Component-First Fixes**: Address issues locally or within shared design components (`OfferCard`, `CategoryUtils`, `GlassmorphismCard`) rather than rebuilding entire views.
 
+---
+
+## 14. Zero-Gradient Flat Brand System for Explore Offers & Offer Cards
+- **Decision**: In `SearchPage` and `OfferCard`, strictly eliminate all linear/radial gradients (backgrounds, buttons, badges, placeholders, and image overlays) in favor of solid curated tokens: Primary Orange (`#FF5A0A`), Dark Navy (`#142033`), Clean Card White (`#FFFFFF`), Subtle Hairline (`#F1F5F9`), and Flat Light Gray Placeholder (`#F1F5F9` light / `#1E293B` dark).
+- **Rationale**: Gradients caused inconsistent visual noise, tacky orange-to-pink clashes, and stretched appearance. Solid flat colors give the app a modern, premium, distinctive identity and eliminate render artifacts.
+- **Rules**:
+  - Right-side category sidebar width is fixed to 82 logical pixels with circular 40px avatars.
+  - Phone cards use content-driven vertical sizing without forced empty vertical voids.
+  - Missing image states use a store monogram initial in solid orange over soft cream rather than shimmer gradients.
+

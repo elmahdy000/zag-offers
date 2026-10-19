@@ -1,7 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import '../utils/image_url_helper.dart';
-import 'skeleton_loader.dart';
 
 class NetworkImageWidget extends StatelessWidget {
   final String? imageUrl;
@@ -48,11 +47,7 @@ class NetworkImageWidget extends StatelessWidget {
         fit: fit,
         memCacheWidth: width?.toInt(),
         memCacheHeight: height?.toInt(),
-        placeholder: (context, url) => SkeletonLoader(
-          width: width ?? double.infinity,
-          height: height ?? double.infinity,
-          borderRadius: borderRadius?.topLeft.x ?? 0,
-        ),
+        placeholder: (context, url) => _buildPlaceholder(context),
         errorWidget: (context, url, error) => _buildPlaceholder(context),
       ),
     );

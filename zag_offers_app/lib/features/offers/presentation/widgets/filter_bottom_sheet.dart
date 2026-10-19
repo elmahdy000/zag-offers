@@ -101,7 +101,7 @@ class _FilterBottomSheetState extends State<FilterBottomSheet> {
                   final area = areas[index];
                   final isSelected = _currentArea == area;
                   return Padding(
-                    padding: const EdgeInsets.only(left: 8),
+                    padding: const EdgeInsetsDirectional.only(end: 8),
                     child: ChoiceChip(
                       label: Text(area),
                       selected: isSelected,

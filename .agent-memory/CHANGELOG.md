@@ -1,5 +1,31 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-19] - Explore Offers Screen Redesign & Complete Arrow/Filter Audit
+### Added / Changed
+- **Zero-Gradient Brand System (`SearchPage` & `OfferCard`)**: Completely removed all gradients from offer cards, badges, buttons, and placeholders in favor of crisp solid tokens (`#FF5A0A`, `#142033`, `#FFFFFF`, `#F1F5F9`).
+- **Compact Offer Cards Layout**: Eliminated fixed aspect ratios and child stretching, shifting to content-driven natural sizing. Reduced card vertical height from ~340px to ~235px and increased screen offer density by 2x.
+- **Categories Sidebar Redesign**: Narrowed right-side sidebar to 82px with 40px circular thumbnails, solid selection state, subtle vertical divider, and independent scrolling.
+- **Branded Monogram Fallback**: Solid orange monogram avatar on cream surface for missing store/offer images, replacing shimmering grey placeholders.
+- **Comprehensive Arrow & RTL Navigation Audit**:
+  - Fixed `CategoriesPage` forward arrow inversion where `Transform.flip(flipX: true)` was flipping it to point backward.
+  - Direction-aware chevrons in `OfferCard` ("احصل عليه"), `MyCouponsPage`, `ProfilePage` (ZagRewards banner & settings), and `OnboardingPage` ("التالي").
+  - Verified back button behavior across all 14 screens.
+- **Filter Invariants Across All Pages**: Directional padding in `FilterBottomSheet`, tuned `AllOffersPage` grid aspect ratio (0.68), and verified full category/area/discount filter pipelines.
+
+## [2026-10-19] - Complete Multi-Page Back Button & RTL Navigation Audit
+### Fixed
+- **RTL Back Arrow Direction**: Corrected back button chevrons that were hardcoded to left-pointing (`Icons.arrow_back_ios_new_rounded`) in `CategoriesPage`, `MapPage`, and `LoginPage`. They now dynamically evaluate `Directionality.of(context) == TextDirection.rtl` to point to the right (→), matching correct Arabic back navigation.
+- **Explicit Leading Navigation Buttons**: Added standard RTL-adaptive leading back buttons to `AllOffersPage`, `MyCouponsPage`, `RegisterPage`, `ForgotPasswordPage`, `ZagRewardsPage`, and `NotificationsPage` when navigated via `Navigator.canPop`.
+- **RTL Action Chevron Consistency**: Corrected "عرض الكل" text button in `HomePage` so the chevron points forward (←) in RTL, and adapted the back button in `NotificationsPage` empty state.
+
+## [2026-10-19] - Offer Details Screen Header Symmetry & Breathing Room Polish
+### Fixed
+- **Sheet Clearance & Padding**: Increased sheet top padding from 18px to 34px, granting generous breathing room between the top curved edge and the meta row.
+- **Symmetrical Secondary Metadata Pill**: Enclosed view counts and dynamic social proof tags into an elegant secondary pill container (`Color(0xFFF1F5F9)` light / `Color(0xFF1E293B)` dark) with matching 10px rounded corners and height aligned with the Egyptian Orange discount badge (`خصم 40%`).
+- **Emoji Clutter**: Removed duplicate sparkle emojis (`✨ جديد ✨`), keeping a single crisp vector icon (`Icons.auto_awesome_rounded`).
+- **Font & Glyph Rendering**: Fixed missing bullet glyph tofu (`■`) in store address subtitles by using `GoogleFonts.cairo` and a styled circular dot container.
+- **RTL Parentheses Integrity**: Replaced inverted `(%40)` with correctly aligned `(خصم 40%)` in the price savings breakdown.
+
 ## [2026-10-18] - Complete Multi-Platform Page-by-Page Visual & Functional Verification
 ### Verified
 - **Android (`emulator-5554` API 37)**:

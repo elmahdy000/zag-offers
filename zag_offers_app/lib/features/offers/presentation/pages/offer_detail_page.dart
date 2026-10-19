@@ -34,8 +34,9 @@ import '../utils/offer_pricing_utils.dart';
 
 class OfferDetailPage extends StatefulWidget {
   final OfferEntity offer;
+  final String? heroTag;
 
-  const OfferDetailPage({super.key, required this.offer});
+  const OfferDetailPage({super.key, required this.offer, this.heroTag});
 
   @override
   State<OfferDetailPage> createState() => _OfferDetailPageState();
@@ -204,8 +205,6 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    const usageCount = 'الكثير';
-
     return MultiBlocProvider(
       providers: [
         BlocProvider.value(value: _couponsBloc),
@@ -250,10 +249,10 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 physics: const BouncingScrollPhysics(),
                 slivers: [
                   _buildSliverAppBar(),
-                  _buildContentSection(usageCount),
+                  _buildContentSection(),
                 ],
               ),
-              _buildStickyActionArea(usageCount),
+              _buildStickyActionArea(),
             ],
           ),
         ),
@@ -440,14 +439,40 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   maxLines: 1,
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 4),
-                Text(
-                  'الزقازيق • ${widget.offer.store.area}',
-                  style: TextStyle(
-                    color: Colors.white.withValues(alpha: 0.7),
-                    fontWeight: FontWeight.w600,
-                    fontSize: 12,
-                  ),
+                const SizedBox(height: 5),
+                Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      'الزقازيق',
+                      style: GoogleFonts.cairo(
+                        color: Colors.white.withValues(alpha: 0.75),
+                        fontWeight: FontWeight.w600,
+                        fontSize: 12,
+                      ),
+                    ),
+                    if (widget.offer.store.area.isNotEmpty) ...[
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 6),
+                        child: Container(
+                          width: 3.5,
+                          height: 3.5,
+                          decoration: BoxDecoration(
+                            color: Colors.white.withValues(alpha: 0.5),
+                            shape: BoxShape.circle,
+                          ),
+                        ),
+                      ),
+                      Text(
+                        widget.offer.store.area,
+                        style: GoogleFonts.cairo(
+                          color: Colors.white.withValues(alpha: 0.75),
+                          fontWeight: FontWeight.w600,
+                          fontSize: 12,
+                        ),
+                      ),
+                    ],
+                  ],
                 ),
               ],
             ),
@@ -473,7 +498,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                 children: [
                   index == 0
                       ? Hero(
-                          tag: 'offer_image_${widget.offer.id}',
+                          tag: widget.heroTag ?? 'offer_image_${widget.offer.id}',
                           child: NetworkImageWidget(
                             imageUrl: images[index],
                             fit: BoxFit.cover,
@@ -485,9 +510,9 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         ),
                   if (widget.offer.isFlashSale &&
                       widget.offer.flashSaleEndsAt != null)
-                    Positioned(
+                    PositionedDirectional(
                       bottom: 16,
-                      left: 16,
+                      start: 16,
                       child:
                           FlashSaleBadge(endsAt: widget.offer.flashSaleEndsAt!),
                     ),
@@ -605,7 +630,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildContentSection(String usageCount) {
+  Widget _buildContentSection() {
     final theme = Theme.of(context);
     final bottomInset = MediaQuery.of(context).padding.bottom;
 
@@ -619,23 +644,23 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           ),
           padding: EdgeInsets.fromLTRB(
             18,
-            _allImages.length > 1 ? 22 : 18,
+            _allImages.length > 1 ? 24 : 34,
             18,
-            105 + bottomInset,
+            140 + bottomInset,
           ),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               if (_allImages.length > 1) ...[
                 _buildThumbnailsRow(),
-                const SizedBox(height: 18),
+                const SizedBox(height: 14),
               ],
-              _buildOfferHeaderHierarchy(usageCount),
-              const SizedBox(height: 16),
+              _buildOfferHeaderHierarchy(),
+              const SizedBox(height: 14),
               _buildStoreCard(),
               const SizedBox(height: 14),
               _buildStoreLocationCard(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildDescriptionSection(),
               if (widget.offer.terms != null &&
                   widget.offer.terms!.isNotEmpty) ...[
@@ -644,7 +669,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               ],
               const SizedBox(height: 14),
               _buildExpirySection(),
-              const SizedBox(height: 16),
+              const SizedBox(height: 14),
               _buildReviewsSection(),
             ],
           ),
@@ -660,7 +685,59 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
         discountPercentage: widget.offer.discountPercentage,
       );
 
-  Widget _buildOfferHeaderHierarchy(String usageCount) {
+  String get _displayTitle {
+    final title = widget.offer.title.trim();
+    final isJustDiscount = RegExp(
+      r'^(\d+%\s*خصم|خصم\s*\d+%|\d+%\s*OFF|\d+%|\d+\s*ج\.م)$',
+      caseSensitive: false,
+    ).hasMatch(title);
+
+    if (isJustDiscount) {
+      final desc = widget.offer.description?.trim();
+      if (desc != null &&
+          desc.isNotEmpty &&
+          !RegExp(r'^(\d+%\s*خصم|خصم\s*\d+%|\d+%)$').hasMatch(desc)) {
+        return desc;
+      }
+
+      final storeName = widget.offer.store.name;
+      final category = widget.offer.store.category;
+      if (category != null && category.trim().isNotEmpty) {
+        return 'عرض $category من $storeName';
+      }
+      return 'عرض خاص من $storeName';
+    }
+
+    return title;
+  }
+
+  String get _displayDescription {
+    final desc = widget.offer.description?.trim();
+    final title = widget.offer.title.trim();
+    final storeName = widget.offer.store.name;
+    final area = widget.offer.store.area.isNotEmpty ? widget.offer.store.area : 'الزقازيق';
+    final category = widget.offer.store.category;
+
+    if (desc != null &&
+        desc.isNotEmpty &&
+        desc != title &&
+        !RegExp(r'^(\d+%\s*خصم|خصم\s*\d+%|\d+%)$').hasMatch(desc)) {
+      return desc;
+    }
+
+    final pricing = _pricing;
+    final discountText = pricing.topDiscountBadge.isNotEmpty
+        ? 'بخصم ${pricing.topDiscountBadge}'
+        : 'بخصم حصري';
+
+    if (category != null && category.trim().isNotEmpty) {
+      return 'استمتع $discountText لدى $storeName ($category) في $area. العرض متاح لجميع عملاء زاج أوفرز ويمكنك الاستفادة منه مباشرة داخل الفرع عند إبراز الكوبون.';
+    }
+
+    return 'استمتع $discountText لدى $storeName في $area على المنتجات والخدمات المشمولة بالعرض داخل الفرع عبر تطبيق زاج أوفرز.';
+  }
+
+  Widget _buildOfferHeaderHierarchy() {
     final theme = Theme.of(context);
     final isDark = theme.brightness == Brightness.dark;
     final pricing = _pricing;
@@ -668,13 +745,15 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // 1. Top Meta: Prominent Discount Badge + Subtle Views
+        // 1. Top Meta: Prominent Discount Badge + Symmetrical Stats/Tag Pill
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.center,
           children: [
+            // Start / Right: Primary Discount Badge
             if (pricing.topDiscountBadge.isNotEmpty)
               Container(
-                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6.5),
                 decoration: BoxDecoration(
                   gradient: const LinearGradient(
                     colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
@@ -693,8 +772,20 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   children: [
                     const Icon(Icons.local_offer_rounded, color: Colors.white, size: 14),
                     const SizedBox(width: 5),
+                    const Text(
+                      'خصم',
+                      style: TextStyle(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w900,
+                        fontSize: 12.5,
+                      ),
+                    ),
+                    const SizedBox(width: 4),
                     Text(
-                      'خصم ${pricing.topDiscountBadge}',
+                      pricing.topDiscountBadge.endsWith('%')
+                          ? pricing.topDiscountBadge
+                          : '${pricing.topDiscountBadge}%',
+                      textDirection: TextDirection.ltr,
                       style: const TextStyle(
                         color: Colors.white,
                         fontWeight: FontWeight.w900,
@@ -706,37 +797,48 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               )
             else
               const SizedBox(),
-            // Secondary metrics (Views & Usage)
-            Row(
-              children: [
-                Icon(
-                  Icons.remove_red_eye_outlined,
-                  size: 15,
-                  color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+            // End / Left: Symmetrical Secondary Metrics Pill (Views & Social Proof)
+            Container(
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5.5),
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFF1F5F9),
+                borderRadius: BorderRadius.circular(10),
+                border: Border.all(
+                  color: isDark ? Colors.white.withValues(alpha: 0.08) : Colors.grey.shade300,
+                  width: 0.8,
                 ),
-                const SizedBox(width: 4),
-                Text(
-                  '${widget.offer.viewCount} مشاهدة',
-                  style: TextStyle(
-                    fontSize: 12,
-                    fontWeight: FontWeight.w600,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                crossAxisAlignment: CrossAxisAlignment.center,
+                children: [
+                  Icon(
+                    Icons.remove_red_eye_outlined,
+                    size: 13,
                     color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
                   ),
-                ),
-                if (usageCount.isNotEmpty) ...[
-                  const SizedBox(width: 12),
-                  const Icon(Icons.bolt_rounded, size: 15, color: Colors.amber),
-                  const SizedBox(width: 2),
+                  const SizedBox(width: 4),
                   Text(
-                    usageCount,
+                    '${widget.offer.viewCount}',
                     style: TextStyle(
-                      fontSize: 12,
-                      fontWeight: FontWeight.w600,
-                      color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                      fontSize: 11.5,
+                      fontWeight: FontWeight.w700,
+                      color: isDark ? Colors.grey.shade300 : AppColors.textPrimary,
                     ),
                   ),
+                  const SizedBox(width: 6),
+                  Container(
+                    width: 3,
+                    height: 3,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.grey.shade600 : Colors.grey.shade400,
+                      shape: BoxShape.circle,
+                    ),
+                  ),
+                  const SizedBox(width: 6),
+                  _buildSocialProofTag(isDark),
                 ],
-              ],
+              ),
             ),
           ],
         ),
@@ -745,11 +847,11 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
 
         // 2. Offer Title
         Text(
-          widget.offer.title,
+          _displayTitle,
           style: theme.textTheme.titleLarge?.copyWith(
             fontWeight: FontWeight.w900,
-            fontSize: 21,
-            height: 1.4,
+            fontSize: 20,
+            height: 1.35,
           ),
         ),
 
@@ -771,54 +873,64 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               child: Row(
                 children: [
                   if (pricing.finalPrice != null) ...[
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${pricing.finalPrice!.toStringAsFixed(0)} ',
-                            style: const TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w900,
-                              fontSize: 22,
-                            ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        Text(
+                          pricing.finalPrice!.toStringAsFixed(0),
+                          style: const TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w900,
+                            fontSize: 22,
+                            height: 1.1,
                           ),
-                          const TextSpan(
-                            text: 'ج.م',
-                            style: TextStyle(
-                              color: AppColors.primary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 14,
-                            ),
+                        ),
+                        const SizedBox(width: 4),
+                        const Text(
+                          'ج.م',
+                          style: TextStyle(
+                            color: AppColors.primary,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            height: 1.1,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                   if (pricing.originalPrice != null) ...[
                     const SizedBox(width: 10),
-                    Text.rich(
-                      TextSpan(
-                        children: [
-                          TextSpan(
-                            text: '${pricing.originalPrice!.toStringAsFixed(0)} ',
-                            style: TextStyle(
-                              decoration: TextDecoration.lineThrough,
-                              color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
-                              fontWeight: FontWeight.w700,
-                              fontSize: 15,
-                            ),
+                    Row(
+                      mainAxisSize: MainAxisSize.min,
+                      textDirection: TextDirection.rtl,
+                      children: [
+                        Text(
+                          pricing.originalPrice!.toStringAsFixed(0),
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                            decorationThickness: 1.8,
+                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 15,
+                            height: 1.1,
                           ),
-                          TextSpan(
-                            text: 'ج.م',
-                            style: TextStyle(
-                              decoration: TextDecoration.lineThrough,
-                              color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
-                              fontWeight: FontWeight.w600,
-                              fontSize: 12,
-                            ),
+                        ),
+                        const SizedBox(width: 3),
+                        Text(
+                          'ج.م',
+                          style: TextStyle(
+                            decoration: TextDecoration.lineThrough,
+                            decorationColor: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                            decorationThickness: 1.8,
+                            color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
+                            fontWeight: FontWeight.w600,
+                            fontSize: 12,
+                            height: 1.1,
                           ),
-                        ],
-                      ),
+                        ),
+                      ],
                     ),
                   ],
                   const SizedBox(width: 24),
@@ -843,8 +955,8 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                           ),
                           const SizedBox(width: 4),
                           Text(
-                            '(${pricing.savingsPercentage}%)',
-                            textDirection: TextDirection.ltr,
+                            '(خصم ${pricing.savingsPercentage}%)',
+                            textDirection: TextDirection.rtl,
                             style: const TextStyle(
                               color: Color(0xFF10B981),
                               fontWeight: FontWeight.w800,
@@ -860,6 +972,88 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
             ),
           ),
         ],
+      ],
+    );
+  }
+
+  Widget _buildSocialProofTag(bool isDark) {
+    final offer = widget.offer;
+
+    if (offer.usageLimit != null && offer.usageLimit! > 0) {
+      final remaining = offer.usageLimit! - offer.usedCoupons;
+      if (remaining <= 0) {
+        return _buildSocialChip(
+          icon: Icons.do_not_disturb_on_rounded,
+          iconColor: Colors.redAccent,
+          label: 'نفدت الكمية',
+          labelColor: Colors.redAccent,
+        );
+      }
+      if (remaining <= 5) {
+        return _buildSocialChip(
+          icon: Icons.hourglass_bottom_rounded,
+          iconColor: Colors.orangeAccent,
+          label: 'باقي $remaining فقط',
+          labelColor: Colors.orangeAccent,
+        );
+      }
+    }
+
+    if (offer.isFeatured || offer.usedCoupons >= 10) {
+      return _buildSocialChip(
+        icon: Icons.bolt_rounded,
+        iconColor: Colors.amber,
+        label: 'الأكثر طلباً',
+        labelColor: isDark ? Colors.grey.shade300 : AppColors.textPrimary,
+      );
+    }
+
+    if (offer.usedCoupons > 0) {
+      return _buildSocialChip(
+        icon: Icons.confirmation_num_outlined,
+        iconColor: AppColors.primary,
+        label: '${offer.usedCoupons} استخدام',
+        labelColor: isDark ? Colors.grey.shade300 : AppColors.textPrimary,
+      );
+    }
+
+    if (offer.viewCount >= 50) {
+      return _buildSocialChip(
+        icon: Icons.local_fire_department_rounded,
+        iconColor: Colors.deepOrangeAccent,
+        label: 'الأكثر تفاعلاً',
+        labelColor: isDark ? Colors.grey.shade300 : AppColors.textPrimary,
+      );
+    }
+
+    return _buildSocialChip(
+      icon: Icons.auto_awesome_rounded,
+      iconColor: Colors.amber,
+      label: 'جديد',
+      labelColor: isDark ? Colors.grey.shade300 : AppColors.textPrimary,
+    );
+  }
+
+  Widget _buildSocialChip({
+    required IconData icon,
+    required Color iconColor,
+    required String label,
+    required Color labelColor,
+  }) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Icon(icon, size: 12.5, color: iconColor),
+        const SizedBox(width: 3.5),
+        Text(
+          label,
+          style: TextStyle(
+            fontSize: 11.5,
+            fontWeight: FontWeight.w700,
+            color: labelColor,
+          ),
+        ),
       ],
     );
   }
@@ -958,12 +1152,16 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                   ),
                   const SizedBox(height: 2),
                   Text(
-                    'الزقازيق • ${widget.offer.store.area} — تفاصيل المتجر',
-                    style: TextStyle(
+                    widget.offer.store.area.isNotEmpty && widget.offer.store.area != 'الزقازيق'
+                        ? 'الزقازيق، ${widget.offer.store.area} — تفاصيل المتجر'
+                        : 'الزقازيق — تفاصيل المتجر',
+                    style: const TextStyle(
                       color: AppColors.primary,
                       fontWeight: FontWeight.w700,
                       fontSize: 11.5,
                     ),
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
               ),
@@ -1104,22 +1302,42 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
           Row(
             children: [
               Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: _openExternalMap,
-                  icon: const Icon(Icons.navigation_rounded, size: 16, color: Colors.white),
-                  label: const Text(
-                    'طريق الوصول',
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                      fontSize: 13,
-                      color: Colors.white,
+                child: BouncyTap(
+                  scaleFactor: 0.96,
+                  onTap: () {
+                    HapticFeedback.lightImpact();
+                    _openExternalMap();
+                  },
+                  child: Container(
+                    height: 40,
+                    decoration: BoxDecoration(
+                      gradient: const LinearGradient(
+                        colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                      ),
+                      borderRadius: BorderRadius.circular(10),
+                      boxShadow: [
+                        BoxShadow(
+                          color: AppColors.primary.withValues(alpha: 0.28),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ],
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: AppColors.primary,
-                    elevation: 0,
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                    padding: const EdgeInsets.symmetric(vertical: 9),
+                    child: const Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(Icons.navigation_rounded, size: 16, color: Colors.white),
+                        SizedBox(width: 6),
+                        Text(
+                          'طريق الوصول',
+                          style: TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 13,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -1217,10 +1435,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       ));
     }
 
-    final meaningfulDesc = (widget.offer.description != null &&
-            widget.offer.description!.trim().isNotEmpty)
-        ? widget.offer.description!.trim()
-        : 'استمتع بخصم حصري ومباشر لدى ${store.name} على جميع الخدمات والمنتجات المشمولة بالعرض داخل الفرع.';
+    final meaningfulDesc = _displayDescription;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -1405,242 +1620,263 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
     );
   }
 
-  Widget _buildStickyActionArea(String usageCount) {
-    final textTheme = Theme.of(context).textTheme;
-    final isDark = Theme.of(context).brightness == Brightness.dark;
-    final bottomInset = MediaQuery.of(context).padding.bottom;
+  Widget _buildStickyActionArea() {
+    final theme = Theme.of(context);
+    final textTheme = theme.textTheme;
+    final isDark = theme.brightness == Brightness.dark;
 
     return Positioned(
-      bottom: bottomInset > 0 ? bottomInset + 8 : 16,
-      left: 16,
-      right: 16,
-      child: FutureBuilder<bool>(
-        future: _canGenerateCouponFuture,
-        builder: (context, snapshot) {
-          final canGenerate = snapshot.data ?? false;
-          final existing = _existingCoupon;
-          final redeemedAt = existing?.redeemedAt;
-          final isOfferExpired = widget.offer.expiryDate.isBefore(DateTime.now()) ||
-              _isFlashSaleFinished() ||
-              existing?.status == 'EXPIRED';
-          final isRedeemed = existing?.status == 'USED';
-          final hasActiveCoupon = existing != null && existing.isActive;
+      bottom: 0,
+      left: 0,
+      right: 0,
+      child: Container(
+        decoration: BoxDecoration(
+          gradient: LinearGradient(
+            begin: Alignment.topCenter,
+            end: Alignment.bottomCenter,
+            colors: [
+              theme.scaffoldBackgroundColor.withValues(alpha: 0.0),
+              theme.scaffoldBackgroundColor.withValues(alpha: 0.88),
+              theme.scaffoldBackgroundColor,
+            ],
+            stops: const [0.0, 0.35, 1.0],
+          ),
+        ),
+        child: SafeArea(
+          top: false,
+          child: Padding(
+            padding: const EdgeInsets.fromLTRB(16, 12, 16, 12),
+            child: FutureBuilder<bool>(
+              future: _canGenerateCouponFuture,
+              builder: (context, snapshot) {
+                final canGenerate = snapshot.data ?? false;
+                final existing = _existingCoupon;
+                final redeemedAt = existing?.redeemedAt;
+                final isOfferExpired = widget.offer.expiryDate.isBefore(DateTime.now()) ||
+                    _isFlashSaleFinished() ||
+                    existing?.status == 'EXPIRED';
+                final isRedeemed = existing?.status == 'USED';
+                final hasActiveCoupon = existing != null && existing.isActive;
 
-          // 1. Redeemed State: Clearly Non-Interactive Information Banner
-          if (isRedeemed) {
-            return Container(
-              padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-              decoration: BoxDecoration(
-                color: isDark ? const Color(0xFF132321) : const Color(0xFFECFDF5),
-                borderRadius: BorderRadius.circular(16),
-                border: Border.all(
-                  color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.35 : 0.4),
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.12),
-                    blurRadius: 10,
-                    offset: const Offset(0, 3),
-                  ),
-                ],
-              ),
-              child: Row(
-                children: [
-                  Container(
-                    padding: const EdgeInsets.all(7),
+                // 1. Redeemed State: Clearly Non-Interactive Information Banner
+                if (isRedeemed) {
+                  return Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
                     decoration: BoxDecoration(
-                      color: const Color(0xFF10B981).withValues(alpha: 0.15),
-                      shape: BoxShape.circle,
-                    ),
-                    child: const Icon(
-                      Icons.verified_rounded,
-                      color: Color(0xFF10B981),
-                      size: 20,
-                    ),
-                  ),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        const Text(
-                          'تم استخدام هذا الكوبون بنجاح ✓',
-                          style: TextStyle(
-                            color: Color(0xFF10B981),
-                            fontWeight: FontWeight.w900,
-                            fontSize: 13.5,
-                          ),
-                        ),
-                        const SizedBox(height: 2),
-                        Text(
-                          redeemedAt != null
-                              ? 'تم الخصم لدى المتجر بتاريخ ${DateFormat('d MMMM yyyy - h:mm a', 'ar').format(redeemedAt)}'
-                              : 'تم تأكيد الاستفادة من الخصم لدى المتجر بنجاح',
-                          style: TextStyle(
-                            color: isDark ? Colors.grey.shade400 : const Color(0xFF065F46),
-                            fontSize: 11,
-                            fontWeight: FontWeight.w500,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
+                      color: isDark ? const Color(0xFF132321) : const Color(0xFFECFDF5),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: const Color(0xFF10B981).withValues(alpha: isDark ? 0.35 : 0.4),
+                      ),
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.12),
+                          blurRadius: 10,
+                          offset: const Offset(0, 3),
                         ),
                       ],
                     ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // 2. Expired Offer State: Muted Non-Interactive Banner
-          if (isOfferExpired) {
-            return Container(
-              height: 50,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                color: isDark ? Colors.white12 : Colors.grey.shade300,
-                borderRadius: BorderRadius.circular(16),
-              ),
-              alignment: Alignment.center,
-              child: Row(
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Icon(
-                    Icons.timer_off_outlined,
-                    size: 18,
-                    color: isDark ? Colors.white54 : Colors.grey.shade600,
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'انتهت صلاحية العرض',
-                    style: TextStyle(
-                      color: isDark ? Colors.white54 : Colors.grey.shade600,
-                      fontWeight: FontWeight.w700,
-                      fontSize: 14,
-                    ),
-                  ),
-                ],
-              ),
-            );
-          }
-
-          // 3. Active States: Claim or View Coupon
-          return BlocBuilder<CouponsBloc, CouponsState>(
-            buildWhen: (prev, next) =>
-                next is CouponsLoading ||
-                next is CouponGeneratedSuccess ||
-                next is CouponsError ||
-                next is UserCouponsLoaded,
-            builder: (context, state) {
-              final isLoading = state is CouponsLoading || _isClaimingCoupon;
-
-              final String buttonText;
-              final IconData buttonIcon;
-              final VoidCallback? onPressed;
-
-              if (hasActiveCoupon) {
-                buttonText = 'عرض الكوبون 🎟️';
-                buttonIcon = Icons.qr_code_2_rounded;
-                onPressed = () {
-                  HapticFeedback.lightImpact();
-                  _showCouponDialog(
-                    context,
-                    existing.code,
-                    status: existing.status,
-                  );
-                };
-              } else {
-                buttonText = canGenerate ? 'احصل على الكوبون 🎟️' : 'سجّل حسابك واستمتع بالخصم';
-                buttonIcon = Icons.confirmation_num_rounded;
-                onPressed = () async {
-                  if (!canGenerate) {
-                    HapticFeedback.lightImpact();
-                    await Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (context) => const LoginPage()),
-                    );
-                    if (mounted) {
-                      setState(() {
-                        _canGenerateCouponFuture = _canGenerateCoupon();
-                      });
-                      _couponsBloc.add(FetchUserCoupons());
-                    }
-                    return;
-                  }
-                  if (isLoading || _isClaimingCoupon) return;
-                  if (mounted) {
-                    setState(() => _isClaimingCoupon = true);
-                  }
-                  HapticFeedback.mediumImpact();
-                  _couponsBloc.add(GenerateCouponRequested(widget.offer.id));
-                };
-              }
-
-              return Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  BouncyTap(
-                    scaleFactor: 0.97,
-                    onTap: onPressed,
-                    child: Container(
-                      height: 52,
-                      width: double.infinity,
-                      decoration: BoxDecoration(
-                        gradient: const LinearGradient(
-                          colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
-                        ),
-                        borderRadius: BorderRadius.circular(16),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.primary.withValues(alpha: 0.38),
-                            blurRadius: 18,
-                            offset: const Offset(0, 6),
+                    child: Row(
+                      children: [
+                        Container(
+                          padding: const EdgeInsets.all(7),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF10B981).withValues(alpha: 0.15),
+                            shape: BoxShape.circle,
                           ),
-                        ],
-                      ),
-                      alignment: Alignment.center,
-                      child: isLoading
-                          ? const SizedBox(
-                              width: 22,
-                              height: 22,
-                              child: CircularProgressIndicator(
-                                color: Colors.white,
-                                strokeWidth: 2.2,
+                          child: const Icon(
+                            Icons.verified_rounded,
+                            color: Color(0xFF10B981),
+                            size: 20,
+                          ),
+                        ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              const Text(
+                                'تم استخدام هذا الكوبون بنجاح ✓',
+                                style: TextStyle(
+                                  color: Color(0xFF10B981),
+                                  fontWeight: FontWeight.w900,
+                                  fontSize: 13.5,
+                                ),
                               ),
-                            )
-                          : Row(
-                              mainAxisAlignment: MainAxisAlignment.center,
-                              children: [
-                                Icon(buttonIcon, size: 20, color: Colors.white),
-                                const SizedBox(width: 10),
-                                Text(
-                                  buttonText,
-                                  style: textTheme.labelLarge?.copyWith(
-                                    fontWeight: FontWeight.w800,
-                                    fontSize: 15,
-                                    color: Colors.white,
-                                  ),
+                              const SizedBox(height: 2),
+                              Text(
+                                redeemedAt != null
+                                    ? 'تم الخصم لدى المتجر بتاريخ ${DateFormat('d MMMM yyyy - h:mm a', 'ar').format(redeemedAt)}'
+                                    : 'تم تأكيد الاستفادة من الخصم لدى المتجر بنجاح',
+                                style: TextStyle(
+                                  color: isDark ? Colors.grey.shade400 : const Color(0xFF065F46),
+                                  fontSize: 11,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                                maxLines: 1,
+                                overflow: TextOverflow.ellipsis,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // 2. Expired Offer State: Muted Non-Interactive Banner
+                if (isOfferExpired) {
+                  return Container(
+                    height: 50,
+                    width: double.infinity,
+                    decoration: BoxDecoration(
+                      color: isDark ? Colors.white12 : Colors.grey.shade300,
+                      borderRadius: BorderRadius.circular(16),
+                    ),
+                    alignment: Alignment.center,
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Icon(
+                          Icons.timer_off_outlined,
+                          size: 18,
+                          color: isDark ? Colors.white54 : Colors.grey.shade600,
+                        ),
+                        const SizedBox(width: 8),
+                        Text(
+                          'انتهت صلاحية العرض',
+                          style: TextStyle(
+                            color: isDark ? Colors.white54 : Colors.grey.shade600,
+                            fontWeight: FontWeight.w700,
+                            fontSize: 14,
+                          ),
+                        ),
+                      ],
+                    ),
+                  );
+                }
+
+                // 3. Active States: Claim or View Coupon
+                return BlocBuilder<CouponsBloc, CouponsState>(
+                  buildWhen: (prev, next) =>
+                      next is CouponsLoading ||
+                      next is CouponGeneratedSuccess ||
+                      next is CouponsError ||
+                      next is UserCouponsLoaded,
+                  builder: (context, state) {
+                    final isLoading = state is CouponsLoading || _isClaimingCoupon;
+
+                    final String buttonText;
+                    final IconData buttonIcon;
+                    final VoidCallback? onPressed;
+
+                    if (hasActiveCoupon) {
+                      buttonText = 'عرض الكوبون 🎟️';
+                      buttonIcon = Icons.qr_code_2_rounded;
+                      onPressed = () {
+                        HapticFeedback.lightImpact();
+                        _showCouponDialog(
+                          context,
+                          existing.code,
+                          status: existing.status,
+                        );
+                      };
+                    } else {
+                      buttonText = canGenerate ? 'احصل على الكوبون 🎟️' : 'سجّل حسابك واستمتع بالخصم';
+                      buttonIcon = Icons.confirmation_num_rounded;
+                      onPressed = () async {
+                        if (!canGenerate) {
+                          HapticFeedback.lightImpact();
+                          await Navigator.push(
+                            context,
+                            MaterialPageRoute(builder: (context) => const LoginPage()),
+                          );
+                          if (mounted) {
+                            setState(() {
+                              _canGenerateCouponFuture = _canGenerateCoupon();
+                            });
+                            _couponsBloc.add(FetchUserCoupons());
+                          }
+                          return;
+                        }
+
+                        if (isLoading || _isClaimingCoupon) return;
+                        if (mounted) {
+                          setState(() => _isClaimingCoupon = true);
+                        }
+                        HapticFeedback.mediumImpact();
+                        _couponsBloc.add(GenerateCouponRequested(widget.offer.id));
+                      };
+                    }
+
+                    return Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        BouncyTap(
+                          scaleFactor: 0.97,
+                          onTap: onPressed,
+                          child: Container(
+                            height: 52,
+                            width: double.infinity,
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFFFF5722), Color(0xFFFF7043)],
+                              ),
+                              borderRadius: BorderRadius.circular(16),
+                              boxShadow: [
+                                BoxShadow(
+                                  color: AppColors.primary.withValues(alpha: 0.38),
+                                  blurRadius: 18,
+                                  offset: const Offset(0, 6),
                                 ),
                               ],
                             ),
-                    ),
-                  ),
-                  if (!canGenerate && !hasActiveCoupon) ...[
-                    const SizedBox(height: 8),
-                    Text(
-                      'سجّل حسابك في ثواني ووفّر مع كل خروجة',
-                      textAlign: TextAlign.center,
-                      style: textTheme.bodySmall?.copyWith(
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                  ],
-                ],
-              );
-            },
-          );
-        },
+                            alignment: Alignment.center,
+                            child: isLoading
+                                ? const SizedBox(
+                                    width: 22,
+                                    height: 22,
+                                    child: CircularProgressIndicator(
+                                      color: Colors.white,
+                                      strokeWidth: 2.2,
+                                    ),
+                                  )
+                                : Row(
+                                    mainAxisAlignment: MainAxisAlignment.center,
+                                    children: [
+                                      Icon(buttonIcon, size: 20, color: Colors.white),
+                                      const SizedBox(width: 10),
+                                      Text(
+                                        buttonText,
+                                        style: textTheme.labelLarge?.copyWith(
+                                          fontWeight: FontWeight.w800,
+                                          fontSize: 15,
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                          ),
+                        ),
+                        if (!canGenerate && !hasActiveCoupon) ...[
+                          const SizedBox(height: 8),
+                          Text(
+                            'سجّل حسابك في ثواني ووفّر مع كل خروجة',
+                            textAlign: TextAlign.center,
+                            style: textTheme.bodySmall?.copyWith(
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                        ],
+                      ],
+                    );
+                  },
+                );
+              },
+            ),
+          ),
+        ),
       ),
     );
   }

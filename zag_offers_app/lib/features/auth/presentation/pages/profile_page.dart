@@ -703,7 +703,13 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
-            const Icon(IconlyLight.arrowLeft2, size: 18, color: Colors.grey),
+            Icon(
+              Directionality.of(context) == TextDirection.rtl
+                  ? Icons.arrow_back_ios_new_rounded
+                  : Icons.arrow_forward_ios_rounded,
+              size: 15,
+              color: Colors.grey,
+            ),
           ],
         ),
       ),

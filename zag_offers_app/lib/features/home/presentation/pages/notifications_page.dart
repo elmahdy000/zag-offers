@@ -27,6 +27,17 @@ class NotificationsPage extends StatelessWidget {
 
         return Scaffold(
           appBar: AppBar(
+            leading: Navigator.canPop(context)
+                ? IconButton(
+                    icon: Icon(
+                      Directionality.of(context) == TextDirection.rtl
+                          ? Icons.arrow_forward_ios_rounded
+                          : Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                : null,
             title: Text(
               feedState.items.where((n) => !n.isRead).isEmpty
                   ? 'الإشعارات'
@@ -174,12 +185,18 @@ class NotificationsPage extends StatelessWidget {
                               borderRadius: BorderRadius.circular(16),
                               border: Border.all(color: AppColors.primary.withValues(alpha: 0.2)),
                             ),
-                            child: const Row(
+                            child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                Icon(Icons.arrow_back_rounded, color: AppColors.primary, size: 18),
-                                SizedBox(width: 8),
-                                Text(
+                                Icon(
+                                  Directionality.of(context) == TextDirection.rtl
+                                      ? Icons.arrow_forward_rounded
+                                      : Icons.arrow_back_rounded,
+                                  color: AppColors.primary,
+                                  size: 18,
+                                ),
+                                const SizedBox(width: 8),
+                                const Text(
                                   'العودة وتصفح العروض',
                                   style: TextStyle(
                                     color: AppColors.primary,

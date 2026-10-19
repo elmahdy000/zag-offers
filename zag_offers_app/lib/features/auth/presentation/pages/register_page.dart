@@ -96,7 +96,20 @@ class _RegisterPageState extends State<RegisterPage> {
           }
         },
         child: Scaffold(
-          appBar: AppBar(title: const Text('إنشاء حساب جديد')),
+          appBar: AppBar(
+            title: const Text('إنشاء حساب جديد'),
+            leading: Navigator.canPop(context)
+                ? IconButton(
+                    icon: Icon(
+                      Directionality.of(context) == TextDirection.rtl
+                          ? Icons.arrow_forward_ios_rounded
+                          : Icons.arrow_back_ios_new_rounded,
+                      size: 20,
+                    ),
+                    onPressed: () => Navigator.pop(context),
+                  )
+                : null,
+          ),
           body: SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(24),

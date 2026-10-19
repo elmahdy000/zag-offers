@@ -161,6 +161,18 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   expandedHeight: 140,
                   pinned: true,
                   backgroundColor: AppColors.primary,
+                  leading: Navigator.canPop(context)
+                      ? IconButton(
+                          icon: Icon(
+                            Directionality.of(context) == TextDirection.rtl
+                                ? Icons.arrow_forward_ios_rounded
+                                : Icons.arrow_back_ios_new_rounded,
+                            color: Colors.white,
+                            size: 20,
+                          ),
+                          onPressed: () => Navigator.pop(context),
+                        )
+                      : null,
                   flexibleSpace: FlexibleSpaceBar(
                     titlePadding: const EdgeInsets.symmetric(
                       horizontal: 16,
@@ -508,8 +520,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
         : screenWidth > 600
             ? 0.76
             : screenWidth < 360
-                ? 0.56
-                : 0.58;
+                ? 0.65
+                : 0.68;
 
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
@@ -523,14 +535,19 @@ class _AllOffersPageState extends State<AllOffersPage> {
         delegate: SliverChildBuilderDelegate(
           (context, index) {
             final offer = filtered[index];
+            final cardHeroTag = 'all_offers_${offer.id}_$index';
             return RepaintBoundary(
               child: OfferCard(
                 offer: offer,
                 isWide: true,
+                heroTag: cardHeroTag,
                 onTap: () => Navigator.push(
                   context,
                   MaterialPageRoute(
-                    builder: (context) => OfferDetailPage(offer: offer),
+                    builder: (context) => OfferDetailPage(
+                      offer: offer,
+                      heroTag: cardHeroTag,
+                    ),
                   ),
                 ),
               ),

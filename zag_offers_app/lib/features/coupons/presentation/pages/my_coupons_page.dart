@@ -708,7 +708,9 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     ),
                     const SizedBox(width: 4),
                     Icon(
-                      Icons.arrow_back_ios_new_rounded,
+                      Directionality.of(context) == TextDirection.rtl
+                          ? Icons.arrow_back_ios_new_rounded
+                          : Icons.arrow_forward_ios_rounded,
                       size: 13,
                       color: isDark ? Colors.white38 : Colors.grey.shade400,
                     ),
@@ -1201,6 +1203,17 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
+        leading: Navigator.canPop(context)
+            ? IconButton(
+                icon: Icon(
+                  Directionality.of(context) == TextDirection.rtl
+                      ? Icons.arrow_forward_ios_rounded
+                      : Icons.arrow_back_ios_new_rounded,
+                  size: 20,
+                ),
+                onPressed: () => Navigator.pop(context),
+              )
+            : null,
         title: Text(
           'محفظة الكوبونات 🎟️',
           style: theme.textTheme.headlineSmall?.copyWith(

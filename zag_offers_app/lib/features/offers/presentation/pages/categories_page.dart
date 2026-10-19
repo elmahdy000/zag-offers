@@ -173,7 +173,9 @@ class CategoriesPage extends StatelessWidget {
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             icon: Icon(
-                              Icons.arrow_back_ios_new_rounded,
+                              Directionality.of(context) == TextDirection.rtl
+                                  ? Icons.arrow_forward_ios_rounded
+                                  : Icons.arrow_back_ios_new_rounded,
                               size: 16,
                               color: isDark ? Colors.white : AppColors.textPrimary,
                             ),
@@ -614,16 +616,16 @@ class CategoriesPage extends StatelessWidget {
                                                       : color,
                                                 ),
                                               ),
-                                              Transform.flip(
-                                                flipX: true,
-                                                child: Icon(
-                                                  Icons.arrow_back_ios_new_rounded,
-                                                  size: 12,
-                                                  color: isDark
-                                                      ? color.withValues(
-                                                          alpha: 0.9)
-                                                      : color,
-                                                ),
+                                              Icon(
+                                                Directionality.of(context) ==
+                                                        TextDirection.rtl
+                                                    ? Icons.arrow_back_ios_new_rounded
+                                                    : Icons.arrow_forward_ios_rounded,
+                                                size: 12,
+                                                color: isDark
+                                                    ? color.withValues(
+                                                        alpha: 0.9)
+                                                    : color,
                                               ),
                                             ],
                                           ),
