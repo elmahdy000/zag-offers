@@ -94,40 +94,36 @@ class OfferCard extends StatelessWidget {
                     fit: BoxFit.cover,
                   )
                 : Container(
-                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF3EC),
+                    color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF7ED),
                     child: Center(
-                      child: Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          Container(
-                            width: 44,
-                            height: 44,
-                            decoration: BoxDecoration(
-                              color: isDark ? const Color(0xFF162032) : Colors.white,
-                              shape: BoxShape.circle,
-                              border: Border.all(color: _primaryOrange, width: 1.5),
-                            ),
-                            child: Center(
-                              child: Text(
-                                initial,
-                                style: GoogleFonts.cairo(
-                                  color: _primaryOrange,
-                                  fontWeight: FontWeight.w900,
-                                  fontSize: 20,
-                                ),
-                              ),
-                            ),
+                      child: Container(
+                        width: 52,
+                        height: 52,
+                        decoration: BoxDecoration(
+                          color: isDark ? const Color(0xFF162032) : Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: _primaryOrange.withValues(alpha: 0.35),
+                            width: 1.5,
                           ),
-                          const SizedBox(height: 4),
-                          Text(
-                            offer.store.name,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withValues(alpha: isDark ? 0.3 : 0.04),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ],
+                        ),
+                        child: Center(
+                          child: Text(
+                            initial,
                             style: GoogleFonts.cairo(
                               color: _primaryOrange,
-                              fontSize: 10.5,
-                              fontWeight: FontWeight.w800,
+                              fontWeight: FontWeight.w900,
+                              fontSize: 24,
                             ),
                           ),
-                        ],
+                        ),
                       ),
                     ),
                   ),
@@ -265,9 +261,9 @@ class OfferCard extends StatelessWidget {
 
           const SizedBox(height: 5),
 
-          // 2. Offer Title
+          // 2. Offer Title (with smart enrichment when title is bare discount)
           Text(
-            offer.title,
+            _getDisplayTitle(offer.title, offer.store.name),
             style: GoogleFonts.cairo(
               fontSize: 13,
               fontWeight: FontWeight.w800,
@@ -636,5 +632,14 @@ class OfferCard extends StatelessWidget {
         ),
       ),
     ];
+  }
+
+  String _getDisplayTitle(String rawTitle, String storeName) {
+    final clean = rawTitle.trim();
+    final isBareDiscount = RegExp(r'^(خصم\s*\d+%?|\d+%\s*خصم|\d+%)$').hasMatch(clean);
+    if (isBareDiscount) {
+      return '$clean على جميع الخدمات والطلبات';
+    }
+    return clean;
   }
 }

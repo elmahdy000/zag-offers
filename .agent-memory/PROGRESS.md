@@ -10,6 +10,15 @@
 
 ## 2. Completed Milestones
 
+### I. Explore Offers Screen Full-Width Redesign & Data Deduplication (`SearchPage`, `OfferCard`)
+- **Full-Width Screen Reclamation**: Completely eliminated the 82px vertical category sidebar that consumed >22% of mobile screen real estate, freeing 100% of the display width for offers.
+- **Horizontal Category Bar**: Implemented sleek, fast, horizontal scrollable pills with active Egyptian Orange selection, dynamic thumbnails/icons, and "الكل" quick reset.
+- **Card Content Deduplication**:
+  - Removed duplicate store name text from inside the image placeholder monogram avatar, keeping the clean monogram and showing the merchant name once in the info section.
+  - Sanitized bare discount titles (e.g. `40% خصم` repeating `خصم 40%`) into informative, professional titles: `40% خصم على جميع الخدمات والطلبات`.
+- **Responsive Layout & Visual Polish**: 16px uniform margins, content-driven card heights, verified 0ms Arabic search and instant category filtering.
+- **Verification**: 27/27 unit tests passing, `flutter analyze lib/` 0 issues, live verified on Android emulator (`emulator-5554`).
+
 ### A. Coupon Wallet Redesign (`MyCouponsPage`)
 - Segmented tabs: `نشطة` (Active), `مستخدمة` (Used), `الكل` (All).
 - Visual coupon cards with clean perforated edge styling, high contrast, merchant logos/monograms, and one-tap copy/QR view.

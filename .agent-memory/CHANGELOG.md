@@ -1,5 +1,22 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-20] - Search Screen Full-Width Redesign & Card Content Deduplication
+### Added / Changed
+- **Replaced 82px Vertical Sidebar with Horizontal Category Bar (`SearchPage`)**:
+  - Replaced the clunky vertical category sidebar (which occupied >22% of screen width) with a sleek, horizontal scrolling category pills bar (`_buildHorizontalCategoriesBar`).
+  - Active category pill rendered in solid Egyptian Orange with soft shadow; inactive pills rendered with clean hairline border and category icons/thumbnails.
+  - Reclaimed 100% full screen width for offer cards, eliminating vertical card squeezing and bloated heights.
+- **Card Content Deduplication & Smart Title Enrichment (`OfferCard`)**:
+  - Removed duplicate merchant name text from inside the image placeholder monogram avatar, keeping the clean monogram circle and displaying the merchant name once in the info section.
+  - Added smart title sanitizer (`_getDisplayTitle`) that enriches bare discount titles (e.g., `40% خصم` repeating `خصم 40%`) into informative, professional titles (`40% خصم على جميع الخدمات والطلبات`).
+- **Layout & Spacing Polish**:
+  - Standardized horizontal margins to 16px across search header, active filters, and offer feed.
+  - Verified instant 0ms category filtering, active filter chip tags, and one-tap filter reset.
+### Verified
+- 27/27 unit tests passing in `flutter test`.
+- 0 analyzer issues in `flutter analyze lib/`.
+- Verified live on Android emulator (`emulator-5554`) across categories and search states.
+
 ## [2026-10-19] - Arabic Search Normalization & Unified Multi-Filter Engine
 ### Added / Fixed
 - **Arabic Normalization Engine (`OfferFilterUtils`)**:

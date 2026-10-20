@@ -113,4 +113,14 @@
   4. **Persistent Sidebar**: The category sidebar must remain visible and interactive during search.
   5. **Arabic Definite Article Tolerance**: Search matching must be agnostic to leading "ال" and common Egyptian alternate spellings (`ه` vs `ا`).
 
+---
+
+## 16. Horizontal Category Scroll Bar Over Vertical Sidebar on Mobile & Card Deduplication
+- **Decision**: In `SearchPage`, replace the 82px vertical category sidebar with a horizontal scrolling category pill bar directly beneath the search header, and eliminate card text redundancies in `OfferCard`.
+- **Rationale**:
+  1. On mobile screens (360-400px width), an 82px vertical sidebar steals >22% of the screen width, severely squeezing offer cards into an unnaturally narrow column, degrading readability, and causing vertical card bloating.
+  2. Horizontal scrolling category pills (`_buildHorizontalCategoriesBar`) free 100% of the screen width for offers, conforming to standard mobile e-commerce UX (Talabat, Noon, Amazon).
+  3. In `OfferCard`, the store name was previously duplicated both inside the fallback image placeholder and in the store info line below it. Eliminating the duplicate text and rendering a clean monogram avatar resolves visual clutter.
+  4. Bare discount titles (e.g. `40% خصم` repeating `خصم 40%` top badge) are smartly sanitized to descriptive titles (`40% خصم على جميع الخدمات والطلبات`).
+
 

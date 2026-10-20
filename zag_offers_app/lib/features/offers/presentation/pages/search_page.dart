@@ -161,9 +161,9 @@ class _SearchPageState extends State<SearchPage> {
           }
 
           if (state is OffersLoaded) {
-            return Row(
+            return Column(
               children: [
-                _buildSidebar(context, state, isDark),
+                _buildHorizontalCategoriesBar(context, state, isDark),
                 Expanded(child: _buildOffersFeed(context, state, isDark)),
               ],
             );
@@ -416,119 +416,107 @@ class _SearchPageState extends State<SearchPage> {
   }
 
   // =========================================================================
-  // 2. COMPACT CATEGORIES SIDEBAR (82px, SOLID BRANDED PILL SELECTION)
+  // 2. HORIZONTAL CATEGORIES BAR (FULL WIDTH, SLEEK BRANDED PILLS)
   // =========================================================================
-  Widget _buildSidebar(BuildContext context, OffersLoaded state, bool isDark) {
+  Widget _buildHorizontalCategoriesBar(
+    BuildContext context,
+    OffersLoaded state,
+    bool isDark,
+  ) {
     final dynamicCategories = state.categories;
     final itemCount = dynamicCategories.length + 1; // + "الكل"
 
     return Container(
-      width: 82,
-      decoration: BoxDecoration(
-        color: isDark ? _darkNavy : Colors.white,
-        border: BorderDirectional(
-          end: BorderSide(
-            color: isDark ? Colors.white.withValues(alpha: 0.08) : _borderLight,
-            width: 0.8,
-          ),
-        ),
-      ),
-      child: ListView.builder(
-        keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-        padding: EdgeInsets.fromLTRB(
-          6,
-          8,
-          6,
-          24 + MediaQuery.paddingOf(context).bottom,
-        ),
+      height: 44,
+      margin: const EdgeInsets.only(top: 8, bottom: 4),
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        physics: const BouncingScrollPhysics(),
+        padding: const EdgeInsets.symmetric(horizontal: 14),
         itemCount: itemCount,
+        separatorBuilder: (_, __) => const SizedBox(width: 8),
         itemBuilder: (context, index) {
           final bool isAll = index == 0;
-          final categoryBackendName = isAll ? 'الكل' : dynamicCategories[index - 1].name;
+          final categoryBackendName =
+              isAll ? 'الكل' : dynamicCategories[index - 1].name;
           final categoryDisplayName = isAll
               ? 'الكل'
               : CategoryUtils.getDisplayName(dynamicCategories[index - 1].name);
-          final categoryImage = isAll ? null : dynamicCategories[index - 1].image;
+          final categoryImage =
+              isAll ? null : dynamicCategories[index - 1].image;
           final isSelected = _selectedCategory == categoryBackendName;
 
-          return Padding(
-            padding: const EdgeInsets.symmetric(vertical: 3.5),
-            child: BouncyTap(
-              onTap: () {
-                setState(() {
-                  _selectedCategory = categoryBackendName;
-                });
-                HapticFeedback.lightImpact();
-              },
-              child: AnimatedContainer(
-                duration: const Duration(milliseconds: 220),
-                curve: Curves.easeOutCubic,
-                padding: const EdgeInsets.symmetric(vertical: 8, horizontal: 4),
-                decoration: BoxDecoration(
+          return BouncyTap(
+            onTap: () {
+              setState(() {
+                _selectedCategory = categoryBackendName;
+              });
+              HapticFeedback.lightImpact();
+            },
+            child: AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              curve: Curves.easeOutCubic,
+              padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? _primaryOrange
+                    : (isDark ? _cardDark : Colors.white),
+                borderRadius: BorderRadius.circular(22),
+                border: Border.all(
                   color: isSelected
-                      ? (isDark ? _cardDark : const Color(0xFFFFF3EC))
-                      : Colors.transparent,
-                  borderRadius: BorderRadius.circular(12),
-                  border: Border.all(
-                    color: isSelected ? _primaryOrange : Colors.transparent,
-                    width: 1,
-                  ),
+                      ? _primaryOrange
+                      : (isDark ? Colors.white.withValues(alpha: 0.1) : _borderLight),
+                  width: 1,
                 ),
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    // Circular Category Image (40x40)
-                    Container(
-                      width: 40,
-                      height: 40,
-                      padding: const EdgeInsets.all(1.5),
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: isSelected
-                              ? _primaryOrange
-                              : (isDark ? Colors.white.withValues(alpha: 0.12) : _borderLight),
-                          width: isSelected ? 2 : 1,
+                boxShadow: isSelected
+                    ? [
+                        BoxShadow(
+                          color: _primaryOrange.withValues(alpha: 0.3),
+                          blurRadius: 8,
+                          offset: const Offset(0, 2),
+                        ),
+                      ]
+                    : null,
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  if (isAll)
+                    Icon(
+                      Icons.grid_view_rounded,
+                      size: 15,
+                      color: isSelected ? Colors.white : _primaryOrange,
+                    )
+                  else if (categoryImage != null && categoryImage.isNotEmpty)
+                    ClipOval(
+                      child: SizedBox(
+                        width: 18,
+                        height: 18,
+                        child: NetworkImageWidget(
+                          imageUrl: categoryImage,
+                          fit: BoxFit.cover,
                         ),
                       ),
-                      child: ClipOval(
-                        child: categoryImage != null
-                            ? NetworkImageWidget(
-                                imageUrl: categoryImage,
-                                fit: BoxFit.cover,
-                              )
-                            : Container(
-                                color: isDark ? const Color(0xFF1E293B) : const Color(0xFFFFF3EC),
-                                child: Icon(
-                                  isAll
-                                      ? Icons.grid_view_rounded
-                                      : CategoryUtils.getIcon(categoryBackendName),
-                                  color: _primaryOrange,
-                                  size: 18,
-                                ),
-                              ),
-                      ),
+                    )
+                  else
+                    Icon(
+                      CategoryUtils.getIcon(categoryBackendName),
+                      size: 15,
+                      color: isSelected ? Colors.white : _primaryOrange,
                     ),
-
-                    const SizedBox(height: 5),
-
-                    // Category Label (Readable Cairo font, single line)
-                    Text(
-                      categoryDisplayName,
-                      textAlign: TextAlign.center,
-                      maxLines: 1,
-                      overflow: TextOverflow.ellipsis,
-                      style: GoogleFonts.cairo(
-                        fontSize: 10.5,
-                        fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
-                        color: isSelected
-                            ? _primaryOrange
-                            : (isDark ? Colors.grey.shade300 : _secondaryGray),
-                        height: 1.15,
-                      ),
+                  const SizedBox(width: 6),
+                  Text(
+                    categoryDisplayName,
+                    style: GoogleFonts.cairo(
+                      fontSize: 12,
+                      fontWeight: isSelected ? FontWeight.w900 : FontWeight.w700,
+                      color: isSelected
+                          ? Colors.white
+                          : (isDark ? Colors.grey.shade300 : _darkNavy),
+                      height: 1.15,
                     ),
-                  ],
-                ),
+                  ),
+                ],
               ),
             ),
           );
@@ -583,7 +571,7 @@ class _SearchPageState extends State<SearchPage> {
     bool isDark,
   ) {
     return Container(
-      padding: const EdgeInsets.fromLTRB(12, 10, 12, 4),
+      padding: const EdgeInsets.fromLTRB(16, 6, 16, 6),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
@@ -722,9 +710,9 @@ class _SearchPageState extends State<SearchPage> {
         if (width < 520) {
           return ListView.separated(
             keyboardDismissBehavior: ScrollViewKeyboardDismissBehavior.onDrag,
-            padding: EdgeInsets.fromLTRB(12, 12, 12, 24 + bottomInset),
+            padding: EdgeInsets.fromLTRB(16, 8, 16, 24 + bottomInset),
             itemCount: offers.length,
-            separatorBuilder: (_, __) => const SizedBox(height: 12),
+            separatorBuilder: (_, __) => const SizedBox(height: 14),
             itemBuilder: (context, index) {
               final offer = offers[index];
               final cardHeroTag = 'explore_offers_${offer.id}_$index';
