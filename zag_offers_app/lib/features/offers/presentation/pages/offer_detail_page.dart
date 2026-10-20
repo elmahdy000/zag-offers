@@ -299,9 +299,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
       systemOverlayStyle: SystemUiOverlayStyle.light,
       backgroundColor: isDark ? const Color(0xFF0F172A) : const Color(0xFF131B2A),
       leading: _buildCircleIconButton(
-        icon: Directionality.of(context) == TextDirection.rtl
-            ? Icons.arrow_forward_ios_rounded
-            : Icons.arrow_back_ios_new_rounded,
+        icon: Icons.arrow_back_ios_new_rounded,
         onPressed: () => Navigator.pop(context),
       ),
       actions: [
@@ -1167,9 +1165,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               ),
             ),
             Icon(
-              Directionality.of(context) == TextDirection.rtl
-                  ? Icons.arrow_back_ios_new_rounded
-                  : Icons.arrow_forward_ios_rounded,
+              Icons.arrow_forward_ios_rounded,
               size: 14,
               color: isDark ? Colors.grey.shade400 : AppColors.textSecondary,
             ),

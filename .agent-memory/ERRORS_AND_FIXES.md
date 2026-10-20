@@ -147,3 +147,10 @@
   3. Enable Gboard with Arabic (`ar-EG` / `LatinIME`).
 - **Prevention Invariant**: When initializing or testing Flutter apps on Android emulators in Arabic RTL mode, always ensure `show_ime_with_hard_keyboard` is set to `1` and Arabic locale/keyboard subtype is enabled.
 
+---
+
+## 15. RTL Arrow Double-Inversion Bug (Back Buttons Pointing Inward & Disclosures Pointing Backward)
+- **Symptom**: In Arabic RTL layout, back buttons in AppBars pointed leftwards (`<`) into the screen rather than outwards/rightwards (`>`), and menu/card disclosure chevrons pointed rightwards (`>`) away from destination pages rather than leftwards (`<`).
+- **Root Cause**: Developers wrote `Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_new_rounded` under the assumption that Flutter icons are static. However, `Icons.arrow_back_ios_new_rounded`, `Icons.arrow_back_rounded`, `Icons.arrow_forward_ios_rounded`, and `Icons.arrow_forward_rounded` have `matchTextDirection: true` in the Flutter SDK. Because of this, Flutter automatically applied horizontal mirroring on top of the manual ternary swap, resulting in a double inversion.
+- **Resolution**: Removed all manual `Directionality.of(context)` checks across all 18 files in `zag_offers_app`, directly specifying `Icons.arrow_back_ios_new_rounded` / `Icons.arrow_back_rounded` for back navigation and `Icons.arrow_forward_ios_rounded` / `Icons.arrow_forward_rounded` for forward/disclosure navigation. Verified across Android emulator and iOS simulator.
+- **Prevention Invariant**: Never manually invert icons that declare `matchTextDirection: true`. Semantic back actions always use `arrow_back_*`; semantic forward/disclosure actions always use `arrow_forward_*`.

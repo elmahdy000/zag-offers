@@ -1,5 +1,17 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-20] - Elimination of RTL Arrow Double-Inversion Bug Across All Components
+### Fixed / Changed
+- **Systemic RTL Arrow Double-Inversion Resolution (18 files)**:
+  - Eliminated the double inversion bug caused by manually writing `Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward... : Icons.arrow_back...` on directional arrow icons that already declare `matchTextDirection: true` in the Flutter SDK.
+  - Replaced manual ternaries with direct semantic icon usage across 18 files:
+    - Back navigation buttons (`Icons.arrow_back_ios_new_rounded` / `Icons.arrow_back_rounded`): now point outwards (`>`) in Arabic RTL and (`<`) in LTR across all AppBars (`SearchPage`, `NotificationsPage`, `FavoritesPage`, `OfferDetailPage`, `StoreDetailPage`, `CategoriesPage`, `AllOffersPage`, `MapPage`, `MyCouponsPage`, `ZagRewardsPage`, `InviteFriendsPage`, `LoginPage`, `RegisterPage`, `ForgotPasswordPage`).
+    - Forward/Disclosure chevrons (`Icons.arrow_forward_ios_rounded` / `Icons.arrow_forward_rounded`): now point inwards (`<`) in Arabic RTL and (`>`) in LTR across cards and list items (`OfferCard` CTA, `OfferDetailPage` store row, `StoreDetailPage` offers list, `ProfilePage` settings & secondary menus, `CategoriesPage` category card, `HomePage` "عرض الكل", `OnboardingPage` "التالي").
+### Verified
+- `flutter analyze lib/` ➜ 0 issues.
+- `flutter test` ➜ 27/27 tests passed.
+- Visually verified via screenshots on Android emulator (`emulator-5554`) and iOS simulator (`iPhone 17 Pro Max`).
+
 ## [2026-10-20] - Search Screen Full-Width Redesign & Card Content Deduplication
 ### Added / Changed
 - **Replaced 82px Vertical Sidebar with Horizontal Category Bar (`SearchPage`)**:

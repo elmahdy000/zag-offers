@@ -184,6 +184,24 @@
   - 0 issues on `flutter analyze lib/`.
   - Verified live on Android emulator (`emulator-5554`) and iOS Simulator (`iPhone 17 Pro Max`).
 
+### O. Full-Width Category Architecture, Card Deduplication, and Elimination of Arrow Double-Inversion Bug
+- **Full-Width Category Architecture (`SearchPage`)**:
+  - Replaced cramped 82px vertical category sidebar with a horizontal scrolling category pill bar (`_buildHorizontalCategoriesBar`) directly below the search header.
+  - Granted 100% of the viewport width to the offer feed, eliminating vertical card distortion and card bloating on mobile screens.
+  - 44px pill height, solid Egyptian Orange (`#FF5A0A`) active state with soft shadow, hairline border inactive state, dynamic category icons/thumbnails, and dedicated "الكل" quick reset.
+- **Card Content Deduplication & Title Sanitization (`OfferCard`)**:
+  - Removed duplicate store name inside the missing image fallback; replaced with a centered 52x52 monogram avatar on soft cream (`#FFF7ED`).
+  - Added smart title sanitization in `_getDisplayTitle` to enrich bare discount strings (e.g., `40% خصم` repeating `خصم 40%`) into clear descriptive titles (`40% خصم على جميع الخدمات والطلبات`).
+- **Elimination of RTL Arrow Double-Inversion Bug (18 files)**:
+  - Discovered that Flutter's `Icons.arrow_back_ios_new_rounded`, `Icons.arrow_back_rounded`, `Icons.arrow_forward_ios_rounded`, and `Icons.arrow_forward_rounded` have built-in `matchTextDirection: true`.
+  - Systematically replaced all manual `Directionality.of(context) == TextDirection.rtl ? arrow_forward : arrow_back` ternaries across all 18 files with direct semantic icon usage.
+  - Back buttons across all AppBars now correctly point outwards (`>`) in Arabic RTL.
+  - Disclosure and navigation chevrons now correctly point inwards (`<`) towards destination pages in Arabic RTL.
+- **Verification**:
+  - `flutter analyze lib/` passes with 0 issues.
+  - `flutter test` passes 27/27 tests.
+  - Visually audited and confirmed on Android (`emulator-5554`) and iOS (`iPhone 17 Pro Max`).
+
 ---
 
 ## 3. Pending & Upcoming Tasks
@@ -191,3 +209,4 @@
    - Modernize Offer Details page and Coupon modal to match mobile app design tokens and pricing hierarchy.
 2. **Merchant Mobile App (`zag_offers_vendor_app`)**:
    - Review and align cashier QR scanner flow with updated coupon entity contract.
+

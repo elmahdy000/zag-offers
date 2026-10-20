@@ -868,10 +868,8 @@ Widget _buildOffersSectionWidget(
             ),
             TextButton.icon(
               onPressed: () => MainScreen.of(context)?.setSelectedIndex(1),
-              label: Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.arrow_back_ios_new_rounded
-                    : Icons.arrow_forward_ios_rounded,
+              label: const Icon(
+                Icons.arrow_forward_ios_rounded,
                 size: 13,
               ),
               icon: Text(

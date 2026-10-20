@@ -62,10 +62,8 @@ class InviteFriendsPage extends StatelessWidget {
       appBar: AppBar(
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? Icons.arrow_forward_ios_rounded
-                      : Icons.arrow_back_ios_new_rounded,
+                icon: const Icon(
+                  Icons.arrow_back_ios_new_rounded,
                   size: 20,
                 ),
                 onPressed: () => Navigator.pop(context),

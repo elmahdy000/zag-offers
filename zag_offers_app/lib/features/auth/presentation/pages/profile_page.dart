@@ -703,10 +703,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
-            Icon(
-              Directionality.of(context) == TextDirection.rtl
-                  ? Icons.arrow_back_ios_new_rounded
-                  : Icons.arrow_forward_ios_rounded,
+            const Icon(
+              Icons.arrow_forward_ios_rounded,
               size: 15,
               color: Colors.grey,
             ),
@@ -817,9 +815,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               Icon(
-                Directionality.of(context) == TextDirection.rtl
-                    ? Icons.arrow_back_ios_new_rounded
-                    : Icons.arrow_forward_ios_rounded,
+                Icons.arrow_forward_ios_rounded,
                 size: 14,
                 color: theme.dividerColor.withValues(alpha: 0.4),
               ),

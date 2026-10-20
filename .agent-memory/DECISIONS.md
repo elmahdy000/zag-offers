@@ -123,4 +123,17 @@
   3. In `OfferCard`, the store name was previously duplicated both inside the fallback image placeholder and in the store info line below it. Eliminating the duplicate text and rendering a clean monogram avatar resolves visual clutter.
   4. Bare discount titles (e.g. `40% خصم` repeating `خصم 40%` top badge) are smartly sanitized to descriptive titles (`40% خصم على جميع الخدمات والطلبات`).
 
+---
+
+## 17. Elimination of RTL Arrow Double-Inversion Bug Across Mobile Apps
+- **Decision**: Never use manual `Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward... : Icons.arrow_back...` ternaries for directional arrow icons. Always declare the semantic icon directly (`Icons.arrow_back_ios_new_rounded` for back actions, `Icons.arrow_forward_ios_rounded` for disclosures/next actions).
+- **Rationale**:
+  1. In Flutter SDK (`material/icons.dart`), `Icons.arrow_back_ios_new_rounded`, `Icons.arrow_back_rounded`, `Icons.arrow_forward_ios_rounded`, and `Icons.arrow_forward_rounded` are declared with `matchTextDirection: true`.
+  2. In an RTL tree (`TextDirection.rtl`), Flutter's rendering pipeline automatically applies a horizontal flip (`Matrix4.identity()..scale(-1.0, 1.0, 1.0)`).
+  3. When developers wrote a manual ternary selecting `arrow_forward` for RTL, Flutter flipped it back to point LEFT (`<`), causing Back buttons in RTL to point into the screen instead of backwards/outwards (`>`).
+  4. Similarly, disclosure chevrons manually selecting `arrow_back` in RTL flipped to point RIGHT (`>`), pointing away from child screens instead of leftward (`<`).
+- **Rule**:
+  - For **Back / Pop** navigation: Always use `Icons.arrow_back_ios_new_rounded` or `Icons.arrow_back_rounded`. (Automatically points `>` in RTL and `<` in LTR).
+  - For **Next / Forward / Disclosure** chevrons: Always use `Icons.arrow_forward_ios_rounded` or `Icons.arrow_forward_rounded`. (Automatically points `<` in RTL and `>` in LTR).
+
 

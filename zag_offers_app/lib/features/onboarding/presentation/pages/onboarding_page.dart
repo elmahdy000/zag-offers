@@ -172,10 +172,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               ),
                               if (_currentPage < _slides.length - 1) ...[
                                 const SizedBox(width: 4),
-                                Icon(
-                                  Directionality.of(context) == TextDirection.rtl
-                                      ? Icons.arrow_back_rounded
-                                      : Icons.arrow_forward_rounded,
+                                const Icon(
+                                  Icons.arrow_forward_rounded,
                                   size: 16,
                                   color: Colors.white,
                                 ),

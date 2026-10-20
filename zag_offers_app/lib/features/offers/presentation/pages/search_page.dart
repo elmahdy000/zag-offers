@@ -290,9 +290,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ),
                 child: Icon(
-                  Directionality.of(context) == TextDirection.rtl
-                      ? Icons.arrow_forward_ios_rounded
-                      : Icons.arrow_back_ios_new_rounded,
+                  Icons.arrow_back_ios_new_rounded,
                   size: 16,
                   color: isDark ? Colors.white : _darkNavy,
                 ),

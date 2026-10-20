@@ -485,10 +485,8 @@ class OfferCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 3.5),
-                      Icon(
-                        Directionality.of(context) == TextDirection.rtl
-                            ? Icons.arrow_back_ios_new_rounded
-                            : Icons.arrow_forward_ios_rounded,
+                      const Icon(
+                        Icons.arrow_forward_ios_rounded,
                         size: 9,
                         color: Colors.white,
                       ),

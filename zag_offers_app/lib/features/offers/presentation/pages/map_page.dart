@@ -691,9 +691,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 ),
                 child: IconButton(
                   icon: Icon(
-                    Directionality.of(context) == TextDirection.rtl
-                        ? Icons.arrow_forward_ios_rounded
-                        : Icons.arrow_back_ios_new_rounded,
+                    Icons.arrow_back_ios_new_rounded,
                     color: isDark ? Colors.white : AppColors.textPrimary,
                     size: 18,
                   ),

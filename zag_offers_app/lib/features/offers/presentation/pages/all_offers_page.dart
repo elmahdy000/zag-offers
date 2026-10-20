@@ -162,10 +162,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   backgroundColor: AppColors.primary,
                   leading: Navigator.canPop(context)
                       ? IconButton(
-                          icon: Icon(
-                            Directionality.of(context) == TextDirection.rtl
-                                ? Icons.arrow_forward_ios_rounded
-                                : Icons.arrow_back_ios_new_rounded,
+                          icon: const Icon(
+                            Icons.arrow_back_ios_new_rounded,
                             color: Colors.white,
                             size: 20,
                           ),
