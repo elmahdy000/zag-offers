@@ -12,6 +12,7 @@ import '../bloc/offers_state.dart';
 import '../constants/offer_categories.dart';
 import 'all_offers_page.dart';
 import 'search_page.dart';
+import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 class CategoriesPage extends StatelessWidget {
   const CategoriesPage({super.key});
@@ -22,6 +23,65 @@ class CategoriesPage extends StatelessWidget {
     if (count == 2) return 'عرضان 🔥';
     if (count <= 10) return '$count عروض 🔥';
     return '$count عرض 🔥';
+  }
+
+  Widget _buildCategoriesSkeleton(BuildContext context, bool isDark) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final int crossAxisCount = screenWidth > 900
+        ? 4
+        : screenWidth > 600
+            ? 3
+            : 2;
+    final double childAspectRatio = screenWidth > 600 ? 1.05 : 0.95;
+
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 70, 16, 120),
+      child: GridView.builder(
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          crossAxisSpacing: 14,
+          mainAxisSpacing: 14,
+          childAspectRatio: childAspectRatio,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) {
+          return AppShimmer(
+            child: Container(
+              decoration: BoxDecoration(
+                color: isDark ? const Color(0xFF162032) : Colors.white,
+                borderRadius: BorderRadius.circular(20),
+                border: Border.all(
+                  color: isDark ? Colors.white10 : const Color(0xFFE2E8F0),
+                ),
+              ),
+              padding: const EdgeInsets.all(14),
+              child: const Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      SkeletonCircle(size: 44),
+                      SkeletonBox(width: 48, height: 20, borderRadius: 10),
+                    ],
+                  ),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      SkeletonBox(width: 80, height: 16, borderRadius: 4),
+                      SizedBox(height: 6),
+                      SkeletonBox(width: 110, height: 12, borderRadius: 4),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          );
+        },
+      ),
+    );
   }
 
   @override
@@ -76,7 +136,7 @@ class CategoriesPage extends StatelessWidget {
                 next is OffersError,
             builder: (context, state) {
               if (state is OffersLoading) {
-                return const Center(child: CircularProgressIndicator());
+                return _buildCategoriesSkeleton(context, isDark);
               }
               if (state is OffersError) {
                 return Center(

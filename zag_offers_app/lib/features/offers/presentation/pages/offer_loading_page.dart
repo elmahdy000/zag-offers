@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/repositories/offers_repository.dart';
 import 'offer_detail_page.dart';
@@ -40,13 +41,8 @@ class _OfferLoadingPageState extends State<OfferLoadingPage> {
       },
     );
   }
-
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const OfferDetailShimmer();
   }
 }

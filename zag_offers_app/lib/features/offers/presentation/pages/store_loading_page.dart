@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../injection_container.dart' as di;
 import '../../domain/repositories/offers_repository.dart';
 import 'store_detail_page.dart';
@@ -43,10 +44,6 @@ class _StoreLoadingPageState extends State<StoreLoadingPage> {
 
   @override
   Widget build(BuildContext context) {
-    return const Scaffold(
-      body: Center(
-        child: CircularProgressIndicator(),
-      ),
-    );
+    return const StoreDetailShimmer();
   }
 }

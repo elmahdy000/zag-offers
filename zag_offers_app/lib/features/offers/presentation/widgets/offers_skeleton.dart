@@ -1,112 +1,148 @@
 import 'package:flutter/material.dart';
-import 'package:shimmer/shimmer.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 
+/// Full-fidelity Home Feed Shimmer that matches HomePage's exact visual anatomy.
 class OffersSkeleton extends StatelessWidget {
   const OffersSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    final theme = Theme.of(context);
-    final isDark = theme.brightness == Brightness.dark;
-    
-    final baseColor = isDark ? Colors.grey[800]! : Colors.grey[300]!;
-    final highlightColor = isDark ? Colors.grey[700]! : Colors.grey[100]!;
-    final containerColor = isDark ? Colors.grey[850]! : Colors.white;
+    final isDark = Theme.of(context).brightness == Brightness.dark;
+    final bgSurface = isDark ? const Color(0xFF0F172A) : const Color(0xFFF8FAFC);
 
-    return SingleChildScrollView(
-      padding: const EdgeInsets.symmetric(vertical: 16),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
-          // شريط البحث Skeleton
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Shimmer.fromColors(
-              baseColor: baseColor,
-              highlightColor: highlightColor,
-              child: Container(
-                height: 48,
-                decoration: BoxDecoration(
-                  color: containerColor,
-                  borderRadius: BorderRadius.circular(12),
+    return Scaffold(
+      backgroundColor: bgSurface,
+      body: SafeArea(
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          padding: const EdgeInsets.only(top: 8, bottom: 36),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // 1. App Bar Skeleton: Location Pill + Icons
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+                child: Row(
+                  children: [
+                    SkeletonCircle(size: 40),
+                    SizedBox(width: 8),
+                    SkeletonCircle(size: 40),
+                    SizedBox(width: 8),
+                    SkeletonCircle(size: 40),
+                    Spacer(),
+                    SkeletonBox(width: 140, height: 38, borderRadius: 20),
+                  ],
                 ),
               ),
-            ),
-          ),
-          const SizedBox(height: 24),
-          
-          // العناوين Skeleton
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Shimmer.fromColors(
-              baseColor: baseColor,
-              highlightColor: highlightColor,
-              child: Container(height: 20, width: 150, color: containerColor),
-            ),
-          ),
-          const SizedBox(height: 12),
-          
-          // عروض تريند Skeleton (Horizontal List)
-          SizedBox(
-            height: 200,
-            child: ListView.builder(
-              scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.only(left: 16),
-              itemCount: 3,
-              itemBuilder: (context, index) {
-                return Shimmer.fromColors(
-                  baseColor: baseColor,
-                  highlightColor: highlightColor,
-                  child: Container(
-                    width: 300,
-                    margin: const EdgeInsets.only(right: 12),
-                    decoration: BoxDecoration(
-                      color: containerColor,
-                      borderRadius: BorderRadius.circular(16),
-                    ),
-                  ),
-                );
-              },
-            ),
-          ),
-          
-          const SizedBox(height: 32),
-          
-          // المتاجر Skeleton (Grid)
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Shimmer.fromColors(
-              baseColor: baseColor,
-              highlightColor: highlightColor,
-              child: Container(height: 20, width: 120, color: containerColor),
-            ),
-          ),
-          const SizedBox(height: 12),
-          GridView.builder(
-            shrinkWrap: true,
-            physics: const NeverScrollableScrollPhysics(),
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              childAspectRatio: 1.5,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: 4,
-            itemBuilder: (context, index) {
-              return Shimmer.fromColors(
-                baseColor: baseColor,
-                highlightColor: highlightColor,
-                child: Container(
-                  decoration: BoxDecoration(
-                    color: containerColor,
-                    borderRadius: BorderRadius.circular(12),
-                  ),
+              const SizedBox(height: 12),
+
+              // 2. Greeting Header
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    SkeletonBox(width: 220, height: 26, borderRadius: 6),
+                    SizedBox(height: 6),
+                    SkeletonBox(width: 130, height: 14, borderRadius: 4),
+                  ],
                 ),
-              );
-            },
+              ),
+              const SizedBox(height: 14),
+
+              // 3. Live Stats Pill
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: SkeletonBox(width: 170, height: 32, borderRadius: 16),
+              ),
+              const SizedBox(height: 16),
+
+              // 4. Search Bar
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 16),
+                child: SkeletonBox(
+                  width: double.infinity,
+                  height: 52,
+                  borderRadius: 16,
+                ),
+              ),
+              const SizedBox(height: 16),
+
+              // 5. Coupon Voucher Banner (AdsSlider Shimmer)
+              const CouponTicketSkeleton(),
+              const SizedBox(height: 18),
+
+              // 6. "هتدور فين؟" Category Circles Row
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: SkeletonBox(width: 110, height: 20, borderRadius: 4),
+              ),
+              const SizedBox(height: 12),
+              SizedBox(
+                height: 96,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 5,
+                  itemBuilder: (context, index) {
+                    return const Padding(
+                      padding: EdgeInsetsDirectional.only(end: 16),
+                      child: Column(
+                        children: [
+                          SkeletonCircle(size: 64),
+                          SizedBox(height: 8),
+                          SkeletonBox(width: 50, height: 11, borderRadius: 3),
+                        ],
+                      ),
+                    );
+                  },
+                ),
+              ),
+              const SizedBox(height: 20),
+
+              // 7. Section: "الأكثر انتشارًا"
+              const Padding(
+                padding: EdgeInsets.symmetric(horizontal: 20),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        SkeletonBox(width: 120, height: 20, borderRadius: 4),
+                        SizedBox(height: 4),
+                        SkeletonBox(width: 150, height: 12, borderRadius: 4),
+                      ],
+                    ),
+                    SkeletonBox(width: 60, height: 20, borderRadius: 4),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 12),
+
+              // 8. Horizontal Trending Offers Cards
+              SizedBox(
+                height: 330,
+                child: ListView.builder(
+                  scrollDirection: Axis.horizontal,
+                  physics: const NeverScrollableScrollPhysics(),
+                  padding: const EdgeInsets.symmetric(horizontal: 16),
+                  itemCount: 2,
+                  itemBuilder: (context, index) {
+                    return const Padding(
+                      padding: EdgeInsetsDirectional.only(end: 14),
+                      child: SizedBox(
+                        width: 275,
+                        child: OfferCardSkeleton(isWide: true),
+                      ),
+                    );
+                  },
+                ),
+              ),
+            ],
           ),
-        ],
+        ),
       ),
     );
   }

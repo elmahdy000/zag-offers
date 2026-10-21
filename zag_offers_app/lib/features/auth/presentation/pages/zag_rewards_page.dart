@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart' hide TextDirection;
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../injection_container.dart';
 
 class ZagRewardsPage extends StatefulWidget {
@@ -136,6 +137,60 @@ class _ZagRewardsPageState extends State<ZagRewardsPage> with SingleTickerProvid
     }
   }
 
+  Widget _buildRewardsSkeleton(bool isDark) {
+    return SingleChildScrollView(
+      physics: const NeverScrollableScrollPhysics(),
+      padding: const EdgeInsets.fromLTRB(24, 100, 24, 24),
+      child: AppShimmer(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const SkeletonBox(width: double.infinity, height: 200, borderRadius: 24),
+            const SizedBox(height: 32),
+            const SkeletonBox(width: 140, height: 18, borderRadius: 4),
+            const SizedBox(height: 12),
+            const SkeletonBox(width: double.infinity, height: 12, borderRadius: 6),
+            const SizedBox(height: 32),
+            const SkeletonBox(width: 100, height: 18, borderRadius: 4),
+            const SizedBox(height: 16),
+            ...List.generate(
+              3,
+              (_) => Padding(
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Container(
+                  height: 72,
+                  padding: const EdgeInsets.all(12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF162032) : Colors.white,
+                    borderRadius: BorderRadius.circular(16),
+                  ),
+                  child: const Row(
+                    children: [
+                      SkeletonCircle(size: 40),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          mainAxisAlignment: MainAxisAlignment.center,
+                          children: [
+                            SkeletonBox(width: 120, height: 14, borderRadius: 4),
+                            SizedBox(height: 6),
+                            SkeletonBox(width: 80, height: 11, borderRadius: 3),
+                          ],
+                        ),
+                      ),
+                      SkeletonBox(width: 50, height: 18, borderRadius: 4),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     final theme = Theme.of(context);
@@ -161,7 +216,7 @@ class _ZagRewardsPageState extends State<ZagRewardsPage> with SingleTickerProvid
       ),
       extendBodyBehindAppBar: true,
       body: _isLoading 
-        ? const Center(child: CircularProgressIndicator(color: AppColors.primary))
+        ? _buildRewardsSkeleton(isDark)
         : _error != null
           ? Center(child: Text(_error!))
           : FadeTransition(

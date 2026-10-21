@@ -154,3 +154,11 @@
 - **Root Cause**: Developers wrote `Directionality.of(context) == TextDirection.rtl ? Icons.arrow_forward_ios_rounded : Icons.arrow_back_ios_new_rounded` under the assumption that Flutter icons are static. However, `Icons.arrow_back_ios_new_rounded`, `Icons.arrow_back_rounded`, `Icons.arrow_forward_ios_rounded`, and `Icons.arrow_forward_rounded` have `matchTextDirection: true` in the Flutter SDK. Because of this, Flutter automatically applied horizontal mirroring on top of the manual ternary swap, resulting in a double inversion.
 - **Resolution**: Removed all manual `Directionality.of(context)` checks across all 18 files in `zag_offers_app`, directly specifying `Icons.arrow_back_ios_new_rounded` / `Icons.arrow_back_rounded` for back navigation and `Icons.arrow_forward_ios_rounded` / `Icons.arrow_forward_rounded` for forward/disclosure navigation. Verified across Android emulator and iOS simulator.
 - **Prevention Invariant**: Never manually invert icons that declare `matchTextDirection: true`. Semantic back actions always use `arrow_back_*`; semantic forward/disclosure actions always use `arrow_forward_*`.
+
+---
+
+## 16. Multiple Heroes Sharing the Same Tag Within a Subtree Across Feed Sections
+- **Symptom**: `There are multiple heroes that share the same tag within a subtree` thrown during home feed rendering or navigation.
+- **Root Cause**: In `home_page.dart`, `_buildOffersSectionWidget` was reused across "الأكثر انتشارًا", "مقترح لك", and multiple category sections ("ركن الأكل", "روقان"). All sections constructed their Hero tags with a static prefix: `'home_trending_${offer.id}_$index'`. When an offer appeared in more than one section (e.g. at index 0 of "الأكثر انتشارًا" and index 0 of "ركن الأكل"), both widgets in the active subtree possessed the identical tag `'home_trending_<id>_0'`, triggering Flutter's Hero assertion.
+- **Resolution**: Updated `cardHeroTag` generation in `_buildOffersSectionWidget` to incorporate a hash of the section title (`'home_${title.hashCode}_${offer.id}_$index'`), strictly isolating the Hero tag namespace across separate sections.
+- **Prevention Invariant**: Whenever rendering card lists in composite screens where items can belong to multiple sections, always prefix the Hero tag with a unique section identifier or section title hash.

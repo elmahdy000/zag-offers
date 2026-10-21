@@ -1183,16 +1183,9 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
 
   Widget _buildCouponSkeletonList() {
     return ListView.builder(
-      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
-      itemCount: 2,
-      itemBuilder: (_, __) => const Padding(
-        padding: EdgeInsets.only(bottom: 16),
-        child: SkeletonLoader(
-          width: double.infinity,
-          height: 220,
-          borderRadius: 20,
-        ),
-      ),
+      padding: const EdgeInsets.fromLTRB(0, 12, 0, 120),
+      itemCount: 3,
+      itemBuilder: (_, __) => const CouponTicketSkeleton(),
     );
   }
 

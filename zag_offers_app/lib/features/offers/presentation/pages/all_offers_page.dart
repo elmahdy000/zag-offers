@@ -13,6 +13,7 @@ import 'package:zag_offers_app/features/offers/presentation/constants/offer_cate
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
+import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 import 'offer_detail_page.dart';
 import 'package:zag_offers_app/core/constants/app_strings.dart';
@@ -334,14 +335,46 @@ class _AllOffersPageState extends State<AllOffersPage> {
                 if (state is OffersLoaded)
                   _buildOffersGrid(context, state)
                 else if (state is OffersLoading)
-                  const SliverFillRemaining(
-                    child: Center(child: CircularProgressIndicator()),
-                  )
+                  _buildOffersGridSkeleton(context)
                 else if (state is OffersError)
                   _buildErrorState(context, state.message)
               ],
             );
           },
+        ),
+      ),
+    );
+  }
+
+  Widget _buildOffersGridSkeleton(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final int crossAxisCount = screenWidth > 900
+        ? 4
+        : screenWidth > 600
+            ? 3
+            : screenWidth < 340
+                ? 1
+                : 2;
+    final double childAspectRatio = crossAxisCount == 1
+        ? 0.88
+        : screenWidth > 600
+            ? 0.76
+            : screenWidth < 360
+                ? 0.65
+                : 0.68;
+
+    return SliverPadding(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      sliver: SliverGrid(
+        gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: crossAxisCount,
+          mainAxisSpacing: 16,
+          crossAxisSpacing: 16,
+          childAspectRatio: childAspectRatio,
+        ),
+        delegate: SliverChildBuilderDelegate(
+          (context, index) => const OfferCardSkeleton(isWide: true),
+          childCount: 6,
         ),
       ),
     );

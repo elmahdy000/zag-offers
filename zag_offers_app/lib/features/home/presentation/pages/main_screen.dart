@@ -6,6 +6,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/services/socket_service.dart';
@@ -192,7 +193,12 @@ class MainScreenState extends State<MainScreen> {
   Widget _buildRoleAwareThirdPage() {
     if (!_isRoleLoaded) {
       return const Scaffold(
-        body: Center(child: CircularProgressIndicator()),
+        body: SafeArea(
+          child: Padding(
+            padding: EdgeInsets.only(top: 24),
+            child: CouponTicketSkeleton(),
+          ),
+        ),
       );
     }
     return _isCustomer ? const MyCouponsPage() : const FavoritesPage();

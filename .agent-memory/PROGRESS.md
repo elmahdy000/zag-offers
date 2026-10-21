@@ -202,6 +202,32 @@
   - `flutter test` passes 27/27 tests.
   - Visually audited and confirmed on Android (`emulator-5554`) and iOS (`iPhone 17 Pro Max`).
 
+### P. Coupon Voucher Ads Banner & Universal Theme-Aware Shimmer System
+- **Coupon Voucher Ads Banner (`AdsSlider`)**:
+  - Redesigned home promotional banners into realistic coupon vouchers featuring top/bottom semicircular cutout notches, vertical dashed perforation divider, scissors indicator, coupon stub, and barcode lines.
+  - Implemented multi-criterion intelligent navigation resolving `offer:<id>`, `store:<id>`, `vendor:<id>`, `category:<id>`, web URLs, and matching banners with `actionUrl: null` against loaded offers and stores to eliminate dead taps.
+  - Ensured CTA chevrons point inwards (`<`) in Arabic RTL.
+- **Universal Theme-Aware Shimmer System (`AppShimmer`)**:
+  - Upgraded `lib/core/widgets/skeleton_loader.dart` with theme-aware `AppShimmer` selecting dark slate (`#1E293B` to `#334155`) for Dark Mode and `#E2E8F0` to `#F8FAFC` for Light Mode, eliminating blinding white glare in dark mode.
+  - Added `OfferCardSkeleton`, `CouponTicketSkeleton`, `OfferDetailShimmer`, and `StoreDetailShimmer`.
+  - Upgraded `OffersSkeleton` to mirror the full home feed structure (header, live stats, search bar, coupon banner, category circles, and trending cards).
+  - Replaced all raw `CircularProgressIndicator` waiting states with dedicated shimmer skeletons:
+    - `OfferLoadingPage`: `OfferDetailShimmer`
+    - `StoreLoadingPage`: `StoreDetailShimmer`
+    - `FavoritesPage`: Responsive `OfferCardSkeleton` grid
+    - `CategoriesPage`: `_buildCategoriesSkeleton`
+    - `SearchPage`: Filter pills and `OfferCardSkeleton` list
+    - `AllOffersPage`: Responsive `OfferCardSkeleton` grid
+    - `ZagRewardsPage`: Rewards header & history card skeletons
+    - `StoreDetailPage`: Shimmer for offers and reviews
+    - `OfferDetailPage`: Review card shimmer
+    - `MyCouponsPage`: `CouponTicketSkeleton` list
+  - Resolved subtree Hero tag collision across home sections by hashing section titles into the Hero tag namespace.
+- **Verification**:
+  - `flutter analyze lib/` passes with 0 issues.
+  - `flutter test` passes 27/27 tests.
+  - Verified live on Android emulator (`emulator-5554`) and iOS simulator (`iPhone 17 Pro Max`).
+
 ---
 
 ## 3. Pending & Upcoming Tasks
@@ -209,4 +235,3 @@
    - Modernize Offer Details page and Coupon modal to match mobile app design tokens and pricing hierarchy.
 2. **Merchant Mobile App (`zag_offers_vendor_app`)**:
    - Review and align cashier QR scanner flow with updated coupon entity contract.
-

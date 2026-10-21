@@ -1,5 +1,33 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-21] - Coupon Voucher Ads Banner & Universal Theme-Aware Shimmer System
+### Added / Changed
+- **Coupon Voucher Ads Banner (`AdsSlider`)**:
+  - Redesigned home feed ad banners into authentic perforated coupon vouchers featuring semicircular top/bottom cutout notches, vertical dashed perforation divider, scissors indicator ("قص هنا"), coupon ticket badge stub, and barcode lines.
+  - Implemented multi-criterion intelligent navigation supporting `offer:<id>`, `store:<id>`, `vendor:<id>`, `category:<name>`, web URLs, and intelligent category/title/tag fallback matching for remote banners with `actionUrl: null`.
+  - Directional CTA button pointing inwards (`<`) in Arabic RTL.
+- **Universal Theme-Aware Shimmer System (`AppShimmer`)**:
+  - Upgraded `lib/core/widgets/skeleton_loader.dart` with adaptive `AppShimmer` selecting dark slate (`#1E293B` to `#334155`) in Dark Mode and `#E2E8F0` to `#F8FAFC` in Light Mode, eliminating blinding glare in dark mode.
+  - Added specialized skeleton components: `OfferCardSkeleton`, `CouponTicketSkeleton`, `OfferDetailShimmer`, and `StoreDetailShimmer`.
+  - Upgraded `OffersSkeleton` to replicate the full home feed structure (header, live stats, search bar, coupon banner, category avatars, and horizontal cards).
+  - Replaced raw `CircularProgressIndicator` spinners across the app with dedicated shimmer skeletons:
+    - `OfferLoadingPage` ➔ `OfferDetailShimmer`
+    - `StoreLoadingPage` ➔ `StoreDetailShimmer`
+    - `FavoritesPage` ➔ Responsive `OfferCardSkeleton` grid (`_buildFavoritesSkeleton`)
+    - `CategoriesPage` ➔ Categories grid shimmer (`_buildCategoriesSkeleton`)
+    - `SearchPage` ➔ Filter pills & offer cards shimmer (`_buildSearchSkeleton`)
+    - `AllOffersPage` ➔ Responsive `OfferCardSkeleton` grid (`_buildOffersGridSkeleton`)
+    - `ZagRewardsPage` ➔ Rewards card & history shimmer (`_buildRewardsSkeleton`)
+    - `StoreDetailPage` ➔ Shimmer skeletons for offers and customer reviews
+    - `OfferDetailPage` ➔ Shimmer placeholder for customer reviews
+    - `MyCouponsPage` ➔ Realistic `CouponTicketSkeleton` list
+- **Fixed Subtree Hero Tag Collision**:
+  - Resolved `There are multiple heroes that share the same tag within a subtree` in `home_page.dart` by hashing the section title into the card Hero tag namespace (`'home_${title.hashCode}_${offer.id}_$index'`).
+### Verified
+- `flutter analyze lib/` ➜ 0 issues found.
+- `flutter test` ➜ 27/27 unit tests passed.
+- Verified live on Android emulator (`emulator-5554`) and iOS simulator (`iPhone 17 Pro Max`).
+
 ## [2026-10-20] - Elimination of RTL Arrow Double-Inversion Bug Across All Components
 ### Fixed / Changed
 - **Systemic RTL Arrow Double-Inversion Resolution (18 files)**:

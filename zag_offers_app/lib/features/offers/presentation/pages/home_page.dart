@@ -894,7 +894,7 @@ Widget _buildOffersSectionWidget(
           itemCount: offers.length,
           itemBuilder: (context, index) {
             final offer = offers[index];
-            final cardHeroTag = 'home_trending_${offer.id}_$index';
+            final cardHeroTag = 'home_${title.hashCode}_${offer.id}_$index';
             return RepaintBoundary(
               child: Padding(
                 padding: const EdgeInsetsDirectional.only(end: 14),

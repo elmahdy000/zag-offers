@@ -10,6 +10,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/services/socket_service.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../injection_container.dart';
 import '../../../auth/data/datasources/auth_local_data_source.dart';
 import '../../../auth/presentation/pages/login_page.dart';
@@ -2015,10 +2016,30 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
               next is ReviewsLoaded || next is ReviewsLoading,
           builder: (context, state) {
             if (state is ReviewsLoading) {
-              return const Center(
-                child: Padding(
-                  padding: EdgeInsets.symmetric(vertical: 16),
-                  child: CircularProgressIndicator(strokeWidth: 2.5),
+              return AppShimmer(
+                child: Container(
+                  width: double.infinity,
+                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                  decoration: BoxDecoration(
+                    color: isDark ? const Color(0xFF162032) : Colors.white,
+                    borderRadius: BorderRadius.circular(14),
+                  ),
+                  child: const Row(
+                    children: [
+                      SkeletonCircle(size: 38),
+                      SizedBox(width: 12),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            SkeletonBox(width: 100, height: 13, borderRadius: 4),
+                            SizedBox(height: 6),
+                            SkeletonBox(width: 160, height: 11, borderRadius: 4),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               );
             }

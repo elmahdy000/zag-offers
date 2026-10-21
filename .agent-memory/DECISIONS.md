@@ -136,4 +136,15 @@
   - For **Back / Pop** navigation: Always use `Icons.arrow_back_ios_new_rounded` or `Icons.arrow_back_rounded`. (Automatically points `>` in RTL and `<` in LTR).
   - For **Next / Forward / Disclosure** chevrons: Always use `Icons.arrow_forward_ios_rounded` or `Icons.arrow_forward_rounded`. (Automatically points `<` in RTL and `>` in LTR).
 
+---
 
+## 18. Coupon Voucher Ads Banner & Universal Theme-Aware Shimmer System
+- **Decision**:
+  1. Redesign home feed ad banners (`AdsSlider`) as realistic promotional coupon voucher tickets featuring semicircular top/bottom cutout notches, vertical dashed perforation divider, scissors indicator, coupon stub, barcode lines, and intelligent multi-criterion navigation to matching Offer or Store pages.
+  2. Implement an adaptive, theme-aware universal shimmer architecture (`AppShimmer`, `OfferDetailShimmer`, `StoreDetailShimmer`, `OffersSkeleton`, `OfferCardSkeleton`, `CouponTicketSkeleton`) replacing all bare `CircularProgressIndicator` spinners across waiting states and screen transitions.
+  3. Guarantee unique Hero animation tags across multiple home feed horizontal sections by hashing section titles into the tag namespace.
+- **Rationale**:
+  1. Generic carousel image banners felt detached from the app's core coupon identity. Designing them as authentic perforated coupon vouchers establishes immediate brand recognition and encourages engagement.
+  2. Production banners frequently have `actionUrl: null`. An intelligent matcher resolves tags, titles, and categories against loaded offers/stores, eliminating dead taps.
+  3. In Dark Mode First design, standard white/light grey shimmer flashes like a glaring strobe light. `AppShimmer` uses dark slate `#1E293B` to `#334155` for dark mode and `#E2E8F0` to `#F8FAFC` for light mode, creating a seamless, premium loading experience.
+  4. Bare circular progress indicators break spatial immersion. Skeletons that match the exact page anatomy prevent layout shifts upon data load.

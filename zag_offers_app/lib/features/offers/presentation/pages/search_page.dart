@@ -15,6 +15,7 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
+import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 class SearchPage extends StatefulWidget {
   const SearchPage({super.key});
@@ -155,9 +156,7 @@ class _SearchPageState extends State<SearchPage> {
             next is OffersLoaded || next is OffersLoading || next is OffersError,
         builder: (context, state) {
           if (state is OffersLoading) {
-            return const Center(
-              child: CircularProgressIndicator(color: _primaryOrange, strokeWidth: 2.5),
-            );
+            return _buildSearchSkeleton(context, isDark);
           }
 
           if (state is OffersLoaded) {
@@ -257,6 +256,38 @@ class _SearchPageState extends State<SearchPage> {
   // =========================================================================
   // 1. COMPACT, ACCESSIBLE SEARCH & FILTER HEADER
   // =========================================================================
+  Widget _buildSearchSkeleton(BuildContext context, bool isDark) {
+    return Column(
+      children: [
+        SizedBox(
+          height: 44,
+          child: ListView.builder(
+            scrollDirection: Axis.horizontal,
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.symmetric(horizontal: 14),
+            itemCount: 5,
+            itemBuilder: (_, __) => const Padding(
+              padding: EdgeInsetsDirectional.only(end: 8),
+              child: SkeletonBox(width: 80, height: 36, borderRadius: 20),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Expanded(
+          child: ListView.builder(
+            physics: const NeverScrollableScrollPhysics(),
+            padding: const EdgeInsets.fromLTRB(16, 8, 16, 24),
+            itemCount: 4,
+            itemBuilder: (_, __) => const Padding(
+              padding: EdgeInsets.only(bottom: 14),
+              child: OfferCardSkeleton(isWide: true),
+            ),
+          ),
+        ),
+      ],
+    );
+  }
+
   PreferredSizeWidget _buildAppBar(BuildContext context, bool isDark) {
     final hasActiveFilter =
         _currentArea != 'الكل' || _minDiscount > 0 || _sortBy != 'newest';

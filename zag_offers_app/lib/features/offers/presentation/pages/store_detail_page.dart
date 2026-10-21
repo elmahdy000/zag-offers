@@ -10,6 +10,7 @@ import '../../../../core/services/socket_service.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
 import '../../../../core/widgets/network_image_widget.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../injection_container.dart';
 import '../../../reviews/presentation/bloc/reviews_bloc.dart';
 import '../../domain/entities/offer_entity.dart';
@@ -851,11 +852,15 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
       buildWhen: (prev, next) => next is StoreOffersLoaded || next is StoreOffersLoading,
       builder: (context, state) {
         if (state is StoreOffersLoading) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 30),
-              child: Center(
-                child: CircularProgressIndicator(color: _primaryOrange, strokeWidth: 2.5),
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_, __) => const Padding(
+                  padding: EdgeInsets.only(bottom: 12),
+                  child: CardSkeleton(),
+                ),
+                childCount: 3,
               ),
             ),
           );
@@ -1192,11 +1197,41 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
       buildWhen: (prev, next) => next is ReviewsLoaded || next is ReviewsLoading,
       builder: (context, state) {
         if (state is ReviewsLoading) {
-          return const SliverToBoxAdapter(
-            child: Padding(
-              padding: EdgeInsets.symmetric(vertical: 24),
-              child: Center(
-                child: CircularProgressIndicator(color: _primaryOrange, strokeWidth: 2.5),
+          return SliverPadding(
+            padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+            sliver: SliverList(
+              delegate: SliverChildBuilderDelegate(
+                (_, __) => Padding(
+                  padding: const EdgeInsets.only(bottom: 12),
+                  child: AppShimmer(
+                    child: Container(
+                      height: 90,
+                      decoration: BoxDecoration(
+                        color: isDark ? const Color(0xFF162032) : Colors.white,
+                        borderRadius: BorderRadius.circular(16),
+                      ),
+                      padding: const EdgeInsets.all(12),
+                      child: const Row(
+                        children: [
+                          SkeletonCircle(size: 44),
+                          SizedBox(width: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              mainAxisAlignment: MainAxisAlignment.center,
+                              children: [
+                                SkeletonBox(width: 100, height: 14, borderRadius: 4),
+                                SizedBox(height: 8),
+                                SkeletonBox(width: double.infinity, height: 12, borderRadius: 4),
+                              ],
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+                childCount: 2,
               ),
             ),
           );

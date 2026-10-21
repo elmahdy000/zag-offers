@@ -9,6 +9,7 @@ import 'package:zag_offers_app/features/auth/presentation/pages/login_page.dart'
 import 'package:zag_offers_app/injection_container.dart' as di;
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 
@@ -48,6 +49,37 @@ class _FavoritesPageState extends State<FavoritesPage> {
     }
   }
 
+  Widget _buildFavoritesSkeleton(BuildContext context) {
+    final screenWidth = MediaQuery.sizeOf(context).width;
+    final int crossAxisCount = screenWidth > 900
+        ? 4
+        : screenWidth > 600
+            ? 3
+            : screenWidth < 340
+                ? 1
+                : 2;
+    final double childAspectRatio = crossAxisCount == 1
+        ? 0.88
+        : screenWidth > 600
+            ? 0.76
+            : screenWidth < 360
+                ? 0.56
+                : 0.58;
+
+    return GridView.builder(
+      padding: const EdgeInsets.fromLTRB(16, 16, 16, 120),
+      physics: const NeverScrollableScrollPhysics(),
+      gridDelegate: SliverGridDelegateWithFixedCrossAxisCount(
+        crossAxisCount: crossAxisCount,
+        mainAxisSpacing: 16,
+        crossAxisSpacing: 16,
+        childAspectRatio: childAspectRatio,
+      ),
+      itemCount: 4,
+      itemBuilder: (_, __) => const OfferCardSkeleton(isWide: true),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -77,7 +109,7 @@ class _FavoritesPageState extends State<FavoritesPage> {
               builder: (context, state) {
                 final theme = Theme.of(context);
                 if (state is FavoritesLoading) {
-                  return const Center(child: CircularProgressIndicator());
+                  return _buildFavoritesSkeleton(context);
                 }
 
                 if (state is FavoritesLoaded) {
