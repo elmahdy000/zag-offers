@@ -70,3 +70,40 @@ class ListSkeleton extends StatelessWidget {
   }
 }
 
+class HorizontalCardsSkeleton extends StatelessWidget {
+  final int itemCount;
+  final double height;
+  final double width;
+
+  const HorizontalCardsSkeleton({
+    super.key,
+    this.itemCount = 3,
+    this.height = 150,
+    this.width = 160,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: height,
+      child: ListView.separated(
+        padding: const EdgeInsets.symmetric(horizontal: 16),
+        scrollDirection: Axis.horizontal,
+        itemCount: itemCount,
+        separatorBuilder: (_, __) => const SizedBox(width: 12),
+        itemBuilder: (_, __) => Shimmer.fromColors(
+          baseColor: AppColors.surface,
+          highlightColor: AppColors.border,
+          child: Container(
+            width: width,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+}
+

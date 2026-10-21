@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/core/utils/snackbar_utils.dart';
+import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_vendor_app/features/reviews/presentation/bloc/reviews_bloc.dart';
 import 'package:zag_offers_vendor_app/injection_container.dart' as di;
 
@@ -48,7 +49,7 @@ class _ReviewsPageState extends State<ReviewsPage> {
             maxLines: 3,
             decoration: InputDecoration(
               hintText: 'اكتب ردك هنا...',
-              hintStyle: TextStyle(color: AppColors.textSecondary),
+              hintStyle: _cairoTextSecondary,
               filled: true,
               fillColor: AppColors.card,
               border: OutlineInputBorder(
@@ -97,7 +98,10 @@ class _ReviewsPageState extends State<ReviewsPage> {
         buildWhen: (prev, next) => next is ReviewsLoading || next is ReviewsLoaded || next is ReviewsError,
         builder: (context, state) {
           if (state is ReviewsLoading) {
-            return const Center(child: CircularProgressIndicator());
+            return const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+              child: ListSkeleton(itemCount: 4),
+            );
           }
 
           if (state is ReviewsError) {

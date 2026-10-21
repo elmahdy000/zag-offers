@@ -17,6 +17,7 @@ import 'package:zag_offers_vendor_app/features/offers/presentation/bloc/offers_b
 import 'package:zag_offers_vendor_app/features/offers/domain/entities/offer_entity.dart';
 import 'package:zag_offers_vendor_app/core/utils/image_url_helper.dart';
 import 'package:zag_offers_vendor_app/core/widgets/network_image.dart';
+import 'package:zag_offers_vendor_app/core/widgets/skeleton_loader.dart';
 import 'package:zag_offers_vendor_app/injection_container.dart';
 
 class DashboardPage extends StatelessWidget {
@@ -459,10 +460,7 @@ class DashboardPage extends StatelessWidget {
                         );
                       }
                       if (offersState is OffersLoading) {
-                        return const Padding(
-                          padding: EdgeInsets.all(20),
-                          child: Center(child: CircularProgressIndicator()),
-                        );
+                        return const HorizontalCardsSkeleton();
                       }
                       return const SizedBox();
                     },
@@ -617,9 +615,38 @@ class DashboardPage extends StatelessWidget {
                     maxLines: 1,
                     overflow: TextOverflow.ellipsis,
                   ),
-                  Text(
-                    'العميل: ${coupon.customerName}',
-                    style: _activityCustomer,
+                  const SizedBox(height: 2),
+                  Row(
+                    children: [
+                      Flexible(
+                        child: Text(
+                          'العميل: ${coupon.customerName}',
+                          style: _activityCustomer,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                        ),
+                      ),
+                      if (coupon.code != null && coupon.code.toString().isNotEmpty) ...[
+                        const SizedBox(width: 8),
+                        Text(
+                          '•',
+                          style: TextStyle(color: AppColors.textTertiary, fontSize: 10),
+                        ),
+                        const SizedBox(width: 8),
+                        Directionality(
+                          textDirection: TextDirection.ltr,
+                          child: Text(
+                            '#${coupon.code}',
+                            style: GoogleFonts.spaceMono(
+                              fontSize: 11,
+                              fontWeight: FontWeight.bold,
+                              color: AppColors.textSecondary,
+                              letterSpacing: 0.5,
+                            ),
+                          ),
+                        ),
+                      ],
+                    ],
                   ),
                 ],
               ),

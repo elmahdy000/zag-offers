@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_vendor_app/core/theme/app_colors.dart';
 import 'package:zag_offers_vendor_app/features/auth/presentation/bloc/auth_bloc.dart';
@@ -138,10 +139,7 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
       },
       child: Scaffold(
         backgroundColor: AppColors.background,
-        body: Padding(
-          padding: const EdgeInsets.only(bottom: 80), // زيادة مساحة الحماية
-          child: IndexedStack(index: _currentIndex, children: _pages),
-        ),
+        body: IndexedStack(index: _currentIndex, children: _pages),
         floatingActionButton: FloatingActionButton(
           heroTag: 'main_fab',
           onPressed: () {
@@ -156,14 +154,14 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
           shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
           child: const Icon(Icons.qr_code_scanner, color: Colors.white, size: 28),
         ),
-      floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
-      bottomNavigationBar: BottomAppBar(
-        color: AppColors.card,
-        shape: const CircularNotchedRectangle(),
-        notchMargin: 8,
-        elevation: 20,
-        height: 80,
-        child: Row(
+        floatingActionButtonLocation: FloatingActionButtonLocation.centerDocked,
+        bottomNavigationBar: BottomAppBar(
+          color: AppColors.card,
+          shape: const CircularNotchedRectangle(),
+          notchMargin: 8,
+          elevation: 20,
+          height: 76,
+          child: Row(
             mainAxisAlignment: MainAxisAlignment.spaceAround,
             children: [
               _buildNavItem(
@@ -188,8 +186,8 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
                 index: 3,
               ),
             ],
+          ),
         ),
-      ),
       ),
     );
   }
@@ -205,36 +203,39 @@ class MainLayoutState extends State<MainLayout> with WidgetsBindingObserver {
         HapticFeedback.lightImpact();
         setState(() => _currentIndex = index);
       },
-      customBorder: const CircleBorder(),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          AnimatedContainer(
-            duration: const Duration(milliseconds: 200),
-            padding: const EdgeInsets.all(4),
-            decoration: BoxDecoration(
-              color: isSelected
-                  ? AppColors.primary.withValues(alpha: 0.1)
-                  : Colors.transparent,
-              borderRadius: BorderRadius.circular(12),
-            ),
-            child: Icon(
-              icon,
-              color: isSelected ? AppColors.primary : AppColors.textSecondary,
-              size: 26,
-            ),
-          ),
-          if (isSelected)
-            Text(
-              label,
-              style: TextStyle(
-                color: AppColors.primary,
-                fontSize: 12,
-                fontWeight: FontWeight.bold,
+      borderRadius: BorderRadius.circular(16),
+      child: Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 2),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            AnimatedContainer(
+              duration: const Duration(milliseconds: 200),
+              padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 3),
+              decoration: BoxDecoration(
+                color: isSelected
+                    ? AppColors.primary.withValues(alpha: 0.15)
+                    : Colors.transparent,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Icon(
+                icon,
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                size: 24,
               ),
             ),
-        ],
+            const SizedBox(height: 2),
+            Text(
+              label,
+              style: GoogleFonts.cairo(
+                color: isSelected ? AppColors.primary : AppColors.textSecondary,
+                fontSize: 11,
+                fontWeight: isSelected ? FontWeight.bold : FontWeight.w600,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

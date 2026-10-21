@@ -81,37 +81,55 @@ class _QRScannerPageState extends State<QRScannerPage> {
 
             const _ScannerOverlay(),
 
-            Positioned(
+            PositionedDirectional(
               top: 48,
-              left: 24,
-              child: IconButton(
-                onPressed: () => Navigator.pop(context),
-                icon: const Icon(Icons.close, color: Colors.white, size: 32),
-              ),
-            ),
-
-            Positioned(
-              bottom: 48,
-              left: 48,
-              child: IconButton(
-                onPressed: () => _controller.toggleTorch(),
-                icon: const Icon(
-                  Icons.flash_on_rounded,
-                  color: Colors.white,
-                  size: 32,
+              start: 24,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: () => Navigator.pop(context),
+                  icon: const Icon(Icons.close_rounded, color: Colors.white, size: 28),
                 ),
               ),
             ),
 
-            Positioned(
+            PositionedDirectional(
               bottom: 48,
-              right: 48,
-              child: IconButton(
-                onPressed: () => _showManualInputDialog(context),
-                icon: const Icon(
-                  Icons.keyboard_rounded,
-                  color: Colors.white,
-                  size: 32,
+              start: 48,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: () => _controller.toggleTorch(),
+                  icon: const Icon(
+                    Icons.flash_on_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                ),
+              ),
+            ),
+
+            PositionedDirectional(
+              bottom: 48,
+              end: 48,
+              child: Container(
+                decoration: const BoxDecoration(
+                  color: Colors.black45,
+                  shape: BoxShape.circle,
+                ),
+                child: IconButton(
+                  onPressed: () => _showManualInputDialog(context),
+                  icon: const Icon(
+                    Icons.keyboard_rounded,
+                    color: Colors.white,
+                    size: 28,
+                  ),
                 ),
               ),
             ),

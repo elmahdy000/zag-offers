@@ -1,19 +1,39 @@
 # Zag Offers — Verified Changelog
 
-## [2026-10-22] - Vendor Flutter App Audit, Kotlin 2.3.21 Migration & Live Emulator Verification
+## [2026-10-22] - Vendor Flutter App UI/UX & Services Overhaul, Layout Polish & Directional Integrity
 ### Fixed / Changed
+- **MainLayout & Navigation Bar Polish (`main_layout.dart`)**:
+  - Removed double bottom padding void (`Padding(bottom: 80)` wrapping `IndexedStack`) that created a 160px+ empty void above the navbar.
+  - Modernized bottom navigation items with persistent `GoogleFonts.cairo` typography (11px, bold when active, w600 when inactive) and an Egyptian Orange active pill background.
+  - Adjusted `BottomAppBar` height from 80px to 76px with proper notch margins.
+- **Offers Management Screen & RTL Alignment (`offers_page.dart`)**:
+  - Eliminated duplicate nested `FloatingActionButton` that collided with `MainLayout`'s centered QR Scanner FAB.
+  - Added "إضافة عرض جديد" action button (`Icons.add_circle_outline_rounded`) with Egyptian Orange styling to `AppBar.actions`.
+  - Compacted `AppBar.bottom` height from 100px to standard 48px to reclaim vertical screen space.
+  - Converted offer card positioning to `PositionedDirectional` (`start: 12` status badge, `end: 12` discount pill, `end: 6` options button with circular backdrop).
+- **Universal Shimmer States (`skeleton_loader.dart`, `dashboard_page.dart`, `reviews_page.dart`, `notifications_page.dart`)**:
+  - Added `HorizontalCardsSkeleton` for horizontal lists.
+  - Replaced raw `CircularProgressIndicator` spinners in `DashboardPage`, `ReviewsPage`, and `NotificationsPage` with dedicated shimmer skeletons (`HorizontalCardsSkeleton`, `ListSkeleton`).
+- **Coupon Monospace & LTR Typography Contract**:
+  - Enforced `GoogleFonts.spaceMono` with explicit `TextDirection.ltr` across `DashboardPage` activity tile, `ReportsPage`, and `QRScannerPage` manual code entry (`#ZAG-XXXXXX`).
+- **Error Handling & Exception Translation**:
+  - Connected `ErrorHandler.handle(e)` across `QRScannerBloc`, `ReviewsBloc`, `ProfileBloc`, and `add_edit_offer_page.dart`.
+  - Replaced raw `ScaffoldMessenger.of(context).showSnackBar` with unified `SnackBarUtils.showError(...)`.
+- **RTL Directional Invariance**:
+  - Fixed `Dismissible` delete background in `notifications_page.dart` using `AlignmentDirectional.centerEnd` and `EdgeInsetsDirectional.only(end: 24)`.
+  - Fixed thumbnail remove button positioning in `store_setup_page.dart` and `add_edit_offer_page.dart` using `PositionedDirectional(top: 4, end: 4)`.
+  - Upgraded QR scanner screen controls in `qr_scanner_page.dart` with `PositionedDirectional` and frosted translucent circle backgrounds.
 - **Kotlin Gradle & JVM Target Migration (`zag_offers_vendor_app`)**:
   - Upgraded `org.jetbrains.kotlin.android` from `2.1.0` to `2.3.21` in `android/settings.gradle.kts` to satisfy modern Flutter Gradle plugin requirements.
   - Replaced deprecated `kotlinOptions { jvmTarget = ... }` with modern `kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }` in `android/app/build.gradle.kts`.
   - Added Flutter build flags in `android/gradle.properties` (`android.builtInKotlin=false`, `android.newDsl=false`).
   - Successfully built debug APK (`build/app/outputs/flutter-apk/app-debug.apk`) in 116.0s.
 - **Live Emulator Deployment & Functional Audit**:
-  - Successfully installed package `com.zag.offers.vendor.zag_offers_vendor_app` onto live Android emulator (`emulator-5554`).
-  - Verified live startup, notification permission prompt, and full brand-compliant dark login page ("بوابة التجار").
-  - Verified form validation on email/phone and password fields.
+  - Installed package `com.zag.offers.vendor.zag_offers_vendor_app` onto live Android emulator (`emulator-5554`).
+  - Verified live UI across Dashboard, Offers, Reports, Profile, QR Scanner, and Notifications screens with 0 errors.
 - **Test Suite & Analyzer Verification**:
   - `flutter analyze lib/` ➜ 0 issues found across all vendor packages.
-  - `flutter test` ➜ 6/6 unit tests passed (auth role enforcement, session restoration, account deletion, and constants).
+  - `flutter test` ➜ 6/6 unit tests passed.
 
 ## [2026-10-21] - Coupon Voucher Ads Banner & Universal Theme-Aware Shimmer System
 ### Added / Changed
@@ -374,3 +394,26 @@
   - Merchant store profile & settings
   - Live QR scanner viewfinder with camera permission & manual coupon entry with verified error modal.
 
+
+---
+
+## 2026-10-22 — Customer Web Portal UI/UX Pass (`zag-offers-client`)
+- **Type**: UI/UX fixes + accessibility + Next 16 platform correctness
+- **Status**: Verified, **not committed**
+
+### Fixed
+- **Featured billboard collapse (critical)**: between 768–1023px the hero ad carousel rendered at 2×32px inside an empty 400px block. `.ad-carousel-main` is now `display:block` at every breakpoint (measured 2×32 → 962×400).
+- **Category icons**: `/offers` and `OfferCard` carried stale icon maps that only knew legacy category names, so every category showed the same generic icon. Both now use the shared `CategoryIcon`, with Arabic-orthography normalisation (tashkeel, أ/إ/آ, ى/ي, ة/ه). `جميلة` added. Verified: `حلى بوقك → cake-slice`, `جميلة → sparkles`, `طور نفسك → book-open`.
+- **Carousel dots**: were 30×8px (6px on mobile) tap targets. The button now owns a 44px box with the painted track in `::before` (WCAG 2.5.5).
+- **Logout data leak**: clears `cache_favorites_v2`, `cache_my_coupons`, `favorites` and sends `credentials:'include'` to revoke the HttpOnly cookie.
+- **Favourites privacy**: `favorites/page.tsx` no longer reads the account-scoped cache before the auth check; anonymous visitors get the public key only.
+
+### Changed
+- `priority` → `preload` on every `next/image` (deprecated in Next 16).
+- `next.config.ts`: `images.qualities = [60, 75, 76, 78, 85, 86]` (Next 16 otherwise coerces every `quality` prop to 75).
+- New `MotionProvider` (`MotionConfig reducedMotion="user"`) wraps the tree, so JS animations respect the OS setting.
+- Hero area `<select>` gained an `aria-label`.
+
+### Verified
+- `npx tsc --noEmit` → 0 errors · `npx eslint src` → 0 errors / 0 warnings · `npx vitest run` → 23/23 · `npm run build` → 20/20 pages, no warnings.
+- Live DOM measurements at 1000px / 683px viewports (light + dark).

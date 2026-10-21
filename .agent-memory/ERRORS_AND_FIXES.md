@@ -257,3 +257,76 @@
 - **Resolution**: Integrated `ErrorHandler.handle(e)` across `QRScannerBloc`, `ReviewsBloc`, and `ProfileBloc`. `ErrorHandler.handle()` cleanly parses backend error responses (extracting Arabic `message` strings such as `عفواً، الكود ده مش صحيح`) or translates status codes into polished Arabic messages.
 - **Prevention Invariant**: Never pass raw `e.toString()` from BLoC catch blocks into user-facing states. Always route network errors through `ErrorHandler.handle(e)`.
 
+
+---
+
+## 26. Featured Billboard Collapsed to a 2×32px Sliver on Tablet Widths
+- **Symptom**: Between 768px and 1023px the "عروض وإعلانات مميزة" hero billboard appeared as a thin vertical seam inside a 400px-tall empty block. Desktop and small-mobile looked fine, so it slipped through.
+- **Root Cause**: `@media (max-width:1023px)` sets `.homepage .ad-carousel-stage { display:block }`, but `.ad-carousel-main` only became `display:block` at `max-width:767px`. The billboard is an `<a>` whose children (media, copy, counter) are all absolutely positioned, so as an inline element it collapsed to its 1px borders + line box = **2×32px**. A CSS grid silently stopped stretching it the moment the parent stopped being a grid.
+- **Resolution**: `display:block` added to the base `.ad-carousel-main` rule (not the media query), so the billboard is block-level at every breakpoint. Verified 2×32 → 962×400 at a 1000px viewport.
+- **Prevention Invariant**: A container whose children are all absolutely positioned must declare its own `display` and height. Never rely on grid/flex stretch as the only sizing mechanism for an `<a>`/`<span>`-based component.
+
+---
+
+## 27. Every Category Rendered the Same Icon on the Offers Page
+- **Symptom**: All category group headers and chips on `/offers` showed the identical generic icon, while the home page and category cards showed correct per-category icons.
+- **Root Cause**: Two separate, stale icon maps. `src/components/category-icon.tsx` (used by home/categories) knew the branded names, but `offers/page.tsx` and `components/offer-card.tsx` each kept their own copy that only knew the legacy names (`مطاعم`, `كافيهات`, …). The API returns branded names (`دلع كرشك`, `روقان`, `شياكة`, `فورمة`, `حلى بوقك`, `نعيماً`), so every lookup missed. On top of that, the map keys used different Arabic spellings than the API: `اون فاير` vs `أون فاير`, `نعيماً` vs `نعيما`, and `جميلة` was missing entirely.
+- **Resolution**: Both stale maps deleted; both files now use the shared `CategoryIcon`. Lookups go through `normalizeLabel()` which strips tashkeel/tatweel and unifies alef/hamza, alef-maqsura and teh-marbuta forms. `جميلة` added to the map. Verified live: `حلى بوقك → cake-slice`, `جميلة → sparkles`, `طور نفسك → book-open` (previously all `package`).
+- **Prevention Invariant**: One icon/label map per concept, referenced everywhere. Any map keyed by user/database text must be normalised (trim + Arabic orthography) on **both** sides of the lookup — otherwise pronunciation-level spelling differences silently degrade to the fallback.
+
+---
+
+## 28. Carousel Dots Were an 8px-Tall Tap Target
+- **Symptom**: `axe`/manual mobile testing flagged the billboard pagination dots: four 30×8px buttons, effectively impossible to hit with a thumb.
+- **Root Cause**: The track itself was the `<button>` (`height:8px`), and a mobile override forced `height:6px` on phones.
+- **Resolution**: The button now owns a real 44px box (WCAG 2.5.5) and paints the 8px track through `::before`, with the progress fill as an absolutely-positioned `span`. Mobile keeps the 44px box and only the painted track shrinks to 6px. Verified: every dot measures 44px tall at both breakpoints.
+- **Prevention Invariant**: Never use the visual size of a control as its hit area. If a control must look thin (dots, sliders, dividers), separate the painted track from the interactive box.
+
+---
+
+## 29. Logout Leaked the Previous Account's Coupons and Favourites
+- **Symptom**: On a shared device, logging out and logging in as someone else could briefly show the previous user's saved offers/coupons.
+- **Root Cause**: Two independent leaks. (a) `handleLogout` removed only `token` and `user`, leaving `cache_favorites_v2` and `cache_my_coupons` — both account-scoped — in `localStorage`. (b) `favorites/page.tsx` read `cache_favorites_v2` **before** checking whether a token existed, so an anonymous visitor rendered the cached account list before the "not logged in" branch ran.
+- **Resolution**: Logout now clears `cache_favorites_v2`, `cache_my_coupons` and `favorites` and sends `credentials: 'include'` so the HttpOnly cookie is revoked too. The favourites page checks the token first and deletes `cache_favorites_v2` for anonymous visitors, reading only the public `favorites` key.
+- **Prevention Invariant**: Classify every `localStorage` key as public or account-scoped. Account-scoped caches must be purged on logout **and** must never be read before the auth check resolves.
+
+---
+
+## 30. Next.js 16: `priority` Deprecated and `quality` Silently Forced to 75
+- **Symptom**: No visible error, but LCP images were not preloaded as intended after the Next 16 upgrade, and every `quality={60|78|85|86}` prop was being ignored.
+- **Root Cause**: Next 16 renamed the `<Image>` `priority` prop to `preload` (docs: `node_modules/next/dist/docs/.../image.md#preload`) and made `images.qualities` a **required** allowlist that defaults to `[75]`. Any other quality value is silently coerced.
+- **Resolution**: `priority` → `preload` in `offer-card.tsx`, `brand-mark.tsx` and `page.tsx`. `next.config.ts` now declares `qualities: [60, 75, 76, 78, 85, 86]`.
+- **Prevention Invariant**: After a major Next.js upgrade, re-read the affected component docs under `node_modules/next/dist/docs/` and diff every `next/image` prop. A silently coerced prop is worse than a rejected one.
+
+---
+
+## 31. `prefers-reduced-motion` Was Ignored by JS Animations
+- **Symptom**: Users who enabled "reduce motion" still got every framer-motion slide/fade on the site.
+- **Root Cause**: The `@media (prefers-reduced-motion: reduce)` block in `globals.css` only disabled four CSS keyframe animations; framer-motion animations run in JS and never consult the media query unless told to.
+- **Resolution**: New `MotionProvider` (`<MotionConfig reducedMotion="user">`) wraps the app tree inside `layout.tsx`.
+- **Prevention Invariant**: CSS media queries cannot reach JS animation libraries. When a design system uses framer-motion, the reduced-motion switch belongs in `MotionConfig`, not only in the stylesheet.
+
+---
+
+## 32. Double Bottom Padding Void in Vendor `MainLayout`
+- **Symptom**: Massive 160px+ empty void above the bottom navigation bar on all vendor tabs (`Dashboard`, `Offers`, `Reports`, `Profile`).
+- **Root Cause**: `Scaffold` already positions its body above the `bottomNavigationBar` by default unless `extendBody: true` is set. `main_layout.dart` was wrapping `IndexedStack` in `Padding(padding: EdgeInsets.only(bottom: 80))` while child sliver lists already included `SizedBox(height: 100)` at the bottom, compounding the padding into an empty gap.
+- **Resolution**: Removed the outer `Padding` wrapper from `IndexedStack` in `main_layout.dart` and calibrated `BottomAppBar` height to 76px.
+- **Prevention Invariant**: Never wrap `Scaffold(body: ...)` in bottom padding to account for `bottomNavigationBar`. Let `Scaffold` handle child body bounds.
+
+---
+
+## 33. Duplicate FAB Stacking and Tab Bar Spacing in `OffersPage`
+- **Symptom**: Tapping the bottom bar or center scanner FAB in `OffersPage` caused visual conflict with a second nested green/orange floating action button. Tab bar had an unnecessary 100px preferred height causing massive blank space.
+- **Root Cause**: `OffersPage` had an independent `FloatingActionButton(heroTag: 'offers_fab')` defined inside its own `Scaffold` which overlaid the parent `MainLayout` dock. Furthermore, `AppBar.bottom` had `preferredSize: const Size.fromHeight(100)`.
+- **Resolution**: Removed the nested FAB from `offers_page.dart` and moved the offer creation trigger to an `IconButton` (`Icons.add_circle_outline_rounded`) inside `AppBar.actions`. Compacted `AppBar.bottom` height to `48px`.
+- **Prevention Invariant**: Nested sub-pages mounted inside a master shell with a docked FAB must never declare their own `FloatingActionButton`. Primary actions belong in `AppBar.actions`.
+
+---
+
+## 34. Directional Inversion in RTL Badges and Dismissibles
+- **Symptom**: On RTL Arabic layouts, notification swiping with `DismissDirection.endToStart` revealed an empty red container while the delete trash icon was positioned on the opposite (right) edge. Card status badges and thumbnails were also inverted.
+- **Root Cause**: `notifications_page.dart` used physical `alignment: Alignment.centerRight` and `padding: EdgeInsets.only(right: 24)`. Card overlays used `Positioned(left: 12)`. In RTL, the "end" is the left edge, not right.
+- **Resolution**: Converted all dismissible alignments to `AlignmentDirectional.centerEnd` and `EdgeInsetsDirectional.only(end: 24)`. Converted card badges and action overlays to `PositionedDirectional`.
+- **Prevention Invariant**: In RTL-first applications, never use physical `left` or `right` for directional items. Always use `start` and `end` with `Directional` primitives.
+

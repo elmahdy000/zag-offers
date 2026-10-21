@@ -74,45 +74,39 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
         centerTitle: true,
         backgroundColor: AppColors.background,
         elevation: 0,
+        actions: [
+          IconButton(
+            tooltip: 'إضافة عرض جديد',
+            icon: const Icon(Icons.add_circle_outline_rounded, color: AppColors.primary, size: 26),
+            onPressed: () {
+              HapticFeedback.mediumImpact();
+              Navigator.push(
+                context,
+                MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
+              );
+            },
+          ),
+        ],
         bottom: PreferredSize(
-          preferredSize: const Size.fromHeight(100),
-          child: Column(
-            children: [
-              const SizedBox(height: 8),
-              TabBar(
-                controller: _tabController,
-                isScrollable: true,
-                indicatorColor: AppColors.primary,
-                indicatorWeight: 3,
-                labelColor: AppColors.primary,
-                unselectedLabelColor: AppColors.textTertiary,
-                labelStyle: _cairoW900Size12,
-                unselectedLabelStyle: _cairoBold12,
-                tabs: const [
-                  Tab(text: 'الكل'),
-                  Tab(text: 'نشط'),
-                  Tab(text: 'قيد المراجعة'),
-                  Tab(text: 'منتهي'),
-                  Tab(text: 'مرفوض'),
-                ],
-              ),
+          preferredSize: const Size.fromHeight(48),
+          child: TabBar(
+            controller: _tabController,
+            isScrollable: true,
+            indicatorColor: AppColors.primary,
+            indicatorWeight: 3,
+            labelColor: AppColors.primary,
+            unselectedLabelColor: AppColors.textTertiary,
+            labelStyle: _cairoW900Size12,
+            unselectedLabelStyle: _cairoBold12,
+            tabs: const [
+              Tab(text: 'الكل'),
+              Tab(text: 'نشط'),
+              Tab(text: 'قيد المراجعة'),
+              Tab(text: 'منتهي'),
+              Tab(text: 'مرفوض'),
             ],
           ),
         ),
-      ),
-      floatingActionButton: FloatingActionButton(
-        heroTag: 'offers_fab',
-        onPressed: () {
-          HapticFeedback.mediumImpact();
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => const AddEditOfferPage()),
-          );
-        },
-        backgroundColor: AppColors.primary,
-        elevation: 4,
-        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(16)),
-        child: const Icon(Icons.add_rounded, color: Colors.white, size: 28),
       ),
       body: BlocConsumer<OffersBloc, OffersState>(
         listenWhen: (_, next) => next is OfferActionSuccess || next is OffersError,
@@ -206,14 +200,14 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                           )
                         : _buildImagePlaceholder(),
                   ),
-                  Positioned(
+                  PositionedDirectional(
                     top: 12,
-                    left: 12,
+                    start: 12,
                     child: _buildStatusBadge(offer.status),
                   ),
-                  Positioned(
+                  PositionedDirectional(
                     bottom: 12,
-                    right: 12,
+                    end: 12,
                     child: Container(
                       padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                       decoration: BoxDecoration(
@@ -226,16 +220,19 @@ class _OffersPageState extends State<OffersPage> with SingleTickerProviderStateM
                       ),
                     ),
                   ),
-                  Positioned(
-                    top: 4,
-                    right: 4,
-                    child: Material(
-                      color: Colors.transparent,
+                  PositionedDirectional(
+                    top: 6,
+                    end: 6,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: hasImage ? Colors.black.withValues(alpha: 0.45) : Colors.transparent,
+                        shape: BoxShape.circle,
+                      ),
                       child: IconButton(
                         icon: Icon(
                           Icons.more_vert_rounded, 
                           color: hasImage ? Colors.white : AppColors.textPrimary, 
-                          size: 24
+                          size: 22,
                         ),
                         onPressed: () => _showOfferOptions(context, offer),
                       ),

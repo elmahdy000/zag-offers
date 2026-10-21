@@ -1,14 +1,39 @@
 # Zag Offers — Project Progress & Status
 
 ## 1. Current State Summary
-- **Primary Focus**: Customer Mobile Application (`zag_offers_app`) UI/UX Modernization and Integrity.
+- **Primary Focus**: Vendor Mobile Application (`zag_offers_vendor_app`) & Customer Web/Mobile Ecosystem.
 - **Git Branch**: `main` (synchronized with `origin/main`).
-- **Latest Commit**: `8cf7fe3` (`feat(ui): redesign Offer Details screen and Coupon QR Modal`).
-- **Analyzer Health**: `flutter analyze lib/` ➜ 0 issues found across all packages.
+- **Latest Commit**: `dd5ab1d` (`fix(vendor): overhaul layout, rtl directionality, error handling & coupon typography`).
+- **Analyzer Health**: `flutter analyze lib/` ➜ 0 issues found across all packages (`zag_offers_app`, `zag_offers_vendor_app`).
+- **Test Health**: 100% tests passing (6/6 in vendor app, 27/27 in customer app).
 
 ---
 
 ## 2. Completed Milestones
+
+### J. Vendor Flutter App Comprehensive UI/UX & Services Overhaul (`zag_offers_vendor_app`)
+- **MainLayout & Navigation Bar Modernization (`main_layout.dart`)**:
+  - Removed redundant `Padding(padding: EdgeInsets.only(bottom: 80))` wrapping `IndexedStack` which created a massive 160px+ void above the bottom navigation bar.
+  - Upgraded bottom navigation items: persistent, elegant `GoogleFonts.cairo` labels (11px, bold when active, w600 when inactive) with soft Egyptian Orange pill indicator on active icons.
+  - Adjusted `BottomAppBar` height from 80px to 76px with a smooth notch margin for the centered QR Scanner FAB.
+- **Offers Management Screen & RTL Alignment (`offers_page.dart`)**:
+  - Eliminated duplicate nested `FloatingActionButton` that collided with `MainLayout`'s centered QR Scanner FAB.
+  - Added an "إضافة عرض جديد" action button (`Icons.add_circle_outline_rounded`) with Egyptian Orange styling into `AppBar.actions`.
+  - Reclaimed 52px of empty vertical space by reducing `AppBar.bottom` `preferredSize` from `100` to standard `48`.
+  - Migrated offer card badges to `PositionedDirectional` (`start: 12` for status, `end: 12` for discount, and `end: 6` for options menu with translucent circular backdrop).
+- **Universal Shimmer States (`skeleton_loader.dart`, `dashboard_page.dart`, `reviews_page.dart`, `notifications_page.dart`)**:
+  - Added `HorizontalCardsSkeleton` for horizontal list loading states.
+  - Replaced raw `CircularProgressIndicator` spinners in `DashboardPage`, `ReviewsPage`, and `NotificationsPage` with dedicated theme-aware shimmer skeletons (`HorizontalCardsSkeleton`, `ListSkeleton`).
+- **Coupon Monospace & LTR Typography Contract**:
+  - Implemented `GoogleFonts.spaceMono` with explicit `TextDirection.ltr` across `DashboardPage` (`_buildActivityTile`), `ReportsPage`, and `QRScannerPage` manual code input dialog (`#ZAG-XXXXXX`).
+- **Error Handling & Exception Translation (`error_handler.dart`, `add_edit_offer_page.dart`)**:
+  - Integrated `ErrorHandler.handle(e)` across `QRScannerBloc`, `ReviewsBloc`, `ProfileBloc`, and `add_edit_offer_page.dart` (preventing raw English `DioException` stack traces and translating network/validation errors into user-friendly Arabic dialogs and toasts).
+  - Replaced raw `ScaffoldMessenger.of(context).showSnackBar` with unified `SnackBarUtils.showError(...)`.
+- **Dismissible & RTL Directional Bug Fixes (`notifications_page.dart`, `store_setup_page.dart`, `qr_scanner_page.dart`)**:
+  - Replaced hardcoded `Alignment.centerRight` and `EdgeInsets.only(right: 24)` on notification delete background with `AlignmentDirectional.centerEnd` and `EdgeInsetsDirectional.only(end: 24)`.
+  - Replaced LTR `Positioned` with `PositionedDirectional` on camera controls and image thumbnail removal buttons.
+- **Live Android Verification**:
+  - Deployed to physical Android emulator (`emulator-5554`), verified clean UI on Dashboard, Offers, Reports, Scanner, and Notifications screens with 0 errors.
 
 ### I. Explore Offers Screen Full-Width Redesign & Data Deduplication (`SearchPage`, `OfferCard`)
 - **Full-Width Screen Reclamation**: Completely eliminated the 82px vertical category sidebar that consumed >22% of mobile screen real estate, freeing 100% of the display width for offers.
@@ -271,12 +296,21 @@
 - **Verification**: `npx tsc --noEmit` → 0 errors · `npx eslint src` → **0 errors / 0 warnings** · `npx vitest run` → 23/23 pass · `npm run build` → compiled, 20/20 static pages, no warnings.
 - **Not committed**: all changes sit in the local working tree.
 
+### 2.1.2 Phase 1b — UI/UX & Accessibility Pass (DONE, uncommitted)
+- **Featured billboard (critical)**: collapsed to 2×32px for every viewport between 768–1023px because the stage flips to `display:block` while the billboard `<a>` stayed inline. Fixed with `display:block` on the base `.ad-carousel-main` rule → verified 962×400.
+- **Category icons**: `offers/page.tsx` + `offer-card.tsx` each had a stale icon map knowing only legacy names; both replaced by the shared `CategoryIcon`, now with Arabic orthography normalisation (tashkeel, أ/إ/آ, ى/ي, ة/ه) and `جميلة` added. Verified distinct icons for all live categories.
+- **Tap targets**: carousel dots 8px → 44px interactive box (painted track stays 8/6px).
+- **Privacy/UX**: logout purges account-scoped caches + revokes the HttpOnly cookie; favourites no longer renders another account's cache before the auth check.
+- **Next 16 platform**: `priority` → `preload`; `images.qualities` allowlist added (quality props were silently forced to 75).
+- **A11y**: `MotionConfig reducedMotion="user"` for all framer-motion animations; hero area `<select>` labelled.
+- **Verification**: tsc 0 · eslint 0/0 · vitest 23/23 · build 20/20 pages, no warnings.
+
 ---
 
 ## 3. Pending & Upcoming Tasks
 1. **Customer Web Portal (`zag-offers-client`)** — Phase 1 (contracts) ✅ done, see §2.1.1. Remaining:
    - **Phase 2 — unify the data layer**: decide the auth strategy (HttpOnly `auth_token` cookie vs. Bearer in `localStorage`) and either wire `api-client` / `queries` / `use-auth` / `use-offers` / `favorites` in for real or delete them. TanStack Query currently has zero live consumers, and `queries.ts:72` calls the non-existent `/coupons/mine` (backend route is `/coupons/my`).
-   - **Phase 3 — security/PWA**: purge `cache_favorites_v2` / `cache_my_coupons` / `favorites` on logout; stop `favorites/page.tsx` reading localStorage before the auth check; restore a real service worker (webpack build or Turbopack-compatible) and delete the frozen `public/sw.js` + `workbox-*.js` + `swe-worker-*.js`; add `.env.local`.
-   - **Phase 4 — SEO/quality**: Server-Component `metadata`/`generateMetadata` layer; `images.qualities`; `priority` → `preload`; `limit=40` server-side filtering; stale `CAT_ICONS` in `offers/page.tsx`; `remotePatterns` hardening.
+   - **Phase 3 — security/PWA**: ✅ logout now purges `cache_favorites_v2` / `cache_my_coupons` / `favorites` and `favorites/page.tsx` checks auth first (§2.1.2). Remaining: restore a real service worker (webpack build or Turbopack-compatible) and delete the frozen `public/sw.js` + `workbox-*.js` + `swe-worker-*.js`; add `.env.local`.
+   - **Phase 4 — SEO/quality**: ✅ `images.qualities`, `priority` → `preload`, stale `CAT_ICONS` all done (§2.1.2). Remaining: Server-Component `metadata`/`generateMetadata` layer; `limit=40` server-side filtering; `remotePatterns` hardening.
 2. **Platform Admin Dashboard (`zag-offers-admin`)**:
    - Review vendor approvals and campaign moderation workflows.

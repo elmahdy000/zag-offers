@@ -6,6 +6,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../bloc/notifications_bloc.dart';
 import '../../domain/entities/notification_entity.dart';
 import '../../../../core/network/notification_service.dart';
+import '../../../../core/widgets/skeleton_loader.dart';
 
 class NotificationsPage extends StatefulWidget {
   const NotificationsPage({super.key});
@@ -100,7 +101,10 @@ class _NotificationsPageState extends State<NotificationsPage> {
         buildWhen: (prev, next) => next is NotificationsLoading || next is NotificationsLoaded || next is NotificationsError,
         builder: (context, state) {
           if (state is NotificationsLoading) {
-            return const Center(child: CircularProgressIndicator(color: AppColors.primary));
+            return const Padding(
+              padding: EdgeInsets.symmetric(horizontal: 20, vertical: 12),
+              child: ListSkeleton(itemCount: 4),
+            );
           } else if (state is NotificationsError) {
             return Center(
               child: Column(
@@ -160,8 +164,8 @@ class _NotificationsPageState extends State<NotificationsPage> {
                         color: AppColors.error,
                         borderRadius: BorderRadius.circular(20),
                       ),
-                      alignment: Alignment.centerRight,
-                      padding: const EdgeInsets.only(right: 24),
+                      alignment: AlignmentDirectional.centerEnd,
+                      padding: const EdgeInsetsDirectional.only(end: 24),
                       child: const Icon(Icons.delete_rounded, color: Colors.white, size: 28),
                     ),
                     child: _buildNotificationCard(notification),

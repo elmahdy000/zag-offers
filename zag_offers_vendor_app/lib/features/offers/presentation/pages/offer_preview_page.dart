@@ -174,9 +174,9 @@ class _OfferPreviewPageState extends State<OfferPreviewPage> {
 
             // Image Paging Indicator
             if (images.length > 1)
-              Positioned(
+              PositionedDirectional(
                 bottom: 30,
-                right: 20,
+                end: 20,
                 child: Container(
                   padding: const EdgeInsets.symmetric(
                     horizontal: 10,

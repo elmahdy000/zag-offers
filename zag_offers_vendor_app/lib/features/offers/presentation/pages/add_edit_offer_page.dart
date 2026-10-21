@@ -19,6 +19,7 @@ import '../bloc/offers_bloc.dart';
 
 import 'offer_preview_page.dart';
 import '../../../../core/utils/snackbar_utils.dart';
+import '../../../../core/error/error_handler.dart';
 
 class AddEditOfferPage extends StatefulWidget {
   final OfferEntity? offer;
@@ -198,7 +199,10 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
       } catch (e) {
         setState(() => _isUploading = false);
         if (!mounted) return;
-        SnackBarUtils.showError(context, 'فشل رفع بعض الصور');
+        SnackBarUtils.showError(
+          context,
+          'فشل رفع الصور: ${ErrorHandler.handle(e)}',
+        );
       }
     }
   }
@@ -243,10 +247,9 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
     if (_formKey.currentState!.validate()) {
       if (_endDate.isBefore(_startDate) ||
           _endDate.isAtSameMomentAs(_startDate)) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          const SnackBar(
-            content: Text('تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية'),
-          ),
+        SnackBarUtils.showError(
+          context,
+          'تاريخ انتهاء العرض يجب أن يكون بعد تاريخ البداية',
         );
         return;
       }
@@ -658,9 +661,9 @@ class _AddEditOfferPageState extends State<AddEditOfferPage> {
                         ),
                       ),
                     ),
-                    Positioned(
+                    PositionedDirectional(
                       top: 4,
-                      right: 4,
+                      end: 4,
                       child: GestureDetector(
                         onTap: () {
                           HapticFeedback.lightImpact();

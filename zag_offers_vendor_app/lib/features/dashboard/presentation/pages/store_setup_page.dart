@@ -556,9 +556,9 @@ class _StoreSetupPageState extends State<StoreSetupPage> {
                       fit: BoxFit.cover,
                     ),
                   ),
-                  Positioned(
+                  PositionedDirectional(
                     top: 2,
-                    right: 2,
+                    end: 2,
                     child: GestureDetector(
                       onTap: () =>
                           setState(() => _galleryFiles.removeAt(index)),

@@ -161,3 +161,17 @@
   2. Raw `DioException.toString()` dumps confusing English debug strings and internal request URLs onto merchant screens. `ErrorHandler.handle()` cleanly extracts backend Arabic validation messages (e.g., `عفواً، الكود ده مش صحيح`).
   3. Monospace font and LTR directionality prevent alphanumeric coupon code inversion in Arabic RTL layouts.
 
+---
+
+## 20. Vendor App Navigation Architecture & Directional Invariants
+- **Decision**:
+  1. `MainLayout` hosts the single, authoritative `FloatingActionButton` (QR code scanner) centered and docked in the `BottomAppBar`. Child pages (e.g. `OffersPage`) must NEVER define a secondary nested FAB. Action triggers like "إضافة عرض جديد" must reside in `AppBar.actions`.
+  2. Bottom navigation items must always render persistent `GoogleFonts.cairo` labels (11px, bold when active, w600 when inactive) with an Egyptian Orange pill behind active icons, avoiding unstable conditional visibility that shifts tab heights.
+  3. `Scaffold` body must never be manually padded with `bottom: 80` when child list views already implement sliver bottom padding (`SizedBox(height: 100)`).
+  4. RTL badges, dismissibles, and camera controls must strictly use directional primitives (`PositionedDirectional`, `AlignmentDirectional`, `EdgeInsetsDirectional`) rather than physical `left`/`right`.
+- **Rationale**:
+  1. A secondary FAB inside `OffersPage` stacked awkwardly over the center scanner FAB, creating tap ambiguity and visual clutter.
+  2. Persistent labels prevent the navigation bar from "jumping" during tab switches and provide instant recognition for merchants.
+  3. Physical `left`/`right` in an RTL context inverts dismiss directions and places status badges on the opposite side of the reading flow.
+
+
