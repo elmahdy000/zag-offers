@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:shared_preferences/shared_preferences.dart';
@@ -1203,11 +1204,34 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                 onPressed: () => Navigator.pop(context),
               )
             : null,
-        title: Text(
-          'محفظة الكوبونات 🎟️',
-          style: theme.textTheme.headlineSmall?.copyWith(
-            fontWeight: FontWeight.w900,
-          ),
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: AppColors.primary.withValues(alpha: 0.12),
+                borderRadius: BorderRadius.circular(9),
+                border: Border.all(
+                  color: AppColors.primary.withValues(alpha: 0.3),
+                  width: 1,
+                ),
+              ),
+              child: const Icon(
+                IconlyBold.ticket,
+                color: AppColors.primary,
+                size: 19,
+              ),
+            ),
+            const SizedBox(width: 8),
+            Text(
+              'محفظة الكوبونات',
+              style: theme.textTheme.headlineSmall?.copyWith(
+                fontWeight: FontWeight.w900,
+                fontSize: 20,
+              ),
+            ),
+          ],
         ),
         elevation: 0,
         centerTitle: true,

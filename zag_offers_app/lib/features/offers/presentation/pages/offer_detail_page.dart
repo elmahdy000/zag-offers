@@ -1769,7 +1769,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                     final VoidCallback? onPressed;
 
                     if (hasActiveCoupon) {
-                      buttonText = 'عرض الكوبون 🎟️';
+                      buttonText = 'عرض الكوبون';
                       buttonIcon = Icons.qr_code_2_rounded;
                       onPressed = () {
                         HapticFeedback.lightImpact();
@@ -1780,7 +1780,7 @@ class _OfferDetailPageState extends State<OfferDetailPage> {
                         );
                       };
                     } else {
-                      buttonText = canGenerate ? 'احصل على الكوبون 🎟️' : 'سجّل حسابك واستمتع بالخصم';
+                      buttonText = canGenerate ? 'احصل على الكوبون' : 'سجّل حسابك واستمتع بالخصم';
                       buttonIcon = Icons.confirmation_num_rounded;
                       onPressed = () async {
                         if (!canGenerate) {
