@@ -187,11 +187,11 @@ class AuthWrapper extends StatelessWidget {
           next is AuthAuthenticated ||
           next is AuthUnauthenticated ||
           next is AuthInitial ||
-          next is AuthLoading,
+          next is AuthError,
       builder: (context, state) {
         if (state is AuthAuthenticated) {
           return const MainLayout();
-        } else if (state is AuthInitial || state is AuthLoading) {
+        } else if (state is AuthInitial) {
           return const SplashScreen();
         }
         return const LoginPage();

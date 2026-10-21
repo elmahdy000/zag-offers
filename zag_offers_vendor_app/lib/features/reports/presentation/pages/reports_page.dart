@@ -10,7 +10,12 @@ import 'package:zag_offers_vendor_app/features/dashboard/presentation/bloc/dashb
 import 'package:zag_offers_vendor_app/features/dashboard/presentation/pages/store_setup_page.dart';
 
 class ReportsPage extends StatelessWidget {
-  static final _couponCode = GoogleFonts.cairo(fontWeight: FontWeight.w900, fontSize: 12, color: AppColors.primary);
+  static final _couponCode = GoogleFonts.spaceMono(
+    fontWeight: FontWeight.w700,
+    fontSize: 12,
+    color: AppColors.primary,
+    letterSpacing: 0.5,
+  );
   static final _errorMsg = GoogleFonts.cairo(color: AppColors.text);
 
   const ReportsPage({super.key});
@@ -319,6 +324,7 @@ class ReportsPage extends StatelessWidget {
             children: [
               Text(
                 '#${coupon.code}',
+                textDirection: TextDirection.ltr,
                 style: _couponCode,
               ),
               Text(

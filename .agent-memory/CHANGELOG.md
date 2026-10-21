@@ -306,3 +306,71 @@
 
 ### Verified
 - Tested and verified on live Android emulator across dark mode and RTL orientation.
+
+---
+
+## 2026-10-22 — Customer Web Portal Audit (`zag-offers-client`)
+- **Type**: Audit (read-only, no code changes)
+- **Scope**: `src/` (10.9k LOC) of the Next.js 16.2.4 customer portal, cross-verified against `zag-offers-backend` (NestJS) and the live production API.
+- **Tooling results**: `npx tsc --noEmit` → 0 errors · `npm run lint` → 20 errors / 86 warnings · `npx vitest run` → 23/23 passing (all targeting orphaned modules).
+- **Critical findings**: (1) `newPrice` vs `discountedPrice` price mapping break; (2) `isRedeemed` vs `status` coupon-status break — redeemed/expired coupons display "جاهز للاستخدام"; (3) offer-detail category breadcrumb filters by name while the offers page filters by UUID; (4) the entire `api-client` / `queries` / `use-auth` / `use-offers` / `favorites` layer is dead code and TanStack Query has no live consumers; (5) dual auth system — JWT persisted in `localStorage` despite the backend issuing an `auth_token` HttpOnly cookie, and `/auth/register` never sets the cookie.
+- **High findings**: PWA service worker inert under Next 16 Turbopack with frozen committed `public/sw.js` artifacts · logout leaves user-scoped caches behind (cross-account data leakage) · favorites heart state (localStorage) diverges from the favorites list (server) · all routes are Client Components so per-route SEO metadata is impossible.
+- **Medium findings**: `images.qualities` unset (Next 16 coerces all `quality` props to 75) · `next/image` `priority` deprecated in favour of `preload` · client-side filtering capped at the newest 40 offers · `Date.now()` during render (react-hooks/purity) · stale category/area maps and an offers-page icon table that only knows legacy category names · no `.env.local`, so local dev targets the production API.
+- **Memory**: `PROGRESS.md` section 2.1 added · `ERRORS_AND_FIXES.md` entries 18-21 added.
+
+---
+
+## 2026-10-22 — Customer Web Portal Phase 1: Contract Remediation (`zag-offers-client`)
+- **Type**: Bug fix (3 CRITICAL contract mismatches) + lint/test hardening
+- **Status**: Verified, **not committed** (changes live in the working tree)
+
+### Added
+- `src/lib/offer-pricing.ts` — single pricing authority (`resolveOfferPricing`, `formatPrice`), a 1:1 port of the Flutter `OfferPricingResult`. Handles both prices, only-original + %, only-new + %, single price, and store-wide discounts with no item prices.
+- `Coupon` / `CouponStatus` / `CategorySummary` wire types in `src/lib/types.ts`.
+- 4th coupons tab `المنتهية`, `formatRemaining()` countdowns, `.is-expired` styles in `globals.css`.
+
+### Changed
+- `Offer.newPrice` replaces the phantom `discountedPrice` in `types.ts`, `offer-card.tsx`, `offers/[id]/page.tsx`.
+- Coupon state now derives from `status` + `expiresAt` (`getCouponState`), honoring the platform contract: `GENERATED` → `جاهز للاستخدام ✨`, `USED` → `تم الاستخدام ✓`, `EXPIRED` → `منتهي الصلاحية`. QR + WhatsApp activation are gated to active coupons.
+- Offer-detail category breadcrumb links by category **id** (was a name → always empty result), falling back to plain text.
+- Clock moved into state (`nowMs` + 60s interval) on both pages — removes the `react-hooks/purity` violations and makes badges flip at expiry.
+- `next.config.ts`: `turbopack.root = process.cwd()` to stop Next inferring `$HOME` as workspace root.
+- Test fixtures de-`any`ed (`vi.mocked`, typed `SocketHandler`, typed favorite interfaces).
+
+### Fixed
+- `(${discountPercent}%-)` → `(${discountPercent}%)` on the offer-detail price panel.
+- `createdAt` guarded in `catalog-utils.sortOffers`; unused `Sparkles` import dropped.
+
+### Verified
+- `npx tsc --noEmit` → 0 errors.
+- `npx eslint src` → **0 errors / 0 warnings** (was 20 errors / 86 warnings, incl. `public/` artifacts).
+- `npx vitest run` → 23/23 passing (3 files).
+- `npm run build` → compiled successfully, 20/20 static pages generated, no warnings.
+
+### Fixed (follow-up found during visual QA)
+- `.coupon-ticket-code-row` grid template is now driven by a `has-qr` class instead of a fixed 3-column track — used/expired coupons no longer clip their code to `ZAG-…` or stretch the copy button into an empty box. Codes forced to `white-space:nowrap` + `direction:ltr`.
+- **Visual QA on live data** (test account `01099887711`, production API): offers list renders `1800 ج.م` / ~~3000 ج.م~~ / `40%`; coupon wallet renders all three states correctly (`منتهي الصلاحية` rose + greyed QR, `تم الاستخدام ✓` grey, `جاهز للاستخدام ✨` green + QR + `باقي 26 يوم`), tabs `الكل 3 / الجاهزة 1 / المستخدمة 1 / المنتهية 1`, and the expired modal disables the WhatsApp activation button.
+
+---
+
+## 2026-10-22 — Merchant Mobile App (`zag_offers_vendor_app`) Full Audit & Hardening
+- **Type**: Bug fix & hardening
+- **Scope**: Full audit of `zag_offers_vendor_app`, Gradle/Kotlin modernization, live Android emulator verification.
+
+### Fixed
+- Fixed critical authentication loop in `lib/main.dart`: `AuthWrapper` was listening to `AuthLoading` and replacing `LoginPage` with `SplashScreen()`, destroying form state and trapping users in an infinite splash screen if login failed or timed out.
+- Fixed raw `DioException` debug traces leaked in dialogs and banners: Routed catch blocks in `QRScannerBloc`, `ReviewsBloc`, and `ProfileBloc` through `ErrorHandler.handle(e)`, extracting clean Arabic backend validation messages (e.g. `عفواً، الكود ده مش صحيح`).
+- Fixed coupon code styling: Enforced `GoogleFonts.spaceMono` with `TextDirection.ltr` in `ReportsPage` and `QRScannerPage` manual code entry modal.
+- Added automatic uppercase capitalization and whitespace trimming for manual coupon entry in `QRScannerPage`.
+
+### Verified
+- `flutter analyze lib/` ➜ 0 issues found across all vendor packages.
+- `flutter test` ➜ 6/6 unit tests passed.
+- End-to-end verified on live Android emulator (`emulator-5554`):
+  - Login authentication flow (`01190000001` / `password123`)
+  - Dashboard stats & quick actions
+  - Offers management tabbed listing
+  - Performance reports & coupon history
+  - Merchant store profile & settings
+  - Live QR scanner viewfinder with camera permission & manual coupon entry with verified error modal.
+

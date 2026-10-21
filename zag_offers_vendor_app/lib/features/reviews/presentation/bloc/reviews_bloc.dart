@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../domain/entities/review_entity.dart';
 import '../../domain/repositories/reviews_repository.dart';
 
@@ -66,7 +67,7 @@ class ReviewsBloc extends Bloc<ReviewsEvent, ReviewsState> {
       final reviews = await repository.getStoreReviews(event.storeId);
       emit(ReviewsLoaded(reviews));
     } catch (e) {
-      emit(ReviewsError(e.toString().replaceAll('Exception: ', '')));
+      emit(ReviewsError(ErrorHandler.handle(e)));
     }
   }
 
@@ -86,7 +87,7 @@ class ReviewsBloc extends Bloc<ReviewsEvent, ReviewsState> {
         emit(ReplyAddedSuccess());
       }
     } catch (e) {
-      emit(ReviewsError(e.toString().replaceAll('Exception: ', '')));
+      emit(ReviewsError(ErrorHandler.handle(e)));
       if (currentState is ReviewsLoaded) {
         emit(currentState);
       }

@@ -148,3 +148,16 @@
   2. Production banners frequently have `actionUrl: null`. An intelligent matcher resolves tags, titles, and categories against loaded offers/stores, eliminating dead taps.
   3. In Dark Mode First design, standard white/light grey shimmer flashes like a glaring strobe light. `AppShimmer` uses dark slate `#1E293B` to `#334155` for dark mode and `#E2E8F0` to `#F8FAFC` for light mode, creating a seamless, premium loading experience.
   4. Bare circular progress indicators break spatial immersion. Skeletons that match the exact page anatomy prevent layout shifts upon data load.
+
+---
+
+## 19. Vendor App Auth State Flow & Universal Error Translation
+- **Decision**:
+  1. In `zag_offers_vendor_app`, `AuthWrapper` displays `SplashScreen` exclusively on `AuthInitial` (cold startup). During `AuthLoading`, `LoginPage` remains mounted and handles the submit button progress indicator locally.
+  2. All BLoCs in the vendor app (`QRScannerBloc`, `ReviewsBloc`, `ProfileBloc`, `OffersBloc`, `DashboardBloc`) must route network errors through `ErrorHandler.handle(e)` rather than `e.toString()`.
+  3. Manual coupon code entry in `QRScannerPage` strictly enforces `GoogleFonts.spaceMono`, uppercase capitalization, and `TextDirection.ltr`.
+- **Rationale**:
+  1. Unmounting `LoginPage` during `AuthLoading` trapped users in an infinite splash screen if login failed or timed out. Keeping the form mounted preserves user inputs and displays error SnackBars reliably.
+  2. Raw `DioException.toString()` dumps confusing English debug strings and internal request URLs onto merchant screens. `ErrorHandler.handle()` cleanly extracts backend Arabic validation messages (e.g., `عفواً، الكود ده مش صحيح`).
+  3. Monospace font and LTR directionality prevent alphanumeric coupon code inversion in Arabic RTL layouts.
+

@@ -21,7 +21,6 @@ class _QRScannerPageState extends State<QRScannerPage> {
   static final _dialogTitleStyle = GoogleFonts.cairo(
     fontWeight: FontWeight.bold,
   );
-  static final _dialogBodyStyle = GoogleFonts.cairo(fontSize: 14);
   static final _dialogBtnStyle = GoogleFonts.cairo(
     fontWeight: FontWeight.bold,
     color: Colors.white,
@@ -138,9 +137,15 @@ class _QRScannerPageState extends State<QRScannerPage> {
           children: [
             TextField(
               controller: controller,
+              textCapitalization: TextCapitalization.characters,
+              textDirection: TextDirection.ltr,
               decoration: InputDecoration(
-                hintText: 'أدخل كود الكوبون هنا',
-                hintStyle: _dialogBodyStyle,
+                hintText: 'ZAG-XXXXXX',
+                hintStyle: GoogleFonts.spaceMono(
+                  fontSize: 14,
+                  color: AppColors.textSecondary,
+                  letterSpacing: 2,
+                ),
                 filled: true,
                 fillColor: AppColors.surface,
                 border: OutlineInputBorder(
@@ -149,9 +154,10 @@ class _QRScannerPageState extends State<QRScannerPage> {
                 ),
               ),
               textAlign: TextAlign.center,
-              style: const TextStyle(
+              style: GoogleFonts.spaceMono(
                 fontWeight: FontWeight.bold,
                 letterSpacing: 2,
+                color: AppColors.text,
               ),
             ),
             const SizedBox(height: 24),
@@ -159,7 +165,7 @@ class _QRScannerPageState extends State<QRScannerPage> {
               width: double.infinity,
               child: ElevatedButton(
                 onPressed: () {
-                  final code = controller.text.trim();
+                  final code = controller.text.trim().toUpperCase();
                   if (code.isNotEmpty) {
                     Navigator.pop(context);
                     setState(() => _isScanned = true);

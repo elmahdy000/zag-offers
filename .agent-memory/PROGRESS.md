@@ -228,23 +228,55 @@
   - `flutter test` passes 27/27 tests.
   - Verified live on Android emulator (`emulator-5554`) and iOS simulator (`iPhone 17 Pro Max`).
 
-### Q. Merchant Mobile App (`zag_offers_vendor_app`) Full Audit & Modernization
+### Q. Merchant Mobile App (`zag_offers_vendor_app`) Full Audit & Hardening
 - **Kotlin 2.3.21 & Gradle Compiler Migration**:
   - Identified and fixed critical Android build failure caused by Kotlin version mismatch (`2.1.0` < Flutter's minimum `2.2.20`) in `settings.gradle.kts`.
   - Migrated legacy `kotlinOptions { jvmTarget = ... }` to modern `kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }` in `build.gradle.kts`.
-  - Successfully built debug APK (`build/app/outputs/flutter-apk/app-debug.apk`) in 116.0s.
-- **Live Emulator Deployment & Verification**:
-  - Installed and launched `com.zag.offers.vendor.zag_offers_vendor_app` on physical Android emulator (`emulator-5554`).
-  - Verified live notification permissions, branded dark login page ("بوابة التجار"), form validation on phone/email and password.
+  - Successfully built debug APK (`build/app/outputs/flutter-apk/app-debug.apk`).
+- **Critical Auth Flow Bug Discovered & Resolved (`main.dart`)**:
+  - `AuthWrapper` previously unmounted `LoginPage` on `AuthLoading` and mounted `SplashScreen()`, permanently trapping merchants in an infinite splash screen if login failed or timed out.
+  - Resolved by restricting `SplashScreen()` strictly to `AuthInitial`, keeping `LoginPage` mounted during `AuthLoading`, and wiring `AuthError` into `buildWhen`.
+- **User-Facing Error Message Sanitization**:
+  - Fixed raw `DioException` debug traces leaking to users on failed operations by routing all catch blocks in `QRScannerBloc`, `ReviewsBloc`, and `ProfileBloc` through `ErrorHandler.handle(e)`.
+  - Backend validation and error messages now display in clean Arabic (e.g., `عفواً، الكود ده مش صحيح`).
+- **Coupon SpaceMono Monospace Invariant**:
+  - Enforced `GoogleFonts.spaceMono` with explicit `TextDirection.ltr` in `ReportsPage` and `QRScannerPage` manual coupon input dialog.
+  - Added `TextCapitalization.characters` and trimmed uppercase normalization on code entry.
 - **Codebase & Architecture Health**:
   - `flutter analyze lib/` ➜ 0 issues found across all vendor packages.
   - `flutter test` ➜ 6/6 unit tests passed.
-  - Features verified: Dashboard with real-time stats, QR scanner with manual fallback and torch, Offers management with CRUD and multi-image upload (max 5), Reports with analytics charts, Profile with store settings and account deletion, and Customer review replies.
+  - Live verified 100% of vendor screens on Android emulator (`emulator-5554`): Login, Dashboard, Offers Management, Reports, Profile, QR Scanner with live viewfinder and manual input modal.
+
+
+---
+
+## 2.1 Customer Web Portal Audit (`zag-offers-client`) — Next.js 16.2.4 / React 19.2
+- **Audit Scope**: Full source review of `src/` (10.9k LOC) + cross-contract verification against the live NestJS backend (`zag-offers-backend`) and the production API `https://api.zagoffers.online`.
+- **Verification Method**: `npx tsc --noEmit` (0 errors) · `npm run lint` (20 errors / 86 warnings) · `npx vitest run` (23/23 pass) · live API probes with the seeded test account (`01099887711`).
+- **CRITICAL findings (contract mismatches, verified live)**:
+  1. `newPrice` (backend) vs `discountedPrice` (client) → discounted price, savings and discount % never render.
+  2. `status: GENERATED|USED|EXPIRED` (backend Coupon) vs `isRedeemed` (client) → **every coupon, including redeemed/expired, renders "جاهز للاستخدام"**; violates the Coupon Status Contract. `expiresAt` ignored → no expiry countdown.
+  3. Offer-detail breadcrumb links `/offers?category=<name>` while the offers page filters by category **UUID** → empty result set.
+  4. Dead "central" architecture: `api-client.ts` → `queries.ts` → `use-auth.ts` (imported by nobody); `use-offers.ts` imported by nobody; `lib/favorites.ts` imported by nobody. TanStack Query is mounted with **zero live consumers**; the app runs on raw `fetch`/`axios` + `localStorage`.
+  5. Dual auth: the backend issues an `auth_token` HttpOnly cookie, but the web app persists the JWT in `localStorage.token` → the HttpOnly protection is void and XSS becomes full account takeover. `/auth/register` never sets the cookie at all.
+- **HIGH findings**: PWA service worker is inert under Next 16 Turbopack (`next-pwa` is a webpack-only plugin; `public/sw.js` is a frozen committed artifact) · logout does not purge `cache_favorites_v2` / `cache_my_coupons` / `favorites` → cross-account data leakage on shared devices · favorites heart state (localStorage) diverges from the favorites list (server) · every route is a Client Component so per-route `metadata` is impossible.
+- **MEDIUM findings**: `images.qualities` unset (Next 16 coerces every `quality` prop to 75) · `next/image` `priority` deprecated in favour of `preload` · client-side filtering limited to the newest 40 offers · `Date.now()` called during render (react-hooks/purity) · stale `ZAGAZIG_AREAS` / `DISPLAY_NAMES` maps and an offers-page `CAT_ICONS` table that only knows the legacy category names · no `.env.local` (dev hits production).
+
+### 2.1.1 Phase 1 — Contract Remediation (DONE, uncommitted)
+- **Scope**: the 3 CRITICAL contract mismatches from §2.1. Everything else was deliberately deferred to Phases 2–4.
+- **Pricing authority**: new `src/lib/offer-pricing.ts` exports `resolveOfferPricing()` + `formatPrice()`, a 1:1 port of the Flutter `OfferPricingResult` (5 cases: both prices, only-old + %, only-new + %, single price, store-wide discount with no prices). `src/lib/types.ts` was rewritten against the Prisma schema: `Offer.newPrice` (never `discountedPrice`), `Coupon.status/expiresAt/redeemedAt`, `CategorySummary` with optional `id`.
+- **Coupon status**: `src/app/coupons/page.tsx` now derives state from `status` + `expiresAt` via `getCouponState()`; 4 filter tabs (`الكل` / `الجاهزة` / `المستخدمة` / `المنتهية`); badges follow the platform contract exactly (`جاهز للاستخدام ✨` / `تم الاستخدام ✓` / `منتهي الصلاحية`); QR + WhatsApp activation are gated to `active`; `.is-expired` styling added to `globals.css`.
+- **Breadcrumb**: offer-detail category link now passes the category **id**, rendering plain text when the id is absent.
+- **Hardening found on the way**: hydration-safe clock (`nowMs` in state + 60s interval) in both the coupons page and offer detail — removes both `react-hooks/purity` violations and guarantees the badge flips at expiry; `(${discountPercent}%-)` typo fixed; `any[]`/`(o: any)` replaced with the real `Offer` type in offer detail; `createdAt` guarded in `catalog-utils.sortOffers`; test fixtures in `socket.test.ts` / `useFavorites.test.ts` de-`any`ed (`vi.mocked`, `(...args: unknown[]) => void`); unused `Sparkles` import dropped; `turbopack.root` pinned to stop Next inferring the home directory as workspace root.
+- **Verification**: `npx tsc --noEmit` → 0 errors · `npx eslint src` → **0 errors / 0 warnings** · `npx vitest run` → 23/23 pass · `npm run build` → compiled, 20/20 static pages, no warnings.
+- **Not committed**: all changes sit in the local working tree.
 
 ---
 
 ## 3. Pending & Upcoming Tasks
-1. **Customer Web Portal (`zag-offers-client`)**:
-   - Modernize Offer Details page and Coupon modal to match mobile app design tokens and pricing hierarchy.
+1. **Customer Web Portal (`zag-offers-client`)** — Phase 1 (contracts) ✅ done, see §2.1.1. Remaining:
+   - **Phase 2 — unify the data layer**: decide the auth strategy (HttpOnly `auth_token` cookie vs. Bearer in `localStorage`) and either wire `api-client` / `queries` / `use-auth` / `use-offers` / `favorites` in for real or delete them. TanStack Query currently has zero live consumers, and `queries.ts:72` calls the non-existent `/coupons/mine` (backend route is `/coupons/my`).
+   - **Phase 3 — security/PWA**: purge `cache_favorites_v2` / `cache_my_coupons` / `favorites` on logout; stop `favorites/page.tsx` reading localStorage before the auth check; restore a real service worker (webpack build or Turbopack-compatible) and delete the frozen `public/sw.js` + `workbox-*.js` + `swe-worker-*.js`; add `.env.local`.
+   - **Phase 4 — SEO/quality**: Server-Component `metadata`/`generateMetadata` layer; `images.qualities`; `priority` → `preload`; `limit=40` server-side filtering; stale `CAT_ICONS` in `offers/page.tsx`; `remotePatterns` hardening.
 2. **Platform Admin Dashboard (`zag-offers-admin`)**:
    - Review vendor approvals and campaign moderation workflows.

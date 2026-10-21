@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:zag_offers_vendor_app/core/error/error_handler.dart';
 import 'package:zag_offers_vendor_app/core/usecases/usecase.dart';
 import 'package:zag_offers_vendor_app/features/auth/domain/entities/user_entity.dart';
 import 'package:zag_offers_vendor_app/features/profile/domain/usecases/profile_usecases.dart';
@@ -124,7 +125,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       final user = await getProfileUseCase(NoParams());
       emit(ProfileLoaded(user));
     } catch (e) {
-      emit(ProfileError(e.toString().replaceAll('Exception: ', '')));
+      emit(ProfileError(ErrorHandler.handle(e)));
     }
   }
 
@@ -139,7 +140,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       );
       emit(ProfileLoaded(user));
     } catch (e) {
-      emit(ProfileError(e.toString().replaceAll('Exception: ', '')));
+      emit(ProfileError(ErrorHandler.handle(e)));
     }
   }
 
@@ -170,7 +171,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(
         PasswordChangeError(
           currentUser,
-          e.toString().replaceAll('Exception: ', ''),
+          ErrorHandler.handle(e),
         ),
       );
     }
@@ -195,7 +196,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
       emit(
         AccountDeleteError(
           currentUser,
-          e.toString().replaceAll('Exception: ', ''),
+          ErrorHandler.handle(e),
         ),
       );
     }

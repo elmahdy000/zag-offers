@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import '../../../../core/error/error_handler.dart';
 import '../../domain/usecases/redeem_coupon_usecase.dart';
 
 // --- Events ---
@@ -60,7 +61,7 @@ class QRScannerBloc extends Bloc<QRScannerEvent, QRScannerState> {
       await redeemCouponUseCase({'code': event.code, 'storeId': event.storeId});
       emit(QRScannerSuccess('تم تفعيل الكوبون بنجاح!'));
     } catch (e) {
-      emit(QRScannerError(e.toString().replaceAll('Exception: ', '')));
+      emit(QRScannerError(ErrorHandler.handle(e)));
     }
   }
 }

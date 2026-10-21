@@ -176,3 +176,84 @@
   2. Migrated `build.gradle.kts` to the modern `kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }` DSL.
   3. Added `android.builtInKotlin=false` and `android.newDsl=false` in `gradle.properties`.
 - **Prevention Invariant**: Across all Flutter sub-apps in this repository, always align Kotlin Android plugin to `2.3.21` and use `kotlin.compilerOptions` DSL targeting `JVM_17`.
+
+---
+
+## 18. Web Client Rendered the Wrong Coupon Status (Contract Drift on `isRedeemed`)
+- **Symptom**: On `zag-offers-client`, every coupon in the wallet rendered **"جاهز للاستخدام"** — including coupons the merchant had already redeemed and coupons past their expiry date.
+- **Root Cause**: The backend `Coupon` model exposes `status: CouponStatus` (`GENERATED | USED | EXPIRED | CANCELLED`) plus `expiresAt` / `redeemedAt`. The web client declared `interface Coupon { isRedeemed: boolean }` and branched on it. `isRedeemed` is not a field on the response, so it was always `undefined`, and `!undefined === true` classified every coupon as "active". The client also ignored `expiresAt` entirely, so no countdown was ever rendered.
+- **Resolution**: **Fixed** (Phase 1). `src/app/coupons/page.tsx` now types coupons from `src/lib/types.ts` (`status`, `expiresAt`, `redeemedAt`) and derives state through `getCouponState()` → `active | used | expired`. Labels are exactly the platform contract (`جاهز للاستخدام ✨`, `تم الاستخدام ✓`, `منتهي الصلاحية`); a 4th `المنتهية` tab was added; QR codes and the WhatsApp activation button are gated to `active` coupons; `.is-expired` styling added in `globals.css`.
+- **Prevention Invariant**: Any field the web client branches on MUST be verified against the live API response body before use. Never invent a boolean mirror of an enum without confirming the server actually sends it.
+
+---
+
+## 19. Web Client Read `discountedPrice` While the Backend Sends `newPrice`
+- **Symptom**: The discounted (final) price never appeared on offer cards or the offer detail page; savings and the computed discount percentage were always `null`; only the struck-through original price rendered.
+- **Root Cause**: `Prisma.model Offer` names the field `newPrice`. The web client's `Offer` type declared `discountedPrice`, and every price branch (`offer-card.tsx`, `offers/[id]/page.tsx`) read `offer.discountedPrice`. `tsc` passed because both types are locally declared — TypeScript cannot detect a wire-format mismatch on its own.
+- **Resolution**: **Fixed** (Phase 1). `src/lib/offer-pricing.ts` is now the single pricing authority (`resolveOfferPricing` + `formatPrice`), a 1:1 port of the Flutter `OfferPricingResult`. `types.ts` / `offer-card.tsx` / `offers/[id]/page.tsx` all read `newPrice`; the `${discountPercent}%-` typo became `${discountPercent}%`.
+- **Prevention Invariant**: Run a live API probe (`curl` the production endpoint) and diff the real response keys against the client type before trusting a typed client. Consider generating client types from the backend OpenAPI/Prisma schema.
+
+---
+
+## 20. Offer-Detail Category Breadcrumb Filtered by Name While the Page Filters by UUID
+- **Symptom**: Clicking the category name in the offer-detail breadcrumb navigated to `/offers` and rendered zero offers.
+- **Root Cause**: `offers/[id]/page.tsx` linked to `/offers?category=<category.name>`, but `offers/page.tsx` treats the `category` URL parameter as a **category id** and filters client-side via `filterOffers({ categoryId })`, which compares against `offer.store.category?.id` (a UUID). A name never matches a UUID.
+- **Resolution**: **Fixed** (Phase 1). The breadcrumb now emits `?category=<id>` and degrades to plain text when `store.category.id` is missing.
+- **Prevention Invariant**: A single URL parameter must always carry a single kind of identifier. Define its semantics once (name or id) and reuse it from every producer.
+
+---
+
+## 21. Next.js 16 Turbopack Silently Disabled the PWA Service Worker
+- **Symptom**: The production site ships a service worker whose cache rules no longer match `next.config.ts`; offline caching stopped updating, and every `workboxOptions.runtimeCaching` entry is dead configuration.
+- **Root Cause**: `@ducanh2912/next-pwa` only installs a **webpack** hook (`config.webpack`) that generates `sw.js` / `workbox-*.js` / `swe-worker-*.js`. Next.js 16 builds with Turbopack by default, and the Turbopack path never calls `config.webpack`. Setting `turbopack: {}` in `next.config.ts` silences the "webpack config without turbopack config" error, so the plugin is skipped without any warning. The stale artifacts committed under `public/` made the failure invisible.
+- **Resolution**: Not yet fixed (deferred to Phase 3).
+- **Prevention Invariant**: In Next.js 16, any webpack-only plugin (PWA, custom loaders) requires an explicit `--webpack` build, or the plugin must be replaced with a Turbopack-compatible service worker. Never commit generated `sw.js` / `workbox-*.js` into `public/`.
+
+---
+
+## 22. `Date.now()` Called During Render Broke `react-hooks/purity` (and Expiry Never Flipped)
+- **Symptom**: `eslint src` reported `react-hooks/purity` errors in `offers/[id]/page.tsx` and `coupons/page.tsx`. Worse, the countdown/expiry logic was computed once per render from `Date.now()`, so a coupon whose `expiresAt` passed while the tab stayed open kept rendering as "جاهز للاستخدام" until any unrelated re-render happened.
+- **Root Cause**: Reading the wall clock inside the component body. The value is neither state nor props, so React has no reason to re-render when it changes, and React 19's purity lint correctly flags the read.
+- **Resolution**: **Fixed** (Phase 1). Both pages hold `const [nowMs, setNowMs] = useState(0)` and a mount effect that sets it immediately then on a 60s `setInterval` (cleared on unmount). Derived values are `null` while `nowMs === 0` (pre-effect / SSR), so labels degrade to neutral copy ("ساري ومتاح الآن") instead of flashing "منتهي الصلاحية".
+- **Prevention Invariant**: Never read `Date.now()` (or `Math.random()`) in a render body. Put the clock in state, tick it from an effect, and make every derived value tolerant of "clock not mounted yet" — this also avoids hydration mismatches, since the server clock differs from the client clock.
+
+---
+
+## 23. Next Inferred the Wrong Workspace Root From a Stray `package-lock.json`
+- **Symptom**: Every `next build` printed `Next.js inferred your workspace root, but it may not be correct. We detected multiple lockfiles and selected /Users/drelmahdy/package-lock.json`.
+- **Root Cause**: A `package-lock.json` sitting in the user home directory made Next walk up past the project and pick `$HOME` as the workspace root. That root is used for file tracing and the dev watcher, so it can pull in unrelated `node_modules` and break standalone deployments.
+- **Resolution**: **Fixed** (Phase 1). `next.config.ts` now sets `turbopack: { root: process.cwd() }`.
+- **Prevention Invariant**: Any Next.js repo not at the filesystem root should pin `turbopack.root`; never rely on lockfile-based inference when a parent directory can contain a lockfile.
+
+---
+
+## 24. `any` / `Function` Types in Test Fixtures Kept the Lint Gate Red
+- **Symptom**: After the Phase 1 contract fixes, `npx eslint src` still failed with `@typescript-eslint/no-explicit-any` and `@typescript-eslint/no-unsafe-function-type` in `src/lib/socket.test.ts` and `src/hooks/useFavorites.test.ts` — plus an unused `Sparkles` import and an unused `catch (e)` binding.
+- **Root Cause**: Mocks written as `(io as any).mockReturnValue(...)`, `(fetch as any).mockResolvedValueOnce(...)` and `callback: Function`. `Function` accepts any callable, so the mocked handlers were untyped.
+- **Resolution**: **Fixed** (Phase 1). `vi.mocked(io)` / `vi.mocked(fetch)` with a typed `Response` stub (`{ ok: true, json: async () => body } as unknown as Response`), a local `type SocketHandler = (...args: unknown[]) => void`, typed `FavoriteItem` / `ApiFavorite` interfaces, `catch {` instead of `catch (e) {`, and the unused `Sparkles` import removed. `npx eslint src` → 0 errors / 0 warnings.
+- **Prevention Invariant**: Mock through `vi.mocked(fn)` (never `as any`); type callbacks as `(...args: unknown[]) => void`; keep the lint gate at zero so a real regression is never mistaken for pre-existing noise.
+
+---
+
+## 25. Coupon Code Was Squeezed/Truncated Once the QR Was Hidden
+- **Symptom**: In the web coupon wallet, used and expired coupons rendered their code as two clipped lines (`ZAG-` / `...LRMY7`) with a large empty bordered box filling the row.
+- **Root Cause**: `.coupon-ticket-code-row` declared a fixed 3-column grid (`72px 1fr auto`) sized for the QR + code + copy-button trio. The QR is only rendered for `active` coupons, so with two children CSS grid auto-placement shifted the code into the 72px column (→ ellipsis) and stretched the copy button across the `1fr` column (→ the empty box). Fixed column counts silently break whenever a child is conditionally rendered.
+- **Resolution**: **Fixed** (Phase 1). The row is now `minmax(0,1fr) auto` by default and switches to `auto minmax(0,1fr) auto` only via a `has-qr` class that the JSX sets when the QR is actually rendered (base rule + all three media queries). `.coupon-code-copy strong` also gained `white-space:nowrap; direction:ltr; text-align:right` so codes stay on one line and strictly LTR per the platform contract.
+- **Prevention Invariant**: Never size a CSS grid for the maximum number of children unless every child is always rendered. Drive the template from a state class, or use explicit `grid-column` assignments. Coupon codes must always render fully, on one line, and LTR — they are the actual transaction instrument.
+
+---
+
+## 26. Infinite Splash Screen Loop Trapping Merchants on Vendor Login (`zag_offers_vendor_app`)
+- **Symptom**: In `zag_offers_vendor_app`, when a merchant submitted their login credentials, the screen immediately replaced the login form with `SplashScreen()` and got permanently stuck there if login took time or returned an error (e.g., incorrect password or network error).
+- **Root Cause**: In `lib/main.dart`, `AuthWrapper` listened to `AuthLoading` and immediately rendered `SplashScreen()`. This destroyed and unmounted `LoginPage` from the widget tree. When the backend returned an `AuthError`, `AuthWrapper`'s `buildWhen` did NOT include `AuthError`, so `AuthWrapper` never rebuilt—leaving the merchant permanently trapped on an infinite splash screen while `LoginPage`'s internal SnackBar error listener was never triggered because the page had been unmounted.
+- **Resolution**: Updated `AuthWrapper`'s `buildWhen` to handle `AuthAuthenticated`, `AuthUnauthenticated`, `AuthInitial`, and `AuthError`. Restricted `SplashScreen()` display strictly to `AuthInitial` (cold boot). During `AuthLoading`, `LoginPage` remains mounted and handles the loading state internally with its inline circular button spinner.
+- **Prevention Invariant**: Never unmount or replace an active form with a full-screen splash loader during user-initiated actions. Skeletons and splash screens belong only to cold boots; active form pages must remain mounted and manage their own inline button loading and SnackBar error notifications.
+
+---
+
+## 27. Raw `DioException` Debug Traces Leaked in Vendor Dialogs & BLoCs
+- **Symptom**: When redeeming an invalid coupon or experiencing an API error in `zag_offers_vendor_app`, dialogs and error banners displayed lengthy English debug text: `DioException [bad response]: This exception was thrown because the response has a status code of 404...`.
+- **Root Cause**: `QRScannerBloc`, `ReviewsBloc`, and `ProfileBloc` caught exceptions with generic `catch (e)` and passed `e.toString().replaceAll('Exception: ', '')` directly into state error messages. Because `DioException`'s `toString()` includes internal RequestOptions and MDN HTTP explanations, raw library debug internals were dumped onto user screens.
+- **Resolution**: Integrated `ErrorHandler.handle(e)` across `QRScannerBloc`, `ReviewsBloc`, and `ProfileBloc`. `ErrorHandler.handle()` cleanly parses backend error responses (extracting Arabic `message` strings such as `عفواً، الكود ده مش صحيح`) or translates status codes into polished Arabic messages.
+- **Prevention Invariant**: Never pass raw `e.toString()` from BLoC catch blocks into user-facing states. Always route network errors through `ErrorHandler.handle(e)`.
+
