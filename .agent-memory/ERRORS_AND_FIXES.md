@@ -162,3 +162,17 @@
 - **Root Cause**: In `home_page.dart`, `_buildOffersSectionWidget` was reused across "الأكثر انتشارًا", "مقترح لك", and multiple category sections ("ركن الأكل", "روقان"). All sections constructed their Hero tags with a static prefix: `'home_trending_${offer.id}_$index'`. When an offer appeared in more than one section (e.g. at index 0 of "الأكثر انتشارًا" and index 0 of "ركن الأكل"), both widgets in the active subtree possessed the identical tag `'home_trending_<id>_0'`, triggering Flutter's Hero assertion.
 - **Resolution**: Updated `cardHeroTag` generation in `_buildOffersSectionWidget` to incorporate a hash of the section title (`'home_${title.hashCode}_${offer.id}_$index'`), strictly isolating the Hero tag namespace across separate sections.
 - **Prevention Invariant**: Whenever rendering card lists in composite screens where items can belong to multiple sections, always prefix the Hero tag with a unique section identifier or section title hash.
+
+---
+
+## 17. Kotlin Gradle Plugin & JVM Target Migration in Vendor App
+- **Symptom**: `flutter build apk` in `zag_offers_vendor_app` failed with:
+  `Error: Your project's Kotlin version (2.1.0) is lower than Flutter's minimum supported version of 2.2.20` followed by `Using 'jvmTarget: String' is an error. Please migrate to the compilerOptions DSL`.
+- **Root Cause**:
+  1. `android/settings.gradle.kts` locked `org.jetbrains.kotlin.android` to `2.1.0`, below the modern Flutter engine requirement (minimum `2.2.20`).
+  2. In `android/app/build.gradle.kts`, the legacy `kotlinOptions { jvmTarget = ... }` DSL was deprecated and causes a hard compilation error in Kotlin 2.x+.
+- **Resolution**:
+  1. Updated `org.jetbrains.kotlin.android` to `2.3.21` in `android/settings.gradle.kts` (matching `zag_offers_app`).
+  2. Migrated `build.gradle.kts` to the modern `kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }` DSL.
+  3. Added `android.builtInKotlin=false` and `android.newDsl=false` in `gradle.properties`.
+- **Prevention Invariant**: Across all Flutter sub-apps in this repository, always align Kotlin Android plugin to `2.3.21` and use `kotlin.compilerOptions` DSL targeting `JVM_17`.

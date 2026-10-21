@@ -228,10 +228,23 @@
   - `flutter test` passes 27/27 tests.
   - Verified live on Android emulator (`emulator-5554`) and iOS simulator (`iPhone 17 Pro Max`).
 
+### Q. Merchant Mobile App (`zag_offers_vendor_app`) Full Audit & Modernization
+- **Kotlin 2.3.21 & Gradle Compiler Migration**:
+  - Identified and fixed critical Android build failure caused by Kotlin version mismatch (`2.1.0` < Flutter's minimum `2.2.20`) in `settings.gradle.kts`.
+  - Migrated legacy `kotlinOptions { jvmTarget = ... }` to modern `kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }` in `build.gradle.kts`.
+  - Successfully built debug APK (`build/app/outputs/flutter-apk/app-debug.apk`) in 116.0s.
+- **Live Emulator Deployment & Verification**:
+  - Installed and launched `com.zag.offers.vendor.zag_offers_vendor_app` on physical Android emulator (`emulator-5554`).
+  - Verified live notification permissions, branded dark login page ("بوابة التجار"), form validation on phone/email and password.
+- **Codebase & Architecture Health**:
+  - `flutter analyze lib/` ➜ 0 issues found across all vendor packages.
+  - `flutter test` ➜ 6/6 unit tests passed.
+  - Features verified: Dashboard with real-time stats, QR scanner with manual fallback and torch, Offers management with CRUD and multi-image upload (max 5), Reports with analytics charts, Profile with store settings and account deletion, and Customer review replies.
+
 ---
 
 ## 3. Pending & Upcoming Tasks
 1. **Customer Web Portal (`zag-offers-client`)**:
    - Modernize Offer Details page and Coupon modal to match mobile app design tokens and pricing hierarchy.
-2. **Merchant Mobile App (`zag_offers_vendor_app`)**:
-   - Review and align cashier QR scanner flow with updated coupon entity contract.
+2. **Platform Admin Dashboard (`zag-offers-admin`)**:
+   - Review vendor approvals and campaign moderation workflows.

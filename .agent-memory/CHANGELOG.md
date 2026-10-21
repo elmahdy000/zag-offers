@@ -1,5 +1,20 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-22] - Vendor Flutter App Audit, Kotlin 2.3.21 Migration & Live Emulator Verification
+### Fixed / Changed
+- **Kotlin Gradle & JVM Target Migration (`zag_offers_vendor_app`)**:
+  - Upgraded `org.jetbrains.kotlin.android` from `2.1.0` to `2.3.21` in `android/settings.gradle.kts` to satisfy modern Flutter Gradle plugin requirements.
+  - Replaced deprecated `kotlinOptions { jvmTarget = ... }` with modern `kotlin { compilerOptions { jvmTarget.set(org.jetbrains.kotlin.gradle.dsl.JvmTarget.JVM_17) } }` in `android/app/build.gradle.kts`.
+  - Added Flutter build flags in `android/gradle.properties` (`android.builtInKotlin=false`, `android.newDsl=false`).
+  - Successfully built debug APK (`build/app/outputs/flutter-apk/app-debug.apk`) in 116.0s.
+- **Live Emulator Deployment & Functional Audit**:
+  - Successfully installed package `com.zag.offers.vendor.zag_offers_vendor_app` onto live Android emulator (`emulator-5554`).
+  - Verified live startup, notification permission prompt, and full brand-compliant dark login page ("بوابة التجار").
+  - Verified form validation on email/phone and password fields.
+- **Test Suite & Analyzer Verification**:
+  - `flutter analyze lib/` ➜ 0 issues found across all vendor packages.
+  - `flutter test` ➜ 6/6 unit tests passed (auth role enforcement, session restoration, account deletion, and constants).
+
 ## [2026-10-21] - Coupon Voucher Ads Banner & Universal Theme-Aware Shimmer System
 ### Added / Changed
 - **Coupon Voucher Ads Banner (`AdsSlider`)**:
