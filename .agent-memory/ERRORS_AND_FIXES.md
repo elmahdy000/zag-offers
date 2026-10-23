@@ -1,5 +1,13 @@
 # Zag Offers — Errors, Root Causes & Prevention Rules
 
+## 0. Hardcoded Badge Offsets Collision on Fluid RTL Cards (`zag-offers-client`)
+- **Error**: Overlap and visual collision between `isFeatured` badge and long discount texts (e.g. `خصم 50% على الفاتورة`) on mobile screens.
+- **Root Cause**: The featured badge used a fixed pixel offset `right-[76px]`, assuming discount text is always short (e.g., `50%`). When discount text is longer or localizable, the badges collide.
+- **Fix**: Wrap multiple badges in a flex container (`flex flex-wrap items-center gap-1.5 max-w-[calc(100%-60px)]`) at `top-3 right-3`.
+- **Prevention Invariant**: Never position multiple dynamic text badges with hardcoded absolute offsets. Always use a flex container with `gap` and `flex-wrap`.
+
+---
+
 ## 1. Dart `intl` Package Shadowing Flutter's `TextDirection`
 - **Error**: `The getter 'rtl' isn't defined for the type 'TextDirection'` when writing `Directionality.of(context) == TextDirection.rtl`.
 - **Root Cause**: The `intl` package exports its own `TextDirection` class with uppercase enum values (`TextDirection.LTR`, `TextDirection.RTL`), shadowing Flutter's `dart:ui` / `material` `TextDirection` enum (`TextDirection.ltr`, `TextDirection.rtl`).

@@ -735,7 +735,7 @@ html[data-theme="light"] .auth-benefit, html[data-theme="light"] .auth-consent {
 .coupon-code-copy small { color:#718198; font-size:8px; font-weight:900; }
 /* Codes are strictly LTR. Never let the column shrink below the code width:
    when the QR is hidden (used/expired) the code must stay fully readable. */
-.coupon-code-copy strong { overflow:hidden; color:#fff; font-size:16px; font-weight:950; letter-spacing:1.5px; text-overflow:ellipsis; white-space:nowrap; direction:ltr; text-align:right; }
+.coupon-code-copy strong { overflow:hidden; color:#fff; font-size:16px; font-weight:950; letter-spacing:1.5px; text-overflow:ellipsis; white-space:nowrap; direction:ltr; text-align:right; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; }
 .coupon-copy-button { display:flex; align-items:center; gap:5px; padding:9px 10px; border:1px solid #35445a; border-radius:10px; color:#aab5c6; font-size:9px; font-weight:900; }
 .coupon-ticket-footer { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; color:#6f7d90; font-size:8px; font-weight:800; }
 .coupon-ticket-footer span { display:flex; align-items:center; gap:5px; }
@@ -753,7 +753,7 @@ html[data-theme="light"] .auth-benefit, html[data-theme="light"] .auth-consent {
 .coupon-modal-ticket { position:relative; display:flex; flex-direction:column; align-items:center; padding:16px; border-radius:22px; background:#fff; color:#071426; }
 .coupon-modal-ticket > span { color:#667085; font-size:9px; font-weight:900; }
 .coupon-modal-qr { margin:6px 0; }
-.coupon-modal-ticket strong { font-size:22px; font-weight:950; letter-spacing:2px; }
+.coupon-modal-ticket strong { font-size:22px; font-weight:950; letter-spacing:2px; font-family:ui-monospace,SFMono-Regular,Menlo,Monaco,Consolas,"Liberation Mono","Courier New",monospace; direction:ltr; }
 .coupon-modal-ticket small { color:#667085; font-size:10px; font-weight:800; }
 
 html[data-theme="light"] .coupon-wallet-page { background:#f4f6f9; }

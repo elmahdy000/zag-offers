@@ -116,22 +116,24 @@ function NotificationPortal({
               </span>
             )}
           </div>
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
             {unread > 0 && (
               <button
+                type="button"
                 onClick={onMarkAllRead}
-                className="flex items-center gap-1 text-[11px] text-[#FF6B00] font-black hover:underline"
+                className="flex items-center gap-1 text-[11px] text-[#FF6B00] font-black hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] rounded-lg px-2 py-1"
               >
-                <RiCheckDoubleLine size={12} />
+                <RiCheckDoubleLine size={13} />
                 قراءة الكل
               </button>
             )}
             <button
+              type="button"
               onClick={onClose}
               aria-label="إغلاق الإشعارات"
-              className="p-1.5 rounded-xl text-white/30 hover:text-white hover:bg-white/5 transition-all"
+              className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-white/50 hover:text-white hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6B00] transition-all"
             >
-              <RiCloseLine size={16} />
+              <RiCloseLine size={18} />
             </button>
           </div>
         </div>
@@ -183,7 +185,7 @@ const NavLink = ({ href, label, active }: { href: string; label: string; active:
     <Link
       prefetch={false}
       href={href}
-      className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200
+      className={`rounded-xl px-3.5 py-2 text-sm font-semibold transition-all duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]
         ${active
           ? 'nav-link-active bg-gradient-to-r from-[#FF6500] to-[#FF8A32] text-white shadow-[0_3px_12px_rgba(255,101,0,0.3)] font-bold'
           : 'text-gray-600 dark:text-[#AAB5C6] hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-gray-900 dark:hover:text-white border border-transparent'}`}
@@ -350,7 +352,7 @@ export function Navbar() {
               value={navSearch}
               onChange={(event) => setNavSearch(event.target.value)}
               placeholder="ابحث عن متجر، منتج أو عرض"
-              className="no-focus-ring h-10 w-full rounded-xl border border-gray-200 dark:border-[#25344A] bg-gray-50 dark:bg-[#0C1627] pr-11 pl-4 text-sm font-normal text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#74839A] focus:border-[#FF6500] transition-colors"
+              className="h-10 w-full rounded-xl border border-gray-200 dark:border-[#25344A] bg-gray-50 dark:bg-[#0C1627] pr-11 pl-4 text-sm font-normal text-gray-900 dark:text-white placeholder:text-gray-400 dark:placeholder:text-[#74839A] focus:outline-none focus:ring-2 focus:ring-[#FF6500]/50 focus:border-[#FF6500] transition-all"
             />
           </form>
 
@@ -363,7 +365,7 @@ export function Navbar() {
               prefetch={false}
               href="/favorites"
               aria-label="المفضلة"
-              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-gray-600 dark:text-[#C4CDDA] transition-colors hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-[#FF6500] dark:hover:text-white"
+              className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-gray-600 dark:text-[#C4CDDA] transition-colors hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-[#FF6500] dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
             >
               <RiHeart3Fill size={19} />
             </Link>
@@ -371,7 +373,7 @@ export function Navbar() {
             <button
               type="button"
               onClick={toggleTheme}
-              className="theme-toggle flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 transition-colors text-gray-600 dark:text-[#C4CDDA] hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-gray-900 dark:hover:text-white"
+              className="theme-toggle flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 transition-colors text-gray-600 dark:text-[#C4CDDA] hover:bg-gray-100 dark:hover:bg-[#152238] hover:text-gray-900 dark:hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
               aria-label={theme === 'dark' ? 'تفعيل الوضع الفاتح' : 'تفعيل الوضع الداكن'}
               title={theme === 'dark' ? 'الوضع الفاتح' : 'الوضع الداكن'}
             >
@@ -380,14 +382,15 @@ export function Navbar() {
 
             {isLoggedIn && (
               <button
+                type="button"
                 onClick={() => setShowBell((v) => !v)}
-                className={`relative p-2 transition-colors rounded-lg hover:bg-white/5
+                className={`relative flex min-h-11 min-w-11 items-center justify-center p-2 transition-colors rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]
                            ${showBell ? 'text-[#FF6B00]' : 'text-[#9A9A9A] hover:text-[#F0F0F0]'}`}
                 aria-label="الإشعارات"
               >
                 <RiNotification3Fill size={19} />
                 {unreadCount > 0 && (
-                  <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 bg-[#FF6B00] text-white text-[10px] font-black rounded-full flex items-center justify-center px-0.5">
+                  <span className="absolute 1.5 top-1.5 right-1.5 min-w-[16px] h-4 bg-[#FF6B00] text-white text-[10px] font-black rounded-full flex items-center justify-center px-0.5 shadow-sm">
                     {unreadCount > 9 ? '9+' : unreadCount}
                   </span>
                 )}
@@ -398,8 +401,8 @@ export function Navbar() {
               <Link
                 prefetch={false}
                 href="/profile"
-                className="flex items-center gap-2 py-1.5 px-3 bg-white/[0.05] rounded-full
-                           border border-white/[0.07] hover:border-[#FF6B00]/40 transition-all"
+                className="flex min-h-11 items-center gap-2 py-1.5 px-3 bg-white/[0.05] rounded-full
+                           border border-white/[0.07] hover:border-[#FF6B00]/40 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] transition-all"
               >
                 <span className="text-xs font-bold hidden sm:block text-[#9A9A9A]">حسابي</span>
                 <div className="w-7 h-7 bg-[#FF6B00] rounded-full flex items-center justify-center">
@@ -411,7 +414,7 @@ export function Navbar() {
                 prefetch={false}
                 href="/login"
                 aria-label="تسجيل الدخول"
-                className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white"
+                className="flex min-h-11 min-w-11 items-center justify-center rounded-lg p-2 text-[#C4CDDA] transition-colors hover:bg-[#152238] hover:text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
               >
                 <RiUser3Fill size={19} />
               </Link>
@@ -420,14 +423,16 @@ export function Navbar() {
             <Link
               href="https://vendor.zagoffers.online"
               target="_blank"
-              className="hidden h-10 items-center gap-2 rounded-xl border border-[#34445B] px-3 text-xs font-bold text-white hover:border-[#FF8A32] sm:flex"
+              rel="noopener noreferrer"
+              className="hidden h-10 items-center gap-2 rounded-xl border border-[#34445B] px-3.5 text-xs font-bold text-white hover:border-[#FF8A32] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] sm:flex transition-colors"
             >
               <RiHome4Line size={16} /> أضف متجرك
             </Link>
 
             {/* Hamburger */}
             <button
-              className="flex min-h-11 min-w-11 items-center justify-center p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5 lg:hidden"
+              type="button"
+              className="flex min-h-11 min-w-11 items-center justify-center p-2 text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] lg:hidden"
               onClick={() => setIsMobileMenuOpen(v => !v)}
               aria-label={isMobileMenuOpen ? 'إغلاق قائمة التنقل' : 'فتح قائمة التنقل'}
               aria-expanded={isMobileMenuOpen}

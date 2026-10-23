@@ -11,6 +11,22 @@
 
 ## 2. Completed Milestones
 
+### L. Customer Web Client UI/UX Remediation & Vercel Design Compliance (`zag-offers-client`)
+- **Dark Mode First Synchronization (`src/app/layout.tsx`)**:
+  - Restored `'dark'` fallback in inline theme hydration script.
+- **OfferCard Remediation (`src/components/offer-card.tsx`)**:
+  - Dynamic badge wrapping eliminating badge collisions.
+  - 44x44px accessible touch target for favorite action with visible focus ring.
+  - Keyboard activation support (`Enter`/`Space`) and forward micro-interaction hover chevron.
+- **Navigation & Search Polish (`src/components/layout-parts.tsx`, `src/app/page.tsx`, `src/app/offers/page.tsx`)**:
+  - High-contrast focus indicators across all interactive elements (`focus-visible:ring-2 focus-visible:ring-[#FF6500]`).
+  - Search clear triggers expanded to accessible hit boundaries.
+  - Interactive empty search results card with one-click filter reset.
+- **Typography & Contract Assurance (`src/app/globals.css`)**:
+  - Monospace LTR font enforced on coupon codes across wallet cards and redemption modal.
+- **Verification**:
+  - TypeScript 0 errors, ESLint 0 errors, Vitest 23/23 passed, Next.js production build 20/20 routes passed.
+
 ### K. Customer Flutter App Comprehensive Revision & Semantic RTL Invariance (`zag_offers_app`)
 - **Memory & Baseline Audit**:
   - Reconciled code against `.agent-memory/` and `AGENTS.md` rules.

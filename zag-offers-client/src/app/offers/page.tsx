@@ -51,7 +51,7 @@ function FilterDropdown({
 
   return (
     <div ref={dropdownRef} className={`offers-filter-dropdown ${open ? 'is-open' : ''}`}>
-      <button type="button" className="offers-filter-trigger" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
+      <button type="button" className="offers-filter-trigger focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]" onClick={() => setOpen((current) => !current)} aria-expanded={open}>
         <span className="offers-filter-trigger-icon">{icon}</span>
         <span className="offers-filter-trigger-copy"><small>{label}</small><strong>{selected.label}</strong></span>
         <ChevronDown className="offers-filter-chevron" size={15} />
@@ -59,7 +59,7 @@ function FilterDropdown({
       {open && (
         <div className="offers-filter-menu" role="listbox">
           {options.map((option) => (
-            <button type="button" role="option" aria-selected={option.value === value} key={option.value} className={option.value === value ? 'is-selected' : ''} onClick={() => { onChange(option.value); setOpen(false); }}>
+            <button type="button" role="option" aria-selected={option.value === value} key={option.value} className={`focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] ${option.value === value ? 'is-selected' : ''}`} onClick={() => { onChange(option.value); setOpen(false); }}>
               <span>{option.label}</span>
               {option.value === value && <Check size={14} />}
             </button>
@@ -297,11 +297,13 @@ function OffersPageContent() {
           />
           {search && (
             <button
+              type="button"
               onClick={() => setSearch('')}
-              className="absolute left-3 top-1/2 -translate-y-1/2 text-[#9A9A9A] hover:text-white transition-colors p-0.5 rounded-full hover:bg-white/10"
+              className="absolute left-2.5 top-1/2 -translate-y-1/2 min-w-[36px] min-h-[36px] flex items-center justify-center text-[#9A9A9A] hover:text-white transition-colors rounded-lg hover:bg-white/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
               title="مسح البحث"
+              aria-label="مسح البحث"
             >
-              <X size={15} />
+              <X size={16} />
             </button>
           )}
         </div>

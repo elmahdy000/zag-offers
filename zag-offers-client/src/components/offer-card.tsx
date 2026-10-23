@@ -139,8 +139,16 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
   return (
     <div
+      role="link"
+      tabIndex={0}
       onClick={() => router.push(`/offers/${offer.id}`)}
-      className="offer-card global-card group relative bg-white dark:bg-[#101A2B] border border-gray-200/90 dark:border-[#25344A] rounded-[22px] overflow-hidden hover:-translate-y-1.5 hover:border-[#FF6500]/60 hover:shadow-[0_20px_45px_rgba(255,101,0,0.14)] dark:hover:shadow-[0_20px_45px_rgba(0,0,0,0.4)] transition-all duration-300 flex flex-col h-full cursor-pointer"
+      onKeyDown={(e) => {
+        if (e.key === 'Enter' || e.key === ' ') {
+          e.preventDefault();
+          router.push(`/offers/${offer.id}`);
+        }
+      }}
+      className="offer-card global-card group relative bg-white dark:bg-[#101A2B] border border-gray-200/90 dark:border-[#25344A] rounded-[22px] overflow-hidden hover:-translate-y-1.5 hover:border-[#FF6500]/60 hover:shadow-[0_20px_45px_rgba(255,101,0,0.14)] dark:hover:shadow-[0_20px_45px_rgba(0,0,0,0.4)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] focus-visible:border-transparent transition-all duration-300 flex flex-col h-full cursor-pointer select-none"
     >
       {/* ─── Media Header ─────────────────────────────────── */}
       <div className="offer-card-media relative h-[210px] bg-gray-100 dark:bg-[#18253A] overflow-hidden flex-shrink-0">
@@ -173,30 +181,31 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         {/* Subtle top image gradient for badge legibility */}
         <div className="absolute inset-0 bg-gradient-to-b from-black/35 via-transparent to-black/25 pointer-events-none" />
 
-        {/* Favorite Button (Clean Glass Circle at Top Left) */}
+        {/* Favorite Button (Clean Glass Circle at Top Left - 44px Touch Target) */}
         <button
+          type="button"
           onClick={toggleFav}
           aria-label={isFav ? 'إزالة من المفضلة' : 'إضافة إلى المفضلة'}
-          className={`absolute top-3 left-3 z-20 w-9 h-9 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-200 shadow-sm
+          className={`absolute top-3 left-3 z-20 min-w-[44px] min-h-[44px] w-11 h-11 rounded-full backdrop-blur-md border flex items-center justify-center transition-all duration-200 shadow-sm focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]
             ${isFav
               ? 'bg-white text-red-500 border-red-200 shadow-md shadow-red-500/20 scale-105'
               : 'bg-white/90 dark:bg-[#071426]/75 border-black/5 dark:border-white/15 text-gray-600 dark:text-white/80 hover:text-red-500 hover:scale-110 active:scale-95'}`}
         >
-          <RiHeartFill size={17} className={isFav ? 'text-red-500' : 'currentColor'} />
+          <RiHeartFill size={18} className={isFav ? 'text-red-500' : 'currentColor'} />
         </button>
 
-        {/* Discount Badge (Top Right) */}
-        <div className="absolute top-3 right-3 z-10 px-3.5 py-1 bg-gradient-to-r from-[#FF4500] to-[#FF6500] text-white text-xs font-black rounded-full shadow-[0_4px_12px_rgba(255,69,0,0.38)] tracking-tight">
-          {discountDisplay}
-        </div>
-
-        {/* Featured Badge */}
-        {offer.isFeatured && (
-          <div className="absolute top-3 right-[76px] z-10 px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black rounded-full shadow-sm flex items-center gap-1 backdrop-blur-sm">
-            <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
-            مميز
+        {/* Badges Container (Top Right - Dynamic Flex Wrap) */}
+        <div className="absolute top-3 right-3 z-10 flex flex-wrap items-center gap-1.5 max-w-[calc(100%-60px)]">
+          <div className="px-3 py-1 bg-gradient-to-r from-[#FF4500] to-[#FF6500] text-white text-xs font-black rounded-full shadow-[0_4px_12px_rgba(255,69,0,0.38)] tracking-tight whitespace-nowrap">
+            {discountDisplay}
           </div>
-        )}
+          {offer.isFeatured && (
+            <div className="px-2.5 py-1 bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[10px] font-black rounded-full shadow-sm flex items-center gap-1 backdrop-blur-sm whitespace-nowrap">
+              <span className="w-1.5 h-1.5 rounded-full bg-white animate-pulse" />
+              مميز
+            </div>
+          )}
+        </div>
 
         {/* Store Logo (Bottom Right) with colorful fallback avatar */}
         <div className="offer-store-logo absolute bottom-3 right-3 z-20 w-11 h-11 rounded-2xl border-2 border-white dark:border-[#101A2B] bg-white dark:bg-[#101A2B] overflow-hidden shadow-md flex items-center justify-center flex-shrink-0 transition-transform group-hover:scale-105">
@@ -282,7 +291,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         {/* CTA Button */}
         <div className="offer-card-btn mt-1">
           <span>عرض التفاصيل</span>
-          <RiArrowLeftLine size={16} />
+          <RiArrowLeftLine size={16} className="transition-transform duration-200 group-hover:-translate-x-1" />
         </div>
       </div>
     </div>

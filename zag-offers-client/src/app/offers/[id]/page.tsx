@@ -693,18 +693,21 @@ export default function OfferDetailsPage() {
                     </span>
                     <h1>{offer.title}</h1>
                   </div>
-                  <div className="offer-actions">
+                  <div className="offer-actions flex items-center gap-2">
                     <button 
+                      type="button"
                       aria-label="مشاركة العرض" 
                       onClick={handleShare}
                       title="مشاركة العرض"
+                      className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl p-2.5 text-slate-500 dark:text-slate-300 hover:text-[#FF6500] hover:bg-[#FF6500]/10 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] transition-all"
                     >
                       <RiShareLine size={20} />
                     </button>
                     <button 
+                      type="button"
                       aria-label={isFav ? "إزالة من المفضلة" : "إضافة للمفضلة"} 
                       onClick={toggleFav} 
-                      className={isFav ? 'is-favorite' : ''}
+                      className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl p-2.5 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] transition-all ${isFav ? 'is-favorite text-red-500 bg-red-500/10' : 'text-slate-500 dark:text-slate-300 hover:text-red-500 hover:bg-red-500/10'}`}
                       title={isFav ? "في المفضلة" : "إضافة للمفضلة"}
                     >
                       <RiHeartFill size={20} />

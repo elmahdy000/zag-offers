@@ -622,12 +622,24 @@ function HomePageContent() {
           </div>
         ) : filteredOffers.length === 0 ? (
           <motion.div 
-            initial={{ opacity: 0 }}
-            animate={{ opacity: 1 }}
-            className="home-offers-empty rounded-2xl border border-[#25344A] bg-[#101A2B] py-12 text-center"
+            initial={{ opacity: 0, scale: 0.98 }}
+            animate={{ opacity: 1, scale: 1 }}
+            className="home-offers-empty rounded-2xl border border-[#25344A] bg-[#101A2B] py-14 px-6 text-center max-w-lg mx-auto my-8 shadow-lg"
           >
-            <h3 className="text-lg font-black text-white">للأسف مفيش عروض هنا حالياً</h3>
-            <button onClick={() => { setActiveCat(''); setSearch(''); }} className="mt-4 text-[#FF6B00] font-black text-sm hover:underline">عرض كل العروض</button>
+            <div className="w-16 h-16 mx-auto mb-4 rounded-2xl bg-[#FF6500]/10 border border-[#FF6500]/20 flex items-center justify-center text-[#FF6500]">
+              <RiSearch2Line size={32} />
+            </div>
+            <h3 className="text-lg font-black text-white">لا توجد عروض مطابقة لبحثك حالياً</h3>
+            <p className="text-sm text-[#8FA0B8] mt-2 mb-6 leading-relaxed">
+              جرّب تغيير كلمات البحث أو استعراض كل الأقسام والمناطق المتاحة في الزقازيق.
+            </p>
+            <button 
+              type="button"
+              onClick={() => { setActiveCat(''); setSearch(''); setActiveArea(''); }} 
+              className="inline-flex items-center justify-center min-h-[44px] px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6500] to-[#FF8A32] text-white text-sm font-bold shadow-[0_4px_14px_rgba(255,101,0,0.3)] hover:shadow-[0_6px_20px_rgba(255,101,0,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] active:scale-95 transition-all"
+            >
+              إعادة ضبط الفلاتر وعرض الكل
+            </button>
           </motion.div>
         ) : (
           <div className="home-offers-grid">

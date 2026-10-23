@@ -1,5 +1,28 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-23] - Next.js Customer Web Client UI/UX Remediation (Vercel Rules & WCAG AA)
+### Fixed / Changed
+- **Theme Default Synchronization (`src/app/layout.tsx`)**:
+  - Fixed theme initialization fallback script from `'light'` to `'dark'`, restoring Dark Mode First architectural compliance.
+- **OfferCard Dynamic Badge Layout & Accessible Touch Targets (`src/components/offer-card.tsx`)**:
+  - Replaced hardcoded `right-[76px]` on `isFeatured` badge with a responsive flex-wrap badge row (`gap-1.5 max-w-[calc(100%-60px)]`) preventing text collisions when discount text is long.
+  - Increased favorite button hit target to accessible 44x44px (`min-w-[44px] min-h-[44px] w-11 h-11`) with WCAG AA focus rings (`focus-visible:ring-2 focus-visible:ring-[#FF6500]`).
+  - Added keyboard interaction (`role="link"`, `tabIndex={0}`, `onKeyDown` Enter/Space) and directional hover translation (`group-hover:-translate-x-1`) on forward CTA chevron.
+- **Navbar & Navigation Accessibility (`src/components/layout-parts.tsx`)**:
+  - Replaced `no-focus-ring` with explicit high-contrast focus ring (`focus:ring-2 focus:ring-[#FF6500]/50`) on search inputs and navigation controls.
+  - Added 44px touch targets and `focus-visible:ring-2` to notification action buttons, theme toggler, user profile pills, and mobile drawer toggle.
+  - Added `rel="noopener noreferrer"` to external vendor dashboard links.
+- **Coupon Code Typography & LTR Mono Invariance (`src/app/globals.css`)**:
+  - Enforced strict monospace LTR font (`ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace`) with high contrast on `.coupon-code-copy strong` and `.coupon-modal-ticket strong`.
+- **Search & Empty State Polish (`src/app/page.tsx`, `src/app/offers/page.tsx`)**:
+  - Redesigned empty search state into a high-contrast dark card with Egyptian Orange icon backdrop and accessible "إعادة ضبط الفلاتر وعرض الكل" CTA button.
+  - Enlarged search clear `X` button to 36px with focus ring and `aria-label`.
+- **Build & Quality Assurance**:
+  - `npx tsc --noEmit` ➜ 0 errors.
+  - `npx eslint src` ➜ 0 errors.
+  - `vitest` unit tests ➜ 23/23 passing.
+  - `next build` ➜ 20/20 static pages compiled successfully in 1450ms.
+
 ## [2026-10-23] - Customer Flutter App Revision, Runtime Crash Hardening & Semantic RTL Directionality
 ### Fixed / Changed
 - **NetworkImageWidget Runtime Crash Prevention (`network_image_widget.dart`)**:
