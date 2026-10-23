@@ -12,7 +12,7 @@ cd /var/www/zag-offers
 
 # سحب آخر التحديثات
 echo "📥 Pulling latest changes from GitHub..."
-git checkout -- zag-offers-admin/package-lock.json 2>/dev/null || true
+git checkout -- */package-lock.json 2>/dev/null || true
 git pull origin main
 
 # تحديث و بناء Backend
