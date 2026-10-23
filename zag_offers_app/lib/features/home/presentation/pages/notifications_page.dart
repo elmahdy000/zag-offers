@@ -7,6 +7,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../notifications/presentation/bloc/notification_bloc.dart';
 import '../../../../core/services/notification_service.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
+import '../../../../core/utils/navigation_service.dart';
 
 class NotificationsPage extends StatelessWidget {
   const NotificationsPage({super.key});
@@ -29,8 +30,8 @@ class NotificationsPage extends StatelessWidget {
           appBar: AppBar(
             leading: Navigator.canPop(context)
                 ? IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
+                    icon: Icon(
+                      NavigationService.getBackIcon(context),
                       size: 20,
                     ),
                     onPressed: () => Navigator.pop(context),
@@ -186,8 +187,8 @@ class NotificationsPage extends StatelessWidget {
                             child: Row(
                               mainAxisSize: MainAxisSize.min,
                               children: [
-                                const Icon(
-                                  Icons.arrow_back_rounded,
+                                Icon(
+                                  NavigationService.getBackIcon(context),
                                   color: AppColors.primary,
                                   size: 18,
                                 ),

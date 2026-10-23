@@ -6,6 +6,11 @@ import { API_URL } from '@/lib/constants';
 // Mock fetch
 global.fetch = vi.fn();
 
+const fetchMock = vi.mocked(fetch);
+/** Minimal `Response` stub — only `ok` and `json()` are consumed by the hook. */
+const jsonResponse = (body: unknown): Response =>
+  ({ ok: true, json: async () => body }) as unknown as Response;
+
 // Mock localStorage
 const localStorageMock = {
   getItem: vi.fn(),
@@ -16,9 +21,22 @@ Object.defineProperty(window, 'localStorage', {
   value: localStorageMock,
 });
 
-// Custom hook for favorites
+/** Minimal shape used by this local hook fixture. */
+interface FavoriteItem {
+  id: string;
+  title?: string;
+  store?: { name: string };
+}
+
+/** API favourite envelope returned by `/favorites`. */
+interface ApiFavorite {
+  offerId: string;
+  offer: FavoriteItem;
+}
+
+// Custom hook for favorites (inline fixture mirroring the production hook)
 const useFavorites = () => {
-  const [favorites, setFavorites] = React.useState<any[]>([]);
+  const [favorites, setFavorites] = React.useState<FavoriteItem[]>([]);
   const [isLoading, setIsLoading] = React.useState(true);
 
   const fetchFavorites = async () => {
@@ -36,14 +54,14 @@ const useFavorites = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
-        const data = await res.json();
-        const offers = data.map((fav: any) => ({
+        const data: ApiFavorite[] = await res.json();
+        const offers = data.map((fav) => ({
           ...fav.offer,
           store: fav.offer.store
         }));
         setFavorites(offers);
       }
-    } catch (e) {
+    } catch {
       // Fallback to localStorage
       const saved = localStorage.getItem('favorites');
       if (saved) setFavorites(JSON.parse(saved));
@@ -69,10 +87,10 @@ const useFavorites = () => {
     }
     
     // Fallback to localStorage
-    const favs = JSON.parse(localStorage.getItem('favorites') || '[]');
-    const exists = favs.some((f: any) => f.id === offerId);
+    const favs: FavoriteItem[] = JSON.parse(localStorage.getItem('favorites') || '[]');
+    const exists = favs.some((f) => f.id === offerId);
     const updated = exists 
-      ? favs.filter((f: any) => f.id !== offerId)
+      ? favs.filter((f) => f.id !== offerId)
       : [...favs, { id: offerId }];
     localStorage.setItem('favorites', JSON.stringify(updated));
     setFavorites(updated);
@@ -80,6 +98,7 @@ const useFavorites = () => {
   };
 
   React.useEffect(() => {
+    // eslint-disable-next-line react-hooks/set-state-in-effect -- test fixture mimics the production fetch-on-mount hook
     fetchFavorites();
   }, []);
 
@@ -122,10 +141,7 @@ describe('useFavorites', () => {
       return null;
     });
 
-    (fetch as any).mockResolvedValueOnce({
-      ok: true,
-      json: async () => mockApiFavorites,
-    });
+    fetchMock.mockResolvedValueOnce(jsonResponse(mockApiFavorites));
 
     const { result } = renderHook(() => useFavorites());
     
@@ -151,9 +167,9 @@ describe('useFavorites', () => {
       return null;
     });
 
-    (fetch as any)
-      .mockResolvedValueOnce({ ok: true, json: async () => [] }) // Initial fetch
-      .mockResolvedValueOnce({ ok: true, json: async () => ({ favorited: true }) }); // Toggle
+    fetchMock
+      .mockResolvedValueOnce(jsonResponse([])) // Initial fetch
+      .mockResolvedValueOnce(jsonResponse({ favorited: true })); // Toggle
 
     const { result } = renderHook(() => useFavorites());
     
@@ -218,7 +234,7 @@ describe('useFavorites', () => {
       return null;
     });
 
-    (fetch as any).mockRejectedValueOnce(new Error('Network error'));
+    fetchMock.mockRejectedValueOnce(new Error('Network error'));
 
     const { result } = renderHook(() => useFavorites());
     

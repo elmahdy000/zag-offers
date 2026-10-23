@@ -1,5 +1,22 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-23] - Customer Flutter App Revision, Runtime Crash Hardening & Semantic RTL Directionality
+### Fixed / Changed
+- **NetworkImageWidget Runtime Crash Prevention (`network_image_widget.dart`)**:
+  - Guarded `memCacheWidth` and `memCacheHeight` with `.isFinite` to prevent `Unsupported operation: Infinity cannot be cast to int` when callers pass `width: double.infinity`.
+- **Semantic RTL Invariance & Flutter Auto-Mirroring Engine (`navigation_service.dart`, `app_back_button.dart`)**:
+  - Leveraged Flutter's built-in `matchTextDirection: true` on `Icons.arrow_back_ios_new_rounded` (mirrors to `>` in RTL) and `Icons.arrow_forward_ios_rounded` (mirrors to `<` in RTL).
+  - Formulated centralized `NavigationService.getBackIcon` and `NavigationService.getForwardIcon` returning semantic icons that Flutter automatically mirrors correctly without developer guesswork.
+  - Implemented `AppBackButton` (`app_back_button.dart`) with `HapticFeedback.lightImpact()` and `Navigator.maybePop(context)`.
+- **Comprehensive Screen & Component Revision (17 Screens Audited)**:
+  - Standardized leading back buttons to `AppBackButton` or `NavigationService.getBackIcon(context)` across `SearchPage`, `CategoriesPage`, `AllOffersPage`, `StoreDetailPage`, `OfferDetailPage`, `FavoritesPage`, `NotificationsPage`, `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `InviteFriendsPage`, `ZagRewardsPage`, `MapPage`, and `MyCouponsPage`.
+  - Harmonized forward and disclosure chevrons with `NavigationService.getForwardIcon(context)` in `OfferCard` ("احصل عليه"), `HomePage` ("عرض الكل"), `CategoriesPage` ("تصفح العروض"), `AdsSlider` ("احصل على الكوبون"), `OnboardingPage` ("التالي"), and `ProfilePage` list items.
+- **Directionality Test Suite (`test/navigation_directionality_test.dart`)**:
+  - Added 7 automated tests verifying `matchTextDirection: true`, horizontal `scaleX == -1.0` auto-mirroring in RTL, and proper behavior of `AppBackButton` across RTL and LTR.
+- **Analyzer & Test Health**:
+  - `flutter analyze lib/ test/` ➜ 0 issues found.
+  - `flutter test` ➜ 34/34 passing.
+
 ## [2026-10-22] - Vendor Flutter App UI/UX & Services Overhaul, Layout Polish & Directional Integrity
 ### Fixed / Changed
 - **MainLayout & Navigation Bar Polish (`main_layout.dart`)**:

@@ -86,8 +86,8 @@ class _FavoritesPageState extends State<FavoritesPage> {
       appBar: AppBar(
         leading: Navigator.canPop(context)
             ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
+                icon: Icon(
+                  NavigationService.getBackIcon(context),
                   size: 20,
                 ),
                 onPressed: () => Navigator.pop(context),

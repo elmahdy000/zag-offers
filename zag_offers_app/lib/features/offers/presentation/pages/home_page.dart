@@ -6,6 +6,7 @@ import 'package:google_fonts/google_fonts.dart';
 
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/features/home/presentation/pages/notifications_page.dart';
@@ -868,8 +869,8 @@ Widget _buildOffersSectionWidget(
             ),
             TextButton.icon(
               onPressed: () => MainScreen.of(context)?.setSelectedIndex(1),
-              label: const Icon(
-                Icons.arrow_forward_ios_rounded,
+              label: Icon(
+                NavigationService.getForwardIcon(context),
                 size: 13,
               ),
               icon: Text(

@@ -427,7 +427,7 @@ function HomePageContent() {
             <label htmlFor="hero-area" className="sr-only">اختر منطقتك</label>
             <div className="home-hero-location flex min-h-11 items-center gap-2 rounded-xl border border-[#41516A] bg-[#071426] px-3">
               <RiMapPin2Fill aria-hidden="true" className="text-[#FF8A32]" />
-              <select id="hero-area" value={activeArea} onChange={(event) => setActiveArea(event.target.value)} className="min-w-[150px] bg-transparent text-sm font-medium text-white outline-none">
+              <select id="hero-area" aria-label="اختر المنطقة" value={activeArea} onChange={(event) => setActiveArea(event.target.value)} className="min-w-[150px] bg-transparent text-sm font-medium text-white outline-none">
                 {ZAGAZIG_AREAS.map((area) => <option key={area} value={area === 'الكل' ? '' : area}>{area === 'الكل' ? 'كل المناطق' : area}</option>)}
               </select>
             </div>
@@ -524,7 +524,7 @@ function HomePageContent() {
                       className="featured-billboard-image object-cover transition-transform duration-700 group-hover:scale-[1.015]"
                       sizes="(max-width: 640px) calc(100vw - 32px), (max-width: 1200px) 75vw, 1100px"
                       quality={86}
-                      priority={safeActiveBanner === 0}
+                      preload={safeActiveBanner === 0}
                     />
                   ) : <div className="featured-billboard-image-fallback"><RiSparkling2Fill /></div>}
                   <span className="ad-carousel-shade" aria-hidden="true" />

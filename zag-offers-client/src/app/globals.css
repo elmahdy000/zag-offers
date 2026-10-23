@@ -208,7 +208,10 @@ html[data-theme="light"] { color-scheme: light; }
 .ad-carousel-controls button { display:grid; width:36px; height:36px; place-items:center; border:1px solid #2a3b52; border-radius:10px; background:#101d30; color:#dce4ef; font-size:22px; transition:.2s; }
 .ad-carousel-controls button:hover { border-color:#ff8a32; color:#ff8a32; transform:translateY(-1px); }
 .ad-carousel-stage { display:grid; grid-template-columns:minmax(0,3.15fr) minmax(230px,1fr); gap:12px; min-height:272px; }
-.ad-carousel-main { position:relative; min-width:0; overflow:hidden; border:1px solid #2a3b52; border-radius:13px 30px 13px 30px; background:#101d30; box-shadow:0 18px 42px rgba(0,0,0,.2); touch-action:pan-y; cursor:grab; }
+/* `display:block` is load-bearing: between 768–1023px the stage switches to
+   `display:block`, and an inline <a> whose children are all absolutely
+   positioned collapses to ~2×32px — the billboard vanished on tablets. */
+.ad-carousel-main { display:block; position:relative; min-width:0; overflow:hidden; border:1px solid #2a3b52; border-radius:13px 30px 13px 30px; background:#101d30; box-shadow:0 18px 42px rgba(0,0,0,.2); touch-action:pan-y; cursor:grab; }
 .ad-carousel-main:active { cursor:grabbing; }
 .ad-carousel-shade { position:absolute; inset:0; background:rgba(5,14,28,.22); pointer-events:none; }
 .ad-carousel-copy { position:absolute; z-index:2; right:28px; bottom:25px; left:92px; color:#fff; }
@@ -227,8 +230,13 @@ html[data-theme="light"] { color-scheme: light; }
 .ad-carousel-preview strong { position:absolute; right:18px; bottom:21px; left:48px; z-index:2; font-size:16px; line-height:1.5; font-weight:900; }
 .ad-carousel-preview-arrow { position:absolute; z-index:2; bottom:22px; left:15px; color:#ff8a32; font-size:25px; }
 .ad-carousel-pagination { display:flex; justify-content:center; gap:7px; margin-top:12px; direction:rtl; }
-.ad-carousel-pagination button { width:30px; height:8px; overflow:hidden; border-radius:999px; background:#25354b; }
-.ad-carousel-pagination button span { display:block; width:0; height:100%; border-radius:inherit; background:#ff6500; }
+/* Real 44px touch targets: the button owns the full tap area and paints an
+   8px track in the middle, so the dots stay visually thin but stay usable
+   on thumbs (WCAG 2.5.5). */
+.ad-carousel-pagination { display:flex; align-items:center; justify-content:center; gap:7px; margin-top:0; direction:rtl; }
+.ad-carousel-pagination button { position:relative; width:30px; height:44px; padding:0; border:0; background:transparent; touch-action:manipulation; }
+.ad-carousel-pagination button::before { content:''; position:absolute; inset-inline:0; top:50%; height:8px; transform:translateY(-50%); border-radius:999px; background:#25354b; }
+.ad-carousel-pagination button span { position:absolute; inset-inline-start:0; top:50%; width:0; height:8px; transform:translateY(-50%); border-radius:999px; background:#ff6500; }
 .ad-carousel-pagination button.is-active { width:64px; }
 .ad-carousel-pagination button.is-active span { animation:ad-carousel-progress 5s linear forwards; }
 .ad-carousel[data-paused="true"] .ad-carousel-pagination button.is-active span { animation-play-state:paused; }
@@ -706,21 +714,28 @@ html[data-theme="light"] .auth-benefit, html[data-theme="light"] .auth-consent {
 .coupon-ticket-card::before { right:-15px; }
 .coupon-ticket-card::after { left:-15px; }
 .coupon-ticket-card.is-redeemed { opacity:.68; filter:saturate(.45); }
+.coupon-ticket-card.is-expired { opacity:.6; filter:saturate(.3); }
 .coupon-ticket-top { display:flex; align-items:center; justify-content:space-between; padding:16px 18px 0; }
 .coupon-ticket-top > button { display:grid; place-items:center; width:34px; height:34px; border:1px solid #2c3b51; border-radius:10px; color:#8795aa; }
 .coupon-status { display:flex; align-items:center; gap:6px; padding:6px 9px; border-radius:9px; background:rgba(16,185,129,.09); color:#42d5a0; font-size:9px; font-weight:900; }
 .is-redeemed .coupon-status { background:rgba(139,152,170,.1); color:#9ba7b8; }
+.coupon-status.is-expired { background:rgba(244,63,94,.10); color:#fb7185; }
 .coupon-ticket-offer { display:grid; grid-template-columns:78px 1fr; align-items:center; gap:15px; min-height:132px; padding:14px 20px 18px; }
 .coupon-discount { display:flex; height:76px; flex-direction:column; align-items:center; justify-content:center; border-radius:18px; background:#ff6500; color:#fff; }
 .coupon-discount small { font-size:9px; font-weight:900; }
 .coupon-discount strong { max-width:100%; padding-inline:4px; overflow-wrap:anywhere; font-size:20px; line-height:1.15; font-weight:900; text-align:center; }
 .coupon-ticket-offer p { margin-bottom:5px; color:#ff8a32; font-size:10px; font-weight:900; }
 .coupon-ticket-offer h3 { color:#fff; font-size:17px; line-height:1.55; font-weight:950; }
-.coupon-ticket-code-row { position:relative; display:grid; grid-template-columns:72px 1fr auto; align-items:center; gap:12px; padding:18px 20px; border-top:1px dashed #3a475b; background:#0d1829; }
+/* The QR cell only exists for active coupons, so the column count must follow
+   it — otherwise the fields shift into the wrong cells. */
+.coupon-ticket-code-row { position:relative; display:grid; grid-template-columns:minmax(0,1fr) auto; align-items:center; gap:12px; padding:18px 20px; border-top:1px dashed #3a475b; background:#0d1829; }
+.coupon-ticket-code-row.has-qr { grid-template-columns:auto minmax(0,1fr) auto; }
 .coupon-mini-qr { display:grid; place-items:center; width:64px; height:64px; border-radius:12px; background:#fff; }
 .coupon-code-copy { min-width:0; display:flex; flex-direction:column; }
 .coupon-code-copy small { color:#718198; font-size:8px; font-weight:900; }
-.coupon-code-copy strong { overflow:hidden; color:#fff; font-size:16px; font-weight:950; letter-spacing:1.5px; text-overflow:ellipsis; }
+/* Codes are strictly LTR. Never let the column shrink below the code width:
+   when the QR is hidden (used/expired) the code must stay fully readable. */
+.coupon-code-copy strong { overflow:hidden; color:#fff; font-size:16px; font-weight:950; letter-spacing:1.5px; text-overflow:ellipsis; white-space:nowrap; direction:ltr; text-align:right; }
 .coupon-copy-button { display:flex; align-items:center; gap:5px; padding:9px 10px; border:1px solid #35445a; border-radius:10px; color:#aab5c6; font-size:9px; font-weight:900; }
 .coupon-ticket-footer { display:flex; align-items:center; justify-content:space-between; padding:10px 20px; color:#6f7d90; font-size:8px; font-weight:800; }
 .coupon-ticket-footer span { display:flex; align-items:center; gap:5px; }
@@ -785,7 +800,8 @@ html[data-theme="light"] .coupon-ticket-card::before,html[data-theme="light"] .c
   .coupon-ticket-offer h3 { font-size:14px; line-height:1.5; font-weight:850; }
   .coupon-discount small { font-size:8px; line-height:1.2; }
   .coupon-discount strong { font-size:17px; line-height:1.15; }
-  .coupon-ticket-code-row { grid-template-columns:58px minmax(0,1fr) auto; gap:8px; padding:14px 15px; }
+  .coupon-ticket-code-row { grid-template-columns:minmax(0,1fr) auto; gap:8px; padding:14px 15px; }
+  .coupon-ticket-code-row.has-qr { grid-template-columns:auto minmax(0,1fr) auto; }
   .coupon-mini-qr { width:54px; height:54px; }
   .coupon-mini-qr svg { width:46px; height:46px; }
   .coupon-code-copy strong { font-size:13px; letter-spacing:.6px; }
@@ -864,7 +880,8 @@ html[data-theme="light"] .mobile-dock-inner { background: #fff; border-color: #d
   .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:13px; line-height:1.45; font-weight:800; }
   .coupon-discount small { font-size:7px; }
   .coupon-discount strong { font-size:15px; line-height:1.12; }
-  .coupon-ticket-code-row { grid-template-columns:52px minmax(0,1fr) auto; gap:6px; padding:12px; }
+  .coupon-ticket-code-row { grid-template-columns:minmax(0,1fr) auto; gap:6px; padding:12px; }
+  .coupon-ticket-code-row.has-qr { grid-template-columns:auto minmax(0,1fr) auto; }
   .coupon-mini-qr { width:50px; height:50px; }
   .coupon-mini-qr svg { width:43px; height:43px; }
   .coupon-code-copy { min-width:0; }
@@ -1601,7 +1618,9 @@ html[data-theme="light"] .featured-billboard-description { color:#64748b; text-s
   .billboard-control-previous { right:8px; }
   .billboard-control-next { left:8px; }
   .homepage .ad-carousel-pagination { margin-top:6px; }
-  .homepage .ad-carousel-pagination button { width:20px; height:6px; }
+  .homepage .ad-carousel-pagination button { width:20px; height:44px; }
+  .homepage .ad-carousel-pagination button::before { height:6px; }
+  .homepage .ad-carousel-pagination button span { height:6px; }
   .homepage .ad-carousel-pagination button.is-active { width:38px; }
   .home-offers-grid { grid-template-columns:1fr; gap:18px; }
   .home-horizontal-offer { width:82vw; min-width:82vw; max-width:340px; }
@@ -1676,7 +1695,8 @@ html[data-theme="light"] .surface-card > span { background:#fff3e9 !important; }
   .coupon-ticket-offer h3 { overflow-wrap:anywhere; font-size:13px; line-height:1.45; font-weight:800; }
   .coupon-discount small { font-size:7px; }
   .coupon-discount strong { font-size:15px; line-height:1.12; }
-  .coupon-ticket-code-row { grid-template-columns:52px minmax(0,1fr) auto; gap:6px; padding:12px; }
+  .coupon-ticket-code-row { grid-template-columns:minmax(0,1fr) auto; gap:6px; padding:12px; }
+  .coupon-ticket-code-row.has-qr { grid-template-columns:auto minmax(0,1fr) auto; }
   .coupon-mini-qr { width:50px; height:50px; }
   .coupon-mini-qr svg { width:43px; height:43px; }
   .coupon-code-copy strong { display:block; overflow:hidden; font-size:11px; letter-spacing:0; text-overflow:ellipsis; white-space:nowrap; }

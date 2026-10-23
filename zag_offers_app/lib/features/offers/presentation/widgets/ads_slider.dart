@@ -22,6 +22,7 @@ import '../pages/offer_loading_page.dart';
 import '../pages/store_detail_page.dart';
 import '../pages/store_loading_page.dart';
 import '../utils/offer_filter_utils.dart';
+import '../../../../core/utils/navigation_service.dart';
 
 // Zero Gradient Invariant Constants
 const Color _primaryOrange = Color(0xFFFF5A0A);
@@ -587,8 +588,8 @@ class _AdsSliderState extends State<AdsSlider> {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const Icon(
-                      Icons.arrow_back_ios_new_rounded,
+                    Icon(
+                      NavigationService.getForwardIcon(context),
                       size: 9.5,
                       color: Colors.white,
                     ),

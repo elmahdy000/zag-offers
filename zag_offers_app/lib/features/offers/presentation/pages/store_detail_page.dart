@@ -10,6 +10,7 @@ import '../../../../core/services/socket_service.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
 import '../../../../core/widgets/network_image_widget.dart';
+import '../../../../core/utils/navigation_service.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
 import '../../../../injection_container.dart';
 import '../../../reviews/presentation/bloc/reviews_bloc.dart';
@@ -240,8 +241,8 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
           ),
           child: IconButton(
             padding: EdgeInsets.zero,
-            icon: const Icon(
-              Icons.arrow_back_ios_new_rounded,
+            icon: Icon(
+              NavigationService.getBackIcon(context),
               size: 16,
               color: Colors.white,
             ),
@@ -1145,7 +1146,7 @@ class _StoreDetailPageState extends State<StoreDetailPage> {
                     ),
                   ),
                   child: Icon(
-                    Icons.arrow_forward_ios_rounded,
+                    NavigationService.getForwardIcon(context),
                     size: 11,
                     color: isDark ? Colors.grey.shade400 : _secondaryGray,
                   ),

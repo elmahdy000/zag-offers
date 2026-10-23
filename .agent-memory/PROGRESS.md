@@ -4,12 +4,42 @@
 - **Primary Focus**: Vendor Mobile Application (`zag_offers_vendor_app`) & Customer Web/Mobile Ecosystem.
 - **Git Branch**: `main` (synchronized with `origin/main`).
 - **Latest Commit**: `dd5ab1d` (`fix(vendor): overhaul layout, rtl directionality, error handling & coupon typography`).
-- **Analyzer Health**: `flutter analyze lib/` ➜ 0 issues found across all packages (`zag_offers_app`, `zag_offers_vendor_app`).
-- **Test Health**: 100% tests passing (6/6 in vendor app, 27/27 in customer app).
+- **Analyzer Health**: `flutter analyze lib/ test/` ➜ 0 issues found across all packages (`zag_offers_app`, `zag_offers_vendor_app`).
+- **Test Health**: 100% tests passing (6/6 in vendor app, 34/34 in customer app).
 
 ---
 
 ## 2. Completed Milestones
+
+### K. Customer Flutter App Comprehensive Revision & Semantic RTL Invariance (`zag_offers_app`)
+- **Memory & Baseline Audit**:
+  - Reconciled code against `.agent-memory/` and `AGENTS.md` rules.
+  - Zero analyzer errors across `lib/` and `test/` (0 warnings, 0 hints).
+  - 34/34 unit and widget tests passing.
+- **Critical Runtime Crash Prevention (`network_image_widget.dart`)**:
+  - Identified runtime crash `Unsupported operation: Infinity cannot be cast to int` when callers pass `width: double.infinity`.
+  - Added `.isFinite` guards: `(width != null && width!.isFinite) ? width!.toInt() : null` for both `memCacheWidth` and `memCacheHeight`.
+- **RTL Directional Navigation & Flutter Auto-Mirroring Hardening (`NavigationService`, `AppBackButton`)**:
+  - Discovered that Flutter's `Icons.arrow_back_ios_new_rounded` and `Icons.arrow_forward_ios_rounded` have `matchTextDirection: true`, meaning Flutter automatically applies `scaleX = -1.0` in RTL layouts.
+  - Formulated `NavigationService.getBackIcon` (returns `Icons.arrow_back_ios_new_rounded`) and `NavigationService.getForwardIcon` (returns `Icons.arrow_forward_ios_rounded`). In RTL, Flutter flips `arrow_back` to point `>` (backwards/outwards) and `arrow_forward` to point `<` (forward/inwards).
+  - Created `AppBackButton` (`app_back_button.dart`) providing unified RTL-aware back navigation with `HapticFeedback.lightImpact()` and `Navigator.maybePop(context)`.
+- **Comprehensive Screen & Component Updates (17 files audited)**:
+  - `SearchPage`: Updated back button to use `NavigationService.getBackIcon(context)`.
+  - `CategoriesPage`: Fixed back button and category card exploration chevron.
+  - `AllOffersPage`: Updated back button to use `NavigationService.getBackIcon(context)`.
+  - `StoreDetailPage`: Updated back button and offer list item forward chevron.
+  - `OfferDetailPage`: Updated back button and store card disclosure chevron.
+  - `FavoritesPage`: Updated back button to use `NavigationService.getBackIcon(context)`.
+  - `NotificationsPage`: Restored `AppColors` import and empty state CTA icon.
+  - `LoginPage`, `RegisterPage`, `ForgotPasswordPage`, `InviteFriendsPage`, `ZagRewardsPage`: Unified AppBar leading back buttons to `AppBackButton`.
+  - `MapPage`: Circle back button updated to `NavigationService.getBackIcon(context)`.
+  - `MyCouponsPage`: Coupon ticket forward chevron and history sheet back button updated to `AppBackButton`.
+  - `OfferCard`: "احصل عليه" CTA chevron updated to `NavigationService.getForwardIcon(context)`.
+  - `HomePage`: "عرض الكل" section header chevron updated to `NavigationService.getForwardIcon(context)`.
+  - `AdsSlider`: "احصل على الكوبون" CTA chevron updated to `NavigationService.getForwardIcon(context)`.
+  - `OnboardingPage`: "التالي" slide advancement chevron updated to `NavigationService.getForwardIcon(context)`.
+- **Directionality Regression Suite (`test/navigation_directionality_test.dart`)**:
+  - Implemented 7 automated tests verifying `matchTextDirection: true`, horizontal `scaleX == -1.0` auto-mirroring in RTL, and proper behavior of `AppBackButton` across RTL and LTR.
 
 ### J. Vendor Flutter App Comprehensive UI/UX & Services Overhaul (`zag_offers_vendor_app`)
 - **MainLayout & Navigation Bar Modernization (`main_layout.dart`)**:

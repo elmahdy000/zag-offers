@@ -8,6 +8,7 @@ import 'package:flutter_map/flutter_map.dart';
 import 'package:latlong2/latlong.dart' as ll;
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/core/services/location_service.dart';
 import 'package:zag_offers_app/core/utils/category_utils.dart';
 import '../../domain/entities/store_entity.dart';
@@ -691,7 +692,7 @@ class _MapPageState extends State<MapPage> with TickerProviderStateMixin {
                 ),
                 child: IconButton(
                   icon: Icon(
-                    Icons.arrow_back_ios_new_rounded,
+                    NavigationService.getBackIcon(context),
                     color: isDark ? Colors.white : AppColors.textPrimary,
                     size: 18,
                   ),

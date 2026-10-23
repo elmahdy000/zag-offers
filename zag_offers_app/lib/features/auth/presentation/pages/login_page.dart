@@ -10,6 +10,7 @@ import 'package:zag_offers_app/features/auth/presentation/pages/forgot_password_
 import 'package:zag_offers_app/features/home/presentation/pages/main_screen.dart';
 import 'package:zag_offers_app/core/utils/snackbar_utils.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/core/widgets/app_back_button.dart';
 import 'package:zag_offers_app/injection_container.dart';
 
 class LoginPage extends StatefulWidget {
@@ -75,13 +76,7 @@ class _LoginPageState extends State<LoginPage> {
               ? AppBar(
                   backgroundColor: Colors.transparent,
                   elevation: 0,
-                  leading: IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 20,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  ),
+                  leading: const AppBackButton(),
                 )
               : null,
           body: SafeArea(

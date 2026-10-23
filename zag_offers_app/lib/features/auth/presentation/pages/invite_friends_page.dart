@@ -7,6 +7,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/utils/snackbar_utils.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
+import '../../../../core/widgets/app_back_button.dart';
 
 class InviteFriendsPage extends StatelessWidget {
   final String referralCode;
@@ -60,15 +61,7 @@ class InviteFriendsPage extends StatelessWidget {
 
     return Scaffold(
       appBar: AppBar(
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+        leading: Navigator.canPop(context) ? const AppBackButton() : null,
         title: Text(
           'دعوة الأصدقاء',
           style: GoogleFonts.cairo(fontWeight: FontWeight.w900),

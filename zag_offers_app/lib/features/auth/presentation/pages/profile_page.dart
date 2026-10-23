@@ -6,6 +6,7 @@ import 'package:url_launcher/url_launcher.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/utils/navigation_service.dart';
 import '../../../../core/services/socket_service.dart';
 import '../../../../core/widgets/network_image_widget.dart';
 import '../../../../injection_container.dart';
@@ -703,8 +704,8 @@ class _ProfilePageState extends State<ProfilePage> {
                 ],
               ),
             ),
-            const Icon(
-              Icons.arrow_forward_ios_rounded,
+            Icon(
+              NavigationService.getForwardIcon(context),
               size: 15,
               color: Colors.grey,
             ),
@@ -815,7 +816,7 @@ class _ProfilePageState extends State<ProfilePage> {
                 ),
               ),
               Icon(
-                Icons.arrow_forward_ios_rounded,
+                NavigationService.getForwardIcon(context),
                 size: 14,
                 color: theme.dividerColor.withValues(alpha: 0.4),
               ),

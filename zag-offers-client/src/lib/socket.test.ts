@@ -8,6 +8,9 @@ vi.mock('socket.io-client', () => ({
   io: vi.fn(),
 }));
 
+/** Signature of the event callbacks the hook registers on the socket. */
+type SocketHandler = (...args: unknown[]) => void;
+
 describe('useSocket', () => {
   const mockSocket = {
     on: vi.fn(),
@@ -18,7 +21,7 @@ describe('useSocket', () => {
 
   beforeEach(() => {
     vi.clearAllMocks();
-    (io as any).mockReturnValue(mockSocket);
+    vi.mocked(io).mockReturnValue(mockSocket as unknown as ReturnType<typeof io>);
   });
 
   afterEach(() => {
@@ -59,7 +62,7 @@ describe('useSocket', () => {
   it('should set connection status to connected on connect event', async () => {
     const token = 'test-token';
     
-    mockSocket.on.mockImplementation((event: string, callback: Function) => {
+    mockSocket.on.mockImplementation((event: string, callback: SocketHandler) => {
       if (event === 'connect') {
         callback();
       }
@@ -76,7 +79,7 @@ describe('useSocket', () => {
   it('should set connection status to error on connect_error event', async () => {
     const token = 'test-token';
     
-    mockSocket.on.mockImplementation((event: string, callback: Function) => {
+    mockSocket.on.mockImplementation((event: string, callback: SocketHandler) => {
       if (event === 'connect_error') {
         callback(new Error('Connection failed'));
       }
@@ -93,7 +96,7 @@ describe('useSocket', () => {
   it('should set connection status to disconnected on disconnect event', async () => {
     const token = 'test-token';
     
-    mockSocket.on.mockImplementation((event: string, callback: Function) => {
+    mockSocket.on.mockImplementation((event: string, callback: SocketHandler) => {
       if (event === 'connect') {
         callback();
       }
@@ -113,7 +116,7 @@ describe('useSocket', () => {
   it('should join room on connect', async () => {
     const token = 'test-token';
     
-    mockSocket.on.mockImplementation((event: string, callback: Function) => {
+    mockSocket.on.mockImplementation((event: string, callback: SocketHandler) => {
       if (event === 'connect') {
         callback();
       }

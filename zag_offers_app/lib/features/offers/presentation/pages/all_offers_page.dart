@@ -17,6 +17,7 @@ import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 import 'offer_detail_page.dart';
 import 'package:zag_offers_app/core/constants/app_strings.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
 
 class AllOffersPage extends StatefulWidget {
@@ -163,8 +164,8 @@ class _AllOffersPageState extends State<AllOffersPage> {
                   backgroundColor: AppColors.primary,
                   leading: Navigator.canPop(context)
                       ? IconButton(
-                          icon: const Icon(
-                            Icons.arrow_back_ios_new_rounded,
+                          icon: Icon(
+                            NavigationService.getBackIcon(context),
                             color: Colors.white,
                             size: 20,
                           ),

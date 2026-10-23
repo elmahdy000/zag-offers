@@ -53,7 +53,7 @@ export function sortOffers(offers: Offer[], sort: SortOption): Offer[] {
     const value = (discount: string) => Number.parseInt(discount?.replace(/[^0-9]/g, '') || '0', 10);
     return list.sort((a, b) => value(b.discount) - value(a.discount));
   }
-  return list.sort((a, b) => new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime());
+  return list.sort((a, b) => new Date(b.createdAt ?? 0).getTime() - new Date(a.createdAt ?? 0).getTime());
 }
 
 export function filterStores(stores: Store[], queryValue: string): Store[] {

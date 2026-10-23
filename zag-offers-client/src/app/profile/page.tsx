@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronRight, Shield, MessageCircle, Award, Copy, Check, Sparkles } from 'lucide-react';
+import { User, Smartphone, LogOut, Ticket, Heart, Settings, ChevronRight, Shield, MessageCircle, Award, Copy, Check } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { useRouter } from 'next/navigation';
 import Link from 'next/link';
@@ -41,11 +41,17 @@ export default function ProfilePage() {
     try {
       await fetch(`${API_URL}/auth/logout`, {
         method: 'POST',
-        headers: { Authorization: `Bearer ${token}` }
+        headers: token ? { Authorization: `Bearer ${token}` } : undefined,
+        credentials: 'include',
       });
     } catch { /* silent */ }
     localStorage.removeItem('token');
     localStorage.removeItem('user');
+    // Purge user-scoped caches, otherwise the next person on this device
+    // sees the previous account's coupons and favourites.
+    localStorage.removeItem('cache_favorites_v2');
+    localStorage.removeItem('cache_my_coupons');
+    localStorage.removeItem('favorites');
     router.replace('/login');
   };
 

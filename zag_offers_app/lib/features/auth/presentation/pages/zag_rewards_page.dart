@@ -3,6 +3,7 @@ import 'package:intl/intl.dart' hide TextDirection;
 import '../../../../core/network/api_client.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/skeleton_loader.dart';
+import '../../../../core/widgets/app_back_button.dart';
 import '../../../../injection_container.dart';
 
 class ZagRewardsPage extends StatefulWidget {
@@ -200,15 +201,7 @@ class _ZagRewardsPageState extends State<ZagRewardsPage> with SingleTickerProvid
     return Scaffold(
       backgroundColor: theme.scaffoldBackgroundColor,
       appBar: AppBar(
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+        leading: Navigator.canPop(context) ? const AppBackButton() : null,
         title: const Text('Zag Rewards', style: TextStyle(fontWeight: FontWeight.w900)),
         centerTitle: true,
         backgroundColor: Colors.transparent,

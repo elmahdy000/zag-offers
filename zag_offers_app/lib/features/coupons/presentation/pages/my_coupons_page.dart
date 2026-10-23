@@ -26,6 +26,7 @@ import '../../../../core/widgets/coupon_celebration_dialog.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
 import '../../../home/presentation/pages/main_screen.dart';
 import '../../../../core/utils/navigation_service.dart';
+import '../../../../core/widgets/app_back_button.dart';
 import '../../../offers/presentation/utils/offer_pricing_utils.dart';
 
 class MyCouponsPage extends StatefulWidget {
@@ -709,7 +710,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
                     ),
                     const SizedBox(width: 4),
                     Icon(
-                      Icons.arrow_forward_ios_rounded,
+                      NavigationService.getForwardIcon(context),
                       size: 13,
                       color: isDark ? Colors.white38 : Colors.grey.shade400,
                     ),
@@ -1195,15 +1196,7 @@ class _MyCouponsPageState extends State<MyCouponsPage> {
     final theme = Theme.of(context);
     return Scaffold(
       appBar: AppBar(
-        leading: Navigator.canPop(context)
-            ? IconButton(
-                icon: const Icon(
-                  Icons.arrow_back_ios_new_rounded,
-                  size: 20,
-                ),
-                onPressed: () => Navigator.pop(context),
-              )
-            : null,
+        leading: Navigator.canPop(context) ? const AppBackButton() : null,
         title: Row(
           mainAxisSize: MainAxisSize.min,
           children: [

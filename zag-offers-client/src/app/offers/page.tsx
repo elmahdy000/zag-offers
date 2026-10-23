@@ -3,8 +3,9 @@
 import React, { useState, useEffect, useMemo, useCallback, useRef, Suspense } from 'react';
 import Image from 'next/image';
 import { useSearchParams, useRouter, usePathname } from 'next/navigation';
-import { Search, Flame, Utensils, Coffee, Shirt, Dumbbell, Sparkles, Hospital, ShoppingCart, BookOpen, Car, Wrench, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2, ChevronDown, Check, RotateCcw } from 'lucide-react';
+import { Search, Flame, Layers, X, BadgePercent, MapPin, ArrowUpDown, SlidersHorizontal, CheckCircle2, ChevronDown, Check, RotateCcw } from 'lucide-react';
 import { OfferCard, SkeletonCard } from '@/components/offer-card';
+import { CategoryIcon } from '@/components/category-icon';
 import { ErrorDisplay, safeJsonParse } from '@/components/error-display';
 import { API_URL, ZAGAZIG_AREAS } from '@/lib/constants';
 import { normalizeCategories } from '@/lib/category-utils';
@@ -15,20 +16,6 @@ import { resolveImageUrl } from '@/lib/utils';
 import { Offer, Category, SortOption } from '@/lib/types';
 
 const AREAS = ZAGAZIG_AREAS;
-
-const CAT_ICONS: Record<string, React.ReactNode> = {
-  'مطاعم':         <Utensils size={12} />,
-  'كافيهات':       <Coffee size={12} />,
-  'ملابس':         <Shirt size={12} />,
-  'جيم':           <Dumbbell size={12} />,
-  'تجميل':         <Sparkles size={12} />,
-  'عيادات':        <Hospital size={12} />,
-  'سوبرماركت':    <ShoppingCart size={12} />,
-  'دورات':         <BookOpen size={12} />,
-  'خدمات سيارات': <Car size={12} />,
-  'خدمات محلية':  <Wrench size={12} />,
-  'default':       <Sparkles size={12} />,
-};
 
 // --- Debounce Hook ---
 function useDebounce<T>(value: T, delay: number): T {
@@ -344,7 +331,7 @@ function OffersPageContent() {
               <span className="offers-category-thumb">
                 {resolveImageUrl(cat.image) ? (
                   <Image src={resolveImageUrl(cat.image)!} alt="" fill sizes="32px" className="object-cover" />
-                ) : (CAT_ICONS[cat.name] || CAT_ICONS.default)}
+                ) : (<CategoryIcon name={cat.name} size={14} />)}
               </span>
               {cat.name}
             </button>
@@ -427,7 +414,7 @@ function OffersPageContent() {
               {/* Category Header */}
               <div className="offers-group-header">
                 <div className="offers-group-icon">
-                  {CAT_ICONS[categoryName] || <Layers size={13} />}
+                  <CategoryIcon name={categoryName} size={15} />
                 </div>
                 <h2>{categoryName}</h2>
                 <div className="h-px flex-1 bg-white/[0.04]" />

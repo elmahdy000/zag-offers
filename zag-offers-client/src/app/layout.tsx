@@ -3,6 +3,7 @@ import "@fontsource-variable/cairo";
 import "./globals.css";
 import { Navbar, Footer } from "@/components/layout-parts";
 import { NotificationProvider } from "@/components/notification-provider";
+import { MotionProvider } from "@/components/motion-provider";
 import BottomNav from "@/components/bottom-nav";
 import { ReactQueryProvider } from "@/lib/react-query-provider";
 
@@ -56,14 +57,16 @@ export default function RootLayout({
       <body className="antialiased">
         <ClientInit />
         <ReactQueryProvider>
-          <NotificationProvider>
-            <Navbar />
-            <main className="min-h-screen pt-[72px] pb-32 md:pb-0">
-              {children}
-            </main>
-            <Footer />
-            <BottomNav />
-          </NotificationProvider>
+          <MotionProvider>
+            <NotificationProvider>
+              <Navbar />
+              <main className="min-h-screen pt-[72px] pb-32 md:pb-0">
+                {children}
+              </main>
+              <Footer />
+              <BottomNav />
+            </NotificationProvider>
+          </MotionProvider>
         </ReactQueryProvider>
       </body>
     </html>

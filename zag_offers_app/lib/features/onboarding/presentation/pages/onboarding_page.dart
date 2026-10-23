@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_iconly/flutter_iconly.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 
 class OnboardingPage extends StatefulWidget {
   const OnboardingPage({super.key});
@@ -172,8 +173,8 @@ class _OnboardingPageState extends State<OnboardingPage> {
                               ),
                               if (_currentPage < _slides.length - 1) ...[
                                 const SizedBox(width: 4),
-                                const Icon(
-                                  Icons.arrow_forward_rounded,
+                                Icon(
+                                  NavigationService.getForwardIcon(context),
                                   size: 16,
                                   color: Colors.white,
                                 ),

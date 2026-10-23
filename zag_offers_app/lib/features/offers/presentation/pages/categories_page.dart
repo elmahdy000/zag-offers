@@ -12,6 +12,7 @@ import '../bloc/offers_state.dart';
 import '../constants/offer_categories.dart';
 import 'all_offers_page.dart';
 import 'search_page.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 class CategoriesPage extends StatelessWidget {
@@ -233,7 +234,7 @@ class CategoriesPage extends StatelessWidget {
                           child: IconButton(
                             padding: EdgeInsets.zero,
                             icon: Icon(
-                              Icons.arrow_back_ios_new_rounded,
+                              NavigationService.getBackIcon(context),
                               size: 16,
                               color: isDark ? Colors.white : AppColors.textPrimary,
                             ),
@@ -675,7 +676,7 @@ class CategoriesPage extends StatelessWidget {
                                                 ),
                                               ),
                                               Icon(
-                                                Icons.arrow_forward_ios_rounded,
+                                                NavigationService.getForwardIcon(context),
                                                 size: 12,
                                                 color: isDark
                                                     ? color.withValues(

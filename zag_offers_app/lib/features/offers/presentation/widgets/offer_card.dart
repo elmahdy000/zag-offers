@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../../../../core/widgets/bouncy_tap.dart';
 import '../../../../core/widgets/network_image_widget.dart';
+import '../../../../core/utils/navigation_service.dart';
 import '../../domain/entities/offer_entity.dart';
 import '../utils/offer_pricing_utils.dart';
 import 'favorite_button.dart';
@@ -485,8 +486,8 @@ class OfferCard extends StatelessWidget {
                         ),
                       ),
                       const SizedBox(width: 3.5),
-                      const Icon(
-                        Icons.arrow_forward_ios_rounded,
+                      Icon(
+                        NavigationService.getForwardIcon(context),
                         size: 9,
                         color: Colors.white,
                       ),

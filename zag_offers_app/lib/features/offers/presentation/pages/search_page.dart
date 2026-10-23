@@ -15,6 +15,7 @@ import 'package:zag_offers_app/features/offers/presentation/pages/offer_detail_p
 import 'package:zag_offers_app/features/offers/presentation/utils/offer_filter_utils.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/filter_bottom_sheet.dart';
 import 'package:zag_offers_app/features/offers/presentation/widgets/offer_card.dart';
+import 'package:zag_offers_app/core/utils/navigation_service.dart';
 import 'package:zag_offers_app/core/widgets/skeleton_loader.dart';
 
 class SearchPage extends StatefulWidget {
@@ -321,7 +322,7 @@ class _SearchPageState extends State<SearchPage> {
                   ),
                 ),
                 child: Icon(
-                  Icons.arrow_back_ios_new_rounded,
+                  NavigationService.getBackIcon(context),
                   size: 16,
                   color: isDark ? Colors.white : _darkNavy,
                 ),

@@ -330,3 +330,11 @@
 - **Resolution**: Converted all dismissible alignments to `AlignmentDirectional.centerEnd` and `EdgeInsetsDirectional.only(end: 24)`. Converted card badges and action overlays to `PositionedDirectional`.
 - **Prevention Invariant**: In RTL-first applications, never use physical `left` or `right` for directional items. Always use `start` and `end` with `Directional` primitives.
 
+---
+
+## 35. Crash on `double.infinity` Dimensions in `NetworkImageWidget`
+- **Symptom**: `Unsupported operation: Infinity cannot be cast to int` runtime crash when rendering cached network images with `width: double.infinity`.
+- **Root Cause**: `memCacheWidth: width?.toInt()` attempts to convert `double.infinity` to `int`, which throws an `UnsupportedError` in the Dart runtime.
+- **Resolution**: Guarded cache dimension casts with `.isFinite`: `(width != null && width!.isFinite) ? width!.toInt() : null` for both `memCacheWidth` and `memCacheHeight` in `network_image_widget.dart`.
+- **Prevention Invariant**: Whenever casting layout dimension constraints (`width`, `height`) from `double` to `int` for image caching or resizing, always assert `.isFinite` first.
+

@@ -67,10 +67,18 @@ const withPWA = withPWAInit({
 });
 
 const nextConfig: NextConfig = {
-  turbopack: {},
+  // Pin the workspace root: a stray `package-lock.json` higher up (e.g. in the
+  // user home) otherwise makes Next infer the wrong root, which pollutes
+  // file tracing and the dev watcher.
+  turbopack: {
+    root: process.cwd(),
+  },
   images: {
     formats: ['image/avif', 'image/webp'],
     minimumCacheTTL: 2_592_000,
+    // Next 16 requires an explicit allowlist; any `quality` prop outside this
+    // list is silently coerced to 75.
+    qualities: [60, 75, 76, 78, 85, 86],
     remotePatterns: [
       {
         protocol: 'https',

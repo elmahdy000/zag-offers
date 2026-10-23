@@ -18,6 +18,7 @@ import Link from 'next/link';
 import Image from 'next/image';
 import { API_URL } from '@/lib/constants';
 import { resolveImageUrl } from '@/lib/utils';
+import { resolveOfferPricing, formatPrice } from '@/lib/offer-pricing';
 import { QRCodeSVG } from 'qrcode.react';
 import { Lightbulb, Loader2 } from 'lucide-react';
 
@@ -28,19 +29,21 @@ interface Offer {
   discount: string;
   endDate: string;
   images: string[];
-  originalPrice?: number;
-  discountedPrice?: number;
+  originalPrice?: number | null;
+  /** Backend/Prisma field — the final price after the discount. */
+  newPrice?: number | null;
   status: 'ACTIVE' | 'PENDING' | 'EXPIRED' | string;
   store: {
     id: string;
     name: string;
-    logo?: string;
+    logo?: string | null;
     area: string;
     address?: string;
     phone?: string;
     whatsapp?: string;
     locationUrl?: string;
     category?: {
+      id?: string;
       name: string;
     };
   };
@@ -106,8 +109,10 @@ export default function OfferDetailsPage() {
   const [isVerifiedForReview, setIsVerifiedForReview] = useState(false);
   
   // Related Offers state
-  const [relatedOffers, setRelatedOffers] = useState<any[]>([]);
+  const [relatedOffers, setRelatedOffers] = useState<Offer[]>([]);
   const [showStickyBar, setShowStickyBar] = useState(false);
+  // Hydration-safe clock — never call Date.now() during render.
+  const [nowMs, setNowMs] = useState(0);
 
   const couponCardRef = useRef<HTMLDivElement>(null);
 
@@ -203,12 +208,14 @@ export default function OfferDetailsPage() {
     if (!offer?.id) return;
     const fetchRelated = async () => {
       try {
-        let list: any[] = [];
+        let list: Offer[] = [];
         if (offer.store?.id) {
           const storeRes = await fetch(`${API_URL}/offers/store/${offer.store.id}`);
           if (storeRes.ok) {
-            const storeData = await storeRes.json();
-            const storeOffers = (Array.isArray(storeData) ? storeData : storeData.items || []).filter((o: any) => o.id !== offer.id);
+            const storeData: Offer[] | { items?: Offer[] } = await storeRes.json();
+            const storeOffers = (Array.isArray(storeData) ? storeData : storeData.items || []).filter(
+              (candidate) => candidate.id !== offer.id,
+            );
             list = [...storeOffers];
           }
         }
@@ -217,9 +224,11 @@ export default function OfferDetailsPage() {
         if (list.length < 3) {
           const trendRes = await fetch(`${API_URL}/recommendations/trending`);
           if (trendRes.ok) {
-            const trendData = await trendRes.json();
-            const trendOffers = (Array.isArray(trendData) ? trendData : trendData.items || []).filter((o: any) => o.id !== offer.id);
-            const existingIds = new Set(list.map((o: any) => o.id));
+            const trendData: Offer[] | { items?: Offer[] } = await trendRes.json();
+            const trendOffers = (Array.isArray(trendData) ? trendData : trendData.items || []).filter(
+              (candidate) => candidate.id !== offer.id,
+            );
+            const existingIds = new Set(list.map((candidate) => candidate.id));
             for (const item of trendOffers) {
               if (!existingIds.has(item.id)) {
                 list.push(item);
@@ -244,6 +253,14 @@ export default function OfferDetailsPage() {
     };
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
+
+  // Countdown clock — state-backed so render stays pure.
+  useEffect(() => {
+    const tick = () => setNowMs(Date.now());
+    tick();
+    const interval = window.setInterval(tick, 60_000);
+    return () => window.clearInterval(interval);
   }, []);
 
   // Handle escape key to close modals
@@ -440,20 +457,20 @@ export default function OfferDetailsPage() {
 
   if (!offer) return null;
 
-  /* Helper Calculations */
+  /* Helper Calculations
+   * The clock is kept in state so render stays pure (react-hooks/purity).
+   * It ticks once a minute, which is plenty for day-granularity countdowns. */
   const endDate = offer.endDate ? new Date(offer.endDate) : null;
-  const isExpired = endDate ? (isNaN(endDate.getTime()) || endDate.getTime() <= Date.now()) : false;
-  const daysLeft = endDate && !isNaN(endDate.getTime()) 
-    ? Math.ceil((endDate.getTime() - Date.now()) / (1000 * 60 * 60 * 24)) 
-    : 0;
+  const endMs = endDate && !isNaN(endDate.getTime()) ? endDate.getTime() : null;
+  const hasClock = nowMs > 0;
+  const hasInvalidEndDate = endDate !== null && endMs === null;
+  const isExpired = hasInvalidEndDate || (endMs !== null && hasClock && endMs <= nowMs);
+  const daysLeft = endMs !== null && hasClock ? Math.max(0, Math.ceil((endMs - nowMs) / (1000 * 60 * 60 * 24))) : null;
 
-  const savings = (offer.originalPrice && offer.discountedPrice && offer.originalPrice > offer.discountedPrice)
-    ? Math.round(offer.originalPrice - offer.discountedPrice)
-    : null;
-
-  const discountPercent = (offer.originalPrice && offer.discountedPrice && offer.originalPrice > offer.discountedPrice)
-    ? Math.round(((offer.originalPrice - offer.discountedPrice) / offer.originalPrice) * 100)
-    : null;
+  // Single pricing authority — mirrors the Flutter app's OfferPricingResult.
+  const pricing = resolveOfferPricing(offer);
+  const savings = pricing.hasSavings ? pricing.savingsAmount : null;
+  const discountPercent = pricing.savingsPercentage > 0 ? pricing.savingsPercentage : null;
 
   const logoUrl = resolveImageUrl(offer.store?.logo);
   const images = (offer.images && offer.images.length > 0) ? offer.images : [];
@@ -503,9 +520,14 @@ export default function OfferDetailsPage() {
           {offer.store?.category?.name && (
             <>
               <RiArrowLeftSLine size={14} className="text-slate-400 dark:text-slate-600 shrink-0" />
-              <Link href={`/offers?category=${encodeURIComponent(offer.store.category.name)}`} className="hover:text-[#FF6500] transition-colors">
+              {offer.store.category.id ? (
+                // The `category` query param carries a category **id** — never a name.
+                <Link href={`/offers?category=${encodeURIComponent(offer.store.category.id)}`} className="hover:text-[#FF6500] transition-colors">
+                  <span>{offer.store.category.name}</span>
+                </Link>
+              ) : (
                 <span>{offer.store.category.name}</span>
-              </Link>
+              )}
             </>
           )}
           <RiArrowLeftSLine size={14} className="text-slate-400 dark:text-slate-600 shrink-0" />
@@ -608,11 +630,11 @@ export default function OfferDetailsPage() {
                 <div className="absolute top-5 right-5 flex flex-col items-end gap-2.5 pointer-events-none z-10">
                   <div className="bg-gradient-to-r from-[#FF4500] to-[#FF6500] text-white px-5 py-2.5 rounded-2xl font-black text-2xl sm:text-3xl shadow-2xl shadow-orange-600/40 border border-white/20 tracking-tight flex items-center gap-2">
                     <RiSparklingFill size={20} className="animate-pulse" />
-                    <span>{offer.discount}</span>
+                    <span>{pricing.topDiscountBadge || offer.discount}</span>
                   </div>
-                  {offer.originalPrice && (
+                  {pricing.originalPrice !== null && pricing.finalPrice !== null && (
                     <div className="bg-black/60 backdrop-blur-md px-3.5 py-1 rounded-xl text-xs font-black text-white/80 line-through border border-white/10 shadow-lg">
-                      {offer.originalPrice} ج.م
+                      {formatPrice(pricing.originalPrice)} ج.م
                     </div>
                   )}
                 </div>
@@ -622,7 +644,7 @@ export default function OfferDetailsPage() {
                   <div className="absolute top-5 left-5 px-3 py-1.5 rounded-xl bg-rose-600 text-white font-black text-xs shadow-xl flex items-center gap-1.5 z-10">
                     <RiCloseCircleFill size={15} /> منتهي الصلاحية
                   </div>
-                ) : daysLeft <= 3 && daysLeft > 0 ? (
+                ) : daysLeft !== null && daysLeft <= 3 && daysLeft > 0 ? (
                   <div className="absolute top-5 left-5 px-3 py-1.5 rounded-xl bg-amber-500 text-slate-950 font-black text-xs shadow-xl animate-pulse flex items-center gap-1.5 z-10">
                     <RiTimeLine size={15} /> ينتهي قريباً!
                   </div>
@@ -690,20 +712,22 @@ export default function OfferDetailsPage() {
                   </div>
                 </div>
 
-                {/* Price Panel */}
-                {(offer.discountedPrice || offer.originalPrice) && (
+                {/* Price Panel — single pricing authority, strikethrough only when a real lower price exists */}
+                {(pricing.finalPrice !== null || pricing.topDiscountBadge) && (
                   <div className="offer-price-panel" dir="ltr">
-                    {offer.discountedPrice && (
+                    {pricing.finalPrice !== null && (
                       <strong>
-                        {offer.discountedPrice}
+                        {formatPrice(pricing.finalPrice)}
                         <small>ج.م</small>
                       </strong>
                     )}
-                    {offer.originalPrice && <span>{offer.originalPrice} ج.م</span>}
-                    {savings && savings > 0 && (
+                    {pricing.originalPrice !== null && (
+                      <span>{formatPrice(pricing.originalPrice)} ج.م</span>
+                    )}
+                    {savings !== null && savings > 0 && (
                       <b>
                         <RiShieldCheckFill size={14} />
-                        وفّرت {savings} ج.م {discountPercent ? `(${discountPercent}%-)` : ''}
+                        وفّرت {formatPrice(savings)} ج.م {discountPercent ? `(${discountPercent}%)` : ''}
                       </b>
                     )}
                   </div>
@@ -744,13 +768,21 @@ export default function OfferDetailsPage() {
                   <div className={`flex items-center gap-2 px-4 py-2.5 rounded-2xl border text-xs font-bold ${
                     isExpired 
                       ? 'bg-rose-50 border-rose-200 text-rose-800 dark:bg-rose-950/40 dark:border-rose-800/40 dark:text-rose-300'
-                      : daysLeft <= 3 
+                      : daysLeft !== null && daysLeft <= 3 
                         ? 'bg-amber-50 border-amber-200 text-amber-900 dark:bg-amber-950/40 dark:border-amber-800/40 dark:text-amber-300'
                         : 'bg-slate-50 border-slate-200 text-slate-800 dark:bg-white/5 dark:border-white/10 dark:text-slate-200'
                   }`}>
-                    <RiTimeLine size={17} className={isExpired ? 'text-rose-500' : daysLeft <= 3 ? 'text-amber-500' : 'text-[#FF6500]'} />
+                    <RiTimeLine size={17} className={isExpired ? 'text-rose-500' : daysLeft !== null && daysLeft <= 3 ? 'text-amber-500' : 'text-[#FF6500]'} />
                     <span>
-                      {isExpired ? 'العرض منتهي الصلاحية' : daysLeft === 1 ? 'ينتهي اليوم!' : daysLeft <= 3 ? `ينتهي قريباً (باقي ${daysLeft} أيام)` : `ساري لمدة ${daysLeft} يوم`}
+                      {isExpired
+                        ? 'العرض منتهي الصلاحية'
+                        : daysLeft === null
+                          ? 'ساري ومتاح الآن'
+                          : daysLeft === 1
+                            ? 'ينتهي اليوم!'
+                            : daysLeft <= 3
+                              ? `ينتهي قريباً (باقي ${daysLeft} أيام)`
+                              : `ساري لمدة ${daysLeft} يوم`}
                     </span>
                   </div>
 
@@ -1064,11 +1096,13 @@ export default function OfferDetailsPage() {
             <div className="min-w-0 pr-1">
               <div className="flex items-baseline gap-2">
                 <strong className="text-lg font-black text-[#FF6500]">
-                  {offer.discountedPrice ? `${offer.discountedPrice} ج.م` : offer.discount}
+                  {pricing.finalPrice !== null
+                    ? `${formatPrice(pricing.finalPrice)} ج.م`
+                    : pricing.topDiscountBadge || offer.discount}
                 </strong>
-                {offer.originalPrice && (
+                {pricing.originalPrice !== null && (
                   <span className="text-[11px] text-slate-400 line-through">
-                    {offer.originalPrice} ج.م
+                    {formatPrice(pricing.originalPrice)} ج.م
                   </span>
                 )}
               </div>

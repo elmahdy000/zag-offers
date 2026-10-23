@@ -3,6 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:zag_offers_app/core/theme/app_colors.dart';
 import 'package:zag_offers_app/core/widgets/bouncy_tap.dart';
+import 'package:zag_offers_app/core/widgets/app_back_button.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_bloc.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_event.dart';
 import 'package:zag_offers_app/features/auth/presentation/bloc/auth_state.dart';
@@ -98,15 +99,7 @@ class _RegisterPageState extends State<RegisterPage> {
         child: Scaffold(
           appBar: AppBar(
             title: const Text('إنشاء حساب جديد'),
-            leading: Navigator.canPop(context)
-                ? IconButton(
-                    icon: const Icon(
-                      Icons.arrow_back_ios_new_rounded,
-                      size: 20,
-                    ),
-                    onPressed: () => Navigator.pop(context),
-                  )
-                : null,
+            leading: Navigator.canPop(context) ? const AppBackButton() : null,
           ),
           body: SafeArea(
             child: SingleChildScrollView(

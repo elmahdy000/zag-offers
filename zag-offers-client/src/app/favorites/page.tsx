@@ -18,21 +18,23 @@ export default function FavoritesPage() {
 
   const fetchFavorites = useCallback(async () => {
     const token = localStorage.getItem('token');
-    
+
+    // Anonymous visitors must NEVER see the per-account cache: on a shared
+    // device it would leak the previous user's saved offers.
+    if (!token) {
+      localStorage.removeItem('cache_favorites_v2');
+      const saved = safeJsonParse<Offer[]>(localStorage.getItem('favorites'), []);
+      setFavorites(saved);
+      favoritesRef.current = saved;
+      setLoading(false);
+      return;
+    }
+
     const cached = safeJsonParse<Offer[]>(localStorage.getItem('cache_favorites_v2'), []);
     if (cached.length > 0 && favoritesRef.current.length === 0) {
       setFavorites(cached);
       favoritesRef.current = cached;
       setLoading(false);
-    }
-
-    if (!token) {
-      const saved = safeJsonParse<Offer[]>(localStorage.getItem('favorites'), []);
-      setFavorites(saved);
-      favoritesRef.current = saved;
-      localStorage.setItem('cache_favorites_v2', JSON.stringify(saved));
-      setLoading(false);
-      return;
     }
 
     try {

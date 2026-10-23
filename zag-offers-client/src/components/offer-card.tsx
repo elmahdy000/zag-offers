@@ -1,19 +1,16 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { 
+import {
   RiMapPin2Line, RiHeartFill, RiStore3Line,
-  RiRestaurant2Fill, RiCupFill, RiShirtFill, 
-  RiHeartPulseFill, RiMagicFill, RiHospitalFill, 
-  RiShoppingCartFill, RiBookOpenFill, RiCarWashingFill, 
-  RiHammerFill, RiSparklingFill, RiScissors2Fill,
-  RiCake3Fill, RiGiftFill, RiGamepadFill, RiBearSmileFill,
-  RiHomeHeartFill, RiArrowLeftLine, RiTimeLine
+  RiArrowLeftLine, RiTimeLine
 } from 'react-icons/ri';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
 import { API_URL } from '@/lib/constants';
-import { resolveImageUrl, calculateDaysLeft, formatDiscount } from '@/lib/utils';
+import { resolveImageUrl, calculateDaysLeft } from '@/lib/utils';
+import { resolveOfferPricing, formatPrice } from '@/lib/offer-pricing';
+import { CategoryIcon } from '@/components/category-icon';
 
 interface Offer {
   id: string;
@@ -22,14 +19,16 @@ interface Offer {
   endDate: string;
   images: string[];
   isFeatured?: boolean;
-  originalPrice?: number;
-  discountedPrice?: number;
+  originalPrice?: number | null;
+  /** Backend/Prisma field — the final price after the discount. */
+  newPrice?: number | null;
   store: {
     id: string;
     name: string;
-    logo?: string;
-    area?: string;
+    logo?: string | null;
+    area?: string | null;
     category?: {
+      id?: string;
       name: string;
     };
   };
@@ -43,38 +42,7 @@ interface OfferCardProps {
   priority?: boolean;
 }
 
-const CAT_ICONS: Record<string, React.ReactNode> = {
-  'مطاعم':         <RiRestaurant2Fill size={14} />,
-  'دلع كرشك':      <RiRestaurant2Fill size={14} />,
-  'كافيهات':       <RiCupFill size={14} />,
-  'روقان':         <RiCupFill size={14} />,
-  'ملابس':         <RiShirtFill size={14} />,
-  'شياكة':         <RiShirtFill size={14} />,
-  'جيم':           <RiHeartPulseFill size={14} />,
-  'فورمة':          <RiHeartPulseFill size={14} />,
-  'تجميل':         <RiMagicFill size={14} />,
-  'دلع بنات':       <RiMagicFill size={14} />,
-  'عيادات':        <RiHospitalFill size={14} />,
-  'سوبرماركت':    <RiShoppingCartFill size={14} />,
-  'دورات':         <RiBookOpenFill size={14} />,
-  'طور نفسك':      <RiBookOpenFill size={14} />,
-  'خدمات سيارات': <RiCarWashingFill size={14} />,
-  'دلع عربيتك':    <RiCarWashingFill size={14} />,
-  'خدمات محلية':  <RiHammerFill size={14} />,
-  'حلاقين':       <RiScissors2Fill size={14} />,
-  'نعيماً':        <RiScissors2Fill size={14} />,
-  'حلويات':       <RiCake3Fill size={14} />,
-  'حلى بوقك':      <RiCake3Fill size={14} />,
-  'مناسبات':       <RiGiftFill size={14} />,
-  'عروستي':       <RiGiftFill size={14} />,
-  'ألعاب':         <RiGamepadFill size={14} />,
-  'اون فاير':      <RiGamepadFill size={14} />,
-  'أطفال':         <RiBearSmileFill size={14} />,
-  'عيالنا':        <RiBearSmileFill size={14} />,
-  'أدوات منزلية':  <RiHomeHeartFill size={14} />,
-  'ست البيت':      <RiHomeHeartFill size={14} />,
-  'default':       <RiSparklingFill size={14} />,
-};
+const CAT_ICONS_SIZE = 14;
 
 export function OfferCard({ offer, priority = false }: OfferCardProps) {
   const router = useRouter();
@@ -105,9 +73,11 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
   const daysLeft = calculateDaysLeft(offer.endDate);
 
+  // Single pricing authority — mirrors the Flutter app's OfferPricingResult.
+  const pricing = resolveOfferPricing(offer);
+
   const logoUrl = !logoFailed ? resolveImageUrl(offer.store?.logo) : null;
   const catName = offer.store?.category?.name || '';
-  const catIcon = CAT_ICONS[catName] || CAT_ICONS.default;
 
   const expiryColor =
     daysLeft <= 0 ? 'text-red-400' : daysLeft <= 3 ? 'text-orange-400' : 'text-[#9A9A9A]';
@@ -117,7 +87,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
     : daysLeft <= 3  ? `${daysLeft} أيام`
     : `${daysLeft} يوم`;
 
-  const discountDisplay = formatDiscount(offer.discount?.trim() || '') || '0%';
+  const discountDisplay = pricing.topDiscountBadge || 'خصم عام';
 
   const toggleFav = async (e: React.MouseEvent) => {
     e.preventDefault();
@@ -182,14 +152,14 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
             fill
             sizes="(max-width: 640px) 100vw, (max-width: 1024px) 50vw, 360px"
             className="object-cover group-hover:scale-105 transition-transform duration-500"
-            {...(priority ? { priority: true } : { loading: 'lazy' as const })}
+            {...(priority ? { preload: true } : { loading: 'lazy' as const })}
             onError={() => setImageFailed(true)}
           />
         ) : (
           /* Branded Designer Graphic Voucher (No depressing broken image text) */
           <div className="offer-image-fallback absolute inset-0 flex flex-col items-center justify-center p-5 text-center bg-gradient-to-br from-[#FFF4EA] via-[#FFEADB] to-[#FFD5BA] dark:from-[#0E1A2C] dark:via-[#16253D] dark:to-[#0B1526] overflow-hidden">
             <div className="w-14 h-14 rounded-2xl bg-white/95 dark:bg-[#1B2940] border border-[#FF6500]/25 shadow-md flex items-center justify-center text-[#FF6500] text-2xl mb-2 group-hover:scale-110 transition-transform">
-              {catIcon}
+              <CategoryIcon name={catName} size={24} />
             </div>
             <span className="text-xs font-black text-[#C74E00] dark:text-[#FF8A3D] block">
               {catName || 'عرض خاص'}
@@ -253,7 +223,7 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
         <div className="flex items-center justify-between gap-2">
           {catName && (
             <span className="text-xs font-bold text-[#FF6500] dark:text-[#FF8A3D] flex items-center gap-1.5 bg-[#FF6500]/10 dark:bg-[#FF6500]/15 px-2.5 py-0.5 rounded-lg">
-              <span className="opacity-90">{catIcon}</span>
+              <span className="opacity-90 inline-flex"><CategoryIcon name={catName} size={CAT_ICONS_SIZE} /></span>
               <span>{catName}</span>
             </span>
           )}
@@ -269,17 +239,23 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
           {offer.title}
         </h3>
 
-        {/* Pricing if present */}
-        {offer.discountedPrice ? (
+        {/* Pricing — driven by the shared pricing authority */}
+        {pricing.finalPrice !== null ? (
           <div className="flex items-baseline gap-2 pt-0.5" dir="ltr">
             <span className="text-lg font-black text-[#FF6500] dark:text-[#FF7A1A]">
-              {offer.discountedPrice} <small className="text-xs font-bold">ج.م</small>
+              {formatPrice(pricing.finalPrice)} <small className="text-xs font-bold">ج.م</small>
             </span>
-            {offer.originalPrice && (
+            {pricing.originalPrice !== null && (
               <span className="text-xs text-gray-400 dark:text-[#8FA0B8] line-through font-medium">
-                {offer.originalPrice} ج.م
+                {formatPrice(pricing.originalPrice)} ج.م
               </span>
             )}
+          </div>
+        ) : pricing.topDiscountBadge ? (
+          <div className="pt-0.5">
+            <span className="inline-flex items-center rounded-lg bg-[#FF6500]/10 px-2 py-0.5 text-[11px] font-black text-[#FF6500] dark:bg-[#FF6500]/15 dark:text-[#FF8A3D]">
+              {pricing.topDiscountBadge} على الفاتورة
+            </span>
           </div>
         ) : null}
 
