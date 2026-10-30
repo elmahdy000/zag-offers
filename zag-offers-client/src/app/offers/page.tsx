@@ -12,6 +12,7 @@ import { normalizeCategories } from '@/lib/category-utils';
 import { useNotifications } from '@/components/notification-provider';
 import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 import { resolveImageUrl } from '@/lib/utils';
+import { AreaPickerModal } from '@/components/area-picker-modal';
 
 import { Offer, Category, SortOption } from '@/lib/types';
 
@@ -98,19 +99,22 @@ function OffersPageContent() {
   };
   
   // Initial values from URL
-  const initialCat    = searchParams.get('category') || searchParams.get('categoryId') || '';
-  const initialArea   = searchParams.get('area') || '';
-  const initialSearch = searchParams.get('q') || '';
-  const initialSort   = (searchParams.get('sort') as SortOption) || 'newest';
+  const initialCat         = searchParams.get('category') || searchParams.get('categoryId') || '';
+  const initialArea        = searchParams.get('area') || '';
+  const initialSearch      = searchParams.get('q') || '';
+  const initialSort        = (searchParams.get('sort') as SortOption) || 'newest';
+  const initialMinDiscount = parseInt(searchParams.get('discount') || '0', 10) || 0;
 
-  const [offers,     setOffers]     = useState<Offer[]>([]);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [loading,    setLoading]    = useState(true);
-  const [error,      setError]      = useState<string | null>(null);
-  const [search,     setSearch]     = useState(initialSearch);
-  const [activeCat,  setActiveCat]  = useState(initialCat);
-  const [area,       setArea]       = useState(initialArea);
-  const [sort,       setSort]       = useState<SortOption>(initialSort);
+  const [offers,        setOffers]        = useState<Offer[]>([]);
+  const [categories,    setCategories]    = useState<Category[]>([]);
+  const [loading,       setLoading]       = useState(true);
+  const [error,         setError]         = useState<string | null>(null);
+  const [search,        setSearch]        = useState(initialSearch);
+  const [activeCat,     setActiveCat]     = useState(initialCat);
+  const [area,          setArea]          = useState(initialArea);
+  const [sort,          setSort]          = useState<SortOption>(initialSort);
+  const [minDiscount,   setMinDiscount]   = useState<number>(initialMinDiscount);
+  const [areaModalOpen, setAreaModalOpen] = useState(false);
   const debouncedSearch = useDebounce(search, 400);
 
   // Sync state with URL whenever filters change
@@ -121,19 +125,20 @@ function OffersPageContent() {
     if (area) params.set('area', area); else params.delete('area');
     if (search) params.set('q', search); else params.delete('q');
     if (sort !== 'newest') params.set('sort', sort); else params.delete('sort');
+    if (minDiscount > 0) params.set('discount', String(minDiscount)); else params.delete('discount');
     
     // Use replace to avoid polluting history stack with every keystroke
     router.replace(`${pathname}?${params.toString()}`, { scroll: false });
-  }, [activeCat, area, search, sort, pathname, router, searchParams]);
+  }, [activeCat, area, search, sort, minDiscount, pathname, router, searchParams]);
 
-  // Scroll when category / area / sort changes (immediate)
+  // Scroll when category / area / sort / discount changes (immediate)
   useEffect(() => {
     if (isFirstMount.current) {
       isFirstMount.current = false;
       return;
     }
     scrollToResults();
-  }, [activeCat, area, sort]);
+  }, [activeCat, area, sort, minDiscount]);
 
   // Scroll after search debounce settles — only if user stopped typing
   useEffect(() => {
@@ -231,9 +236,10 @@ function OffersPageContent() {
       query: debouncedSearch,
       categoryId: activeCat,
       area,
+      minDiscount,
       activeOnly: true,
     }), sort);
-  }, [offers, debouncedSearch, activeCat, area, sort]);
+  }, [offers, debouncedSearch, activeCat, area, minDiscount, sort]);
 
   const grouped = useMemo(() => {
     const groups: Record<string, Offer[]> = {};
@@ -340,6 +346,34 @@ function OffersPageContent() {
           ))}
         </div>
 
+        {/* Quick Discount Pills (matching Flutter FilterBottomSheet) */}
+        <div className="flex items-center gap-2 overflow-x-auto pb-1 pt-1 no-scrollbar text-xs font-bold" aria-label="تصفية حسب نسبة الخصم">
+          <span className="text-[#8FA0B8] shrink-0 text-xs pl-1">نسبة الخصم:</span>
+          {[
+            { value: 0, label: 'الكل' },
+            { value: 50, label: 'خصم 50%+ 🔥' },
+            { value: 30, label: 'خصم 30%+' },
+            { value: 20, label: 'خصم 20%+' },
+            { value: 10, label: 'خصم 10%+' },
+          ].map((item) => {
+            const isSelected = minDiscount === item.value;
+            return (
+              <button
+                key={item.value}
+                type="button"
+                onClick={() => setMinDiscount(item.value)}
+                className={`min-h-[38px] px-3.5 py-1.5 rounded-xl transition-all shrink-0 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] border ${
+                  isSelected
+                    ? 'bg-[#FF6500] border-[#FF6500] text-white shadow-[0_2px_10px_rgba(255,101,0,0.35)]'
+                    : 'bg-[#101A2B] border-white/5 text-[#8FA0B8] hover:text-white hover:border-white/15'
+                }`}
+              >
+                {item.label}
+              </button>
+            );
+          })}
+        </div>
+
         {/* Filters Grid */}
         <div className="offers-select-grid">
           <FilterDropdown
@@ -349,6 +383,21 @@ function OffersPageContent() {
             onChange={setArea}
             options={[{ value: '', label: 'كل المناطق' }, ...AREAS.filter((item) => item !== 'الكل').map((item) => ({ value: item, label: item }))]}
           />
+          <button
+            type="button"
+            onClick={() => setAreaModalOpen(true)}
+            aria-label="تصفح خريطة أحياء الزقازيق"
+            className="flex items-center justify-between px-4 py-3 rounded-2xl bg-[#0B1526] border border-[#25344A] hover:border-[#FF6500]/50 transition-all text-right focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500] min-h-[48px]"
+          >
+            <div className="flex items-center gap-2.5">
+              <span className="text-[#FF8A32]"><MapPin size={16} /></span>
+              <div className="flex flex-col">
+                <small className="text-[10px] text-[#8FA0B8] font-bold">تصفح أحياء الزقازيق</small>
+                <strong className="text-xs text-white font-bold">{area || 'كل المناطق (الافتراضي)'}</strong>
+              </div>
+            </div>
+            <span className="text-xs text-[#FF8A32] font-black">تغيير</span>
+          </button>
           <FilterDropdown
             label="الترتيب"
             icon={<ArrowUpDown size={16} />}
@@ -368,9 +417,9 @@ function OffersPageContent() {
         <div className="offers-results-bar">
           <p><span className="offers-result-count">{filtered.length}</span><span>عرض متاح لك الآن</span>
           </p>
-          {(search || activeCat || area) && (
+          {(search || activeCat || area || minDiscount > 0) && (
             <button
-              onClick={() => { setSearch(''); setActiveCat(''); setArea(''); }}
+              onClick={() => { setSearch(''); setActiveCat(''); setArea(''); setMinDiscount(0); }}
               className="offers-clear-button"
             >
               مسح الفلاتر
@@ -398,9 +447,9 @@ function OffersPageContent() {
               جرّب تغيير كلمة البحث أو استعراض كل الأقسام والمناطق
             </p>
           </div>
-          {(search || activeCat || area) && (
+          {(search || activeCat || area || minDiscount > 0) && (
             <button
-              onClick={() => { setSearch(''); setActiveCat(''); setArea(''); }}
+              onClick={() => { setSearch(''); setActiveCat(''); setArea(''); setMinDiscount(0); }}
               className="mt-2 inline-flex items-center gap-2 px-6 py-2.5 rounded-xl bg-gradient-to-r from-[#FF6500] to-[#FF8A32] text-white text-sm font-bold shadow-[0_4px_16px_rgba(255,101,0,0.35)] hover:shadow-[0_6px_22px_rgba(255,101,0,0.5)] active:scale-95 transition-all"
             >
               <RotateCcw size={16} />
@@ -436,6 +485,13 @@ function OffersPageContent() {
         </div>
       )}
       </div>
+
+      <AreaPickerModal
+        isOpen={areaModalOpen}
+        onClose={() => setAreaModalOpen(false)}
+        selectedArea={area}
+        onSelectArea={setArea}
+      />
     </div>
   );
 }

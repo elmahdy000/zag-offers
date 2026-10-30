@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiTicket2Fill, RiTimeLine, RiCheckboxCircleFill, 
-  RiShoppingBag3Fill, RiArrowRightLine, RiCloseLine, 
+  RiShoppingBag3Fill, RiArrowLeftLine, RiCloseLine, 
   RiQrCodeLine, RiShareLine, RiCloseCircleFill
 } from 'react-icons/ri';
 import Link from 'next/link';
@@ -219,7 +219,15 @@ export default function MyCouponsPage() {
                     : state === 'used' ? <><RiCheckboxCircleFill/> {stateCopy.label}</>
                     : <><RiCloseCircleFill/> {stateCopy.label}</>}
                 </span>
-                <button aria-label="فتح تفاصيل العرض" onClick={(e) => { e.stopPropagation(); if (coupon.offer?.id) router.push(`/offers/${coupon.offer.id}`); }}><RiArrowRightLine/></button>
+                <button
+                  type="button"
+                  aria-label="فتح تفاصيل العرض"
+                  title="فتح تفاصيل العرض"
+                  className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl text-slate-400 hover:text-white hover:bg-white/10 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
+                  onClick={(e) => { e.stopPropagation(); if (coupon.offer?.id) router.push(`/offers/${coupon.offer.id}`); }}
+                >
+                  <RiArrowLeftLine size={18} />
+                </button>
               </div>
               <div className="coupon-ticket-offer">
                 <div className="coupon-discount"><small>{getCouponDiscountDisplay(coupon.offer?.discount).label}</small><strong>{getCouponDiscountDisplay(coupon.offer?.discount).value}</strong></div>

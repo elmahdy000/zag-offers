@@ -346,3 +346,14 @@
 - **Resolution**: Guarded cache dimension casts with `.isFinite`: `(width != null && width!.isFinite) ? width!.toInt() : null` for both `memCacheWidth` and `memCacheHeight` in `network_image_widget.dart`.
 - **Prevention Invariant**: Whenever casting layout dimension constraints (`width`, `height`) from `double` to `int` for image caching or resizing, always assert `.isFinite` first.
 
+---
+
+## 36. Synchronous `setState` in React 19 / ESLint Effects (`react-hooks/set-state-in-effect`)
+- **Symptom**: ESLint failure `Error: Calling setState synchronously within an effect can trigger cascading renders` in Next.js 16 / React 19.
+- **Root Cause**: Calling `setState` directly inside the synchronous body of a `useEffect` hook causes immediate re-renders before browser paint, violating React 19 concurrency guidelines.
+- **Resolution**:
+  1. Move state resets into explicit user action callbacks (e.g. `handleClose` triggering `setSearch('')` upon modal close or item selection).
+  2. For external window/URL synchronization (e.g. `window.location.search`), defer state updates to the next microtask or tick via `setTimeout(..., 0)` with clean timer disposal in the cleanup function.
+- **Prevention Invariant**: Never invoke `setState()` synchronously in an effect body unless wrapping it in a deferred callback or handling it directly inside event listeners.
+
+

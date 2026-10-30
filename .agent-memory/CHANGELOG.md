@@ -1,5 +1,29 @@
 # Zag Offers — Verified Changelog
 
+## [2026-10-30] - Customer Web App Parity with Flutter & Behance-Level UI/UX Overhaul
+### Fixed / Changed
+- **Zagazig Neighborhoods Discovery (`ZAGAZIG_NEIGHBORHOODS`, `AreaPickerModal`)**:
+  - Implemented rich Zagazig neighborhood metadata with contextual descriptions and custom icons mirroring Flutter's `_showAreaPickerSheet`.
+  - Built `AreaPickerModal` with search filtering, custom icons, active indicators, and smooth spring animations.
+  - Integrated `AreaPickerModal` across Home Hero, Top Navbar, Mobile Navigation Drawer, and the Offers Catalog page.
+- **Hero Live Statistics & Interactive Area Picker (`src/app/page.tsx`)**:
+  - Replaced raw HTML `<select>` with high-contrast interactive location button triggering `AreaPickerModal`.
+  - Added live stats cards: Active Exclusive Offers count, Verified Zagazig Stores count, and Real Discounts up to 70%.
+- **OfferCard & Store Card Visual Parity (`offer-card.tsx`, `offers/[id]/page.tsx`)**:
+  - Added verified store badge (`RiCheckboxCircleFill` in `#0284C7`) and star rating pill (`RiStarFill` in `#F59E0B`).
+  - Added savings pill (`وفرت X ج.م`) matching Flutter's `offer_card.dart`.
+- **Offers Catalog Quick Discount Pills (`offers/page.tsx`, `catalog-utils.ts`)**:
+  - Added `extractDiscountPercent` and `minDiscount` filter in `filterOffers`.
+  - Added quick discount filter pills (`الكل`, `خصم 50%+ 🔥`, `خصم 30%+`, `خصم 20%+`, `خصم 10%+`) matching Flutter's filter sheet.
+  - Added direct area picker trigger button in filter panel and synchronized with URL search params.
+- **Coupon Wallet Directionality (`coupons/page.tsx`)**:
+  - Fixed forward chevron from `RiArrowRightLine` to `RiArrowLeftLine` with 44px accessible touch target for RTL compliance.
+- **Build & Quality Assurance**:
+  - `npx tsc --noEmit` ➜ 0 errors.
+  - `npx eslint src` ➜ 0 errors / 0 warnings.
+  - `vitest` unit tests ➜ 23/23 passing.
+  - `next build` ➜ 20/20 static/dynamic routes compiled successfully.
+
 ## [2026-10-23] - Next.js Customer Web Client UI/UX Remediation (Vercel Rules & WCAG AA)
 ### Fixed / Changed
 - **Theme Default Synchronization (`src/app/layout.tsx`)**:

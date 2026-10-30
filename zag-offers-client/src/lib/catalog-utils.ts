@@ -20,9 +20,20 @@ export function normalizeSearchQuery(value: string): string {
     .replace(/[\u064B-\u0652]/g, '');
 }
 
+export function extractDiscountPercent(offer: Offer): number {
+  if (offer.discount) {
+    const match = offer.discount.match(/(\d+)/);
+    if (match) return Number.parseInt(match[1], 10);
+  }
+  if (offer.originalPrice && offer.newPrice && offer.originalPrice > offer.newPrice) {
+    return Math.round(((offer.originalPrice - offer.newPrice) / offer.originalPrice) * 100);
+  }
+  return 0;
+}
+
 export function filterOffers(
   offers: Offer[],
-  filters: { query?: string; categoryId?: string; area?: string; activeOnly?: boolean },
+  filters: { query?: string; categoryId?: string; area?: string; minDiscount?: number; activeOnly?: boolean },
 ): Offer[] {
   const query = normalizeSearchQuery(filters.query || '');
   const now = Date.now();
@@ -32,6 +43,10 @@ export function filterOffers(
     if (filters.activeOnly && offer.endDate && new Date(offer.endDate).getTime() <= now) return false;
     if (filters.categoryId && offer.store.category?.id !== filters.categoryId && offer.store.categoryId !== filters.categoryId) return false;
     if (filters.area && offer.store.area !== filters.area) return false;
+    if (filters.minDiscount && filters.minDiscount > 0) {
+      const pct = extractDiscountPercent(offer);
+      if (pct < filters.minDiscount) return false;
+    }
     if (!query) return true;
 
     return [

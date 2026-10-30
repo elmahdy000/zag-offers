@@ -174,4 +174,17 @@
   2. Persistent labels prevent the navigation bar from "jumping" during tab switches and provide instant recognition for merchants.
   3. Physical `left`/`right` in an RTL context inverts dismiss directions and places status badges on the opposite side of the reading flow.
 
+---
+
+## 21. Web-to-Mobile Feature Parity & Neighborhood Discovery System
+- **Decision**:
+  1. The Next.js web client (`zag-offers-client`) must adopt the rich neighborhood metadata and selection modal introduced in Flutter's `_showAreaPickerSheet`.
+  2. Neighborhood selection must be omnipresent: accessible from the Home Hero, Top Navbar, Mobile Navigation Drawer, and the Offers Catalog Filter Bar.
+  3. Offers catalog must support quick minimum discount filter chips (`الكل`, `50%+`, `30%+`, `20%+`, `10%+`) powered by `extractDiscountPercent` and `minDiscount` filter parameter.
+  4. Store card and offer card components across the web client must mirror Flutter's verified badges (`#0284C7`), ratings (`#F59E0B`), and savings pills.
+- **Rationale**:
+  1. Zagazig is a neighborhood-centric city; customers search for offers based on their immediate vicinity (e.g. القومية, فلل الجامعة, المشاية, شارع المحافظة).
+  2. Providing full UI/UX parity between mobile and web ensures a unified, premium brand identity that delights users across all touchpoints.
+
+
 

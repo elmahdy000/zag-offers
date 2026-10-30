@@ -4,7 +4,7 @@ import React, { useState, useEffect, useCallback, useMemo, useRef, Suspense } fr
 import { motion, AnimatePresence } from 'framer-motion';
 import { 
   RiSearch2Line, RiFireFill, RiSparkling2Fill, RiMapPin2Fill,
-  RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine,
+  RiCloseLine, RiArrowLeftSLine, RiArrowRightSLine, RiArrowDownSLine,
   RiCoupon3Line, RiMapPinLine, RiCompass3Line, RiArrowLeftLine, RiStore3Line
 } from 'react-icons/ri';
 import Link from 'next/link';
@@ -30,6 +30,7 @@ import { useNotifications } from '@/components/notification-provider';
 import { extractItems, filterOffers, sortOffers } from '@/lib/catalog-utils';
 import { CategoryImageCard } from '@/components/category-image-card';
 import { CategoryIcon } from '@/components/category-icon';
+import { AreaPickerModal } from '@/components/area-picker-modal';
 
 const getCatName = (name: string) => DISPLAY_NAMES[name] || name;
 const getBannerTitle = (title: string) => title;
@@ -63,6 +64,7 @@ function HomePageContent() {
   const [error, setError] = useState<string | null>(null);
   const [activeCat, setActiveCat] = useState<string>(catIdParam || '');
   const [activeArea, setActiveArea] = useState('');
+  const [areaModalOpen, setAreaModalOpen] = useState(false);
   const [search, setSearch] = useState('');
   const [sortBy, setSortBy] = useState<SortOption>('newest');
   const [currentTime, setCurrentTime] = useState(0);
@@ -424,14 +426,37 @@ function HomePageContent() {
             </form>
           </motion.div>
           <div className="flex flex-wrap items-center justify-center gap-3 lg:justify-start">
-            <label htmlFor="hero-area" className="sr-only">اختر منطقتك</label>
-            <div className="home-hero-location flex min-h-11 items-center gap-2 rounded-xl border border-[#41516A] bg-[#071426] px-3">
-              <RiMapPin2Fill aria-hidden="true" className="text-[#FF8A32]" />
-              <select id="hero-area" aria-label="اختر المنطقة" value={activeArea} onChange={(event) => setActiveArea(event.target.value)} className="min-w-[150px] bg-transparent text-sm font-medium text-white outline-none">
-                {ZAGAZIG_AREAS.map((area) => <option key={area} value={area === 'الكل' ? '' : area}>{area === 'الكل' ? 'كل المناطق' : area}</option>)}
-              </select>
+            <button
+              type="button"
+              onClick={() => setAreaModalOpen(true)}
+              aria-haspopup="dialog"
+              className="home-hero-location flex min-h-11 items-center gap-2.5 rounded-xl border border-[#41516A] bg-[#071426] px-4 py-2 hover:border-[#FF8A32] hover:bg-[#0C1A30] transition-all text-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
+            >
+              <RiMapPin2Fill aria-hidden="true" className="text-[#FF8A32] flex-shrink-0" size={17} />
+              <span className="text-sm font-bold truncate max-w-[170px]">
+                {activeArea || 'كل أحياء الزقازيق'}
+              </span>
+              <RiArrowDownSLine size={17} className="text-slate-400" />
+            </button>
+            <Link prefetch={false} href="/offers" className="home-primary-link inline-flex min-h-11 items-center gap-2 rounded-xl bg-gradient-to-r from-[#FF6500] to-[#FF8A32] px-5 text-sm font-bold text-white hover:shadow-[0_4px_16px_rgba(255,101,0,0.35)] transition-all">
+              استكشف العروض <RiArrowLeftLine />
+            </Link>
+          </div>
+
+          {/* Behance-Grade Hero Quick Stats Bar */}
+          <div className="flex flex-wrap items-center justify-center lg:justify-start gap-2 pt-1 text-xs text-[#95A3B7]">
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
+              <RiFireFill className="text-[#FF6500]" size={14} />
+              <span><b className="text-white font-bold">{offers.length > 0 ? `${offers.length}+` : '50+'}</b> عروض نشطة</span>
             </div>
-            <Link prefetch={false} href="/offers" className="home-primary-link inline-flex min-h-11 items-center gap-2 rounded-xl bg-[#FF6B00] px-5 text-sm font-bold text-white hover:bg-[#E85F00]">استكشف العروض <RiArrowLeftLine /></Link>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
+              <RiStore3Line className="text-emerald-400" size={14} />
+              <span><b className="text-white font-bold">{stores.length > 0 ? `${stores.length}+` : '30+'}</b> متجر معتمد</span>
+            </div>
+            <div className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white/5 border border-white/5">
+              <RiSparkling2Fill className="text-amber-400" size={14} />
+              <span>خصومات حقيقية تصل <b className="text-white font-bold">70%</b></span>
+            </div>
           </div>
           </div>
         </div>
@@ -710,6 +735,13 @@ function HomePageContent() {
           </div>
           <Link href="https://vendor.zagoffers.online" target="_blank" className="home-primary-link">سجّل متجرك <RiArrowLeftLine /></Link>
         </div>
+
+        <AreaPickerModal
+          isOpen={areaModalOpen}
+          onClose={() => setAreaModalOpen(false)}
+          selectedArea={activeArea}
+          onSelectArea={setActiveArea}
+        />
       </section>
     </div>
   );

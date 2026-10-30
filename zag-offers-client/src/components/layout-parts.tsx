@@ -13,6 +13,7 @@ import { motion, AnimatePresence } from 'framer-motion';
 import { usePathname, useRouter } from 'next/navigation';
 import { API_URL } from '@/lib/constants';
 import { BrandMark } from '@/components/brand-mark';
+import { AreaPickerModal } from '@/components/area-picker-modal';
 
 interface ClientNotification {
   id: string;
@@ -206,8 +207,20 @@ export function Navbar() {
   const [showBell,         setShowBell]         = useState(false);
   const [mounted,          setMounted]          = useState(false);
   const [theme,            setTheme]            = useState<'light' | 'dark'>('dark');
+  const [areaModalOpen,    setAreaModalOpen]    = useState(false);
+  const [selectedArea,     setSelectedArea]     = useState('');
 
   const unreadCount = notifications.filter((n) => !n.isRead).length;
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      if (typeof window !== 'undefined') {
+        const sp = new URLSearchParams(window.location.search);
+        setSelectedArea(sp.get('area') || '');
+      }
+    }, 0);
+    return () => clearTimeout(timer);
+  }, [pathname]);
 
   useEffect(() => {
     const current = document.documentElement.dataset.theme === 'light' ? 'light' : 'dark';
@@ -358,9 +371,15 @@ export function Navbar() {
 
           {/* Actions */}
           <div className="mr-auto flex flex-shrink-0 items-center gap-1 sm:gap-2">
-            <span className="hidden items-center gap-1.5 px-2 text-xs font-semibold text-gray-700 dark:text-[#D3DAE5] xl:flex">
-              <RiMapPin2Line className="text-[#FF8A32]" size={17} /> كل المناطق
-            </span>
+            <button
+              type="button"
+              onClick={() => setAreaModalOpen(true)}
+              aria-label="اختر منطقتك في الزقازيق"
+              className="hidden items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200/60 dark:border-white/10 bg-gray-100/60 dark:bg-white/5 hover:bg-gray-200/70 dark:hover:bg-white/10 text-xs font-bold text-gray-800 dark:text-[#D3DAE5] hover:text-[#FF6500] dark:hover:text-white transition-all xl:flex min-h-[40px] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
+            >
+              <RiMapPin2Line className="text-[#FF8A32]" size={16} />
+              <span className="truncate max-w-[110px]">{selectedArea || 'كل المناطق'}</span>
+            </button>
             <Link
               prefetch={false}
               href="/favorites"
@@ -454,6 +473,17 @@ export function Navbar() {
               className="overflow-hidden border-t border-[#25344A] bg-[#0A1324] lg:hidden"
             >
               <div className="px-5 py-5 flex flex-col gap-1" dir="rtl">
+                <button
+                  type="button"
+                  onClick={() => { setIsMobileMenuOpen(false); setAreaModalOpen(true); }}
+                  className="flex items-center justify-between text-base font-bold py-3 px-4 rounded-xl transition-all border text-white bg-white/5 border-white/10 hover:bg-white/10 mb-2 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#FF6500]"
+                >
+                  <div className="flex items-center gap-2">
+                    <RiMapPin2Line className="text-[#FF8A32]" size={18} />
+                    <span>المنطقة: {selectedArea || 'كل المناطق'}</span>
+                  </div>
+                  <span className="text-xs text-[#FF8A32] font-black">تغيير</span>
+                </button>
                 {[
                   { href: '/',           label: 'الرئيسية' },
                   { href: '/categories', label: 'الأقسام' },
@@ -491,6 +521,16 @@ export function Navbar() {
           )}
         </AnimatePresence>
       </nav>
+
+      <AreaPickerModal
+        isOpen={areaModalOpen}
+        onClose={() => setAreaModalOpen(false)}
+        selectedArea={selectedArea}
+        onSelectArea={(area) => {
+          setSelectedArea(area);
+          router.push(area ? `/offers?area=${encodeURIComponent(area)}` : '/offers');
+        }}
+      />
     </>
   );
 }

@@ -3,7 +3,7 @@
 import React, { useState, useEffect } from 'react';
 import {
   RiMapPin2Line, RiHeartFill, RiStore3Line,
-  RiArrowLeftLine, RiTimeLine
+  RiArrowLeftLine, RiTimeLine, RiCheckboxCircleFill, RiStarFill
 } from 'react-icons/ri';
 import { useRouter } from 'next/navigation';
 import Image from 'next/image';
@@ -27,6 +27,10 @@ interface Offer {
     name: string;
     logo?: string | null;
     area?: string | null;
+    rating?: number | null;
+    ratingAvg?: number | null;
+    status?: string | null;
+    isVerified?: boolean;
     category?: {
       id?: string;
       name: string;
@@ -250,13 +254,20 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
 
         {/* Pricing — driven by the shared pricing authority */}
         {pricing.finalPrice !== null ? (
-          <div className="flex items-baseline gap-2 pt-0.5" dir="ltr">
-            <span className="text-lg font-black text-[#FF6500] dark:text-[#FF7A1A]">
-              {formatPrice(pricing.finalPrice)} <small className="text-xs font-bold">ج.م</small>
-            </span>
-            {pricing.originalPrice !== null && (
-              <span className="text-xs text-gray-400 dark:text-[#8FA0B8] line-through font-medium">
-                {formatPrice(pricing.originalPrice)} ج.م
+          <div className="flex items-baseline justify-between pt-0.5">
+            <div className="flex items-baseline gap-2" dir="ltr">
+              <span className="text-lg font-black text-[#FF6500] dark:text-[#FF7A1A]">
+                {formatPrice(pricing.finalPrice)} <small className="text-xs font-bold">ج.م</small>
+              </span>
+              {pricing.originalPrice !== null && (
+                <span className="text-xs text-gray-400 dark:text-[#8FA0B8] line-through font-medium">
+                  {formatPrice(pricing.originalPrice)} ج.م
+                </span>
+              )}
+            </div>
+            {pricing.hasSavings && pricing.savingsAmount > 0 && (
+              <span className="text-[10px] font-black text-emerald-600 dark:text-emerald-400 bg-emerald-500/10 border border-emerald-500/20 px-2 py-0.5 rounded-full">
+                وفرت {formatPrice(pricing.savingsAmount)} ج.م
               </span>
             )}
           </div>
@@ -268,15 +279,28 @@ export function OfferCard({ offer, priority = false }: OfferCardProps) {
           </div>
         ) : null}
 
-        {/* Store Name & Area */}
+        {/* Store Name, Verified Badge, Rating & Area */}
         <div className="flex items-center justify-between text-xs text-gray-500 dark:text-[#8FA0B8] pt-1">
           <div className="flex items-center gap-1.5 font-bold truncate max-w-[62%] text-gray-700 dark:text-[#CBD5E1]">
             <RiStore3Line size={15} className="text-[#FF6500] flex-shrink-0" />
             <span className="truncate">{offer.store?.name}</span>
+            {(offer.store?.isVerified || offer.store?.status === 'APPROVED') && (
+              <span title="متجر معتمد ومسجل" aria-label="متجر معتمد ومسجل" className="inline-flex text-[#0284C7] flex-shrink-0">
+                <RiCheckboxCircleFill size={14} />
+              </span>
+            )}
           </div>
-          <div className="flex items-center gap-1 flex-shrink-0">
-            <RiMapPin2Line size={14} className="text-[#FF6500]" />
-            <span>{offer.store?.area || 'الزقازيق'}</span>
+          <div className="flex items-center gap-1.5 flex-shrink-0">
+            {((offer.store?.rating || 0) > 0 || (offer.store?.ratingAvg || 0) > 0) && (
+              <span className="flex items-center gap-0.5 text-[11px] font-black text-amber-500 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                <RiStarFill size={11} className="text-[#F59E0B]" />
+                <span>{((offer.store?.rating || offer.store?.ratingAvg) || 0).toFixed(1)}</span>
+              </span>
+            )}
+            <div className="flex items-center gap-1 text-[11px]">
+              <RiMapPin2Line size={13} className="text-[#FF6500]" />
+              <span>{offer.store?.area || 'الزقازيق'}</span>
+            </div>
           </div>
         </div>
 

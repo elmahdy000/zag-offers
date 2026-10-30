@@ -9,7 +9,7 @@ import {
   RiArrowLeftSLine, RiArrowRightSLine, RiFileCopyLine, RiCheckboxCircleFill, 
   RiCloseCircleFill, RiErrorWarningFill, RiWhatsappFill, RiBuilding2Fill,
   RiHome5Line, RiShoppingBag3Line, RiPriceTag3Fill, RiZoomInLine, RiCloseLine,
-  RiSparklingFill, RiQrCodeLine, RiFireFill, RiFlashlightFill
+  RiSparklingFill, RiQrCodeLine, RiFireFill, RiFlashlightFill, RiStarFill
 } from 'react-icons/ri';
 import { ReviewSection } from '@/components/ReviewSection';
 import { ErrorDisplay } from '@/components/error-display';
@@ -42,6 +42,10 @@ interface Offer {
     phone?: string;
     whatsapp?: string;
     locationUrl?: string;
+    rating?: number | null;
+    ratingAvg?: number | null;
+    status?: string | null;
+    isVerified?: boolean;
     category?: {
       id?: string;
       name: string;
@@ -870,11 +874,26 @@ export default function OfferDetailsPage() {
                     </div>
                   )}
                 </div>
-                <div className="min-w-0">
-                  <h4 className="store-card-name truncate">{offer.store?.name}</h4>
-                  <p className="text-[11px] font-black text-[#FF6500] uppercase tracking-wider mt-0.5">
-                    {offer.store?.category?.name || 'تصنيف عام'}
-                  </p>
+                <div className="min-w-0 flex-1">
+                  <div className="flex items-center gap-1.5">
+                    <h4 className="store-card-name truncate">{offer.store?.name}</h4>
+                    {(offer.store?.isVerified || offer.store?.status === 'APPROVED') && (
+                      <span title="متجر معتمد ومسجل" aria-label="متجر معتمد ومسجل" className="inline-flex text-[#0284C7] shrink-0">
+                        <RiCheckboxCircleFill size={16} />
+                      </span>
+                    )}
+                  </div>
+                  <div className="flex items-center gap-2 mt-0.5">
+                    <p className="text-[11px] font-black text-[#FF6500] uppercase tracking-wider">
+                      {offer.store?.category?.name || 'تصنيف عام'}
+                    </p>
+                    {((offer.store?.rating || 0) > 0 || (offer.store?.ratingAvg || 0) > 0) && (
+                      <span className="flex items-center gap-0.5 text-[11px] font-black text-amber-500 dark:text-amber-400 bg-amber-500/10 px-1.5 py-0.5 rounded-md">
+                        <RiStarFill size={11} className="text-[#F59E0B]" />
+                        <span>{((offer.store?.rating || offer.store?.ratingAvg) || 0).toFixed(1)}</span>
+                      </span>
+                    )}
+                  </div>
                 </div>
               </div>
 
